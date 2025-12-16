@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>瑞华智策 - 综合管理后台</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { display: flex; min-height: 100vh; background-color: #f8f9fa; }
+        .sidebar { width: 260px; background-color: #212529; color: white; padding-top: 20px; flex-shrink: 0; }
+        .sidebar a { color: #adb5bd; padding: 15px 25px; display: block; text-decoration: none; }
+        .sidebar a.active, .sidebar a:hover { background-color: #0d6efd; color: white; }
+        .content { flex-grow: 1; padding: 30px; overflow-y: auto; }
+        .section { display: none; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .section.active { display: block; }
+        #editor { height: 400px; }
+        .img-preview { max-height: 80px; margin-top: 5px; display: none; border: 1px solid #ddd; padding: 2px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h4 class="text-center mb-4 text-white">CMS 系统</h4>
+        <a href="#" onclick="show('banner')" id="nav-banner" class="active"><i class="bi bi-image"></i> Banner管理</a>
+        <a href="#" onclick="show('sidebar')" id="nav-sidebar"><i class="bi bi-layout-sidebar"></i> 侧边栏配置</a>
+        <a href="#" onclick="show('article')" id="nav-article"><i class="bi bi-file-text"></i> 文章管理</a>
+        <a href="#" onclick="show('faq')" id="nav-faq"><i class="bi bi-question-circle"></i> FAQ管理</a>
+        <div class="mt-5 text-center"><a href="/admin/index.html" class="text-danger">退出登录</a></div>
+    </div>
+
+    <div class="content">
+        <div id="banner" class="section active">
+            <h3>Banner 配置</h3><hr>
+            <div class="row mb-3"><div class="col"><label>主标题</label><input type="text" id="b-title" class="form-control"></div><div class="col"><label>副标题</label><input type="text" id="b-subTitle" class="form-control"></div></div>
+            <div class="mb-3"><label>描述</label><textarea id="b-desc" class="form-control" rows="2"></textarea></div>
+            <div class="row mb-3 bg-light p-3 rounded"><div class="col-6"><label>按钮 1</label><input type="text" id="b-cta1Text" class="form-control mb-1"><input type="text" id="b-cta1Link" class="form-control"></div><div class="col-6"><label>按钮 2</label><input type="text" id="b-cta2Text" class="form-control mb-1"><input type="text" id="b-cta2Link" class="form-control"></div></div>
+            <div class="mb-3"><label>右侧图片链接</label><input type="text" id="b-image" class="form-control"></div>
+            <button class="btn btn-primary" onclick="saveBanner()">保存配置</button>
+        </div>
+
+        <div id="sidebar" class="section">
+            <h3>侧边栏配置</h3><hr>
+            <h5 class="text-success">白皮书</h5><div class="row mb-3"><div class="col"><input type="text" id="s-wp-title" class="form-control" placeholder="标题"></div><div class="col"><input type="text" id="s-wp-img" class="form-control" placeholder="图片"></div><div class="col"><input type="text" id="s-wp-link" class="form-control" placeholder="链接"></div></div>
+            <h5 class="text-success">推荐文章</h5>
+            <div class="mb-2"><input type="text" id="s-r1-t" class="form-control" placeholder="标题1"><input type="text" id="s-r1-l" class="form-control mt-1" placeholder="链接1"></div>
+            <div class="mb-2"><input type="text" id="s-r2-t" class="form-control" placeholder="标题2"><input type="text" id="s-r2-l" class="form-control mt-1" placeholder="链接2"></div>
+            <button class="btn btn-primary mt-3" onclick="saveSidebar()">保存配置</button>
+        </div>
+
+        <div id="faq" class="section">
+            <div class="d-flex justify-content-between"><h3>FAQ 管理</h3><button class="btn btn-success" onclick="openFaqModal()">+ 新增</button></div>
+            <table class="table mt-3 table-bordered"><tbody id="faqList"></tbody></table>
+        </div>
+
+        <div id="article" class="section">
+            <div class="d-flex justify-content-between"><h3>文章管理</h3><button class="btn btn-success" onclick="openArtModal()">+ 发布文章</button></div>
+            <table class="table mt-3 align-middle">
+                <thead class="table-light"><tr><th>标题</th><th>分类</th><th>作者</th><th>状态</th><th>操作</th></tr></thead>
+                <tbody id="artList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <input type="file" id="globalFileUpload" style="display:none" accept="image/*">
+
+    <div class="modal fade" id="artModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">编辑文章</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input type="hidden" id="artId">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6"><label>文章标题</label><input type="text" id="artTitle" class="form-control"></div>
+                        <div class="col-md-3"><label>分类</label><input type="text" id="artCat" class="form-control" placeholder="如: 行业洞察"></div>
+                        <div class="col-md-3 pt-4"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="artRec"><label>推荐到首页</label></div></div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-5">
+                            <label>封面图片 (上传)</label>
+                            <div class="input-group">
+                                <input type="text" id="artCover" class="form-control" placeholder="图片URL">
+                                <button class="btn btn-outline-secondary" type="button" onclick="triggerUpload('artCover')">上传</button>
+                            </div>
+                            <img id="preview-artCover" class="img-preview" src="">
+                        </div>
+                        <div class="col-md-7">
+                            <label>文章摘要</label>
+                            <textarea id="artSum" class="form-control" rows="3" placeholder="列表页显示的简短介绍"></textarea>
+                        </div>
+                    </div>
+
+                    <hr class="text-muted">
+                    
+                    <h6 class="text-primary mb-3">作者信息</h6>
+                    <div class="row mb-2">
+                        <div class="col-md-4">
+                            <label>姓名</label>
+                            <input type="text" id="authName" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label>头衔/短描述</label>
+                            <input type="text" id="authDesc" class="form-control" placeholder="如: 资深顾问">
+                        </div>
+                        <div class="col-md-4">
+                            <label>头像 (上传)</label>
+                            <div class="input-group">
+                                <input type="text" id="authAvatar" class="form-control" placeholder="头像URL">
+                                <button class="btn btn-outline-secondary" type="button" onclick="triggerUpload('authAvatar')">上传</button>
+                            </div>
+                            <img id="preview-authAvatar" class="img-preview" src="">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>详细介绍</label>
+                        <textarea id="authDetail" class="form-control" rows="2" placeholder="作者的详细背景介绍"></textarea>
+                    </div>
+
+                    <hr class="text-muted">
+
+                    <div class="mb-3">
+                        <label class="fw-bold mb-2">文章正文</label>
+                        <div id="editor"></div>
+                        <div class="form-text">提示：点击编辑器中的图片可修改尺寸和描述。</div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary" onclick="saveArt()">保存发布</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="imgAttrModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">图片设置</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="mb-2"><label>宽度 (px/%)</label><input type="text" id="imgWidth" class="form-control" placeholder="如: 100% 或 300"></div>
+                    <div class="mb-2"><label>高度 (px/%)</label><input type="text" id="imgHeight" class="form-control" placeholder="如: auto"></div>
+                    <div class="mb-2"><label>Alt 描述</label><input type="text" id="imgAlt" class="form-control" placeholder="图片描述"></div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary" onclick="applyImgAttrs()">应用</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="faqModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <input type="hidden" id="faqId">
+                    <input type="number" id="faqOrd" class="form-control mb-2" placeholder="排序">
+                    <input type="text" id="faqQ" class="form-control mb-2" placeholder="问题">
+                    <textarea id="faqA" class="form-control" rows="3" placeholder="回答"></textarea>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary" onclick="saveFaq()">保存</button></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script>
+        // 1. 初始化 Quill 并覆盖默认 Image Handler
+        const toolbarOptions = [
+            ['bold', 'italic', 'underline', 'strike'], 
+            [{ 'header': 1 }, { 'header': 2 }],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link', 'image'] 
+        ];
+        const quill = new Quill('#editor', { 
+            theme: 'snow', 
+            modules: { toolbar: { container: toolbarOptions, handlers: { image: quillImageHandler } } } 
+        });
+
+        document.addEventListener('DOMContentLoaded', () => { loadBanner(); loadSidebar(); loadArt(); loadFaq(); setupImageClick(); });
+
+        function show(id) {
+            document.querySelectorAll('.section').forEach(e => e.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.sidebar a').forEach(e => e.classList.remove('active'));
+            document.getElementById('nav-'+id).classList.add('active');
+        }
+
+        // ================= 文件上传逻辑 =================
+        let currentUploadTargetId = null; // 用于记录当前是哪个输入框在请求上传
+        const fileInput = document.getElementById('globalFileUpload');
+
+        // 触发上传
+        function triggerUpload(targetId) {
+            currentUploadTargetId = targetId; // targetId='artCover' 或 'authAvatar' 或 'EDITOR'
+            fileInput.value = ''; // 清空以允许重复选择同一文件
+            fileInput.click();
+        }
+
+        // 监听文件选择
+        fileInput.addEventListener('change', async function() {
+            if (!this.files || !this.files[0]) return;
+            const file = this.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                
+                if (data.success) {
+                    if (currentUploadTargetId === 'EDITOR') {
+                        // 插入到编辑器
+                        const range = quill.getSelection();
+                        quill.insertEmbed(range.index, 'image', data.url);
+                    } else {
+                        // 回填到表单 input
+                        document.getElementById(currentUploadTargetId).value = data.url;
+                        // 更新预览图
+                        const preview = document.getElementById('preview-' + currentUploadTargetId);
+                        if(preview) { preview.src = data.url; preview.style.display = 'block'; }
+                    }
+                } else {
+                    alert('上传失败: ' + data.message);
+                }
+            } catch (e) {
+                console.error(e);
+                alert('上传出错');
+            }
+        });
+
+        // Quill 自定义图片按钮处理
+        function quillImageHandler() {
+            triggerUpload('EDITOR');
+        }
+
+        // ================= 编辑器图片属性编辑 (Size & Alt) =================
+        let currentSelectedImg = null;
+        const imgAttrModal = new bootstrap.Modal(document.getElementById('imgAttrModal'));
+
+        function setupImageClick() {
+            // 监听编辑器内部点击事件
+            quill.root.addEventListener('click', (e) => {
+                if (e.target && e.target.tagName === 'IMG') {
+                    currentSelectedImg = e.target;
+                    // 回显当前属性
+                    document.getElementById('imgWidth').value = currentSelectedImg.getAttribute('width') || currentSelectedImg.style.width || '';
+                    document.getElementById('imgHeight').value = currentSelectedImg.getAttribute('height') || currentSelectedImg.style.height || '';
+                    document.getElementById('imgAlt').value = currentSelectedImg.getAttribute('alt') || '';
+                    imgAttrModal.show();
+                }
+            });
+        }
+
+        function applyImgAttrs() {
+            if (currentSelectedImg) {
+                const w = document.getElementById('imgWidth').value;
+                const h = document.getElementById('imgHeight').value;
+                const alt = document.getElementById('imgAlt').value;
+
+                if (w) currentSelectedImg.setAttribute('width', w); else currentSelectedImg.removeAttribute('width');
+                if (h) currentSelectedImg.setAttribute('height', h); else currentSelectedImg.removeAttribute('height');
+                if (alt) currentSelectedImg.setAttribute('alt', alt); else currentSelectedImg.removeAttribute('alt');
+                
+                // 同时设置 Style 以确保生效
+                currentSelectedImg.style.width = w;
+                currentSelectedImg.style.height = h;
+            }
+            imgAttrModal.hide();
+        }
+
+        // ================= Banner & Sidebar & FAQ (保持原有逻辑简化版) =================
+        async function loadBanner() { const d = await (await fetch('/api/banner')).json(); if(d) ['title','subTitle','description','cta1Text','cta1Link','cta2Text','cta2Link','imageUrl'].forEach(k => document.getElementById('b-'+k).value = d[k]||''); }
+        async function saveBanner() { const body = {}; ['title','subTitle','description','cta1Text','cta1Link','cta2Text','cta2Link','imageUrl'].forEach(k => body[k] = document.getElementById('b-'+k).value); await fetch('/api/banner', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)}); alert('已保存'); }
+        
+        async function loadSidebar() { const d = await (await fetch('/api/sidebar')).json(); if(d?.whitepaper) { document.getElementById('s-wp-title').value = d.whitepaper.title||''; document.getElementById('s-wp-img').value = d.whitepaper.imageUrl||''; document.getElementById('s-wp-link').value = d.whitepaper.link||''; } if(d?.recommendations) { if(d.recommendations[0]) { document.getElementById('s-r1-t').value=d.recommendations[0].title; document.getElementById('s-r1-l').value=d.recommendations[0].link; } if(d.recommendations[1]) { document.getElementById('s-r2-t').value=d.recommendations[1].title; document.getElementById('s-r2-l').value=d.recommendations[1].link; } } }
+        async function saveSidebar() { const body = { whitepaper: { title: document.getElementById('s-wp-title').value, imageUrl: document.getElementById('s-wp-img').value, link: document.getElementById('s-wp-link').value }, recommendations: [ { title: document.getElementById('s-r1-t').value, link: document.getElementById('s-r1-l').value }, { title: document.getElementById('s-r2-t').value, link: document.getElementById('s-r2-l').value } ] }; await fetch('/api/sidebar', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)}); alert('已保存'); }
+
+        async function loadFaq() { const list = await (await fetch('/api/faqs')).json(); document.getElementById('faqList').innerHTML = list.map(i => `<tr><td>${i.question}</td><td>${i.answer}</td><td><button class="btn btn-sm btn-primary" onclick='editFaq(${JSON.stringify(i)})'>编</button> <button class="btn btn-sm btn-danger" onclick="delFaq('${i._id}')">删</button></td></tr>`).join(''); }
+        let fModal; function openFaqModal() { fModal = new bootstrap.Modal(document.getElementById('faqModal')); document.getElementById('faqId').value=''; fModal.show(); }
+        function editFaq(i) { fModal = new bootstrap.Modal(document.getElementById('faqModal')); document.getElementById('faqId').value=i._id; document.getElementById('faqOrd').value=i.order; document.getElementById('faqQ').value=i.question; document.getElementById('faqA').value=i.answer; fModal.show(); }
+        async function saveFaq() { const id = document.getElementById('faqId').value; const body = { order: document.getElementById('faqOrd').value, question: document.getElementById('faqQ').value, answer: document.getElementById('faqA').value }; await fetch(id ? `/api/faqs/${id}` : '/api/faqs', { method: id?'PUT':'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)}); fModal.hide(); loadFaq(); }
+        async function delFaq(id) { await fetch(`/api/faqs/${id}`, { method: 'DELETE' }); loadFaq(); }
+
+        // ================= Article (核心修改) =================
+        let aModal;
+        async function loadArt() {
+            const list = await (await fetch('/api/articles')).json();
+            document.getElementById('artList').innerHTML = list.map(i => {
+                // 兼容旧数据：如果 author 是字符串，显示字符串；如果是对象，显示 name
+                const authorName = (typeof i.author === 'object' && i.author) ? i.author.name : (i.author || '-');
+                return `<tr>
+                    <td>${i.title}</td>
+                    <td>${i.category||'-'}</td>
+                    <td>${authorName}</td>
+                    <td>${i.isRecommended?'<span class="badge bg-success">推荐</span>':'<span class="badge bg-secondary">普通</span>'}</td>
+                    <td><button class="btn btn-sm btn-primary" onclick='editArt(${JSON.stringify(i).replace(/'/g, "&apos;")})'>编辑</button> <button class="btn btn-sm btn-danger" onclick="delArt('${i._id}')">删除</button></td>
+                </tr>`;
+            }).join('');
+        }
+
+        function openArtModal() { 
+            aModal = new bootstrap.Modal(document.getElementById('artModal')); 
+            // 清空表单
+            ['artId','artTitle','artCat','artSum','artCover','authName','authDesc','authAvatar','authDetail'].forEach(k=>document.getElementById(k).value='');
+            document.getElementById('artRec').checked=false;
+            document.getElementById('preview-artCover').style.display='none';
+            document.getElementById('preview-authAvatar').style.display='none';
+            quill.root.innerHTML=''; 
+            aModal.show(); 
+        }
+
+        function editArt(i) { 
+            aModal = new bootstrap.Modal(document.getElementById('artModal')); 
+            document.getElementById('artId').value = i._id; 
+            document.getElementById('artTitle').value = i.title; 
+            document.getElementById('artCat').value = i.category; 
+            document.getElementById('artSum').value = i.summary || ''; 
+            document.getElementById('artCover').value = i.coverImage || '';
+            document.getElementById('artRec').checked = i.isRecommended; 
+            
+            // 封面预览
+            const cvImg = document.getElementById('preview-artCover');
+            if(i.coverImage){ cvImg.src=i.coverImage; cvImg.style.display='block'; } else { cvImg.style.display='none'; }
+
+            // 作者信息处理 (兼容旧数据)
+            const auth = (typeof i.author === 'object' && i.author) ? i.author : { name: i.author };
+            document.getElementById('authName').value = auth.name || '';
+            document.getElementById('authAvatar').value = auth.avatar || '';
+            document.getElementById('authDesc').value = auth.desc || '';
+            document.getElementById('authDetail').value = auth.detail || '';
+            
+            // 头像预览
+            const avImg = document.getElementById('preview-authAvatar');
+            if(auth.avatar){ avImg.src=auth.avatar; avImg.style.display='block'; } else { avImg.style.display='none'; }
+
+            quill.root.innerHTML = i.content || ''; 
+            aModal.show(); 
+        }
+
+        async function saveArt() {
+            const id = document.getElementById('artId').value;
+            const body = { 
+                title: document.getElementById('artTitle').value, 
+                category: document.getElementById('artCat').value, 
+                summary: document.getElementById('artSum').value, 
+                coverImage: document.getElementById('artCover').value,
+                isRecommended: document.getElementById('artRec').checked, 
+                content: quill.root.innerHTML,
+                // 构建作者对象
+                author: {
+                    name: document.getElementById('authName').value,
+                    avatar: document.getElementById('authAvatar').value,
+                    desc: document.getElementById('authDesc').value,
+                    detail: document.getElementById('authDetail').value
+                }
+            };
+            await fetch(id ? `/api/articles/${id}` : '/api/articles', { method: id?'PUT':'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)});
+            aModal.hide(); 
+            loadArt();
+        }
+
+        async function delArt(id) { if(confirm('确认删除？')) { await fetch(`/api/articles/${id}`, { method: 'DELETE' }); loadArt(); } }
+    </script>
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文章详情 - 瑞华智策 CHO 智库</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+          theme: {
+            extend: { colors: { brand: { 50: "#f5f3ff", 100: "#ede9fe", 200: "#ddd6fe", 300: "#a78bfa", 400: "#a855f7", 500: "#8b5cf6", 600: "#7c3aed", 700: "#6d28d9", 800: "#5b21b6", 900: "#4c1d95" } } }
+          }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/styles.css" />
+    
+    <style>
+        #progress-bar { width: 0%; height: 4px; background: #7c3aed; position: fixed; top: 0; left: 0; z-index: 100; transition: width 0.1s; }
+        .bg-grid-slate-200 { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='%23e2e8f0'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e"); }
+        .prose { max-width: 100% !important; overflow-x: hidden; }
+        .prose img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 2rem 0; }
+        .prose p { margin-bottom: 1.5em; line-height: 1.8; color: #334155; }
+        .prose h2 { margin-top: 2rem; margin-bottom: 1rem; font-weight: 700; color: #1e293b; font-size: 1.5rem; border-left: 4px solid #7c3aed; padding-left: 1rem; }
+        .prose h3 { margin-top: 1.5rem; margin-bottom: 0.75rem; font-weight: 600; color: #334155; font-size: 1.25rem; }
+        .sticky-sidebar { position: sticky; top: 6rem; }
+    </style>
+</head>
+<body class="bg-white text-slate-800 antialiased selection:bg-brand-100 selection:text-brand-900 flex flex-col min-h-screen">
+
+    <div id="progress-bar"></div>
+
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="/index.html" class="flex-shrink-0 flex items-center gap-3 group">
+                    <img src="/images/logo.png" alt="瑞华智策 Logo" class="site-logo w-auto" />
+                    <div class="hidden sm:block border-l border-slate-200 pl-3">
+                        <span class="text-xs text-brand-600 font-medium ml-1">人力资本价值经营解决方案</span>
+                    </div>
+                </a>
+                <div class="hidden lg:flex space-x-2">
+                    <a href="/index.html" class="nav-link">首页</a>
+                    <a href="/solutions.html" class="nav-link">解决方案</a>
+                    <a href="/resources.html" class="nav-link font-semibold text-brand-700 bg-brand-50">资源中心</a>
+                    <a href="/index.html#cases" class="nav-link">成功案例</a>
+                    <a href="/about.html" class="nav-link">关于我们</a>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="/form1.html" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-full font-medium transition shadow-lg shadow-brand-500/20 hover:-translate-y-0.5 text-sm">
+                        预约专家咨询
+                    </a>
+                </div>
+                <button class="lg:hidden p-2 rounded-lg hover:bg-slate-100" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars text-slate-600 text-xl"></i>
+                </button>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden lg:hidden bg-white border-t border-slate-100 px-4 py-4">
+            <div class="flex flex-col space-y-2">
+                <a href="/index.html" class="nav-link">首页</a>
+                <a href="/solutions.html" class="mobile-nav-link">解决方案</a>
+                <a href="/resources.html" class="mobile-nav-link font-semibold text-brand-700 bg-brand-50">资源中心</a>
+                <a href="/index.html#cases" class="mobile-nav-link">成功案例</a>
+                <a href="/about.html" class="mobile-nav-link">关于我们</a>
+                <a href="/form1.html" class="bg-brand-600 text-white font-medium py-3 px-4 rounded-lg text-center mt-2">预约专家咨询</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="relative pt-32 pb-20 bg-slate-50 border-b border-slate-200 overflow-hidden">
+        <div class="absolute inset-0 z-0 opacity-40 bg-grid-slate-200 mask-gradient"></div>
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-brand-100 rounded-full blur-3xl opacity-40"></div>
+        <div class="absolute bottom-0 left-20 w-72 h-72 bg-blue-100 rounded-full blur-3xl opacity-40"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10"> 
+            <div class="max-w-4xl" id="article-header"> 
+                <div class="flex items-center gap-2 text-sm text-slate-500 mb-6">
+                    <a href="/index.html" class="hover:text-brand-600">首页</a>
+                    <i class="fas fa-angle-right text-xs"></i>
+                    <a href="/resources.html" class="hover:text-brand-600">行业洞察</a>
+                    <i class="fas fa-angle-right text-xs"></i>
+                    <span class="text-slate-900 font-medium" id="breadcrumb-title">加载中...</span>
+                </div>
+                <h1 class="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight" id="article-title">
+                    <i class="fas fa-circle-notch fa-spin text-4xl text-brand-200"></i>
+                </h1>
+                
+                <div class="flex items-center gap-6 text-sm text-slate-500 mt-8">
+                    <span class="flex items-center gap-2"><i class="far fa-calendar-alt text-brand-400"></i> <span id="article-date">--</span></span>
+                    <span class="flex items-center gap-2"><i class="far fa-clock text-brand-400"></i> <span id="article-readtime">--</span> 分钟阅读</span>
+                    <span class="flex items-center gap-2"><i class="fas fa-user-edit text-brand-400"></i> <span id="article-author">瑞华智策</span></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+        <div class="grid lg:grid-cols-12 gap-12">
+            
+            <div class="lg:col-span-8 flex flex-col">
+                <div class="prose max-w-none ql-editor mb-12" id="article-container" style="padding:0;">
+                    <div class="animate-pulse space-y-4">
+                        <div class="h-4 bg-slate-200 rounded w-3/4"></div>
+                        <div class="h-4 bg-slate-200 rounded"></div>
+                        <div class="h-4 bg-slate-200 rounded"></div>
+                        <div class="h-64 bg-slate-200 rounded w-full my-8"></div>
+                    </div>
+                </div>
+
+                <div id="article-nav" class="mt-auto border-t border-slate-100 pt-10">
+                    </div>
+            </div>
+
+            <aside class="lg:col-span-4 space-y-8">
+                <div class="sticky-sidebar">
+                    <div class="bg-white rounded-2xl shadow-xl border border-brand-100 p-6 text-center">
+                        <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fas fa-file-pdf"></i></div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-2" id="whitepaper-title">2025 年度白皮书</h3>
+                        <p class="text-sm text-slate-500 mb-6" id="whitepaper-desc">包含 5 大行业人效基线数据与 10+ 标杆案例复盘，助您洞察人力资本价值经营新趋势。</p>
+                        <a href="/form1.html" id="whitepaper-link" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg hover:shadow-brand-500/30 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2"><i class="fas fa-download"></i>免费下载完整版</a>
+                        <p class="text-xs text-slate-400 mt-4 border-t border-slate-100 pt-4">已有 <span class="text-brand-600 font-bold" id="whitepaper-count">1,240+</span> 位高管下载</p>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mt-6">
+                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">作者</h4>
+                        <div class="flex items-center gap-4">
+                            <img src="/images/andi.png" alt="作者头像" class="w-12 h-12 rounded-full object-cover border border-slate-200" id="expert-avatar">
+                            <div>
+                                <p class="font-bold text-slate-900" id="expert-title">瑞华智策专家组</p>
+                                <p class="text-xs text-slate-500" id="expert-desc">人力资本价值经营研究院</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-4 leading-relaxed" id="expert-detail">
+                            瑞华智策汇聚了来自华为、人瑞人才及全球顶尖咨询机构的实战专家。
+                        </p>
+                    </div>
+
+                    <div class="mt-8">
+                        <h4 class="text-sm font-bold text-slate-900 mb-4">相关推荐</h4>
+                        <div class="space-y-4">
+                            <a href="/resources.html" class="block group" id="rec-link-1">
+                                <span class="text-xs text-blue-600 font-medium mb-1 block" id="rec-cat-1">技术趋势</span>
+                                <h5 class="text-sm font-bold text-slate-700 group-hover:text-brand-600 transition" id="rec-title-1">AI Agent 在 HR 管理中的应用指南</h5>
+                            </a>
+                            <div class="h-px bg-slate-100"></div>
+                            <a href="/resources.html" class="block group" id="rec-link-2">
+                                <span class="text-xs text-purple-600 font-medium mb-1 block" id="rec-cat-2">CEO 必读</span>
+                                <h5 class="text-sm font-bold text-slate-700 group-hover:text-brand-600 transition" id="rec-title-2">CEO 视角：如何构建韧性组织</h5>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="bg-slate-900 pt-16 pb-8 text-white mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between gap-10 mb-10">
+                <div class="md:max-w-xl text-left">
+                    <a href="/index.html" class="inline-block mb-4">
+                        <img src="/images/logo.png" alt="瑞华智策" class="h-16 md:h-20 brightness-200 block">
+                    </a>
+                    <p class="text-slate-400 text-sm mb-4">瑞华智策以「咨询+技术+服务」三位一体的模式，助力企业构建「人力资本价值经营」体系，打造 AI 时代持续增长的韧性组织。</p>
+                    <div class="flex items-center gap-2 text-sm text-slate-500"><i class="fas fa-building"></i><span>人瑞人才</span><span class="text-brand-400 font-medium">(6919.HK)</span><span>旗下全资子公司</span></div>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-4">联系我们</h4>
+                    <ul class="space-y-2 text-sm text-slate-400 mb-4">
+                        <li class="flex items-center gap-2"><i class="fas fa-envelope text-brand-400"></i><a href="mailto:rxzjt@renruihr.com" class="hover:text-white transition">rxzjt@renruihr.com</a></li>
+                        <li class="flex items-center gap-2"><i class="fas fa-phone text-brand-400"></i><span>400-175-0886</span></li>
+                        <li class="flex items-center gap-2"><i class="fas fa-location-dot text-brand-400"></i><span>上海 · 北京 · 深圳 · 成都</span></li>
+                    </ul>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-brand-600 transition"><i class="fab fa-weixin"></i></a>
+                        <a href="#" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-brand-600 transition"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-6 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-sm text-slate-500">© 2025 瑞华智策 Ruihua Intelligent Strategy. All rights reserved.</p>
+                <div class="flex gap-6 text-sm text-slate-500"><a href="#" class="hover:text-white transition">隐私政策</a><a href="#" class="hover:text-white transition">服务条款</a></div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById("mobileMenu");
+            if (!menu) return;
+            menu.classList.toggle("hidden");
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await loadSidebar(); 
+            loadArticleContent(); 
+        });
+
+        async function loadSidebar() {
+            try {
+                const res = await fetch('/api/sidebar'); 
+                const config = await res.json();
+                if(!config) return;
+
+                if (config.whitepaper) {
+                    document.getElementById('whitepaper-title').innerText = config.whitepaper.title || '2025 年度白皮书';
+                    document.getElementById('whitepaper-link').href = config.whitepaper.link || '/form1.html';
+                }
+            } catch (err) { console.error("加载侧边栏配置失败:", err); }
+        }
+
+        async function loadArticleContent() {
+            let apiUrl = '';
+            
+            // 1. 优先尝试解析伪静态 URL
+            const pathname = window.location.pathname;
+            const slugMatch = pathname.match(/\/article\/(.+)\.html/);
+            
+            if (slugMatch && slugMatch[1]) {
+                const slug = slugMatch[1];
+                apiUrl = `/api/articles/slug/${slug}`;
+            } else {
+                // 2. 降级到 ID 参数
+                const params = new URLSearchParams(window.location.search);
+                const id = params.get('id');
+                if (id) {
+                    apiUrl = `/api/articles/${id}`;
+                }
+            }
+
+            const container = document.getElementById('article-container');
+            const navContainer = document.getElementById('article-nav'); 
+
+            if (!apiUrl) return;
+
+            try {
+                const res = await fetch(apiUrl);
+                if (!res.ok) throw new Error('Article not found');
+                const article = await res.json();
+                
+                // 【核心黑魔法】：如果是 ID 访问且文章有 slug，自动修改地址栏为伪静态，且不刷新页面
+                if (window.location.search.includes('id=') && article.slug) {
+                    const newUrl = `/article/${article.slug}.html`;
+                    window.history.replaceState({ path: newUrl }, '', newUrl);
+                }
+
+                document.title = `${article.title} - 瑞华智策`;
+                document.getElementById('breadcrumb-title').innerText = article.title;
+                document.getElementById('article-title').innerText = article.title;
+                
+                const date = new Date(article.publishDate).toLocaleDateString();
+                document.getElementById('article-date').innerText = date;
+                
+                let authName = '瑞华智策';
+                if (article.author) {
+                    if (typeof article.author === 'object') {
+                        authName = article.author.name;
+                        document.getElementById('expert-title').innerText = article.author.name;
+                        document.getElementById('expert-desc').innerText = article.author.desc || '专家';
+                        document.getElementById('expert-detail').innerText = article.author.detail || '暂无介绍';
+                        if (article.author.avatar) document.getElementById('expert-avatar').src = article.author.avatar;
+                    } else {
+                        authName = article.author; 
+                    }
+                }
+                document.getElementById('article-author').innerText = authName;
+
+                const textLength = article.content ? article.content.replace(/<[^>]*>/g, '').length : 0;
+                const readTime = Math.max(1, Math.ceil(textLength / 500));
+                document.getElementById('article-readtime').innerText = readTime;
+
+                let html = '';
+                if (article.summary) {
+                    html += `<div class="bg-brand-50/50 p-6 rounded-2xl border border-brand-100 mb-10 text-lg text-slate-700 leading-relaxed font-medium"><p class="mb-0"><strong class="text-brand-700">摘要：</strong> ${article.summary}</p></div>`;
+                }
+                html += article.content || '<p>暂无内容</p>';
+                container.innerHTML = html;
+
+                // 生成上一篇/下一篇 (伪静态链接)
+                let navHtml = `<div class="flex flex-col md:flex-row justify-between gap-4 w-full">`;
+
+                if (article.prev) {
+                    const prevLink = article.prev.slug 
+                        ? `/article/${article.prev.slug}.html` 
+                        : `/article.html?id=${article.prev._id}`;
+                    
+                    navHtml += `
+                        <a href="${prevLink}" class="group flex-1 p-5 rounded-xl border border-slate-100 hover:border-brand-200 hover:shadow-md transition text-left bg-white">
+                            <div class="text-xs text-slate-400 mb-1 flex items-center gap-1 group-hover:text-brand-500"><i class="fas fa-arrow-left"></i> 上一篇</div>
+                            <div class="font-bold text-slate-700 group-hover:text-brand-700 truncate">${article.prev.title}</div>
+                        </a>
+                    `;
+                } else {
+                    navHtml += `<div class="flex-1"></div>`; 
+                }
+
+                if (article.next) {
+                    const nextLink = article.next.slug 
+                        ? `/article/${article.next.slug}.html` 
+                        : `/article.html?id=${article.next._id}`;
+
+                    navHtml += `
+                        <a href="${nextLink}" class="group flex-1 p-5 rounded-xl border border-slate-100 hover:border-brand-200 hover:shadow-md transition text-right bg-white">
+                            <div class="text-xs text-slate-400 mb-1 flex items-center justify-end gap-1 group-hover:text-brand-500">下一篇 <i class="fas fa-arrow-right"></i></div>
+                            <div class="font-bold text-slate-700 group-hover:text-brand-700 truncate">${article.next.title}</div>
+                        </a>
+                    `;
+                } else {
+                    navHtml += `<div class="flex-1"></div>`;
+                }
+                navHtml += `</div>`; 
+
+                if(navContainer) navContainer.innerHTML = navHtml;
+
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = `<div class="text-center py-20"><h2 class="text-2xl font-bold text-slate-900">文章加载失败</h2></div>`;
+            }
+        }
+
+        window.onscroll = function() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById("progress-bar").style.width = scrolled + "%";
+        };
+    </script>
+</body>
+</html>

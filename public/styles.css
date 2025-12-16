@@ -1,0 +1,392 @@
+/* 基础排版 */
+body {
+  font-family: "Noto Sans SC", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+/* 顶部左侧主 Logo 尺寸 */
+.site-logo {
+  height: 5rem;   /* 5rem 高度 */
+  width: auto;    /* 按比例缩放 */
+}
+
+/* Banner 右侧人力资本价值经营大圆图 */
+.hero-wheel-container {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  aspect-ratio: 16 / 7; /* 适配你这张长图的比例，可微调 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 鼠标悬停：图片轻微放大 */
+.hero-wheel-container:hover .hero-wheel-image {
+  transform: scale(1.15);
+}
+
+/* FAQ 手风琴基础样式 */
+.faq-content {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  padding-top: 0.75rem;
+  padding-bottom: 0; /* 收起时不占多余高度 */
+  transition:
+    max-height 0.3s ease,
+    opacity 0.3s ease,
+    padding-bottom 0.3s ease;
+}
+
+/* 展开状态 */
+.faq-content.open {
+  max-height: 500px; /* 足够容纳文本即可，按需调大 */
+  opacity: 1;
+  padding-bottom: 1rem;
+}
+
+/* 小箭头旋转效果 */
+.faq-icon {
+  transition: transform 0.3s ease;
+}
+
+.faq-icon.rotate {
+  transform: rotate(180deg);
+}
+
+/* 人瑞底蕴合作伙伴 logo 区块 */
+.partner-logos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.75rem;
+  align-items: center;
+  font-size: 2.2rem;        /* 这里是 logo 大小，按你实际需求调 */
+  color: #cbd5f5;           /* 默认浅灰蓝 */
+}
+
+/* 每个 logo 的基础状态 */
+.partner-logos i {
+  opacity: 0.9;
+  transition: color 0.25s ease, transform 0.25s ease, text-shadow 0.25s ease;
+  cursor: default;          /* 如果想看起来更可点击，可以改成 pointer */
+}
+
+/* hover 变成品牌紫色 + 轻微放大 + 发光 */
+.partner-logos i:hover {
+  color: #7c3aed;           /* brand-600 紫色 */
+  transform: translateY(-3px) scale(1.08);
+  text-shadow: 0 0 12px rgba(124, 58, 237, 0.55);
+}
+
+/* 导航玻璃态 */
+.glass-nav {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+/* 渐变文字 */
+.text-gradient {
+  background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Hero 副标题字号调整 */
+.hero-subtitle {
+  font-size: 0.9rem; /* 覆盖 text-lg 的默认字号 */
+}
+
+/* 背景斜纹 + 渐变 */
+.hero-bg-combined {
+  background: radial-gradient(circle at top right, #f3e8ff 0%, #ffffff 40%, #f0f9ff 100%);
+}
+
+/* 桌面导航链接 */
+.nav-link {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  margin: 0 0.125rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+.nav-link:hover {
+  color: #7c3aed;
+  background-color: #f5f3ff;
+}
+
+/* 移动端导航 */
+.mobile-nav-link {
+  display: block;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+.mobile-nav-link:hover {
+  color: #7c3aed;
+  background-color: #f5f3ff;
+}
+
+/* Hero 小卡片 */
+.hero-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-radius: 0.95rem;
+  border: 1px solid #e2e8f0;
+  padding: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.06);
+}
+.hero-card-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+}
+.hero-card-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* 人瑞背书合作 Logo 区 */
+.partner-logos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: center;
+  font-size: 1.75rem;
+  color: #cbd5f5;
+}
+.partner-logos i {
+  opacity: 0.9;
+}
+
+/* ========= 双轮图全新样式（不会和旧 .gear 冲突） ========= */
+
+/* 左右两个轮子的定位和尺寸 */
+.dual-gear {
+  position: absolute;
+  top: 50%;
+  width: 48%;
+  max-width: 260px;
+  aspect-ratio: 1 / 1;
+  transform: translateY(-50%);
+  margin-top: 0.75rem;
+}
+.dual-gear-left {
+  left: 0;
+}
+.dual-gear-right {
+  right: 0;
+}
+
+/* 外环：旋转的圈 */
+.dual-gear-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  border-width: 6px;
+  border-style: solid;
+  background-color: #ffffff;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+}
+.dual-gear-ring::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 8px currentColor;
+  opacity: 0.18;
+}
+
+/* 只让外环慢速旋转，文字不转 */
+.dual-gear-ring-hc {
+  border-color: #8a2be2;
+  color: #8a2be2;
+  animation: spin-cw 16s linear infinite;
+}
+.dual-gear-ring-ai {
+  border-color: #4169e1;
+  color: #4169e1;
+  animation: spin-ccw 16s linear infinite;
+}
+
+/* 内容区：始终在最上层，不旋转 */
+.dual-gear-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 内部圆形标签 */
+.dual-gear-inner-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  width: 6rem;
+  height: 6rem;
+  border-width: 4px;
+  border-style: solid;
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+.dual-gear-inner-circle-hc {
+  border-color: #8a2be2;
+  color: #8a2be2;
+  background-color: #f5f3ff;
+}
+.dual-gear-inner-circle-ai {
+  border-color: #4169e1;
+  color: #4169e1;
+  background-color: #eff6ff;
+}
+
+/* 文本 */
+.dual-gear-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+}
+.dual-gear-sub {
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+}
+.dual-gear-sub-hc {
+  color: #8a2be2;
+}
+.dual-gear-sub-ai {
+  color: #4169e1;
+}
+.dual-gear-desc {
+  font-size: 0.625rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+/* 周围小标签 */
+.dual-gear-label {
+  position: absolute;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #475569;
+  background-color: #ffffff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+}
+
+/* 位置微调，尽量贴近你 PPT 的位置 */
+.dual-gear-label-left-middle {
+  left: -3.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.dual-gear-label-right-middle {
+  right: -3.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.dual-gear-label-right-top {
+  right: -0.5rem;
+  top: -1.5rem;
+}
+.dual-gear-label-left-top {
+  left: -0.5rem;
+  top: -1.5rem;
+}
+
+/* 中心闪电 */
+.gear-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4.5rem;
+  height: 4.5rem;
+  transform: translate(-50%, -50%);
+  margin-top: 0.75rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0f172a, #020617);
+  border: 4px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.45);
+  z-index: 30;
+}
+
+/* 动画 */
+@keyframes spin-cw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes spin-ccw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.08);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.94);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+@keyframes pulse-slow {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+.animate-blob {
+  animation: blob 7s infinite;
+}
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

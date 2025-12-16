@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>行业洞察 - 瑞华智策 CHO 智库 | 洞察·研究·实践</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="tailwind-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+        .tech-grid-bg {
+            background-image: linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+        .resource-card:hover .card-img { transform: scale(1.05); }
+        .category-tab { transition: all 0.3s ease; }
+        .category-tab.active { background-color: #7c3aed; color: white; border-color: #7c3aed; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); }
+        .fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .modal-animate { animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-brand-100 selection:text-brand-900">
+
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="index.html" class="flex-shrink-0 flex items-center gap-3 group">
+                    <img src="images/logo.png" alt="瑞华智策 Logo" class="site-logo w-auto" />
+                    <div class="hidden sm:block border-l border-slate-200 pl-3">
+                        <span class="text-xs text-brand-600 font-medium ml-1">人力资本价值经营解决方案</span>
+                    </div>
+                </a>
+                <div class="hidden lg:flex space-x-2">
+                    <a href="index.html" class="nav-link">首页</a>
+                    <a href="solutions.html" class="nav-link">解决方案</a>
+                    <a href="resources.html" class="nav-link font-semibold text-brand-700 bg-brand-50">资源中心</a>
+                    <a href="index.html#cases" class="nav-link">成功案例</a>
+                    <a href="about.html" class="nav-link">关于我们</a>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="form1.html" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-full font-medium transition shadow-lg shadow-brand-500/20 hover:-translate-y-0.5 text-sm">
+                        预约专家咨询
+                    </a>
+                </div>
+                <button class="lg:hidden p-2 rounded-lg hover:bg-slate-100" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars text-slate-600 text-xl"></i>
+                </button>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden lg:hidden bg-white border-t border-slate-100 px-4 py-4">
+            <div class="flex flex-col space-y-2">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="solutions.html" class="mobile-nav-link">解决方案</a>
+                <a href="resources.html" class="mobile-nav-link font-semibold text-brand-700 bg-brand-50">资源中心</a>
+                <a href="index.html#cases" class="mobile-nav-link">成功案例</a>
+                <a href="about.html" class="mobile-nav-link">关于我们</a>
+                <a href="form1.html" class="bg-brand-600 text-white font-medium py-3 px-4 rounded-lg text-center mt-2">预约专家咨询</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="relative pt-40 pb-20 bg-slate-900 text-white overflow-hidden">
+        <div class="absolute inset-0 opacity-20">
+            <img src="https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2029&auto=format&fit=crop" class="w-full h-full object-cover" alt="Background">
+        </div>
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <span class="text-brand-400 font-bold tracking-widest uppercase text-sm mb-4 block">Knowledge Hub</span>
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">瑞华智策 CHO 智库</h1>
+            <p class="text-xl text-slate-300 max-w-2xl mx-auto">汇聚 AI 战略、组织效能与人力资本价值经营的前沿洞察，赋能企业决策者。</p>
+        </div>
+    </section>
+
+    <section class="sticky top-20 z-40 bg-white/80 backdrop-blur border-b border-slate-200" id="filter-section">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-center space-x-2 py-4 overflow-x-auto no-scrollbar">
+                <button onclick="loadArticles('all', this)" class="category-tab active px-5 py-2 rounded-full border border-brand-600 bg-brand-600 text-white text-sm font-medium transition whitespace-nowrap">全部</button>
+                <button onclick="loadArticles('whitepaper', this)" class="category-tab px-5 py-2 rounded-full border border-slate-200 bg-white text-slate-600 text-sm font-medium hover:border-brand-500 hover:text-brand-600 transition whitespace-nowrap">白皮书</button>
+                <button onclick="loadArticles('tech', this)" class="category-tab px-5 py-2 rounded-full border border-slate-200 bg-white text-slate-600 text-sm font-medium hover:border-brand-500 hover:text-brand-600 transition whitespace-nowrap">技术趋势</button>
+                <button onclick="loadArticles('ceo', this)" class="category-tab px-5 py-2 rounded-full border border-slate-200 bg-white text-slate-600 text-sm font-medium hover:border-brand-500 hover:text-brand-600 transition whitespace-nowrap">CEO 必读</button>
+                <button onclick="loadArticles('industry', this)" class="category-tab px-5 py-2 rounded-full border border-slate-200 bg-white text-slate-600 text-sm font-medium hover:border-brand-500 hover:text-brand-600 transition whitespace-nowrap">行业洞察</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-16 tech-grid-bg min-h-screen">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" id="resources-grid">
+            <div class="text-center py-20 text-slate-400">
+                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                <p>正在加载资源...</p>
+            </div>
+        </div>
+    </section>
+
+    <div id="downloadModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeDownloadModal()"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg modal-animate">
+                    <div class="absolute right-4 top-4"><button type="button" class="text-slate-400 hover:text-slate-600 transition" onclick="closeDownloadModal()"><i class="fas fa-times text-xl"></i></button></div>
+                    <div class="p-8">
+                        <div class="text-center mb-6">
+                            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 mb-4"><i class="fas fa-file-download text-brand-600 text-xl"></i></div>
+                            <h3 class="text-xl font-bold leading-6 text-slate-900" id="modal-title">免费下载白皮书</h3>
+                            <p class="mt-2 text-sm text-slate-500">请填写以下信息，我们将资料发送至您的邮箱，并即刻为您开启下载权限。</p>
+                        </div>
+                        <form id="downloadForm" class="space-y-4">
+                            <input type="hidden" id="resourceName" name="resourceName">
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">姓名 <span class="text-red-500">*</span></label><input type="text" id="name" required class="block w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm"></div>
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">手机号码 <span class="text-red-500">*</span></label><input type="tel" id="phone" required pattern="^1[3-9]\d{9}$" class="block w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm"></div>
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">公司名称 <span class="text-red-500">*</span></label><input type="text" id="company" required class="block w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm"></div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">职位 <span class="text-red-500">*</span></label>
+                                <select id="position" required class="block w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm">
+                                    <option value="">请选择...</option><option value="CEO">企业主/CEO</option><option value="HRVP">CHO/HRVP</option><option value="HRD">HRD</option><option value="CIO">CIO/CTO</option><option value="Manager">部门经理</option><option value="Other">其他</option>
+                                </select>
+                            </div>
+                            <div class="pt-2"><button type="submit" class="flex w-full justify-center rounded-xl bg-brand-600 px-3 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 transition hover:-translate-y-0.5">提交并下载</button></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="py-20 bg-brand-900 text-white relative overflow-hidden">
+        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+        <div class="absolute top-0 right-0 w-96 h-96 bg-brand-500 rounded-full blur-[120px] opacity-30"></div>
+        <div class="max-w-4xl mx-auto px-4 text-center relative z-10">
+            <h2 class="text-3xl font-bold mb-4">订阅瑞华智策最新洞察</h2>
+            <p class="text-brand-100 mb-8 max-w-xl mx-auto">每周一期，我们将最新的 AI 管理趋势、人效数据报告发送至您的邮箱。</p>
+            <form class="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
+                <input type="email" placeholder="请输入您的工作邮箱" class="px-6 py-4 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-400 flex-grow" required>
+                <button type="submit" class="px-8 py-4 bg-brand-500 hover:bg-brand-400 text-white font-bold rounded-xl shadow-lg transition">立即订阅</button>
+            </form>
+        </div>
+    </section>
+
+    <footer class="bg-slate-900 pt-16 pb-8 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between gap-10 mb-10">
+                <div class="md:max-w-xl text-left">
+                    <a href="index.html" class="inline-block mb-4"><img src="images/logo.png" alt="瑞华智策" class="h-16 md:h-20 brightness-200 block"></a>
+                    <p class="text-slate-400 text-sm mb-4">瑞华智策以「咨询+技术+服务」三位一体的模式，助力企业构建「人力资本价值经营」体系。</p>
+                </div>
+            </div>
+            <div class="pt-6 border-t border-slate-800"><p class="text-sm text-slate-500">© 2025 瑞华智策.</p></div>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            loadArticles('all');
+        });
+
+        async function loadArticles(category, btnElement) {
+            if (btnElement) {
+                document.querySelectorAll('.category-tab').forEach(btn => {
+                    btn.classList.remove('active', 'bg-brand-600', 'text-white', 'border-brand-600');
+                    btn.classList.add('bg-white', 'text-slate-600', 'border-slate-200');
+                });
+                btnElement.classList.remove('bg-white', 'text-slate-600', 'border-slate-200');
+                btnElement.classList.add('active', 'bg-brand-600', 'text-white', 'border-brand-600');
+            }
+
+            const container = document.getElementById('resources-grid');
+            
+            try {
+                // 后端现在支持 category 参数筛选了
+                const res = await fetch(`/api/articles?category=${category}`);
+                const articles = await res.json();
+
+                container.innerHTML = ''; 
+
+                if (!articles || articles.length === 0) {
+                    container.innerHTML = '<div class="text-center py-20 text-slate-500">该分类下暂无内容</div>';
+                    return;
+                }
+
+                let html = '';
+                const first = articles[0];
+                const firstDate = new Date(first.publishDate).toISOString().split('T')[0];
+                const isWhitepaper = first.category === 'whitepaper' || first.category === '白皮书'; // 前端兼容判断
+                
+                const firstUrl = first.slug ? `/article/${first.slug}.html` : `article.html?id=${first._id}`;
+
+                const actionBtn = isWhitepaper 
+                    ? `<button onclick="openDownloadModal('${first.title}')" class="inline-flex items-center justify-center px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition shadow-lg hover:-translate-y-1"><i class="fas fa-download mr-2"></i> 下载完整版</button>`
+                    : `<a href="${firstUrl}" class="inline-flex items-center justify-center px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition shadow-lg hover:-translate-y-1">阅读全文</a>`;
+
+                html += `
+                <div class="mb-16 fade-in-up">
+                    <div class="bg-white rounded-3xl overflow-hidden shadow-xl border border-slate-100 group hover:shadow-2xl transition-all duration-300 grid md:grid-cols-2">
+                        <div class="relative h-64 md:h-auto overflow-hidden">
+                            <div class="absolute inset-0 bg-brand-900/20 group-hover:bg-transparent transition z-10"></div>
+                            <img src="${first.coverImage || 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80'}" class="w-full h-full object-cover transform group-hover:scale-105 transition duration-700">
+                        </div>
+                        <div class="p-8 md:p-12 flex flex-col justify-center relative">
+                            <div class="absolute top-0 right-0 p-6 opacity-10 text-9xl text-brand-500 rotate-12"><i class="fas fa-book"></i></div>
+                            <span class="inline-block px-3 py-1 bg-brand-100 text-brand-700 text-xs font-bold rounded-full w-fit mb-4 uppercase">${first.category}</span>
+                            <h2 class="text-3xl font-bold text-slate-900 mb-4 group-hover:text-brand-700 transition">${first.title}</h2>
+                            <p class="text-slate-600 mb-8 leading-relaxed line-clamp-3">${first.summary}</p>
+                            <div class="flex items-center gap-4">${actionBtn}<span class="text-sm text-slate-400">${firstDate}</span></div>
+                        </div>
+                    </div>
+                </div>
+                `;
+
+                if (articles.length > 1) {
+                    html += '<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">';
+                    articles.slice(1).forEach(art => {
+                        const date = new Date(art.publishDate).toISOString().split('T')[0];
+                        const artUrl = art.slug ? `/article/${art.slug}.html` : `article.html?id=${art._id}`;
+
+                        const isWp = art.category === 'whitepaper' || art.category === '白皮书';
+                        const cardAction = isWp
+                            ? `<button onclick="openDownloadModal('${art.title}')" class="text-brand-600 font-semibold text-sm hover:underline">立即下载 →</button>`
+                            : `<a href="${artUrl}" class="text-brand-600 font-semibold text-sm hover:underline">阅读文章 →</a>`;
+
+                        html += `
+                        <article class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100 resource-card group flex flex-col fade-in-up">
+                            <div class="h-48 overflow-hidden relative">
+                                <span class="absolute top-4 left-4 bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1 rounded-full z-10 uppercase">${art.category}</span>
+                                <img src="${art.coverImage || 'https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                            </div>
+                            <div class="p-6 flex flex-col flex-grow">
+                                <h3 class="text-xl font-bold text-slate-900 mb-3 group-hover:text-brand-600 transition line-clamp-2">${art.title}</h3>
+                                <p class="text-slate-500 text-sm mb-4 line-clamp-3 flex-grow">${art.summary}</p>
+                                <div class="mt-auto pt-4 border-t border-slate-100 flex justify-between items-center"><span class="text-xs text-slate-400">${date}</span>${cardAction}</div>
+                            </div>
+                        </article>
+                        `;
+                    });
+                    html += '</div>';
+                }
+
+                if (articles.length >= 6) {
+                    html += `<div class="mt-16 text-center"><button class="px-8 py-3 rounded-full border border-slate-300 text-slate-600 font-medium hover:bg-slate-50 hover:border-slate-400 transition">加载更多内容</button></div>`;
+                }
+                container.innerHTML = html;
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<div class="text-center py-20 text-red-500">加载失败，请确保后端服务 (node server.js) 已启动</div>';
+            }
+        }
+
+        function openDownloadModal(resourceName) {
+            const modal = document.getElementById('downloadModal');
+            const titleInput = document.getElementById('resourceName');
+            if (resourceName) { document.getElementById('modal-title').textContent = '下载：' + resourceName; titleInput.value = resourceName; } else { document.getElementById('modal-title').textContent = '免费下载白皮书'; }
+            modal.classList.remove('hidden');
+        }
+        function closeDownloadModal() { document.getElementById('downloadModal').classList.add('hidden'); }
+        document.getElementById('downloadForm').addEventListener('submit', function(e) { e.preventDefault(); setTimeout(() => { alert('提交成功！'); closeDownloadModal(); }, 1500); });
+    </script>
+</body>
+</html>
