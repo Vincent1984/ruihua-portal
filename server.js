@@ -5,8 +5,14 @@ const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
 
+// 加载环境变量
+require('dotenv').config();
+
+// 加载数据库配置
+const dbConfig = require('./config/database');
+
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -42,9 +48,12 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // 连接数据库
-mongoose.connect('mongodb://127.0.0.1:27017/ruihua_cms')
+const currentEnv = process.env.NODE_ENV || 'development';
+const mongoUrl = dbConfig[currentEnv].url;
+
+mongoose.connect(mongoUrl)
 .then(() => {
-    console.log('MongoDB 连接成功');
+    console.log(`MongoDB 连接成功 (${currentEnv}): ${mongoUrl}`);
     initData().then(fixExistingData); // 启动时尝试修复旧数据
 }).catch(err => console.error('MongoDB 连接失败:', err));
 
@@ -128,7 +137,10 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
 
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
-    if (username === 'zhice' && password === 'zhiceruihua123') {
+    const adminUsername = process.env.ADMIN_USERNAME || 'zhice';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'zhiceruihua123';
+    
+    if (username === adminUsername && password === adminPassword) {
         res.json({ success: true });
     } else {
         res.status(401).json({ success: false, message: '账号或密码错误' });
