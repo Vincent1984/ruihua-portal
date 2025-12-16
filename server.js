@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
+const axios = require('axios');
 
 // 加载环境变量
 require('dotenv').config();
@@ -90,6 +91,18 @@ const FaqSchema = new mongoose.Schema({
     question: String, answer: String, order: { type: Number, default: 0 }
 });
 const Faq = mongoose.model('Faq', FaqSchema);
+
+// 预约表
+const AppointmentSchema = new mongoose.Schema({
+    name: String,
+    phone: String,
+    company: String,
+    title: String,
+    problem: String,
+    source: String, // 来源页面
+    createdAt: { type: Date, default: Date.now }
+});
+const Appointment = mongoose.model('Appointment', AppointmentSchema);
 
 // ==========================================
 // 3. 数据初始化 & 自动修复
@@ -233,5 +246,142 @@ app.post('/api/articles', async (req, res) => {
 });
 app.put('/api/articles/:id', async (req, res) => { try { await Article.findByIdAndUpdate(req.params.id, req.body); res.json({ success: true }); } catch(e){ res.status(500).json({error:e.message}); } });
 app.delete('/api/articles/:id', async (req, res) => { try { await Article.findByIdAndDelete(req.params.id); res.json({ success: true }); } catch(e){ res.status(500).json({error:e.message}); } });
+
+// ==========================================
+// 钉钉通知功能
+// ==========================================
+async function sendDingTalkNotification(appointment) {
+    const webhookUrl = process.env.DINGTALK_WEBHOOK_URL;
+    const secret = process.env.DINGTALK_SECRET;
+    
+    if (!webhookUrl || webhookUrl.includes('YOUR_ACCESS_TOKEN')) {
+        console.log('钉钉 Webhook 未配置，跳过通知发送');
+        return;
+    }
+
+    try {
+        // 生成签名（如果有密钥）
+        let finalUrl = webhookUrl;
+        if (secret && !secret.includes('YOUR_SECRET')) {
+            const crypto = require('crypto');
+            const timestamp = Date.now();
+            const stringToSign = timestamp + '\n' + secret;
+            const sign = crypto.createHmac('sha256', secret).update(stringToSign).digest('base64');
+            finalUrl += `&timestamp=${timestamp}&sign=${encodeURIComponent(sign)}`;
+        }
+
+        const message = {
+            msgtype: 'markdown',
+            markdown: {
+                title: '新的预约提交',
+                text: `## 🎯 新的预约提交
+                
+**姓名：** ${appointment.name}
+**公司：** ${appointment.company}
+**职位：** ${appointment.title}
+**手机：** ${appointment.phone}
+**问题描述：** ${appointment.problem || '无'}
+**来源页面：** ${appointment.source}
+**提交时间：** ${new Date(appointment.createdAt).toLocaleString('zh-CN')}
+
+> 请及时跟进客户需求！`
+            }
+        };
+
+        await axios.post(finalUrl, message, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        console.log('钉钉通知发送成功');
+    } catch (error) {
+        console.error('钉钉通知发送失败:', error.message);
+    }
+}
+
+// ==========================================
+// 预约 API 接口
+// ==========================================
+app.post('/api/appointments', async (req, res) => {
+    try {
+        const { name, company, title, phone, problem, source } = req.body;
+        
+        // 基本验证
+        if (!name || !company || !title || !phone) {
+            return res.status(400).json({ 
+                success: false, 
+                error: '姓名、公司、职位和手机号为必填项' 
+            });
+        }
+
+        // 手机号格式验证
+        const phoneReg = /^1[3-9]\d{9}$/;
+        if (!phoneReg.test(phone)) {
+            return res.status(400).json({ 
+                success: false, 
+                error: '请输入有效的手机号码' 
+            });
+        }
+
+        // 创建预约记录
+        const appointment = new Appointment({
+            name: name.trim(),
+            company: company.trim(),
+            title: title.trim(),
+            phone: phone.trim(),
+            problem: problem ? problem.trim() : '',
+            source: source || 'unknown'
+        });
+
+        await appointment.save();
+        
+        // 发送钉钉通知
+        await sendDingTalkNotification(appointment);
+        
+        res.json({ 
+            success: true, 
+            message: '预约提交成功，我们会尽快与您联系！',
+            id: appointment._id 
+        });
+        
+    } catch (error) {
+        console.error('预约提交失败:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: '服务器错误，请稍后重试' 
+        });
+    }
+});
+
+// 获取预约列表（管理后台用）
+app.get('/api/appointments', async (req, res) => {
+    try {
+        const { page = 1, limit = 20 } = req.query;
+        const appointments = await Appointment.find()
+            .sort({ createdAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+        
+        const total = await Appointment.countDocuments();
+        
+        res.json({
+            success: true,
+            data: appointments,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        console.error('获取预约列表失败:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: '服务器错误' 
+        });
+    }
+});
 
 app.listen(PORT, () => { console.log(`后台服务已启动: http://localhost:${PORT}/admin/index.html`); });
