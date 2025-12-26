@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>关于我们 - 瑞华智策 | 人力资本价值经营专家</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/tailwind-config.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/favicon.ico">
+</head>
+<body class="bg-white text-slate-800 antialiased selection:bg-brand-100 selection:text-brand-900">
+
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="index.html" class="flex-shrink-0 flex items-center gap-3 group">
+                    <img src="/images/logo.png" alt="瑞华智策 Logo" class="site-logo w-auto" />
+                    <div class="hidden sm:block border-l border-slate-200 pl-3">
+                       <!-- <span class="text-xs text-slate-400">人瑞人才旗下公司</span>-->
+                        <span class="text-xs text-brand-600 font-medium ml-1">人力资本价值经营解决方案</span>
+                    </div>
+                </a>
+                <div class="hidden lg:flex space-x-2">
+                    <a href="index.html" class="nav-link">首页</a>
+                    <a href="solutions.html" class="nav-link">解决方案</a>
+                    <a href="resources.html" class="nav-link">行业洞察</a>
+                    <a href="index.html#cases" class="nav-link">成功案例</a>
+                    <a href="about.html" class="nav-link  font-semibold text-brand-700 bg-brand-50">关于我们</a>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="productivity.html" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-full font-medium transition shadow-lg shadow-brand-500/20 hover:-translate-y-0.5 text-sm">
+                        预约专家咨询
+                    </a>
+                </div>
+                <button class="lg:hidden p-2 rounded-lg hover:bg-slate-100" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars text-slate-600 text-xl"></i>
+                </button>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden lg:hidden bg-white border-t border-slate-100 px-4 py-4">
+            <div class="flex flex-col space-y-2">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="solutions.html" class="mobile-nav-link">解决方案</a>
+                <a href="resources.html" class="mobile-nav-link">行业洞察</a>
+                <a href="index.html#cases" class="mobile-nav-link">成功案例</a>
+                <a href="about.html" class="mobile-nav-link  font-semibold text-brand-700 bg-brand-50">关于我们</a>
+                <a href="productivity.html" class="bg-brand-600 text-white font-medium py-3 px-4 rounded-lg text-center mt-2">预约专家咨询</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="pt-40 pb-20 bg-slate-900 text-white relative overflow-hidden">
+        <div class="absolute inset-0 overflow-hidden">
+            <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-600 rounded-full blur-[120px] opacity-20 -mr-20 -mt-20"></div>
+            <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-600 rounded-full blur-[100px] opacity-20 -ml-20 -mb-20"></div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <span class="text-brand-400 font-bold tracking-widest uppercase text-sm mb-4 block">About Us</span>
+            
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-8">
+                <span class="block mb-3">人力资本价值经营一体化解决方案</span>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 to-blue-300">陪伴中国企业健康增长</span>
+                
+            </h1>
+            
+            <p class="text-base md:text-lg text-slate-300 w-full max-w-none mx-auto leading-relaxed md:whitespace-nowrap">
+                依托人瑞人才 (6919.HK) 十五年行业深耕，以“专业+技术”双轮驱动，帮助企业构建 AI 时代持续增长的韧性组织。
+            </p>
+        </div>
+    </section>
+
+    <section id="company" class="py-24 bg-white relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold uppercase mb-6">
+                        Since 2025
+                    </div>
+                    <h2 class="text-3xl font-bold text-slate-900 mb-6">
+                        瑞华智策
+                    </h2>
+                    <div class="prose prose-lg text-slate-600">
+                        <p class="mb-4">
+                            瑞华智策于 2025 年正式创立，是<strong>人瑞人才 (股份代号: 6919.HK)</strong> —— 中国领先的一体化人力资源服务与数字技术解决方案提供商旗下的全资子公司。
+                        </p>
+                        <p class="mb-4">
+                            我们专注于为企业提供一体化的“人力资本价值经营”解决方案。依托人瑞人才深耕行业十五年来对大型企业管理升级的深刻理解，瑞华智策从诞生伊始就奠定了<strong>“专业+技术”双轮驱动</strong>的服务内核。
+                        </p>
+                        <p>
+                            通过<strong>“咨询+技术+服务”</strong>三位一体的模式，我们助力企业从“资源红利”向“价值红利”转型，优化人力资本投入产出比，实现从人效提升到利润增长的经营目标。
+                        </p>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-6 mt-10 border-t border-slate-100 pt-8">
+                        <div>
+                            <div class="text-3xl font-bold text-brand-600">6919.HK</div>
+                            <div class="text-xs text-slate-500 mt-1">母公司上市代码</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-brand-600">15+</div>
+                            <div class="text-xs text-slate-500 mt-1">年行业深耕积淀</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-brand-600">20%</div>
+                            <div class="text-xs text-slate-500 mt-1">致力于提升人效</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="relative">
+                    <div class="absolute -inset-4 bg-gradient-to-tr from-brand-100 to-blue-100 rounded-[2rem] transform rotate-3"></div>
+                    <img src="/images/ruihua.jpg" alt="上海国际静安中心" class="relative rounded-2xl shadow-xl w-full h-[500px] object-cover">
+                    
+                    <div class="absolute -bottom-8 -left-8 bg-white p-6 rounded-xl shadow-2xl max-w-xs animate-float">
+                        <div class="flex items-center gap-4 mb-3">
+                            <div class="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center text-brand-600 text-xl">
+                                <i class="fas fa-handshake"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">价值共赢</h4>
+                                <p class="text-xs text-slate-500">客户 · 企业 · 人才</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            推动企业健康增长，共同探索 AI 时代下的 HR 管理新范式。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="team" class="py-24 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <span class="text-brand-600 font-bold tracking-widest uppercase text-sm">Leadership</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-4">核心管理团队</h2>
+                <p class="text-slate-600 max-w-2xl mx-auto mt-4">
+                    汇聚战略、技术与人力资源领域的顶尖专家
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 items-start">
+                
+                <div class="bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 group">
+                    <div class="h-80 bg-slate-200 relative overflow-hidden">
+                         <img src="/images/andi.png" alt="高燕 Andi" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-slate-900/90 to-transparent p-6">
+                            <h3 class="text-2xl font-bold text-white">高燕 Andi</h3>
+                            <p class="text-brand-300 font-medium">副总裁</p>
+                        </div>
+                    </div>
+                    <div class="p-8 relative">
+                         <div class="absolute -top-6 right-6 bg-brand-600 text-white text-xs px-3 py-1 rounded-full shadow-lg">
+                            《价值驱动增长》作者
+                        </div>
+                        <ul class="space-y-3 text-sm text-slate-600">
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-graduation-cap text-brand-500 mt-1"></i>
+                                <span>乔治城大学 MBA，中国人民大学劳动人事学院本科。</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-rocket text-brand-500 mt-1"></i>
+                                <span><strong>资深战略营销与增长专家</strong>，兼具 B2B 与 B2C 领域实战经验。</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-briefcase text-brand-500 mt-1"></i>
+                                <span>曾成功操盘<strong>多家行业头部SaaS</strong>企业的战略营销体系与品牌升级。</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-users text-brand-500 mt-1"></i>
+                                <span>为数百家头部企业提供咨询服务，收获零差评口碑。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 group transform md:-translate-y-4 shadow-xl border-t-4 border-brand-500 z-10 relative">
+                    <div class="h-80 bg-slate-200 relative overflow-hidden">
+                        <img src="/images/zhangjianguo.png" alt="张建国" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-brand-900/90 to-transparent p-6">
+                            <h3 class="text-2xl font-bold text-white">张建国</h3>
+                            <p class="text-brand-300 font-medium">总裁 / 创始人</p>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <ul class="space-y-3 text-sm text-slate-600">
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-star text-brand-500 mt-1"></i>
+                                <span><strong>人瑞人才集团创始人</strong>，北京大学 MBA，高级经济师。</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-history text-brand-500 mt-1"></i>
+                                <span>曾任<strong>华为首任人力资源副总裁</strong>，组织了《华为基本法》的起草。</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-chart-line text-brand-500 mt-1"></i>
+                                <span>曾任中华英才网 CEO，带领团队实现连续 3 年 100% 增长。</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-book text-brand-500 mt-1"></i>
+                                <span>著有《经营者思维》、《灵活用工》等行业畅销书。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 group">
+                    <div class="h-80 bg-slate-200 relative overflow-hidden">
+                        <img src="/images/vincent.png" alt="杨兴宇 Vincent" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-slate-900/90 to-transparent p-6">
+                            <h3 class="text-2xl font-bold text-white">杨兴宇 Vincent</h3>
+                            <p class="text-brand-300 font-medium">CTO / 首席技术官</p>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <ul class="space-y-3 text-sm text-slate-600">
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-code-branch text-brand-500 mt-1"></i>
+                                <span><strong>资深数字化战略与架构专家</strong>，北京大学工程管理硕士 (MEM)。</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-laptop-code text-brand-500 mt-1"></i>
+                                <span>20年 IT 积淀，曾任捷信亚太区、雨润集团等核心决策岗位 (CIO/CTO)。</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-brand-500 mt-1"></i>
+                                <span>主导捷信亚太区从 0 到 1 数字化转型，助力业务逆势增长。</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-cogs text-brand-500 mt-1"></i>
+                                <span>精通从企业架构到技术执行的全链路管理，兼备甲方与乙方视角。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="philosophy" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <span class="text-brand-600 font-bold tracking-widest uppercase text-sm">Core Philosophy</span>
+                    <h2 class="text-3xl font-bold text-slate-900 mt-4 mb-6">资源红利时代 <i class="fas fa-arrow-right text-slate-300 mx-2"></i> <span class="text-brand-600">价值红利时代</span></h2>
+                    <p class="text-slate-600 mb-6 leading-relaxed">
+                        当我们从“资源红利”时代进入“价值红利”时代，中国企业的经营范式必须变革。瑞华智策提出<strong>人力资本价值经营 (HCVM)</strong> 理论：
+                    </p>
+                    
+                    <div class="space-y-6">
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-slate-700 flex-shrink-0">
+                                <i class="fas fa-external-link-alt"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">对外：创新与性价比</h4>
+                                <p class="text-sm text-slate-500 mt-1">通过创新人才和技术，持续为客户提供极致性价比的产品和服务。</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center text-brand-600 flex-shrink-0">
+                                <i class="fas fa-compress-arrows-alt"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">对内：优化投入产出比</h4>
+                                <p class="text-sm text-slate-500 mt-1">在技术赋能下，持续优化人力资本的投入产出比，进而提升企业的经营利润。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-8 border-t border-slate-100">
+                        <div class="inline-block bg-slate-900 text-white px-6 py-3 rounded-lg text-sm font-medium">
+                            核心公式：经营利润 = f ( 人力资本 , 技术 )
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 rounded-3xl p-8 border border-slate-100">
+                    <h3 class="text-xl font-bold text-slate-900 text-center mb-8">瑞华智策的服务 DNA</h3>
+                    <div class="space-y-4">
+                        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-brand-500 flex items-center gap-4">
+                            <i class="fas fa-compass text-2xl text-brand-500"></i>
+                            <div>
+                                <div class="font-bold text-slate-900">咨询 (Consulting)</div>
+                                <div class="text-xs text-slate-500">战略解码与管理变革</div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500 flex items-center gap-4 ml-8">
+                            <i class="fas fa-microchip text-2xl text-blue-500"></i>
+                            <div>
+                                <div class="font-bold text-slate-900">技术 (Technology)</div>
+                                <div class="text-xs text-slate-500">数智化平台赋能</div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-purple-500 flex items-center gap-4 ml-16">
+                            <i class="fas fa-hands-helping text-2xl text-purple-500"></i>
+                            <div>
+                                <div class="font-bold text-slate-900">服务 (Service)</div>
+                                <div class="text-xs text-slate-500">长期陪伴与运营支持</div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-center text-xs text-slate-400 mt-6">
+                        以“管理轮”与“技术轮”双轮驱动，构建韧性组织
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="global" class="py-24 bg-gradient-to-br from-slate-900 to-slate-800 text-white relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg')] bg-no-repeat bg-center bg-contain"></div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-16">
+                <span class="text-blue-400 font-bold tracking-widest uppercase text-sm">Global Capability</span>
+                <h2 class="text-3xl md:text-4xl font-bold mt-4">依托人瑞人才的海外服务能力</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto mt-4">
+                    具备全球交付能力的海外人力服务体系
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white/10 backdrop-blur rounded-2xl p-6 border border-white/10 hover:bg-white/15 transition">
+                    <i class="fas fa-passport text-3xl text-blue-400 mb-4"></i>
+                    <h3 class="text-lg font-bold mb-2">海外派遣资质</h3>
+                    <p class="text-sm text-slate-300">拥有商务部颁发的海外派遣资质，为客户提供合规的海外派遣服务。</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur rounded-2xl p-6 border border-white/10 hover:bg-white/15 transition">
+                    <i class="fas fa-globe-asia text-3xl text-blue-400 mb-4"></i>
+                    <h3 class="text-lg font-bold mb-2">全球覆盖广</h3>
+                    <p class="text-sm text-slate-300">服务覆盖数十国，并具备在未覆盖国家迅速建立服务网络的能力。</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur rounded-2xl p-6 border border-white/10 hover:bg-white/15 transition">
+                    <i class="fas fa-bolt text-3xl text-blue-400 mb-4"></i>
+                    <h3 class="text-lg font-bold mb-2">国内外联动</h3>
+                    <p class="text-sm text-slate-300">国内与海外顾问紧密合作，确保海外当地服务的高效响应与高品质交付。</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur rounded-2xl p-6 border border-white/10 hover:bg-white/15 transition">
+                    <i class="fas fa-credit-card text-3xl text-blue-400 mb-4"></i>
+                    <h3 class="text-lg font-bold mb-2">全栈服务</h3>
+                    <p class="text-sm text-slate-300">提供海外支付、招聘、用工、劳动法律、文化环境咨询等一站式服务。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 bg-brand-50">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <h2 class="text-3xl font-bold text-slate-900 mb-6">准备好构建高人效的韧性组织了吗？</h2>
+            <p class="text-slate-600 mb-10 text-lg">
+                无论您处于转型初期，还是需要解决具体的用工难题，瑞华智策的专家团队都准备好为您服务。
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="productivity.html" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-brand-500/30 transition hover:-translate-y-1">
+                    预约组织人效体检
+                </a>
+                <a href="index.html#contact" class="bg-white border border-slate-200 text-slate-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition shadow-sm">
+                    联系我们
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <div id="footer-container"></div>
+
+    <script src="/js/script.js"></script>
+    <script src="/js/main.js"></script>
+    <script type="module">
+        import { FooterComponent } from '/js/FooterComponent.js';
+        const footer = new FooterComponent();
+        footer.render();
+    </script>
+</body>
+</html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>瑞华智策 - 白皮书下载管理</title>
+    <script>
+        (function () {
+            try {
+                var isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+                var token = sessionStorage.getItem('token');
+                if (!isLoggedIn || !token) {
+                    window.location.href = '/admin/index.html';
+                }
+            } catch (e) {
+                window.location.href = '/admin/index.html';
+            }
+        })();
+    </script>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Custom Theme -->
+    <link rel="stylesheet" href="admin-theme.css">
+    <style>
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/favicon.ico">
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner-border text-primary" role="status"></div>
+</div>
+
+<div class="admin-layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <i class="bi bi-grid-1x2-fill me-2"></i> CMS 系统
+        </div>
+        <div class="sidebar-menu">
+            <a href="/admin/dashboard.html" class="menu-item">
+                <i class="bi bi-speedometer2"></i> 数据看板
+            </a>
+            <a href="/admin/dashboard.html" onclick="sessionStorage.setItem('lastSection', 'banner')" class="menu-item">
+                <i class="bi bi-image"></i> Banner管理
+            </a>
+            <a href="/admin/dashboard.html" onclick="sessionStorage.setItem('lastSection', 'sidebar')" class="menu-item">
+                <i class="bi bi-layout-sidebar"></i> 文章侧边栏管理
+            </a>
+            <a href="/admin/dashboard.html" onclick="sessionStorage.setItem('lastSection', 'article')" class="menu-item">
+                <i class="bi bi-file-text"></i> 文章管理
+            </a>
+            <a href="/admin/dashboard.html" onclick="sessionStorage.setItem('lastSection', 'faq')" class="menu-item">
+                <i class="bi bi-question-circle"></i> FAQ管理
+            </a>
+            <a href="/admin/dashboard.html" onclick="sessionStorage.setItem('lastSection', 'appointments')" class="menu-item">
+                <i class="bi bi-list-check"></i> 预约管理
+            </a>
+            <a href="#" class="menu-item active">
+                <i class="bi bi-file-earmark-arrow-down"></i> 白皮书下载
+            </a>
+            <a href="/admin/maturity.html" class="menu-item">
+                <i class="bi bi-bar-chart-steps"></i> 成熟度诊断
+            </a>
+            
+            <div class="mt-4 px-3">
+                <div class="text-secondary text-uppercase small mb-2" style="font-size: 12px; padding-left: 10px;">系统设置</div>
+                <a href="/admin/dashboard.html" onclick="sessionStorage.setItem('lastSection', 'permissions')" class="menu-item">
+                    <i class="bi bi-shield-lock"></i> 权限管理
+                </a>
+                <a href="/admin/index.html" class="menu-item text-danger mt-2">
+                    <i class="bi bi-box-arrow-right"></i> 退出登录
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <h4 class="m-0">白皮书下载管理</h4>
+            <div class="d-flex align-items-center">
+                <div class="dropdown">
+                    <button class="btn btn-outline border-0 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle me-1"></i> 管理员
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item text-danger" href="/admin/index.html">退出</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="page-content">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-2">
+                            <input type="text" id="searchName" class="form-control" placeholder="搜索姓名...">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="text" id="searchPhone" class="form-control" placeholder="搜索手机号...">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" id="searchWhitepaper" class="form-control" placeholder="搜索白皮书名称...">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" id="searchUtmSource" class="form-control" placeholder="搜索 UTM 来源...">
+                        </div>
+                        <div class="col-md-2 d-flex gap-2">
+                            <button class="btn btn-primary w-100" onclick="loadData(1)"><i class="bi bi-search"></i> 查询</button>
+                            <button class="btn btn-success w-100" onclick="exportData()"><i class="bi bi-file-earmark-excel"></i> 导出</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>姓名</th>
+                                    <th>手机号</th>
+                                    <th>公司</th>
+                                    <th>职位</th>
+                                    <th>白皮书名称</th>
+                                    <th>来源</th>
+                                    <th>UTM Source</th>
+                                    <th>提交时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataTableBody">
+                                <!-- Data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                    <div class="text-secondary small">
+                        共 <span id="totalCount">0</span> 条记录，当前第 <span id="currentPage">1</span>/<span id="totalPages">1</span> 页
+                    </div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item"><button class="page-link" onclick="changePage(-1)">上一页</button></li>
+                            <li class="page-item"><button class="page-link" onclick="changePage(1)">下一页</button></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">详情信息</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small">姓名</label>
+                        <div id="d-name" class="fw-bold"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small">手机号</label>
+                        <div id="d-phone" class="fw-bold"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small">公司</label>
+                        <div id="d-company"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small">职位</label>
+                        <div id="d-position"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small">邮箱</label>
+                        <div id="d-email"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small">提交时间</label>
+                        <div id="d-time"></div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-secondary small">白皮书名称</label>
+                        <div id="d-whitepaper" class="p-2 bg-light rounded"></div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-secondary small">页面来源 (Source)</label>
+                        <div id="d-source" class="text-break small text-muted"></div>
+                    </div>
+                    
+                    <div class="col-12 mt-4">
+                        <h6 class="border-bottom pb-2 mb-3">UTM 渠道追踪信息</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label text-secondary small">UTM Source</label>
+                                <div id="d-utm-source" class="badge bg-primary-subtle text-primary-emphasis"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-secondary small">UTM Medium</label>
+                                <div id="d-utm-medium" class="badge bg-secondary-subtle text-secondary-emphasis"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-secondary small">UTM Campaign</label>
+                                <div id="d-utm-campaign" class="badge bg-success-subtle text-success-emphasis"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small">UTM Term</label>
+                                <div id="d-utm-term"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small">UTM Content</label>
+                                <div id="d-utm-content"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let currentPage = 1;
+    let totalPages = 1;
+    let currentData = []; // Store current page data for modal
+
+    // Auth Helpers
+    function getAuthHeaders() {
+        const token = sessionStorage.getItem('token');
+        return {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        };
+    }
+
+    function toggleLoading(show) {
+        document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+    }
+
+    // Load Data
+    async function loadData(page = 1) {
+        toggleLoading(true);
+        try {
+            const name = document.getElementById('searchName').value.trim();
+            const phone = document.getElementById('searchPhone').value.trim();
+            const whitepaperName = document.getElementById('searchWhitepaper').value.trim();
+            const utm_source = document.getElementById('searchUtmSource').value.trim();
+
+            const params = new URLSearchParams({
+                page,
+                limit: 10,
+                ...(name && { name }),
+                ...(phone && { phone }),
+                ...(whitepaperName && { whitepaperName }),
+                ...(utm_source && { utm_source })
+            });
+
+            const res = await fetch(`/api/whitepaper/list?${params.toString()}`, {
+                headers: getAuthHeaders()
+            });
+
+            if (res.status === 401) {
+                window.location.href = '/admin/index.html';
+                return;
+            }
+
+            const data = await res.json();
+            
+            if (data.error) {
+                alert('加载失败: ' + data.error);
+                return;
+            }
+
+            currentData = data.data; // Store for modal
+            renderTable(data.data);
+            updatePagination(data.pagination);
+        } catch (error) {
+            console.error('Load Error:', error);
+            alert('加载数据出错');
+        } finally {
+            toggleLoading(false);
+        }
+    }
+
+    function renderTable(items) {
+        const tbody = document.getElementById('dataTableBody');
+        tbody.innerHTML = '';
+
+        if (!items || items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">暂无数据</td></tr>';
+            return;
+        }
+
+        items.forEach((item, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.name || '-'}</td>
+                <td>${item.phone || '-'}</td>
+                <td>${item.company || '-'}</td>
+                <td>${item.position || '-'}</td>
+                <td><span class="badge bg-light text-dark border">${item.whitepaperName || '-'}</span></td>
+                <td>${item.source ? '<a href="' + item.source + '" target="_blank" class="text-decoration-none" title="' + item.source + '"><i class="bi bi-link-45deg"></i> 链接</a>' : '-'}</td>
+                <td>${item.utm_source ? '<span class="badge bg-primary-subtle text-primary-emphasis">' + item.utm_source + '</span>' : '-'}</td>
+                <td>${new Date(item.submittedAt).toLocaleString('zh-CN')}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="showDetail(${index})">详情</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function showDetail(index) {
+        const item = currentData[index];
+        if (!item) return;
+
+        document.getElementById('d-name').textContent = item.name || '-';
+        document.getElementById('d-phone').textContent = item.phone || '-';
+        document.getElementById('d-company').textContent = item.company || '-';
+        document.getElementById('d-position').textContent = item.position || '-';
+        document.getElementById('d-email').textContent = item.email || '-';
+        document.getElementById('d-time').textContent = new Date(item.submittedAt).toLocaleString('zh-CN');
+        document.getElementById('d-whitepaper').textContent = item.whitepaperName || '-';
+        document.getElementById('d-source').textContent = item.source || '-';
+        
+        document.getElementById('d-utm-source').textContent = item.utm_source || '-';
+        document.getElementById('d-utm-medium').textContent = item.utm_medium || '-';
+        document.getElementById('d-utm-campaign').textContent = item.utm_campaign || '-';
+        document.getElementById('d-utm-term').textContent = item.utm_term || '-';
+        document.getElementById('d-utm-content').textContent = item.utm_content || '-';
+
+        const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+        modal.show();
+    }
+
+    function updatePagination(pagination) {
+        currentPage = pagination.page;
+        totalPages = pagination.pages;
+        document.getElementById('currentPage').textContent = currentPage;
+        document.getElementById('totalPages').textContent = totalPages;
+        document.getElementById('totalCount').textContent = pagination.total;
+    }
+
+    function changePage(delta) {
+        const newPage = currentPage + delta;
+        if (newPage >= 1 && newPage <= totalPages) {
+            loadData(newPage);
+        }
+    }
+
+    function exportData() {
+        const name = document.getElementById('searchName').value.trim();
+        const phone = document.getElementById('searchPhone').value.trim();
+        const whitepaperName = document.getElementById('searchWhitepaper').value.trim();
+        const utm_source = document.getElementById('searchUtmSource').value.trim();
+
+        const params = new URLSearchParams({
+            ...(name && { name }),
+            ...(phone && { phone }),
+            ...(whitepaperName && { whitepaperName }),
+            ...(utm_source && { utm_source })
+        });
+
+        toggleLoading(true);
+        fetch(`/api/whitepaper/export?${params.toString()}`, {
+            headers: getAuthHeaders()
+        })
+        .then(res => {
+            if (res.status === 401) {
+                window.location.href = '/admin/index.html';
+                throw new Error('Unauthorized');
+            }
+            if (!res.ok) throw new Error('Export failed');
+            return res.blob();
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `whitepaper_submissions_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        })
+        .catch(err => {
+            console.error(err);
+            alert('导出失败: ' + err.message);
+        })
+        .finally(() => toggleLoading(false));
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        loadData();
+    });
+</script>
+</body>
+</html>

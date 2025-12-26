@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>瑞华智策 - 综合管理后台</title>
+    <script>
+        (function () {
+            try {
+                var isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+                var token = sessionStorage.getItem('token');
+                if (!isLoggedIn || !token) {
+                    window.location.href = '/admin/index.html';
+                }
+            } catch (e) {
+                window.location.href = '/admin/index.html';
+            }
+        })();
+    </script>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Quill CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Custom Theme -->
+    <link rel="stylesheet" href="admin-theme.css">
+    <style>
+        /* Quill Editor Fixes */
+        .ql-container { height: 300px; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
+        .ql-toolbar { border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        
+        /* Animation Keyframes */
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/favicon.ico">
+</head>
+<body>
+
+<div class="admin-layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <i class="bi bi-grid-1x2-fill me-2"></i> CMS 系统
+        </div>
+        <div class="sidebar-menu">
+            <a href="#" onclick="show('dashboard')" id="nav-dashboard" class="menu-item active">
+                <i class="bi bi-speedometer2"></i> 数据看板
+            </a>
+            <a href="#" onclick="show('banner')" id="nav-banner" class="menu-item">
+                <i class="bi bi-image"></i> Banner管理
+            </a>
+            <a href="#" onclick="show('sidebar')" id="nav-sidebar" class="menu-item">
+                <i class="bi bi-layout-sidebar"></i> 文章侧边栏管理
+            </a>
+            <a href="#" onclick="show('article')" id="nav-article" class="menu-item">
+                <i class="bi bi-file-text"></i> 文章管理
+            </a>
+            <a href="#" onclick="show('faq')" id="nav-faq" class="menu-item">
+                <i class="bi bi-question-circle"></i> FAQ管理
+            </a>
+            <a href="#" onclick="show('appointments')" id="nav-appointments" class="menu-item">
+                <i class="bi bi-list-check"></i> 预约管理
+            </a>
+            <a href="/admin/whitepaper-submissions.html" class="menu-item">
+                <i class="bi bi-file-earmark-arrow-down"></i> 白皮书下载
+            </a>
+            <a href="/admin/maturity.html" class="menu-item">
+                <i class="bi bi-bar-chart-steps"></i> 成熟度诊断
+            </a>
+            <!-- UTM Stats Removed -->
+            
+            <div class="mt-4 px-3">
+                <div class="text-secondary text-uppercase small mb-2" style="font-size: 12px; padding-left: 10px;">系统设置</div>
+                <a href="#" onclick="show('permissions')" id="nav-permissions" class="menu-item">
+                    <i class="bi bi-shield-lock"></i> 权限管理
+                </a>
+                <a href="/admin/index.html" class="menu-item text-danger mt-2">
+                    <i class="bi bi-box-arrow-right"></i> 退出登录
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <h4 class="m-0" id="page-title">数据看板</h4>
+            <div class="d-flex align-items-center">
+                <div class="dropdown">
+                    <button class="btn btn-outline border-0 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle me-1"></i> 管理员
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#">个人设置</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="/admin/index.html">退出</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="page-content">
+            
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="section active">
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="card p-4 h-100 border-0" style="background: linear-gradient(135deg, #7c4dff 0%, #651fff 100%); color: white;">
+                            <h6 class="text-white-50 mb-2">今日访问</h6>
+                            <h2 class="mb-0"><span id="sumVisits">--</span></h2>
+                            <small class="text-white-50">较昨日 +12%</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card p-4 h-100 border-0">
+                            <h6 class="text-secondary mb-2">新增表单</h6>
+                            <h2 class="mb-0 text-brand"><span id="sumAppts">--</span></h2>
+                            <small class="text-success"><i class="bi bi-arrow-up"></i> 5%</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card p-4 h-100 border-0">
+                            <h6 class="text-secondary mb-2">文章阅读</h6>
+                            <h2 class="mb-0 text-brand"><span id="sumArts">--</span></h2>
+                            <small class="text-success"><i class="bi bi-arrow-up"></i> 8.2%</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card p-4 h-100 border-0">
+                            <h6 class="text-secondary mb-2">待处理FAQ</h6>
+                            <h2 class="mb-0 text-warning"><span id="sumFaqs">--</span></h2>
+                            <small class="text-secondary">需尽快回复</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row g-4">
+                    <div class="col-md-8">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span>流量趋势</span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-secondary active" id="btn-7d" onclick="setChartRange(7)">7天</button>
+                                        <button class="btn btn-outline-secondary" id="btn-30d" onclick="setChartRange(30)">30天</button>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1" style="font-size: 12px;">
+                                        <input type="date" id="chart-start" class="form-control form-control-sm" style="width: 130px;">
+                                        <span>-</span>
+                                        <input type="date" id="chart-end" class="form-control form-control-sm" style="width: 130px;">
+                                        <button class="btn btn-primary btn-sm" onclick="applyChartDateRange()">查询</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body" style="height: 350px;">
+                                <canvas id="trafficChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-header">快捷操作</div>
+                            <div class="card-body">
+                                <button class="btn btn-primary w-100 mb-3" onclick="openArtModal()"><i class="bi bi-plus-lg"></i> 发布新文章</button>
+                                <button class="btn btn-outline w-100 mb-3" onclick="openFaqModal()"><i class="bi bi-question-circle"></i> 添加 FAQ</button>
+                                <button class="btn btn-outline w-100" onclick="show('appointments')"><i class="bi bi-list-check"></i> 查看表单</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Banner Config -->
+            <div id="banner" class="section">
+                <div class="card">
+                    <div class="card-header">Banner 配置</div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small">主标题</label>
+                                <input type="text" id="b-title" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small">副标题</label>
+                                <input type="text" id="b-subTitle" class="form-control">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small">描述</label>
+                            <textarea id="b-desc" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div class="row mb-3 bg-light p-3 rounded mx-0">
+                            <div class="col-6">
+                                <label class="form-label text-secondary small">按钮 1</label>
+                                <input type="text" id="b-cta1Text" class="form-control mb-2" placeholder="文案">
+                                <input type="text" id="b-cta1Link" class="form-control" placeholder="链接">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label text-secondary small">按钮 2</label>
+                                <input type="text" id="b-cta2Text" class="form-control mb-2" placeholder="文案">
+                                <input type="text" id="b-cta2Link" class="form-control" placeholder="链接">
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-secondary small">右侧图片链接</label>
+                            <input type="text" id="b-image" class="form-control">
+                        </div>
+                        <button class="btn btn-primary" onclick="saveBanner()"><i class="bi bi-save"></i> 保存配置</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Config -->
+            <div id="sidebar" class="section">
+                <div class="card">
+                    <div class="card-header">文章侧边栏管理</div>
+                    <div class="card-body">
+                        <h6 class="text-brand mb-3">白皮书模块</h6>
+                        <div class="row mb-4">
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label small text-secondary">标题</label>
+                                <input type="text" id="s-wp-title" class="form-control" placeholder="标题">
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label small text-secondary">图片链接</label>
+                                <div class="input-group">
+                                    <input type="text" id="s-wp-img" class="form-control" placeholder="图片链接">
+                                    <input type="file" id="s-wp-img-file" class="form-control" style="display:none" onchange="uploadWhitepaperImage()">
+                                    <button class="btn btn-outline-secondary" onclick="document.getElementById('s-wp-img-file').click()">上传</button>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label small text-secondary">跳转链接</label>
+                                <input type="text" id="s-wp-link" class="form-control" placeholder="跳转链接">
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-8 mb-2">
+                                <label class="form-label small text-secondary">描述</label>
+                                <textarea id="s-wp-desc" class="form-control" rows="2" placeholder="白皮书简要描述"></textarea>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label small text-secondary">下载人数</label>
+                                <input type="text" id="s-wp-count" class="form-control" placeholder="如: 1,240+">
+                            </div>
+                        </div>
+                        
+                        <h6 class="text-brand mb-3">推荐文章模块</h6>
+                        <div class="bg-light p-3 rounded mb-4">
+                            <div class="mb-3">
+                                <label class="small text-secondary">推荐位 1</label>
+                                <div class="input-group">
+                                    <input type="text" id="s-r1-t" class="form-control" placeholder="请选择文章" readonly>
+                                    <input type="hidden" id="s-r1-l">
+                                    <input type="hidden" id="s-r1-c">
+                                    <button class="btn btn-outline-danger" type="button" onclick="clearArticleSelection('r1')" title="清除"><i class="bi bi-trash"></i></button>
+                                    <button class="btn btn-outline-primary" onclick="openArticleSelector('r1')">选择文章</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="small text-secondary">推荐位 2</label>
+                                <div class="input-group">
+                                    <input type="text" id="s-r2-t" class="form-control" placeholder="请选择文章" readonly>
+                                    <input type="hidden" id="s-r2-l">
+                                    <input type="hidden" id="s-r2-c">
+                                    <button class="btn btn-outline-danger" type="button" onclick="clearArticleSelection('r2')" title="清除"><i class="bi bi-trash"></i></button>
+                                    <button class="btn btn-outline-primary" onclick="openArticleSelector('r2')">选择文章</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary" onclick="saveSidebar()"><i class="bi bi-save"></i> 保存配置</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Management -->
+            <div id="faq" class="section">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>FAQ 列表</span>
+                        <button class="btn btn-success btn-sm" onclick="openFaqModal()"><i class="bi bi-plus-lg"></i> 新增 FAQ</button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="p-3 bg-light border-bottom d-none" id="faqBatchActions">
+                            <span class="me-2">已选择 <span id="faqSelectedCount">0</span> 项</span>
+                            <button class="btn btn-danger btn-sm" onclick="batchDeleteFaq()">批量删除</button>
+                        </div>
+                        <table class="table mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="40"><input type="checkbox" class="form-check-input" onchange="toggleAll('faqList', this)"></th>
+                                    <th>排序</th>
+                                    <th>问题</th>
+                                    <th>回答摘要</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                    <th>更新时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="faqList"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Article Management -->
+            <div id="article" class="section">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>文章列表</span>
+                        <div class="d-flex gap-2">
+                            <div class="input-group input-group-sm" style="width: 250px;">
+                                <input type="text" class="form-control" id="artSearchKeyword" placeholder="搜索标题/内容">
+                                <button class="btn btn-outline-secondary" type="button" onclick="searchArticles()"><i class="bi bi-search"></i></button>
+                            </div>
+                            <button class="btn btn-info btn-sm text-white" onclick="openCategoryModal()"><i class="bi bi-tags"></i> 分类管理</button>
+                            <button class="btn btn-success btn-sm" onclick="openArtModal()"><i class="bi bi-plus-lg"></i> 发布文章</button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="p-3 bg-light border-bottom d-none" id="artBatchActions">
+                            <span class="me-2">已选择 <span id="artSelectedCount">0</span> 项</span>
+                            <button class="btn btn-danger btn-sm" onclick="batchDeleteArt()">批量删除</button>
+                        </div>
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="40"><input type="checkbox" class="form-check-input" onchange="toggleAll('artList', this)"></th>
+                                    <th width="60">序号</th>
+                                    <th>标题</th>
+                                    <th>分类</th>
+                                    <th>作者</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="artList"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Appointments Management -->
+            <div id="appointments" class="section">
+                <!-- Filter Section Removed -->
+                
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <span>表单数据</span>
+                            <span class="badge bg-light text-secondary ms-2">共 <span id="appointmentsTotal">0</span> 条</span>
+                        </div>
+                        <button class="btn btn-outline btn-sm" onclick="exportAppointments()"><i class="bi bi-download"></i> 导出CSV</button>
+                    </div>
+                    <div class="card-body p-0 table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="min-width: 1000px;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>姓名</th>
+                                    <th>电话</th>
+                                    <th>公司</th>
+                                    <th>职位</th>
+                                    <th>问题描述</th>
+                                    <th>来源页面</th>
+                                    <th>渠道来源 (UTM)</th>
+                                    <th>状态</th>
+                                    <th>提交时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appointmentsList">
+                                <tr><td colspan="9" class="text-center py-4">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center py-3">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="changeAppointmentPage(-1)">上一页</button>
+                        <span class="text-secondary small">第 <span id="appointmentPageNum">1</span> 页 / 共 <span id="appointmentTotalPages">1</span> 页</span>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="changeAppointmentPage(1)">下一页</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- UTM Stats (Removed) -->
+
+            <!-- Permissions -->
+            <div id="permissions" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs" id="permTabs">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="javascript:void(0)" onclick="switchPermTab('users')">用户管理</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="javascript:void(0)" onclick="switchPermTab('roles')">角色管理</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="javascript:void(0)" onclick="switchPermTab('logs')">操作日志</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <!-- User Tab -->
+                        <div id="perm-users" class="perm-tab-content">
+                            <div class="d-flex justify-content-end mb-3">
+                                <button class="btn btn-success btn-sm" onclick="openUserModal()"><i class="bi bi-plus"></i> 新增用户</button>
+                            </div>
+                            <table class="table align-middle">
+                                <thead><tr><th>用户名</th><th>姓名</th><th>角色</th><th>状态</th><th>最后登录</th><th>操作</th></tr></thead>
+                                <tbody id="userList"></tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Role Tab -->
+                        <div id="perm-roles" class="perm-tab-content d-none">
+                             <div class="d-flex justify-content-end mb-3">
+                                <button class="btn btn-success btn-sm" onclick="openRoleModal()"><i class="bi bi-plus"></i> 新增角色</button>
+                            </div>
+                            <table class="table align-middle">
+                                <thead><tr><th>角色名</th><th>代码</th><th>描述</th><th>权限</th><th>操作</th></tr></thead>
+                                <tbody id="roleList"></tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Log Tab -->
+                        <div id="perm-logs" class="perm-tab-content d-none">
+                            <table class="table table-sm table-hover text-secondary small">
+                                <thead><tr><th>时间</th><th>操作人</th><th>动作</th><th>IP</th><th>详情</th></tr></thead>
+                                <tbody id="logList"></tbody>
+                            </table>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="changeLogPage(-1)">上一页</button>
+                                <span class="text-secondary small">第 <span id="logPageNum">1</span> 页 / 共 <span id="logTotalPages">1</span> 页</span>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="changeLogPage(1)">下一页</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+<!-- Article Selector Modal -->
+<div class="modal fade" id="articleSelectorModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title">选择文章</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="p-3 bg-light border-bottom">
+                    <div class="input-group">
+                        <input type="text" id="selectorKeyword" class="form-control" placeholder="搜索文章标题...">
+                        <button class="btn btn-outline-secondary" onclick="loadArticleSelectorList()">搜索</button>
+                    </div>
+                </div>
+                <div class="list-group list-group-flush" id="articleSelectorList" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Loaded via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal fade" id="categoryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title">分类管理</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="list-group list-group-flush" id="categoryList">
+                    <!-- Categories loaded via JS -->
+                </div>
+                <div class="p-3 bg-light border-top">
+                    <h6 class="mb-2">添加/编辑分类</h6>
+                    <input type="hidden" id="catId">
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <input type="text" id="catName" class="form-control form-control-sm" placeholder="名称 (如: 新闻)">
+                        </div>
+                        <div class="col-4">
+                            <input type="text" id="catCode" class="form-control form-control-sm" placeholder="代码 (如: news)">
+                        </div>
+                        <div class="col-2">
+                            <input type="number" id="catOrder" class="form-control form-control-sm" placeholder="排序" value="0">
+                        </div>
+                        <div class="col-2">
+                            <button class="btn btn-primary btn-sm w-100" onclick="saveCategory()">保存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Article Modal -->
+<div class="modal fade" id="artModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title">文章发布</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="artId">
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">文章标题</label>
+                    <input type="text" id="artTitle" class="form-control" placeholder="请输入文章标题" oninput="autoGenerateSlug()">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">自定义链接 (Slug)</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-secondary small">/article/</span>
+                        <input type="text" id="artSlug" class="form-control" placeholder="article-slug" oninput="previewSlug()">
+                        <button class="btn btn-outline-secondary" type="button" onclick="autoGenerateSlug(true)" title="AI 智能生成"><i class="bi bi-magic"></i> 智能生成</button>
+                        <span class="input-group-text bg-light text-secondary small">.html</span>
+                    </div>
+                    <small class="text-muted" id="slugPreview"></small>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label small text-secondary">所属分类</label>
+                        <select id="artCategory" class="form-control">
+                            <option value="">选择分类...</option>
+                            <!-- Populated via JS -->
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small text-secondary">作者名称</label>
+                        <input type="text" id="artAuthor" class="form-control" placeholder="如: 系统管理员">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="form-check mb-2">
+                            <input type="checkbox" id="artFeatured" class="form-check-input">
+                            <label class="form-check-label small">设为推荐文章</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">作者头像</label>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="position-relative">
+                            <img id="artAuthorAvatarPreview" src="" class="rounded-circle bg-light d-none" style="width: 50px; height: 50px; object-fit: cover; border: 1px solid #dee2e6;">
+                            <input type="hidden" id="artAuthorAvatar">
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="input-group input-group-sm">
+                                <input type="file" id="artAuthorAvatarFile" class="form-control" accept="image/jpeg,image/png,image/webp" onchange="uploadAuthorAvatar()">
+                                <button class="btn btn-outline-danger" type="button" onclick="clearAuthorAvatar()">删除</button>
+                            </div>
+                            <small class="text-muted" style="font-size: 10px;">支持JPG/PNG/WebP, 自动裁剪200x200</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">封面图片</label>
+                    <div class="input-group mb-2">
+                        <input type="text" id="artCover" class="form-control" placeholder="图片链接">
+                        <input type="file" id="artCoverFile" class="form-control" style="display:none" onchange="uploadCover()">
+                        <button class="btn btn-outline-secondary" onclick="document.getElementById('artCoverFile').click()">上传</button>
+                    </div>
+                    <div id="artCoverPreview" class="d-none bg-light p-2 text-center rounded">
+                        <img src="" style="max-height: 100px;">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">作者描述 (选填)</label>
+                    <input type="text" id="artAuthorDesc" class="form-control" placeholder="一句话介绍作者">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">作者详细介绍 (选填)</label>
+                    <textarea id="artAuthorDetail" class="form-control" rows="2" placeholder="作者的详细背景、成就等"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">摘要 (Meta Description)</label>
+                    <textarea id="artDesc" class="form-control" rows="2" placeholder="文章摘要，用于列表显示和SEO"></textarea>
+                </div>
+
+                <div class="mb-0">
+                    <label class="form-label small text-secondary">文章内容</label>
+                    <div id="editor"></div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0">
+                <button class="btn btn-outline" data-bs-dismiss="modal">取消</button>
+                <button class="btn btn-primary" onclick="saveArt()">保存发布</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FAQ Modal -->
+<div class="modal fade" id="faqModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title">FAQ 编辑</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="faqId">
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <label class="form-label small text-secondary">排序权重</label>
+                        <input type="number" id="faqOrd" class="form-control" placeholder="0">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">发布状态</label>
+                    <select id="faqStatus" class="form-control">
+                        <option value="published">已发布</option>
+                        <option value="draft">草稿</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">问题</label>
+                    <input type="text" id="faqQ" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">回答</label>
+                    <textarea id="faqA" class="form-control" rows="4"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0">
+                <button class="btn btn-outline" data-bs-dismiss="modal">取消</button>
+                <button class="btn btn-primary" onclick="saveFaq()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Modal -->
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">用户编辑</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="userId">
+                <div class="mb-3"><label class="form-label">用户名</label><input type="text" id="userName" class="form-control"></div>
+                <div class="mb-3"><label class="form-label">密码</label><input type="password" id="userPass" class="form-control" placeholder="留空则不修改"></div>
+                <div class="mb-3"><label class="form-label">显示名</label><input type="text" id="userDisplayName" class="form-control"></div>
+                <div class="mb-3">
+                    <label class="form-label">角色分配 (可多选)</label>
+                    <select id="userRole" class="form-select" multiple size="4">
+                        <!-- Roles -->
+                    </select>
+                    <small class="text-muted">按住 Ctrl/Cmd 键可多选</small>
+                </div>
+                <div class="form-check"><input type="checkbox" id="userActive" class="form-check-input" checked><label class="form-check-label">启用</label></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-primary" onclick="saveUser()">保存</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- Role Modal -->
+<div class="modal fade" id="roleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">角色编辑</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="roleId">
+                <div class="mb-3"><label class="form-label">角色名</label><input type="text" id="roleName" class="form-control"></div>
+                <div class="mb-3 d-none">
+                    <label class="form-label">角色代码</label>
+                    <input type="text" id="roleCode" class="form-control" placeholder="如: super_admin">
+                    <small class="text-muted">系统自动生成，无需填写</small>
+                </div>
+                <div class="mb-3"><label class="form-label">描述</label><textarea id="roleDesc" class="form-control"></textarea></div>
+                <div class="mb-3">
+                    <label class="form-label">权限</label>
+                    <div id="permCheckboxes" class="border p-2 rounded bg-light" style="max-height: 200px; overflow-y: auto;">
+                        <!-- Checkboxes generated by JS -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-primary" onclick="saveRole()">保存</button></div>
+        </div>
+    </div>
+</div>
+
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+ <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+ <script src="/js/script.js"></script>
+ <!-- Chart.js -->
+ <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+ <!-- Custom JS -->
+ <script src="admin.js"></script>
+ </body>
+</html>

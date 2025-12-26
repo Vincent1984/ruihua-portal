@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>解决方案 - 瑞华智策 | AHCVM & OHCVM</title>
+    <meta name="description" content="瑞华智策提供全周期人力资本价值经营解决方案，涵盖针对自有员工的AHCVM体系和针对灵活用工的OHCVM体系，通过咨询+技术+服务助力企业降本增效。" />
+    <meta name="keywords" content="AHCVM, OHCVM, 人力资本价值经营, 灵活用工管理, 供应链管理, Agentic架构, 降本增效" />
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                brand: {
+                  50: "#f5f3ff", 100: "#ede9fe", 200: "#ddd6fe", 300: "#a78bfa",
+                  400: "#a855f7", 500: "#8b5cf6", 600: "#7c3aed", 700: "#6d28d9",
+                  800: "#5b21b6", 900: "#4c1d95"
+                }, 
+                slate: { 850: "#1e293b", 900: "#0f172a" }
+              }, 
+              fontFamily: { sans: ['"Noto Sans SC"', "Inter", "system-ui", "sans-serif"] },
+              backgroundImage: { "grid-pattern": "url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f1f5f9' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E\")" }
+            }
+          }
+        };
+    </script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+        .arch-layer {
+            position: relative;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+        .arch-layer:hover {
+            transform: translateX(5px);
+        }
+        /* Roadmap connection lines */
+        .roadmap-line::before {
+            content: '';
+            position: absolute;
+            top: 2rem;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #e2e8f0;
+            z-index: 0;
+        }
+        @media (max-width: 768px) {
+            .roadmap-line::before {
+                display: none;
+            }
+        }
+    </style>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/favicon.ico">
+</head>
+<body class="bg-white text-slate-800 antialiased selection:bg-brand-100 selection:text-brand-900">
+
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="index.html" class="flex-shrink-0 flex items-center gap-3 group">
+                    <img src="/images/logo.png" alt="瑞华智策 Logo" class="site-logo w-auto" />
+                    <div class="hidden sm:block border-l border-slate-200 pl-3">
+                       <!-- <span class="text-xs text-slate-400">人瑞人才旗下公司</span>-->
+                        <span class="text-xs text-brand-600 font-medium ml-1">人力资本价值经营一体化解决方案</span>
+                    </div>
+                </a>
+                <div class="hidden lg:flex space-x-2">
+                    <a href="index.html" class="nav-link">首页</a>
+                    <a href="solutions.html" class="nav-link  font-semibold text-brand-700 bg-brand-50">解决方案</a>
+                    <a href="resources.html" class="nav-link">行业洞察</a>
+                    <a href="index.html#cases" class="nav-link">成功案例</a>
+                    <a href="about.html" class="nav-link">关于我们</a>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="productivity.html" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-full font-medium transition shadow-lg shadow-brand-500/20 hover:-translate-y-0.5 text-sm">
+                        预约专家咨询
+                    </a>
+                </div>
+                <button class="lg:hidden p-2 rounded-lg hover:bg-slate-100" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars text-slate-600 text-xl"></i>
+                </button>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden lg:hidden bg-white border-t border-slate-100 px-4 py-4">
+            <div class="flex flex-col space-y-2">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="solutions.html" class="mobile-nav-link  font-semibold text-brand-700 bg-brand-50">解决方案</a>
+                <a href="resources.html" class="mobile-nav-link">行业洞察</a>
+                <a href="index.html#cases" class="mobile-nav-link">成功案例</a>
+                <a href="about.html" class="mobile-nav-link">关于我们</a>
+                <a href="productivity.html" class="bg-brand-600 text-white font-medium py-3 px-4 rounded-lg text-center mt-2">预约专家咨询</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="pt-32 pb-20 bg-slate-50 relative overflow-hidden">
+        <div class="absolute inset-0 bg-grid-pattern opacity-50"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <div class="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-brand-100 text-brand-700 text-xs font-bold tracking-wide uppercase mb-6">
+                Solutions Overview
+            </div>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6">
+                全周期人力资本价值经营解决方案
+            </h1>
+            <p class="text-lg text-slate-600 max-w-3xl mx-auto mb-10">
+                针对企业内部员工与外部灵活用工的不同痛点，提供“咨询+技术+服务”三位一体的闭环解决方案，助力企业构建AI时代的韧性组织。
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#ahcvm" class="flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-xl font-bold transition shadow-lg shadow-brand-500/30">
+                    <i class="fas fa-user-tie"></i> 自有员工解决方案 (AHCVM)
+                </a>
+                <a href="#aohcvm" class="flex items-center justify-center gap-2 bg-white border border-slate-200 hover:border-blue-500 hover:text-blue-600 text-slate-700 px-8 py-4 rounded-xl font-bold transition shadow-sm">
+                    <i class="fas fa-users-cog"></i> 灵活用工解决方案 (OHCVM)
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section id="ahcvm" class="py-24 bg-white relative border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-16 border-l-4 border-brand-600 pl-6">
+                <span class="text-brand-600 font-bold tracking-widest uppercase text-sm">For Own Employees</span>
+                <h2 class="text-3xl font-bold text-slate-900 mt-2">人力资本价值经营一体化解决方案 <span class="text-brand-600">(AHCVM)</span></h2>
+                <p class="text-slate-500 mt-2">适用：人力资本密集型组织（成本占比>30%）及研发、销售、服务等驱动型团队。</p>
+            </div>
+
+            <div class="mb-20">
+                <div class="flex items-center gap-3 mb-8">
+                    <span class="flex items-center justify-center w-8 h-8 rounded-full bg-brand-100 text-brand-600 font-bold">1</span>
+                    <h3 class="text-2xl font-bold text-slate-900">管理咨询方案</h3>
+                </div>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100 hover:shadow-md transition hover:-translate-y-1">
+                        <div class="w-10 h-10 bg-brand-100 text-brand-600 rounded-lg flex items-center justify-center text-lg mb-4">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-900 mb-3">双轮驱动模型具体规划</h4>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            确定核心经营指标，设计成本分摊逻辑，确保管理体系与技术平台的深度咬合。
+                        </p>
+                    </div>
+                    <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100 hover:shadow-md transition hover:-translate-y-1">
+                        <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-lg mb-4">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-900 mb-3">目标管理体系优化</h4>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            基于战略解码、优化现有目标管理体系，确定科学的目标拆解逻辑，实现上下对齐。
+                        </p>
+                    </div>
+                    <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100 hover:shadow-md transition hover:-translate-y-1">
+                        <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-lg mb-4">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-900 mb-3">激励管理体系优化</h4>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            配套优化激励机制，设计绩效考核流程，建立基于价值贡献的分配体系。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-20">
+                <div class="flex items-center gap-3 mb-8">
+                    <span class="flex items-center justify-center w-8 h-8 rounded-full bg-brand-100 text-brand-600 font-bold">2</span>
+                    <h3 class="text-2xl font-bold text-slate-900">数智化平台方案 (AHCVM)</h3>
+                </div>
+                
+                <div class="bg-slate-900 rounded-3xl p-6 md:p-10 text-white overflow-x-auto shadow-2xl mb-12">
+                    <div class="min-w-[800px] flex flex-col gap-4">
+                        <div class="flex gap-4 items-center arch-layer border-brand-400 pl-4 bg-white/5 p-3 rounded-r-lg">
+                            <div class="w-32 font-bold text-brand-300 text-sm">L6 协同智能体</div>
+                            <div class="flex-1 grid grid-cols-4 gap-3">
+                                <div class="bg-brand-600/80 p-2 rounded text-center text-sm font-medium">CEO Agent</div>
+                                <div class="bg-brand-600/80 p-2 rounded text-center text-sm font-medium">HR Agent</div>
+                                <div class="bg-brand-600/80 p-2 rounded text-center text-sm font-medium">管理者 Agent</div>
+                                <div class="bg-brand-600/80 p-2 rounded text-center text-sm font-medium">员工 Agent</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 items-center arch-layer border-brand-400 pl-4 bg-white/5 p-3 rounded-r-lg">
+                            <div class="w-32 font-bold text-brand-300 text-sm">L5 应用智能体</div>
+                            <div class="flex-1 grid grid-cols-3 gap-3">
+                                <div class="bg-brand-500/60 p-2 rounded text-center text-sm">看板 Agent</div>
+                                <div class="bg-brand-500/60 p-2 rounded text-center text-sm">决策 Agent</div>
+                                <div class="bg-brand-500/60 p-2 rounded text-center text-sm">自动化 Agent</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 items-center arch-layer border-brand-400 pl-4 bg-white/5 p-3 rounded-r-lg">
+                            <div class="w-32 font-bold text-brand-300 text-sm">L4 服务智能体</div>
+                            <div class="flex-1 grid grid-cols-4 gap-3">
+                                <div class="bg-brand-500/40 p-2 rounded text-center text-sm">查询 Agent</div>
+                                <div class="bg-brand-500/40 p-2 rounded text-center text-sm">推送 Agent</div>
+                                <div class="bg-brand-500/40 p-2 rounded text-center text-sm">推荐 Agent</div>
+                                <div class="bg-brand-500/40 p-2 rounded text-center text-sm">培训 Agent</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 items-center arch-layer border-brand-400 pl-4 bg-white/5 p-3 rounded-r-lg">
+                            <div class="w-32 font-bold text-brand-300 text-sm">L3 计算智能体</div>
+                            <div class="flex-1 grid grid-cols-5 gap-3">
+                                <div class="bg-brand-500/20 p-2 rounded text-center text-xs">预警群</div>
+                                <div class="bg-brand-500/20 p-2 rounded text-center text-xs">利润归因</div>
+                                <div class="bg-brand-500/20 p-2 rounded text-center text-xs">ROHC计算</div>
+                                <div class="bg-brand-500/20 p-2 rounded text-center text-xs">成本分摊</div>
+                                <div class="bg-brand-500/20 p-2 rounded text-center text-xs">优化Agent</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 items-center arch-layer border-brand-400 pl-4 bg-white/5 p-3 rounded-r-lg">
+                            <div class="w-32 font-bold text-brand-300 text-sm">L2 数据智能体</div>
+                            <div class="flex-1 grid grid-cols-3 gap-3">
+                                <div class="bg-brand-900/40 p-2 rounded text-center text-sm">采集 Agent 群</div>
+                                <div class="bg-brand-900/40 p-2 rounded text-center text-sm">治理 Agent 群</div>
+                                <div class="bg-brand-900/40 p-2 rounded text-center text-sm">建模 Agent 群</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 items-center arch-layer border-brand-400 pl-4 bg-white/5 p-3 rounded-r-lg">
+                            <div class="w-32 font-bold text-brand-300 text-sm">L1 智能连接层</div>
+                            <div class="flex-1 grid grid-cols-5 gap-3">
+                                <div class="border border-brand-500/50 p-2 rounded text-center text-xs text-brand-100">HR连接</div>
+                                <div class="border border-brand-500/50 p-2 rounded text-center text-xs text-brand-100">PM连接</div>
+                                <div class="border border-brand-500/50 p-2 rounded text-center text-xs text-brand-100">CRM连接</div>
+                                <div class="border border-brand-500/50 p-2 rounded text-center text-xs text-brand-100">财务连接</div>
+                                <div class="border border-brand-500/50 p-2 rounded text-center text-xs text-brand-100">OA连接</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-20">
+                <div class="flex items-center gap-3 mb-8">
+                    <span class="flex items-center justify-center w-8 h-8 rounded-full bg-brand-100 text-brand-600 font-bold">3</span>
+                    <h3 class="text-2xl font-bold text-slate-900">长期服务</h3>
+                </div>
+                <div class="bg-gradient-to-r from-brand-50 to-white border border-brand-100 rounded-3xl p-8">
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-brand-600 flex-shrink-0">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-slate-900 mb-2">多元用工服务</h4>
+                                <p class="text-slate-600 text-sm leading-relaxed">
+                                    提供人力外包、业务外包、海外人力服务及商业保险等一站式服务，降低企业用工风险，提升组织灵活性。
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-brand-600 flex-shrink-0">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-slate-900 mb-2">分层赋能服务</h4>
+                                <p class="text-slate-600 text-sm leading-relaxed">
+                                    针对不同层级人员提供专家定制服务、专业培训及实战工作坊，持续提升组织能力与人效意识。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-3 mb-8">
+                    <span class="flex items-center justify-center w-8 h-8 rounded-full bg-brand-100 text-brand-600 font-bold">4</span>
+                    <h3 class="text-2xl font-bold text-slate-900">Agentic 架构演进路线图</h3>
+                </div>
+                <div class="relative roadmap-line">
+                    <div class="grid md:grid-cols-4 gap-4 relative z-10">
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-brand-300 transition group">
+                            <div class="text-xs font-bold text-brand-600 bg-brand-50 inline-block px-2 py-1 rounded mb-2 group-hover:bg-brand-600 group-hover:text-white transition">Phase 1 (1-3月)</div>
+                            <h5 class="font-bold text-slate-900 mb-2">增强型传统架构</h5>
+                            <p class="text-xs text-slate-500 mb-2">目标：在现有架构中引入智能组件</p>
+                            <ul class="text-xs text-slate-600 space-y-1 list-disc list-inside bg-slate-50 p-2 rounded">
+                                <li>AI辅助数据采集</li>
+                                <li>增强型计算模块</li>
+                                <li>智能看板 (NLQ查询)</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-brand-300 transition group">
+                            <div class="text-xs font-bold text-brand-600 bg-brand-50 inline-block px-2 py-1 rounded mb-2 group-hover:bg-brand-600 group-hover:text-white transition">Phase 2 (4-12月)</div>
+                            <h5 class="font-bold text-slate-900 mb-2">混合架构</h5>
+                            <p class="text-xs text-slate-500 mb-2">目标：关键路径Agent化</p>
+                            <ul class="text-xs text-slate-600 space-y-1 list-disc list-inside bg-slate-50 p-2 rounded">
+                                <li>连接/计算/交互Agent</li>
+                                <li>ROHC计算Agent</li>
+                                <li>对话式界面接入</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-brand-300 transition group">
+                            <div class="text-xs font-bold text-brand-600 bg-brand-50 inline-block px-2 py-1 rounded mb-2 group-hover:bg-brand-600 group-hover:text-white transition">Phase 3 (13-24月)</div>
+                            <h5 class="font-bold text-slate-900 mb-2">Agent主导架构</h5>
+                            <p class="text-xs text-slate-500 mb-2">目标：多职能Agent化</p>
+                            <ul class="text-xs text-slate-600 space-y-1 list-disc list-inside bg-slate-50 p-2 rounded">
+                                <li>分布式Agent集群</li>
+                                <li>自动化工作流</li>
+                                <li>LangChain/Coze集成</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-brand-300 transition group">
+                            <div class="text-xs font-bold text-brand-600 bg-brand-50 inline-block px-2 py-1 rounded mb-2 group-hover:bg-brand-600 group-hover:text-white transition">Phase 4 (3年+)</div>
+                            <h5 class="font-bold text-slate-900 mb-2">完全Agent架构</h5>
+                            <p class="text-xs text-slate-500 mb-2">目标：自主进化系统</p>
+                            <ul class="text-xs text-slate-600 space-y-1 list-disc list-inside bg-slate-50 p-2 rounded">
+                                <li>系统级智能体</li>
+                                <li>持续学习机制</li>
+                                <li>人机协同生态</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="aohcvm" class="py-24 bg-slate-50 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-16 border-l-4 border-blue-600 pl-6">
+                <span class="text-blue-600 font-bold tracking-widest uppercase text-sm">For Non-Own Employees</span>
+                <h2 class="text-3xl font-bold text-slate-900 mt-2">全场景用工管理一体化解决方案 <span class="text-blue-600">(OHCVM)</span></h2>
+                <p class="text-slate-500 mt-2">适用：人力成本敏感、合规风险高、用工波动大、使用灵活用工的大中型企业。</p>
+            </div>
+
+            <div class="mb-20">
+                <div class="flex items-center gap-3 mb-8">
+                    <span class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold">1</span>
+                    <h3 class="text-2xl font-bold text-slate-900">管理咨询方案</h3>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-md transition">
+                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl mb-6">
+                            <i class="fas fa-stethoscope"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-900 mb-4">全场景用工模式诊断&策略</h4>
+                        <ul class="space-y-3 text-sm text-slate-600">
+                            <li class="flex items-start gap-2"><i class="fas fa-check mt-1 text-blue-500"></i> <span><strong>用工模式诊断：</strong> 清洗现有模式，建立决策模型。</span></li>
+                            <li class="flex items-start gap-2"><i class="fas fa-check mt-1 text-blue-500"></i> <span><strong>合规管理：</strong> 梳理法律法规库，细化合规规则。</span></li>
+                            <li class="flex items-start gap-2"><i class="fas fa-check mt-1 text-blue-500"></i> <span><strong>价值评估：</strong> 批量化岗位价值评估与策略建议。</span></li>
+                        </ul>
+                    </div>
+                    <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-md transition">
+                        <div class="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center text-xl mb-6">
+                            <i class="fas fa-truck-loading"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-900 mb-4">供应商管理体系规划</h4>
+                        <ul class="space-y-3 text-sm text-slate-600">
+                            <li class="flex items-start gap-2"><i class="fas fa-check mt-1 text-green-500"></i> <span><strong>准入与库管理：</strong> 设计供应商资质模型，梳理供应商库。</span></li>
+                            <li class="flex items-start gap-2"><i class="fas fa-check mt-1 text-green-500"></i> <span><strong>流程优化：</strong> 优化合同管理流程与结算规范。</span></li>
+                            <li class="flex items-start gap-2"><i class="fas fa-check mt-1 text-green-500"></i> <span><strong>绩效评估：</strong> 建立动效与质量评估模型及激励机制。</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-20">
+                <div class="flex items-center gap-3 mb-8">
+                    <span class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold">2</span>
+                    <h3 class="text-2xl font-bold text-slate-900">数智化平台方案 (OHCVM 2.0)</h3>
+                </div>
+
+                <div class="bg-white rounded-3xl p-6 md:p-10 shadow-xl border border-slate-100 overflow-x-auto mb-12">
+                    <div class="min-w-[900px] flex flex-col gap-4">
+                        
+                        <div class="flex gap-2">
+                            <div class="w-32 bg-blue-600 text-white rounded-l flex items-center justify-center font-bold text-sm">L4 用户交互层</div>
+                            <div class="flex-1 grid grid-cols-4 gap-3">
+                                <div class="bg-blue-50 text-blue-800 p-3 rounded border border-blue-100 text-center">
+                                    <div class="font-bold text-sm mb-1">HR 门户</div>
+                                    <div class="text-[10px] text-blue-600">需求/供应商/合同/结算</div>
+                                </div>
+                                <div class="bg-blue-50 text-blue-800 p-3 rounded border border-blue-100 text-center">
+                                    <div class="font-bold text-sm mb-1">供应商门户</div>
+                                    <div class="text-[10px] text-blue-600">注册/承接/招聘/结算</div>
+                                </div>
+                                <div class="bg-blue-50 text-blue-800 p-3 rounded border border-blue-100 text-center">
+                                    <div class="font-bold text-sm mb-1">员工自助门户</div>
+                                    <div class="text-[10px] text-blue-600">查询/申请/关怀</div>
+                                </div>
+                                <div class="bg-blue-50 text-blue-800 p-3 rounded border border-blue-100 text-center">
+                                    <div class="font-bold text-sm mb-1">管理员控制台</div>
+                                    <div class="text-[10px] text-blue-600">权限/租户/安全</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <div class="w-32 bg-green-500 text-white rounded-l flex items-center justify-center font-bold text-sm">L3 Copilot层</div>
+                            <div class="flex-1 grid grid-cols-4 gap-3">
+                                <div class="bg-green-50 text-green-700 p-2 rounded text-center text-sm font-medium border border-green-100">HR咨询助手</div>
+                                <div class="bg-green-50 text-green-700 p-2 rounded text-center text-sm font-medium border border-green-100">供应商咨询助手</div>
+                                <div class="bg-green-50 text-green-700 p-2 rounded text-center text-sm font-medium border border-green-100">员工咨询助手</div>
+                                <div class="bg-green-50 text-green-700 p-2 rounded text-center text-sm font-medium border border-green-100">合规预警助手</div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <div class="w-32 bg-orange-500 text-white rounded-l flex items-center justify-center font-bold text-sm">L2 业务管理层</div>
+                            <div class="flex-1 grid grid-cols-4 gap-3">
+                                <div class="bg-orange-50 text-orange-900 p-3 rounded border border-orange-100 flex flex-col gap-1 text-xs">
+                                    <strong class="text-sm text-orange-700 mb-1 block">需求管理</strong>
+                                    <span>• 需求订单审批</span>
+                                    <span>• 用工模式评估(Agent)</span>
+                                    <span>• 寻源与推投标</span>
+                                    <span>• 服务价格管理</span>
+                                </div>
+                                <div class="bg-orange-50 text-orange-900 p-3 rounded border border-orange-100 flex flex-col gap-1 text-xs">
+                                    <strong class="text-sm text-orange-700 mb-1 block">供应商管理</strong>
+                                    <span>• 信息与档案管理</span>
+                                    <span>• 合同与履约管理</span>
+                                    <span>• 绩效与激励管理</span>
+                                    <span>• 风险与合规管理</span>
+                                </div>
+                                <div class="bg-orange-50 text-orange-900 p-3 rounded border border-orange-100 flex flex-col gap-1 text-xs">
+                                    <strong class="text-sm text-orange-700 mb-1 block">员工管理</strong>
+                                    <span>• 入转调离全周期</span>
+                                    <span>• 考勤与工时管理</span>
+                                    <span>• 绩效与薪酬管理</span>
+                                    <span>• ROHC分析</span>
+                                </div>
+                                <div class="bg-orange-50 text-orange-900 p-3 rounded border border-orange-100 flex flex-col gap-1 text-xs">
+                                    <strong class="text-sm text-orange-700 mb-1 block">结算管理</strong>
+                                    <span>• PO/GR/Invoice</span>
+                                    <span>• 三单匹配 (3-Way Match)</span>
+                                    <span>• 付款审批工作流</span>
+                                    <span>• 质押金管理</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <div class="w-32 bg-slate-600 text-white rounded-l flex items-center justify-center font-bold text-sm">L1 数据知识层</div>
+                            <div class="flex-1 flex flex-wrap gap-2 px-3 py-3 bg-slate-100 rounded-r border border-slate-200">
+                                <span class="bg-white px-3 py-1 rounded text-xs border shadow-sm font-medium text-slate-600">风险知识图谱</span>
+                                <span class="bg-white px-3 py-1 rounded text-xs border shadow-sm font-medium text-slate-600">合同与结算库</span>
+                                <span class="bg-white px-3 py-1 rounded text-xs border shadow-sm font-medium text-slate-600">供应商数据库</span>
+                                <span class="bg-white px-3 py-1 rounded text-xs border shadow-sm font-medium text-slate-600">员工数据库</span>
+                                <span class="bg-white px-3 py-1 rounded text-xs border shadow-sm font-medium text-slate-600">绩效与考勤库</span>
+                                <span class="bg-white px-3 py-1 rounded text-xs border shadow-sm font-medium text-slate-600">法律法规库</span>
+                                <span class="bg-white px-3 py-1 rounded text-xs border shadow-sm font-medium text-slate-600">用工判例库</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-20">
+                <div class="flex items-center gap-3 mb-8">
+                    <span class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold">3</span>
+                    <h3 class="text-2xl font-bold text-slate-900">长期服务</h3>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 flex-shrink-0">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-slate-900 mb-2">多元用工服务</h4>
+                                <p class="text-slate-600 text-sm leading-relaxed">
+                                    提供人力外包、业务外包、海外人力服务及商业保险等服务，满足企业多样化的用工需求。
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center text-green-600 flex-shrink-0">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-slate-900 mb-2">分层赋能服务</h4>
+                                <p class="text-slate-600 text-sm leading-relaxed">
+                                    提供专家定制服务、专题培训及工作坊，帮助企业及供应商提升管理能力与合规意识。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-3 mb-8">
+                    <span class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold">4</span>
+                    <h3 class="text-2xl font-bold text-slate-900">Agentic 用工管理数智平台演进路线图</h3>
+                </div>
+                <div class="relative roadmap-line">
+                    <div class="grid md:grid-cols-4 gap-4 relative z-10">
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-blue-300 transition group">
+                            <div class="text-xs font-bold text-blue-600 bg-blue-50 inline-block px-2 py-1 rounded mb-2 group-hover:bg-blue-600 group-hover:text-white transition">Phase 1 (1-4月)</div>
+                            <h5 class="font-bold text-slate-900 mb-2">基础管理平台建设</h5>
+                            <p class="text-xs text-slate-500 mb-2">核心模块开发与架构搭建</p>
+                            <ul class="text-xs text-slate-600 space-y-1 list-disc list-inside bg-slate-50 p-2 rounded">
+                                <li>供应商管理功能</li>
+                                <li>员工信息管理</li>
+                                <li>核心数据模型</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-blue-300 transition group">
+                            <div class="text-xs font-bold text-blue-600 bg-blue-50 inline-block px-2 py-1 rounded mb-2 group-hover:bg-blue-600 group-hover:text-white transition">Phase 2 (5-7月)</div>
+                            <h5 class="font-bold text-slate-900 mb-2">AI赋能引入</h5>
+                            <p class="text-xs text-slate-500 mb-2">智能化功能部署</p>
+                            <ul class="text-xs text-slate-600 space-y-1 list-disc list-inside bg-slate-50 p-2 rounded">
+                                <li>风险/合同审核智能体</li>
+                                <li>自动化工作流</li>
+                                <li>电子签/财务集成</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-blue-300 transition group">
+                            <div class="text-xs font-bold text-blue-600 bg-blue-50 inline-block px-2 py-1 rounded mb-2 group-hover:bg-blue-600 group-hover:text-white transition">Phase 3 (8-10月)</div>
+                            <h5 class="font-bold text-slate-900 mb-2">平台完善</h5>
+                            <p class="text-xs text-slate-500 mb-2">用户体验与分析</p>
+                            <ul class="text-xs text-slate-600 space-y-1 list-disc list-inside bg-slate-50 p-2 rounded">
+                                <li>员工自助平台上线</li>
+                                <li>数据分析与BI部署</li>
+                                <li>移动端应用开发</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-blue-300 transition group">
+                            <div class="text-xs font-bold text-blue-600 bg-blue-50 inline-block px-2 py-1 rounded mb-2 group-hover:bg-blue-600 group-hover:text-white transition">Phase 4 (11月—)</div>
+                            <h5 class="font-bold text-slate-900 mb-2">优化迭代</h5>
+                            <p class="text-xs text-slate-500 mb-2">智能增强与扩展</p>
+                            <ul class="text-xs text-slate-600 space-y-1 list-disc list-inside bg-slate-50 p-2 rounded">
+                                <li>智能体增强训练</li>
+                                <li>多租户架构部署</li>
+                                <li>行业方案扩展</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 bg-slate-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl font-bold mb-12">价值承诺：看得见的 ROI 优化</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="p-8 bg-slate-800 rounded-2xl border border-slate-700 hover:border-brand-500 transition group">
+                    <div class="text-5xl font-extrabold text-brand-400 mb-4 group-hover:scale-110 transition duration-300">30%</div>
+                    <h3 class="text-xl font-bold mb-3">提效率</h3>
+                    <p class="text-slate-400 text-sm">某企业通过AI赋能内部研发，整体效率提升30%。</p>
+                </div>
+                <div class="p-8 bg-slate-800 rounded-2xl border border-slate-700 hover:border-blue-500 transition group">
+                    <div class="text-5xl font-extrabold text-blue-400 mb-4 group-hover:scale-110 transition duration-300">20%</div>
+                    <h3 class="text-xl font-bold mb-3">降成本</h3>
+                    <p class="text-slate-400 text-sm">通过“管理+技术”整体解决方案，项目成本降低20%。</p>
+                </div>
+                <div class="p-8 bg-slate-800 rounded-2xl border border-slate-700 hover:border-green-500 transition group">
+                    <div class="text-5xl font-extrabold text-green-400 mb-4 group-hover:scale-110 transition duration-300">15%</div>
+                    <h3 class="text-xl font-bold mb-3">增业绩</h3>
+                    <p class="text-slate-400 text-sm">落地用工管理数智化平台，外包人员人均产出提升15%。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-24 bg-white relative border-t border-slate-100">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-6">开启人力资本价值经营之旅</h2>
+            <p class="text-lg text-slate-600 mb-10">你的人力资本是真正在创造回报，还是只是成本？</p>
+            
+            <div class="bg-gradient-to-r from-brand-600 to-blue-600 p-10 rounded-3xl shadow-2xl text-white">
+                <h3 class="text-2xl md:text-3xl font-bold mb-4">测一测『人力资本成熟度』</h3>
+                <p class="mb-8 opacity-90">获取诊断报告及专家行动建议</p>
+                
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <a href="diagnostic.html" class="bg-white text-brand-700 px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:-translate-y-1 transition w-full sm:w-auto flex items-center justify-center gap-2">
+                        <i class="fas fa-calendar-check"></i> 开始测试
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="footer-container"></div>
+
+    <script src="/js/script.js"></script>
+    <script src="/js/main.js"></script>
+    <script type="module">
+        import { FooterComponent } from '/js/FooterComponent.js';
+        const footer = new FooterComponent();
+        footer.render();
+    </script>
+</body>
+</html>

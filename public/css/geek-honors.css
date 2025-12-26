@@ -1,0 +1,239 @@
+/* Geekbang Honors Module Styles - Adapted */
+
+/* Container Styles Removed - Handled by Tailwind in HTML */
+/* .geek-honor-section { ... } */
+
+/* Title Styles Removed - Replaced by Standard Header */
+/* .geek-honor-title { ... } */
+
+/* Authentication Box (ISO Cards) */
+.geek-auth-box {
+    width: 1200px;
+    margin: 0 auto 30px;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+}
+
+.geek-auth-item {
+    box-sizing: border-box;
+    z-index: 99;
+    align-items: center;
+    width: 380px;
+    height: 140px;
+    padding: 36px 50px 36px 32px;
+    background: linear-gradient(163deg, #fff5e7, #fff);
+    box-shadow: 0 8px 32px 0 rgba(206, 211, 226, .24), inset 2px 2px 0 0 #fff;
+    border-radius: 6px;
+    display: flex;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.geek-auth-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px 0 rgba(206, 211, 226, .4);
+}
+
+.geek-auth-img {
+    display: block;
+    width: 68px;
+    height: 68px;
+    margin-right: 30px;
+    object-fit: contain;
+}
+
+.geek-auth-content {
+    width: 200px;
+    height: 44px;
+    line-height: 22px;
+    text-align: left;
+    font-size: 16px;
+    font-weight: 500;
+    color: #404040;
+    display: flex;
+    align-items: center;
+}
+
+/* Content Box (Honors Grid) */
+.geek-content-box {
+    width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 99;
+    padding: 30px 32px 30px 30px;
+    background: linear-gradient(153deg, #fff5e7, #fff 70%, #fff);
+    box-shadow: 0 8px 32px 0 rgba(206, 211, 226, .24), inset 2px 2px 0 0 #fff;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+.geek-first-line {
+    display: flex;
+    text-align: left;
+}
+
+/* Quadrants */
+.geek-background-box {
+    width: 571px;
+    height: 236px;
+    border-right: 1px dashed #eff0f2;
+    border-bottom: 1px dashed #eff0f2;
+    padding-left: 0;
+}
+
+.geek-leading-enterprise-box {
+    height: 138px;
+    width: 535px;
+    padding-left: 29px;
+    /* height is smaller in CSS but visual might be taller? CSS says 138px but grid implies 236px alignment. 
+       Actually looking at CSS: Honor_leadingEnterpriseBox_MbY7z height is 138px. 
+       It likely sits inside the top right area. 
+       Let's stick to the CSS properties. */
+}
+
+.geek-science-box {
+    width: 571px;
+    padding-top: 29px;
+}
+
+.geek-party-building-box {
+    width: 567px;
+    /* height: 162px; */
+    margin: -1px;
+    padding: 30px 0 0 30px;
+    border-top: 1px dashed #eff0f2;
+    border-left: 1px dashed #eff0f2;
+}
+
+/* Titles with Wheat Ears */
+.geek-item-title {
+    height: 28px;
+    padding-left: 23px;
+    line-height: 28px;
+    font-size: 20px;
+    font-weight: 500;
+    color: #e7b15f;
+    margin-bottom: 20px;
+    position: relative;
+    display: inline-block; /* Ensure width fits content for pseudo elements */
+}
+
+.geek-title-bg {
+    position: relative;
+    display: inline-block;
+}
+
+.geek-title-bg:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -23px; /* Adjusted based on CSS left:0 but applied to wrapper */
+    width: 14px;
+    height: 26px;
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAA0CAMAAACuLKj9AAAAk1BMVEUAAAD/wmvwuWXrtGHosmDosl/osl/osl/qs2HstGPnsl/ps2DosmDqs2DqtGPrtGTstmbzvGrosmDosmDosl/ps2Dos2DutWXosl/osmDosl/osWDosl/osmDosmDpsl/psmDpsWDosmDosl/osmDpsmDpsmDps2Hps2Hps2DosmDnsl/qtGPosV/nsmDosmDosV9GG06XAAAAMHRSTlMABhAy+fH2oD8o7oaDNyMfGgvp1rpqWBXcysCppZeQfl5S0rOucWVQS0WMdivk4ZKezyRdAAABuElEQVQ4y52T6ZaCMAyFA7TsKOuIoijuyyz3/Z9uaIVjp9g/8/2B03vSNDcJTZl7eaEdWZ5DkhsHlproADsZF+L5p+IDLOi/BwBr0pg9Dy0ATUY6e4CL1K1PU24ALDJxQkhmnB19rnNWb+bqYdgMNdouBNz/UyIbKuu4VE+KOaLuMbby1nFAClsAJRmwSoBl/f3tarVxJmrLkFIESTAJtn3aQbKld2TbPf9aJ6RS7n9mZKIE3A+T+AGA+TLv9XSea+oRz7l4SHc0NfPk2QaCDekkkZc66GGRIfctas8p/Q87XtamkpNc2q8SFflya4/T7E2rRN73SRRU2H/FRSHVBXHguJg8o3UB1lFViUYG8afWaiexXwNzJgMPABeDlvYJXNu4EEAs1rFSX3yOootFojFHS3SYW692y0Z++b0h1XD5y8WOAXhliyHFLBhcPbjAatyeFeQuHsJ0LHVhqSt+7wOAH5pyQG3Ly2vdS/HYUtznAa6qzDwONqa+A9/qELmAdEFyARpFrKV2H59YwFF9ejSN0rDAuCNBd80MkrME0L3XrsLOb+v9+IYAePI+sAJQBqbBv16Gjv0C7ok0WrFXn3YAAAAASUVORK5CYII=);
+    background-size: 100% 100%;
+}
+
+.geek-title-bg:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: -23px; /* Adjusted */
+    width: 14px;
+    height: 26px;
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAA0CAMAAACuLKj9AAAAmVBMVEUAAADosmD/wnLosmDosl/osl/xtmjpsmDstGDrtGHstGPptGPuu2bosl/osmDosmDosmDps2HstWXutWX8vGjosl/osl/nsl/ps2Dos2HpsmHrs2HosmDosmDnsl/osmDpsmHqs2HosmDosmDosl/osmDosV/osmDptGHrtWLutmPosmDosmDos2Hos2DptGPpsl/osl/osV9ESkxrAAAAMnRSTlMA8QX59uwRhjQxKSEO06aQg0MaFQneuqFpWFE+ysCsl15L5tidf3VvOCUdtLCLZC18VHwpRCgAAAHGSURBVDjLlZTploIwDIVTkEUQAVkHRcR9GXXM+z/cpBSPUOiZM/eHgF97k5IEENoZexdUWiGyUNzae02CG0Q0ru2dDZLmRG90dXTEUIYxp5pYNBJ96WcxAEP0QKEYuatKDE8w0LVKdGP+hM1zJCBDrokpHqdrY/qBp4axoj21jtiB4BzmWf7ex9dpMK6U4EH6z67K0ie3mExTaeMFG1mwQN0fmP4IuoHlDIY6z7fM+4nhT7m+l6rY1wRRgu7jWDfxlpQwfvXYFUnsKLoGvyWzCrmqZtV+kJilczpdZJYNQy1y3wrh/7okq8BUwRmF3J5VdM972+XLDitjZ/Vh5BHNqNxbHDlptEZkEBmc7aIOeAYO75f8BAXFnvi91B6f5pjZU6ncBVkdQSFzQmaLEZAv6SdAHBsGjfHqaZRqRZfCsh6dTC+tYe5ZEDZnZKLUDtXepcfgE5mkv5oiGd/N5GEJQmFJNjdRTx+RXvW9O9Bx9D5k0hiaO7zBUBQi4+4pT1duddp5bwe41JFlrvQBakc2EMMddqCN3jv8vaFJr/Odz3gH6/Ux6ndOXRBX6EVeK1sBtYSoXivomRE1TFUzp0Rz9SDX9cjOX3wNN35bsvPBAAAAAElFTkSuQmCC);
+    background-size: 100% 100%;
+}
+
+/* List Items */
+.geek-item-info {
+    position: relative;
+    /* height: 22px; */ /* Flexible height is better for wrapping text */
+    margin-bottom: 12px;
+    padding-left: 10px;
+    line-height: 22px;
+    font-size: 16px;
+    font-weight: 400;
+    color: #404040;
+}
+
+.geek-item-info:last-child {
+    margin-bottom: 0;
+}
+
+.geek-item-info:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 9px; /* Centered relative to 22px line-height */
+    width: 4px;
+    height: 4px;
+    background: #b2b2b2;
+    border-radius: 50%;
+}
+
+/* Background Decorations */
+#honors .Honor_leftBg_3dp94 {
+    position: absolute;
+    left: -322px;
+    top: 106px;
+    z-index: 9;
+    width: 372px;
+    height: 372px;
+    background-image: url(https://static001.geekbang.org/www/img/honor-left-bg.ef6fa983.png);
+    background-size: 100% 100%;
+    pointer-events: none;
+}
+
+#honors .Honor_rightTopBg_m0Vtl {
+    position: absolute;
+    right: -125px;
+    top: -50px;
+    z-index: 9;
+    width: 177px;
+    height: 133px;
+    background-image: url(https://static001.geekbang.org/www/img/honor-right-top.26cca9d2.png);
+    background-size: 100% 100%;
+    pointer-events: none;
+}
+
+#honors .Honor_rightBottomBg_FhkJM {
+    position: absolute;
+    right: -267px;
+    bottom: -100px;
+    z-index: 9;
+    width: 410px;
+    height: 400px;
+    background-image: url(https://static001.geekbang.org/www/img/honor-right-bottom.040cd0ee.png);
+    background-size: 100% 100%;
+    pointer-events: none;
+}
+
+/* Responsive adjustment for small screens */
+@media (max-width: 1240px) {
+    .geek-auth-box, .geek-content-box {
+        width: 100%;
+        padding-left: 20px;
+        padding-right: 20px;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .geek-auth-item {
+        width: 100%;
+        max-width: 380px;
+        margin-bottom: 16px;
+    }
+    
+    .geek-first-line, .geek-scienceItemBox_1aKpo {
+        flex-direction: column;
+    }
+    
+    .geek-background-box, .geek-leading-enterprise-box, .geek-science-box, .geek-party-building-box {
+        width: 100%;
+        height: auto;
+        border: none;
+        padding: 20px 0;
+        border-bottom: 1px dashed #eff0f2;
+    }
+}

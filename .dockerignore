@@ -5,7 +5,17 @@ npm-debug.log
 README.md
 .env
 .env.local
+.env.development
+.env.test
 .nyc_output
 coverage
 .DS_Store
 *.log
+.vscode
+.idea
+docs/
+k8s/
+*.md
+.dockerignore
+Dockerfile
+docker-compose.yml

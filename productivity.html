@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>预约『组织人效快速体检』- 瑞华智策</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --brand: #4f46e5;
+      --brand-dark: #4338ca;
+      --brand-soft: #eef2ff;
+    }
+
+    body {
+      font-family: "Inter", "Noto Sans SC", system-ui, -apple-system,
+        BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    /* 页面背景 */
+    .page-bg {
+      background: radial-gradient(circle at 0 0, #eef2ff 0, transparent 55%),
+        radial-gradient(circle at 100% 0, #e0f2fe 0, transparent 55%),
+        radial-gradient(circle at 50% 100%, #e5e7eb 0, #f9fafb 60%);
+    }
+
+    /* 右侧卡片阴影 */
+    .card-elevated {
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
+    }
+
+    /* 主按钮（下一步、提交） */
+    .btn-primary-main {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      border-radius: 1rem;
+      background-color: var(--brand);
+      padding: 0.6rem 1.4rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #ffffff;
+      box-shadow: 0 10px 26px rgba(79, 70, 229, 0.5);
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary-main:hover {
+      background-color: var(--brand-dark);
+      box-shadow: 0 14px 32px rgba(79, 70, 229, 0.7);
+      transform: translateY(-2px);
+    }
+
+    /* 次按钮（上一步） */
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      padding: 0.55rem 1.2rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #374151;
+      background-color: #ffffff;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-secondary:hover {
+      border-color: #c7d2fe;
+      color: var(--brand-dark);
+      background-color: #f9fafb;
+    }
+
+    /* 输入框 */
+    .form-input-custom {
+      border-radius: 0.75rem;
+      border: 1px solid #e5e7eb;
+      background-color: #f9fafb;
+      padding: 0.7rem 0.9rem;
+      font-size: 0.9rem;
+      width: 100%;
+      transition: all 0.15s ease;
+    }
+
+    .form-input-custom:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.15);
+      background-color: #ffffff;
+    }
+
+    .form-label {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-bottom: 0.15rem;
+      display: inline-block;
+    }
+
+    .form-label span {
+      color: #ef4444;
+      margin-left: 2px;
+    }
+
+    /* step 指示器 */
+    .step-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      border: 1px solid transparent;
+    }
+
+    .step-pill-active {
+      background-color: #ffffff;
+      color: var(--brand);
+      border-color: #e5e7eb;
+      font-weight: 600;
+    }
+
+    .step-pill-inactive {
+      color: #9ca3af;
+      background-color: transparent;
+    }
+
+    .step-circle {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      border: 2px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+    }
+
+    .step-circle-active {
+      border-color: var(--brand);
+      background-color: var(--brand-soft);
+      color: var(--brand);
+    }
+
+    .step-circle-inactive {
+      background-color: transparent;
+      color: #9ca3af;
+    }
+
+    /* 验证码按钮 */
+    .btn-code {
+      font-size: 0.8rem;
+      white-space: nowrap;
+      padding: 0.5rem 0.9rem;
+      border-radius: 999px;
+      background-color: var(--brand-soft);
+      color: var(--brand-dark);
+      font-weight: 600;
+      border: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn-code:hover:enabled {
+      background-color: #e0e7ff;
+    }
+
+    .btn-code:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    /* 错误提示 */
+    .error-text {
+      font-size: 0.75rem;
+      color: #ef4444;
+      margin-top: 0.2rem;
+    }
+  </style>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/favicon.ico">
+</head>
+
+<body class="page-bg min-h-screen text-slate-900">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative">
+  
+    <div class="text-xs text-slate-400 mb-6 flex items-center gap-2">
+      <a href="index.html" class="hover:text-slate-600 flex items-center gap-1">
+        <i class="fas fa-angle-left"></i>
+        返回首页
+      </a>
+      <span class="text-slate-300">/</span>
+      <span>组织诊断 · 免费评估</span>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-10 items-stretch">
+
+      <div class="space-y-8 py-4">
+        <div class="space-y-6">
+          <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-violet-100 text-violet-700 text-xs font-bold tracking-wide uppercase">
+            <i class="fas fa-bolt"></i>
+            限时免费评估
+          </div>
+
+          <div>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight mb-6">
+              预约
+              <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">组织人效快速体检</span>
+            </h1>
+            <p class="text-[0.9rem] text-slate-600 leading-relaxed max-w-lg">
+              通过科学的诊断模型，为您精准定位组织效能痛点，量化人力资本投资回报。
+            </p>
+          </div>
+        </div>
+
+        <div class="grid gap-6">
+          <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-white/50 transition duration-300 group">
+            <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-violet-100/50 flex items-center justify-center text-violet-600 group-hover:scale-110 transition duration-300">
+              <i class="fas fa-chart-pie text-xl"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-slate-900 text-lg mb-1 group-hover:text-violet-700 transition">组织效能现状评估</h3>
+              <p class="text-sm text-slate-500 leading-relaxed">全方位扫描组织架构冗余与流程断点，输出诊断报告。</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-white/50 transition duration-300 group">
+            <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-indigo-100/50 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition duration-300">
+              <i class="fas fa-coins text-xl"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-slate-900 text-lg mb-1 group-hover:text-indigo-700 transition">人力资本 ROI 分析</h3>
+              <p class="text-sm text-slate-500 leading-relaxed">从财务视角量化人才投入产出比，识别高价值人才资产。</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-white/50 transition duration-300 group">
+            <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-blue-100/50 flex items-center justify-center text-blue-600 group-hover:scale-110 transition duration-300">
+              <i class="fas fa-route text-xl"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-slate-900 text-lg mb-1 group-hover:text-blue-700 transition">优化路径与建议</h3>
+              <p class="text-sm text-slate-500 leading-relaxed">提供可落地的组织优化策略与数字化转型优先级建议。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-8 p-6 rounded-3xl bg-slate-50 border border-slate-100 relative overflow-hidden group">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-violet-500/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+          <div class="relative z-10 flex gap-4 items-start">
+             <div class="flex-shrink-0 w-10 h-10 rounded-full bg-white flex items-center justify-center text-slate-600 shadow-sm mt-1">
+               <i class="fas fa-user-tie"></i>
+             </div>
+             <div>
+                <h4 class="font-bold text-slate-900 mb-2">建议参与对象</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                  企业主 / CEO / CHO / HRVP / HRD / CIO / CTO 等核心决策人
+                </p>
+             </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white/90 rounded-3xl card-elevated p-6 md:p-8 flex flex-col justify-between">
+        <div class="mb-6">
+          <h2 class="text-lg md:text-xl font-bold text-slate-900">
+            填写预约信息
+          </h2>
+        </div>
+
+        <form id="appointmentForm" class="space-y-6">
+          <div class="space-y-4">
+            <div>
+              <label class="form-label">姓名<span>*</span></label>
+              <input
+                type="text"
+                id="name"
+                class="form-input-custom"
+                placeholder="请输入您的姓名"
+                required
+              />
+              <p class="error-text hidden" id="nameError">请输入姓名</p>
+            </div>
+
+            <div>
+              <label class="form-label">公司名称<span>*</span></label>
+              <input
+                type="text"
+                id="company"
+                class="form-input-custom"
+                placeholder="请输入公司全称"
+                required
+              />
+              <p class="error-text hidden" id="companyError">请输入公司名称</p>
+            </div>
+
+            <div>
+              <label class="form-label">职位<span>*</span></label>
+              <select
+                id="position"
+                class="form-input-custom"
+                required
+              >
+                <option value="">请选择您的职位</option>
+                <option value="企业主/CEO">企业主 / CEO</option>
+                <option value="CHO/HRVP">CHO / HRVP</option>
+                <option value="HRD">HRD</option>
+                <option value="HRM及以下">HRM 及以下</option>
+                <option value="CIO/CTO">CIO / CTO</option>
+                <option value="其他">其他</option>
+              </select>
+              <p class="error-text hidden" id="positionError">请选择职位</p>
+            </div>
+
+            <div>
+              <label class="form-label">手机号码<span>*</span></label>
+              <div class="flex gap-2">
+                <input
+                  type="tel"
+                  id="phone"
+                  class="form-input-custom flex-1"
+                  placeholder="请输入 11 位中国大陆手机号码"
+                />
+                <button
+                  type="button"
+                  id="sendCodeBtn"
+                  class="btn-code"
+                >
+                  获取验证码
+                </button>
+              </div>
+              <p class="error-text hidden" id="phoneError">
+                请输入有效的 11 位手机号
+              </p>
+            </div>
+
+            <div>
+              <label class="form-label">短信验证码<span>*</span></label>
+              <input
+                type="text"
+                id="smsCode"
+                class="form-input-custom"
+                placeholder="请输入 6 位验证码"
+              />
+              <p class="error-text hidden" id="codeError">
+                请输入正确的 6 位验证码
+              </p>
+            </div>
+          </div>
+
+          <div class="pt-4">
+            <button
+              type="submit"
+              class="btn-primary-main w-full"
+            >
+              <i class="fas fa-paper-plane"></i>
+              提交预约
+            </button>
+          </div>
+
+          <p class="text-[11px] text-slate-400 mt-3 leading-relaxed">
+            提交后，我们将在 <span class="font-semibold text-slate-700">1–2 个工作日内</span>
+            通过电话或微信与您取得联系，完成初步沟通。本次评估为免费服务，我们将严格保护您的信息安全。
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <div class="mt-10 pt-6 border-t border-slate-200 text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <span>© 2025 瑞华智策 Ruihua Intelligent Strategy. All rights reserved.</span>
+      <div class="flex gap-4">
+        <a href="privacy.html" class="hover:text-slate-600">隐私政策</a>
+      </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 ease-in-out opacity-0" id="modalBackdrop"></div>
+        
+        <!-- Modal Panel -->
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center">
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all duration-300 ease-in-out sm:my-8 w-full max-w-sm opacity-0 scale-95" id="modalPanel">
+                    <div class="bg-white px-4 pb-6 pt-6 sm:p-6 sm:pb-6">
+                        <div class="flex flex-col items-center">
+                            <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 mb-4">
+                                <i class="fas fa-check text-indigo-600 text-2xl"></i>
+                            </div>
+                            <div class="text-center">
+                                <h3 class="text-lg font-bold leading-6 text-slate-900 mb-2" id="modal-title">提交成功</h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-slate-500">2个工作日内，咨询顾问会跟您联系...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 px-4 py-4 sm:px-6 flex justify-center">
+                        <button type="button" class="inline-flex w-full justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 min-h-[48px] items-center" onclick="closeModal()">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- 引入script.js以使用UTM参数处理函数 -->
+  <script src="/js/script.js"></script>
+  <script>
+    // 初始化渠道溯源功能
+    document.addEventListener('DOMContentLoaded', function() {
+      // 确保script.js已加载并初始化UTM跟踪
+      if (typeof initUtmTracking === 'function') {
+        initUtmTracking();
+      }
+    });
+
+    const nameInput = document.getElementById("name");
+    const companyInput = document.getElementById("company");
+    const positionSelect = document.getElementById("position");
+    const phoneInput = document.getElementById("phone");
+    const smsCodeInput = document.getElementById("smsCode");
+
+    const sendCodeBtn = document.getElementById("sendCodeBtn");
+    const form = document.getElementById("appointmentForm");
+
+    let generatedCode = "";
+    let countdownTimer = null;
+    let countdown = 60;
+
+    function showError(id) {
+      document.getElementById(id).classList.remove("hidden");
+    }
+
+    function hideError(id) {
+      document.getElementById(id).classList.add("hidden");
+    }
+
+    function showModal() {
+        const modal = document.getElementById('successModal');
+        const backdrop = document.getElementById('modalBackdrop');
+        const panel = document.getElementById('modalPanel');
+        
+        modal.classList.remove('hidden');
+        // Trigger reflow
+        void modal.offsetWidth;
+        
+        backdrop.classList.remove('opacity-0');
+        backdrop.classList.add('opacity-100');
+        
+        panel.classList.remove('opacity-0', 'scale-95');
+        panel.classList.add('opacity-100', 'scale-100');
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('successModal');
+        const backdrop = document.getElementById('modalBackdrop');
+        const panel = document.getElementById('modalPanel');
+        
+        backdrop.classList.remove('opacity-100');
+        backdrop.classList.add('opacity-0');
+        
+        panel.classList.remove('opacity-100', 'scale-100');
+        panel.classList.add('opacity-0', 'scale-95');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            window.location.href = 'index.html';
+        }, 300);
+    }
+
+    // Close modal on click outside
+    document.getElementById('successModal').addEventListener('click', function(e) {
+        if (e.target === this || e.target.id === 'modalBackdrop') {
+            closeModal();
+        }
+    });
+
+    // 发送验证码（模拟）
+    sendCodeBtn.addEventListener("click", () => {
+      const phone = phoneInput.value.trim();
+      const phoneReg = /^1[3-9]\d{9}$/;
+
+      if (!phoneReg.test(phone)) {
+        showError("phoneError");
+        return;
+      } else {
+        hideError("phoneError");
+      }
+
+      // 生成 6 位验证码（模拟）
+      generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
+      alert("【演示环境】模拟验证码：" + generatedCode);
+
+      // 启动倒计时
+      sendCodeBtn.disabled = true;
+      countdown = 60;
+      sendCodeBtn.textContent = countdown + " 秒后可重发";
+
+      if (countdownTimer) clearInterval(countdownTimer);
+      countdownTimer = setInterval(() => {
+        countdown--;
+        if (countdown <= 0) {
+          clearInterval(countdownTimer);
+          sendCodeBtn.disabled = false;
+          sendCodeBtn.textContent = "获取验证码";
+        } else {
+          sendCodeBtn.textContent = countdown + " 秒后可重发";
+        }
+      }, 1000);
+    });
+
+    // 提交表单
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      let valid = true;
+
+      if (!nameInput.value.trim()) {
+        showError("nameError");
+        valid = false;
+      } else hideError("nameError");
+
+      if (!companyInput.value.trim()) {
+        showError("companyError");
+        valid = false;
+      } else hideError("companyError");
+
+      if (!positionSelect.value) {
+        showError("positionError");
+        valid = false;
+      } else hideError("positionError");
+
+      const phone = phoneInput.value.trim();
+      const phoneReg = /^1[3-9]\d{9}$/;
+
+      if (!phoneReg.test(phone)) {
+        showError("phoneError");
+        valid = false;
+      } else hideError("phoneError");
+
+      // 验证码校验
+      if (!smsCodeInput.value.trim() || smsCodeInput.value.trim().length !== 6) {
+        showError("codeError");
+        valid = false;
+      } else if (generatedCode && smsCodeInput.value.trim() !== generatedCode) {
+        showError("codeError");
+        valid = false;
+        alert("验证码错误，请检查！");
+        return; 
+      } else {
+        hideError("codeError");
+      }
+
+      if (!valid) return;
+
+      // 1. 收集数据，添加完整的UTM参数
+      const formData = {
+        name: nameInput.value.trim(),
+        company: companyInput.value.trim(),
+        title: positionSelect.value, // 对应后端 schema 的 'title'
+        phone: phoneInput.value.trim(),
+        source: 'productivity.html',
+        // 添加UTM相关字段
+        utm_source: null,
+        utm_medium: null,
+        utm_campaign: null,
+        utm_term: null,
+        utm_content: null
+      };
+
+      // 获取并添加UTM参数信息
+      if (typeof getCurrentUtmParameters === 'function') {
+        const utmParams = getCurrentUtmParameters();
+        // 将UTM参数合并到formData中
+        Object.assign(formData, utmParams);
+      }
+
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+
+      // 2. 发送请求
+      try {
+        const res = await fetch('/api/appointments', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (res.ok) {
+          showModal();
+          form.reset();
+        } else {
+          const errData = await res.json();
+          alert("提交失败：" + (errData.error || "服务器错误"));
+        }
+      } catch (err) {
+        console.error(err);
+        alert("网络连接失败，请检查您的网络或联系管理员。");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      }
+    });
+  </script>
+</body>
+</html>

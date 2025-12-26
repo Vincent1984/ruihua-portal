@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>瑞华智策 - 成熟度诊断管理</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Custom Theme -->
+    <link rel="stylesheet" href="admin-theme.css">
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        [v-cloak] { display: none; }
+        .sidebar-menu a { text-decoration: none; display: block; }
+    </style>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/favicon.ico">
+</head>
+<body>
+
+<div class="admin-layout">
+    <!-- Sidebar (Simplified Copy) -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <i class="bi bi-grid-1x2-fill me-2"></i> CMS 系统
+        </div>
+        <div class="sidebar-menu">
+            <a href="/admin/dashboard.html" class="menu-item">
+                <i class="bi bi-speedometer2"></i> 数据看板
+            </a>
+            <a href="/admin/dashboard.html" class="menu-item">
+                <i class="bi bi-image"></i> Banner管理
+            </a>
+            <a href="/admin/dashboard.html" class="menu-item">
+                <i class="bi bi-layout-sidebar"></i> 文章侧边栏管理
+            </a>
+            <a href="/admin/dashboard.html" class="menu-item">
+                <i class="bi bi-file-text"></i> 文章管理
+            </a>
+            <a href="/admin/dashboard.html" class="menu-item">
+                <i class="bi bi-question-circle"></i> FAQ管理
+            </a>
+            <a href="/admin/dashboard.html" class="menu-item">
+                <i class="bi bi-list-check"></i> 表单管理
+            </a>
+            <a href="/admin/whitepaper-submissions.html" class="menu-item">
+                <i class="bi bi-file-earmark-arrow-down"></i> 白皮书下载
+            </a>
+            <!-- New Item -->
+            <a href="#" class="menu-item active">
+                <i class="bi bi-bar-chart-steps"></i> 成熟度诊断
+            </a>
+            
+            <div class="mt-4 px-3">
+                <div class="text-secondary text-uppercase small mb-2" style="font-size: 12px; padding-left: 10px;">系统设置</div>
+                <a href="/admin/dashboard.html" class="menu-item">
+                    <i class="bi bi-shield-lock"></i> 权限管理
+                </a>
+                <a href="/admin/index.html" class="menu-item text-danger mt-2">
+                    <i class="bi bi-box-arrow-right"></i> 退出登录
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="app" v-cloak>
+        <!-- Header -->
+        <div class="header">
+            <h4 class="m-0">成熟度诊断数据</h4>
+            <div class="d-flex align-items-center gap-3">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="bi bi-download me-1"></i> 导出数据
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" @click.prevent="exportData('xlsx')">导出 Excel</a></li>
+                        <li><a class="dropdown-item" href="#" @click.prevent="exportData('csv')">导出 CSV</a></li>
+                    </ul>
+                </div>
+
+                <div class="dropdown">
+                    <button class="btn btn-outline border-0 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle me-1"></i> 管理员
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item text-danger" href="/admin/index.html">退出</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="page-content">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <span>测评记录列表</span>
+                    <button class="btn btn-sm btn-outline-secondary" @click="fetchData">
+                        <i class="bi bi-arrow-clockwise"></i> 刷新
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>提交时间</th>
+                                    <th>姓名</th>
+                                    <th>电话</th>
+                                    <th>公司</th>
+                                    <th>得分</th>
+                                    <th>等级</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in list" :key="item._id">
+                                    <td>{{ formatDate(item.createdAt) }}</td>
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.phone }}</td>
+                                    <td>{{ item.company }}</td>
+                                    <td>
+                                        <span class="badge bg-primary rounded-pill">{{ item.score }}</span>
+                                    </td>
+                                    <td>
+                                        <span :class="getLevelClass(item.level)">{{ item.level }}</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-link text-primary" @click="showDetail(item)">查看详情</button>
+                                        <button class="btn btn-sm btn-link text-danger" @click="deleteItem(item._id)">删除</button>
+                                    </td>
+                                </tr>
+                                <tr v-if="list.length === 0">
+                                    <td colspan="7" class="text-center py-4 text-muted">暂无数据</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white py-3 d-flex justify-content-between align-items-center">
+                    <span class="text-secondary small">共 {{ total }} 条记录</span>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item" :class="{ disabled: page <= 1 }">
+                                <a class="page-link" href="#" @click.prevent="changePage(page - 1)">上一页</a>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link">{{ page }} / {{ totalPages }}</span>
+                            </li>
+                            <li class="page-item" :class="{ disabled: page >= totalPages }">
+                                <a class="page-link" href="#" @click.prevent="changePage(page + 1)">下一页</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail Modal -->
+        <div class="modal fade" id="detailModal" tabindex="-1" ref="detailModal">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content" v-if="currentItem">
+                    <div class="modal-header">
+                        <h5 class="modal-title">测评详情 - {{ currentItem.name }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <p><strong>提交时间:</strong> {{ formatDate(currentItem.createdAt) }}</p>
+                                <p><strong>联系电话:</strong> {{ currentItem.phone }}</p>
+                                <p><strong>公司名称:</strong> {{ currentItem.company }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded text-center">
+                                    <h2 class="text-primary mb-0">{{ currentItem.score }}</h2>
+                                    <div class="text-muted small">综合得分</div>
+                                    <div class="mt-2 badge bg-dark">{{ currentItem.level }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="border-bottom pb-2 mb-3">详细评估结果</h6>
+                        <div class="alert alert-info">
+                            <strong>核心洞察:</strong> {{ currentItem.resultDetail?.insight }}
+                        </div>
+                        <div class="mb-3">
+                            <strong>现状描述:</strong>
+                            <p class="small text-secondary">{{ currentItem.resultDetail?.currentStatus }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <strong>改进潜力:</strong>
+                            <p class="small text-secondary">{{ currentItem.resultDetail?.potential }}</p>
+                        </div>
+
+                        <h6 class="border-bottom pb-2 mb-3 mt-4">测评答卷</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light"><tr><th style="width: 40%">题目</th><th>回答</th></tr></thead>
+                                <tbody>
+                                    <tr v-for="(opts, qKey) in currentItem.answers" :key="qKey">
+                                        <td class="small">
+                                            <strong>{{ getQuestionText(qKey) }}</strong>
+                                        </td>
+                                        <td>
+                                            <div v-for="optKey in (Array.isArray(opts) ? opts : [opts])" :key="optKey" class="mb-1">
+                                                <span class="badge bg-primary me-1">{{ optKey }}</span>
+                                                <span class="small text-secondary">{{ getOptionText(qKey, optKey) }}</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Permission Check for Sidebar
+    (async function checkSidebarPerms() {
+        try {
+            const token = sessionStorage.getItem('token');
+            if (!token) return;
+            
+            const res = await fetch('/api/auth/verify', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            
+            if (data.success && data.user && data.user.roles) {
+                const perms = new Set();
+                data.user.roles.forEach(r => {
+                    if (r.permissions && Array.isArray(r.permissions)) {
+                        r.permissions.forEach(p => perms.add(p));
+                    }
+                });
+                
+                const hasPerm = perms.has('all') || perms.has('appointment:list');
+                const nav = document.getElementById('nav-whitepaper');
+                if (nav && !hasPerm) {
+                    nav.style.display = 'none';
+                }
+            }
+        } catch (e) {
+            console.error('Perm check failed', e);
+        }
+    })();
+
+    const { createApp, ref, onMounted } = Vue;
+
+    createApp({
+        setup() {
+            const list = ref([]);
+            const page = ref(1);
+            const total = ref(0);
+            const totalPages = ref(1);
+            const currentItem = ref(null);
+            const quizConfig = ref({}); // Store quiz config
+            let modalInstance = null;
+
+            const authHeaders = () => {
+                const token = sessionStorage.getItem('token');
+                return token ? { 'Authorization': 'Bearer ' + token } : {};
+            };
+
+            const fetchConfig = async () => {
+                try {
+                    const res = await fetch('/api/config/quiz');
+                    quizConfig.value = await res.json();
+                } catch (e) {
+                    console.error("Failed to load quiz config", e);
+                }
+            };
+
+            const getQuestionText = (qKey) => {
+                if (!quizConfig.value[qKey]) return qKey;
+                // Format: "Q1. Question Text"
+                const num = qKey.replace('q', 'Q');
+                return `${num}. ${quizConfig.value[qKey].text}`;
+            };
+
+            const getOptionText = (qKey, optKey) => {
+                if (!quizConfig.value[qKey] || !quizConfig.value[qKey].options) return '';
+                return quizConfig.value[qKey].options[optKey] || '';
+            };
+
+            const exportData = async (format) => {
+                try {
+                    const token = sessionStorage.getItem('token');
+                    if (!token) {
+                         alert('请先登录');
+                         return;
+                    }
+                    
+                    const btn = document.activeElement;
+                    const originalText = btn.innerText;
+                    btn.innerText = '导出中...';
+                    btn.disabled = true;
+
+                    const response = await fetch(`/api/maturity/export?format=${format}`, {
+                        headers: {
+                            'Authorization': 'Bearer ' + token
+                        }
+                    });
+
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        // Filename from header or default
+                        const header = response.headers.get('Content-Disposition');
+                        let fileName = `成熟度诊断报告_批量_${new Date().toISOString().split('T')[0]}.${format}`;
+                        if (header && header.indexOf('filename=') !== -1) {
+                            // Simple extract, better logic exists but this works for standard cases
+                            // The server sends encoded filename
+                        }
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+                    } else {
+                        const err = await response.json();
+                        alert('导出失败: ' + (err.error || '未知错误'));
+                    }
+                    
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+
+                } catch (e) {
+                    console.error(e);
+                    alert('导出请求失败');
+                }
+            };
+
+            const fetchData = async () => {
+                try {
+                    const res = await fetch(`/api/maturity/list?page=${page.value}&limit=10`, {
+                        headers: authHeaders()
+                    });
+                    if (res.status === 401) {
+                        window.location.href = '/admin/index.html';
+                        return;
+                    }
+                    const data = await res.json();
+                    if (data.data) {
+                        list.value = data.data;
+                        total.value = data.pagination.total;
+                        totalPages.value = data.pagination.pages;
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('加载数据失败');
+                }
+            };
+
+            const changePage = (p) => {
+                if (p < 1 || p > totalPages.value) return;
+                page.value = p;
+                fetchData();
+            };
+
+            const formatDate = (str) => {
+                return new Date(str).toLocaleString();
+            };
+
+            const getLevelClass = (level) => {
+                if (level.includes('体系化')) return 'badge bg-success';
+                if (level.includes('起步')) return 'badge bg-warning text-dark';
+                return 'badge bg-secondary';
+            };
+
+            const showDetail = (item) => {
+                currentItem.value = item;
+                // Wait for DOM update
+                setTimeout(() => {
+                    const el = document.getElementById('detailModal');
+                    if (el) {
+                        if (!modalInstance) modalInstance = new bootstrap.Modal(el);
+                        modalInstance.show();
+                    }
+                }, 10);
+            };
+
+            const deleteItem = async (id) => {
+                if (!confirm('确定删除此记录吗？')) return;
+                try {
+                    const res = await fetch(`/api/maturity/${id}`, {
+                        method: 'DELETE',
+                        headers: authHeaders()
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        fetchData();
+                    } else {
+                        alert(data.error || '删除失败');
+                    }
+                } catch (e) {
+                    alert('操作失败');
+                }
+            };
+
+            onMounted(() => {
+                // Check Auth
+                if (!sessionStorage.getItem('token')) {
+                    window.location.href = '/admin/index.html';
+                    return;
+                }
+                fetchConfig(); // Load Config
+                fetchData();
+            });
+
+            return {
+                list, page, total, totalPages, currentItem,
+                fetchData, changePage, formatDate, getLevelClass, showDetail, deleteItem,
+                getQuestionText, getOptionText, exportData
+            };
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>

@@ -16,9 +16,20 @@ services:
       - PORT=3000
       - ADMIN_USERNAME=zhice
       - ADMIN_PASSWORD=zhiceruihua123
+      - DINGTALK_WEBHOOK_URL=https://oapi.dingtalk.com/robot/send?access_token=YOUR_ACCESS_TOKEN
+      - DINGTALK_SECRET=YOUR_SECRET_KEY
+      - SMS_API_URL=https://rcs.uninets.com.cn/uninetsOutInterface/domesticSmsSend
+      - SMS_USERNAME=rrxt
+      - SMS_PASSWORD=Renrui123
     volumes:
       - ./public/uploads:/app/public/uploads
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   mongodb:
     image: mongo:6.0
@@ -29,6 +40,12 @@ services:
     environment:
       - MONGO_INITDB_DATABASE=ruihua_cms
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
   mongodb_data:

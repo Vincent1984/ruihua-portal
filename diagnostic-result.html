@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>诊断报告 - 瑞华智策</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                brand: { 
+                    DEFAULT: '#7c4dff', 
+                    dark: '#651fff', 
+                    light: '#ece6ff',
+                    bg: '#f9f9fa'
+                }
+              }
+            }
+          }
+        };
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background-color: #f9f9fa; }
+        .gauge-circle {
+            transition: stroke-dashoffset 1.5s ease-out;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+    </style>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/favicon.ico">
+</head>
+<body class="text-slate-800">
+
+    <!-- Navigation (Simplified) -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-2">
+                    <a href="index.html" class="flex items-center gap-2">
+                        <img src="/images/logo.png" alt="Logo" class="h-8 w-auto">
+                    </a>
+                    <span class="hidden sm:inline-block text-slate-300 mx-2">|</span>
+                    <span class="hidden sm:inline-block text-sm text-slate-500">人力资本价值经营一体化解决方案</span>
+                </div>
+                <a href="diagnostic.html" class="text-sm text-brand font-medium hover:text-brand-dark">重新测评</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Section -->
+    <header class="bg-brand text-white pt-16 pb-24 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+        <div class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#f9f9fa] to-transparent"></div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold mb-4">诊断结果分析</h1>
+            <p class="text-brand-light text-lg max-w-2xl mx-auto">基于您的回答与 ROHC 模型逻辑，为您生成了专属的人力资本成熟度评估报告。</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 relative z-20 pb-20">
+        
+        <!-- Result Card -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-12 fade-in-up">
+            <div class="flex flex-col md:flex-row">
+                <!-- Left: Score & Gauge -->
+                <div class="md:w-1/3 bg-slate-50 p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-100">
+                    <div class="relative w-48 h-48 mb-6">
+                        <svg class="w-full h-full" viewBox="0 0 100 100">
+                            <!-- Background Circle -->
+                            <circle class="text-slate-200 stroke-current" stroke-width="8" cx="50" cy="50" r="40" fill="transparent"></circle>
+                            <!-- Progress Circle -->
+                            <circle id="score-circle" class="text-brand stroke-current gauge-circle" stroke-width="8" stroke-linecap="round" cx="50" cy="50" r="40" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span id="score-value" class="text-5xl font-extrabold text-slate-900">0</span>
+                            <span class="text-sm text-slate-500 font-medium mt-1">综合得分</span>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <div class="inline-block px-4 py-1.5 bg-brand-light text-brand-dark rounded-full text-sm font-bold mb-2">成熟度等级</div>
+                        <h2 id="level-name" class="text-2xl font-bold text-slate-900">加载中...</h2>
+                    </div>
+                </div>
+
+                <!-- Right: Summary & Insight -->
+                <div class="md:w-2/3 p-8 md:p-12 flex flex-col justify-center">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <i class="fas fa-chart-line text-brand"></i> 总体评价
+                    </h3>
+                    <p id="level-summary" class="text-slate-600 leading-relaxed mb-8 text-justify">
+                        正在生成分析报告...
+                    </p>
+                    
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
+                        <h4 class="font-bold text-slate-800 mb-2 text-sm uppercase tracking-wide">核心洞察 (Key Insight)</h4>
+                        <p id="level-insight" class="text-slate-700 text-sm leading-relaxed">
+                            ...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Cards -->
+        <div class="grid md:grid-cols-2 gap-8 mb-16 fade-in-up delay-200">
+            <!-- Card 1: Management Status -->
+            <div class="bg-white rounded-xl p-8 shadow-lg border border-slate-100 hover:shadow-xl transition-shadow duration-300">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900">管理现状评估</h3>
+                </div>
+                <p id="status-desc" class="text-slate-600 text-sm leading-relaxed text-justify mb-6">
+                    ...
+                </p>
+                <!-- Visualization Container -->
+                <div id="status-metrics" class="space-y-5 pt-4 border-t border-slate-100">
+                    <!-- Metrics will be injected here -->
+                </div>
+            </div>
+            
+            <!-- Card 2: Potential Assessment -->
+            <div class="bg-white rounded-xl p-8 shadow-lg border border-slate-100 hover:shadow-xl transition-shadow duration-300">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900">效能潜力分析</h3>
+                </div>
+                <p id="potential-desc" class="text-slate-600 text-sm leading-relaxed text-justify mb-6">
+                    ...
+                </p>
+                <!-- Visualization Container -->
+                <div id="potential-metrics" class="space-y-4 pt-4 border-t border-slate-100">
+                    <!-- Dimensions will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Roadmap Section -->
+        <div class="mb-20 fade-in-up delay-300">
+            <div class="text-center mb-10">
+                <span class="text-brand font-bold tracking-wider uppercase text-sm">Action Plan</span>
+                <h2 class="text-3xl font-bold text-slate-900 mt-2">行动建议路线图</h2>
+                <p class="text-slate-500 mt-2">根据您的成熟度阶段，我们为您定制了分阶段实施路径</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-6" id="action-roadmap">
+                <!-- Action Columns will be injected here -->
+            </div>
+        </div>
+
+        <!-- Lead Capture / Footer -->
+        <div class="bg-slate-900 rounded-2xl overflow-hidden shadow-2xl fade-in-up delay-300 relative">
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+            <div class="absolute top-0 right-0 w-96 h-96 bg-brand rounded-full blur-[150px] opacity-20"></div>
+            
+            <div class="relative z-10 flex flex-col lg:flex-row">
+                <div class="lg:w-1/2 p-10 lg:p-16 flex flex-col justify-center text-white">
+                    <h2 class="text-3xl font-bold mb-6">获取完整报告与专家解读</h2>
+                    <p class="text-slate-400 mb-8 text-lg">解锁更多详细指标分析与行业对标数据，开启企业人效增长之旅。</p>
+                    
+                    <ul class="space-y-4">
+                        <li class="flex items-center gap-3">
+                            <span class="w-6 h-6 rounded-full bg-brand flex items-center justify-center text-xs"><i class="fas fa-check"></i></span>
+                            <span class="text-slate-300">《人力资本价值经营诊断详细报告》</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <span class="w-6 h-6 rounded-full bg-brand flex items-center justify-center text-xs"><i class="fas fa-check"></i></span>
+                            <span class="text-slate-300">行业标杆 ROHC 指标库参考方案</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <span class="w-6 h-6 rounded-full bg-brand flex items-center justify-center text-xs"><i class="fas fa-check"></i></span>
+                            <span class="text-slate-300">30 分钟资深咨询专家点评</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="lg:w-1/2 bg-white/5 backdrop-blur-sm p-10 lg:p-16 border-l border-white/10">
+                    <form id="contact-form" class="space-y-4 max-w-md mx-auto" onsubmit="handleFormSubmit(event)">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-1">姓名</label>
+                            <input type="text" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-1">联系电话</label>
+                            <input type="tel" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-1">公司名称</label>
+                            <input type="text" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand transition">
+                        </div>
+                        <button type="submit" class="w-full bg-brand hover:bg-brand-dark text-white font-bold py-4 rounded-lg shadow-lg shadow-brand/25 transition transform hover:-translate-y-1 mt-4">
+                            立即免费获取
+                        </button>
+                        <p class="text-xs text-slate-500 text-center mt-4">我们承诺严格保密您的信息，仅用于报告发送。</p>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 ease-in-out opacity-0" id="modalBackdrop"></div>
+        
+        <!-- Modal Panel -->
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center">
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all duration-300 ease-in-out sm:my-8 w-full max-w-sm opacity-0 scale-95" id="modalPanel">
+                    <div class="bg-white px-4 pb-6 pt-6 sm:p-6 sm:pb-6">
+                        <div class="flex flex-col items-center">
+                            <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-brand-light mb-4">
+                                <i class="fas fa-check text-brand text-2xl"></i>
+                            </div>
+                            <div class="text-center">
+                                <h3 class="text-lg font-bold leading-6 text-slate-900 mb-2" id="modal-title">提交成功</h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-slate-500">2个工作日内，咨询顾问会跟您联系...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 px-4 py-4 sm:px-6 flex justify-center">
+                        <button type="button" class="inline-flex w-full justify-center rounded-lg bg-brand px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-brand-dark transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 min-h-[48px] items-center" onclick="closeModal()">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const richContent = {
+            "初步意识阶段": {
+                statusMetrics: [
+                    { label: "数据打通率", value: 30, desc: "各系统独立运行，存在严重数据孤岛" },
+                    { label: "人效分析深度", value: 20, desc: "仅停留在基础人事报表，缺乏经营关联" },
+                    { label: "决策数字化", value: 25, desc: "主要依赖经验判断，缺乏数据支撑" }
+                ],
+                potentialDims: [
+                    { label: "冗余成本优化", score: "高", desc: "存在明显的人力资源错配与冗余投入" },
+                    { label: "组织敏捷度", score: "低", desc: "组织响应市场变化的流程较长" },
+                    { label: "人才投资回报", score: "低", desc: "培训与招聘投入尚未建立明确产出标准" }
+                ],
+                actionPlan: [
+                    { term: "短期 (1-3月)", title: "数据盘点与清洗", diff: "低", impact: "中", desc: "建立统一的人力数据标准，打通HR与财务基础数据。" },
+                    { term: "中期 (3-6月)", title: "建立基础人效仪表盘", diff: "中", impact: "高", desc: "选取1-2个核心业务单元，试运行人效分析看板。" },
+                    { term: "长期 (6-12月)", title: "ROHC模型导入", diff: "高", impact: "高", desc: "在全公司范围内推广人力资本回报率考核体系。" }
+                ]
+            },
+            "建设起步阶段": {
+                statusMetrics: [
+                    { label: "数据打通率", value: 65, desc: "核心业务数据已与HR系统初步对接" },
+                    { label: "人效分析深度", value: 60, desc: "开始关注ROI，但颗粒度不够精细" },
+                    { label: "决策数字化", value: 55, desc: "部分决策参考数据，但实时性不足" }
+                ],
+                potentialDims: [
+                    { label: "冗余成本优化", score: "中", desc: "结构性冗余尚存，有优化空间" },
+                    { label: "组织敏捷度", score: "中", desc: "跨部门协作效率正在提升" },
+                    { label: "人才投资回报", score: "中", desc: "关键人才的投入产出比开始显现" }
+                ],
+                actionPlan: [
+                    { term: "短期 (1-3月)", title: "完善人效指标体系", diff: "低", impact: "中", desc: "细化各部门的人力投入产出指标定义。" },
+                    { term: "中期 (3-6月)", title: "业人财数据自动化", diff: "中", impact: "高", desc: "实现BI系统自动抓取分析报表，减少人工干预。" },
+                    { term: "长期 (6-12月)", title: "全面预算动态管理", diff: "高", impact: "高", desc: "基于人效预测进行动态编制与预算调整。" }
+                ]
+            },
+            "体系化升级阶段": {
+                statusMetrics: [
+                    { label: "数据打通率", value: 95, desc: "实现全域数据实时互通" },
+                    { label: "人效分析深度", value: 90, desc: "具备单人单岗的精细化投产分析能力" },
+                    { label: "决策数字化", value: 92, desc: "AI辅助预测决策已常态化" }
+                ],
+                potentialDims: [
+                    { label: "冗余成本优化", score: "低", desc: "成本结构已高度优化" },
+                    { label: "组织敏捷度", score: "高", desc: "组织具备极强的自适应与弹性能力" },
+                    { label: "人才投资回报", score: "高", desc: "人才资产增值效应显著" }
+                ],
+                actionPlan: [
+                    { term: "短期 (1-3月)", title: "引入AI预测模型", diff: "中", impact: "高", desc: "利用历史数据训练人才流失与产出预测模型。" },
+                    { term: "中期 (3-6月)", title: "生态化人力经营", diff: "高", impact: "高", desc: "将人力资本管理延伸至外部合作伙伴与生态圈。" },
+                    { term: "长期 (6-12月)", title: "行业标准制定", diff: "高", impact: "极高", desc: "输出行业人效标准，建立市场领导地位。" }
+                ]
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load data from localStorage
+            const resultData = localStorage.getItem('quizResult');
+            
+            if (!resultData) {
+                alert('未找到测评数据，将返回测评页。');
+                window.location.href = 'diagnostic.html';
+                return;
+            }
+
+            const data = JSON.parse(resultData);
+            
+            // Render Basic Data
+            document.getElementById('score-value').textContent = data.score;
+            document.getElementById('level-name').textContent = data.level;
+            document.getElementById('level-summary').textContent = data.summary;
+            document.getElementById('level-insight').textContent = data.insight;
+            document.getElementById('status-desc').textContent = data.currentStatus;
+            document.getElementById('potential-desc').textContent = data.potential;
+            // Action desc is now replaced by detailed plan, but we can keep it if needed or ignore it.
+            // document.getElementById('action-desc').textContent = data.action; 
+
+            // Render Rich Content
+            const content = richContent[data.level] || richContent["初步意识阶段"]; // Fallback
+
+            // 1. Status Metrics
+            const statusContainer = document.getElementById('status-metrics');
+            statusContainer.innerHTML = content.statusMetrics.map(m => `
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="font-medium text-slate-700">${m.label}</span>
+                        <span class="font-bold text-brand">${m.value}%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2.5 mb-1">
+                        <div class="bg-brand h-2.5 rounded-full" style="width: ${m.value}%"></div>
+                    </div>
+                    <p class="text-xs text-slate-500">${m.desc}</p>
+                </div>
+            `).join('');
+
+            // 2. Potential Dimensions
+            const potentialContainer = document.getElementById('potential-metrics');
+            potentialContainer.innerHTML = content.potentialDims.map(d => {
+                let colorClass = d.score === '高' ? 'text-green-600 bg-green-50 border-green-200' : 
+                               (d.score === '中' ? 'text-blue-600 bg-blue-50 border-blue-200' : 'text-slate-600 bg-slate-50 border-slate-200');
+                return `
+                <div class="flex items-start gap-3 p-3 rounded-lg border border-slate-100 bg-slate-50/50">
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-slate-700 text-sm">${d.label}</span>
+                            <span class="text-xs px-2 py-0.5 rounded border ${colorClass} font-bold">${d.score}潜力</span>
+                        </div>
+                        <p class="text-xs text-slate-500 leading-tight">${d.desc}</p>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            // 3. Action Roadmap
+            const roadmapContainer = document.getElementById('action-roadmap');
+            roadmapContainer.innerHTML = content.actionPlan.map((a, index) => {
+                const delayClass = index === 0 ? '' : (index === 1 ? 'delay-100' : 'delay-200');
+                return `
+                <div class="bg-white rounded-xl p-6 shadow-md border border-slate-100 hover:shadow-lg transition-all duration-300 relative overflow-hidden group ${delayClass}">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-brand opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="mb-4">
+                        <span class="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full mb-2">${a.term}</span>
+                        <h3 class="text-lg font-bold text-slate-900 leading-tight">${a.title}</h3>
+                    </div>
+                    <p class="text-slate-600 text-sm mb-6 min-h-[40px]">${a.desc}</p>
+                    
+                    <div class="flex items-center justify-between text-xs border-t border-slate-100 pt-4">
+                        <div class="flex flex-col">
+                            <span class="text-slate-400 mb-1">实施难度</span>
+                            <div class="flex gap-0.5">
+                                ${[1,2,3].map(i => `<div class="w-4 h-1.5 rounded-sm ${
+                                    (a.diff === '高' && i<=3) || (a.diff === '中' && i<=2) || (a.diff === '低' && i<=1) 
+                                    ? 'bg-slate-800' : 'bg-slate-200'
+                                }"></div>`).join('')}
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end">
+                            <span class="text-slate-400 mb-1">预期效果</span>
+                            <span class="font-bold text-brand flex items-center gap-1">
+                                <i class="fas fa-arrow-trend-up"></i> ${a.impact}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            // Animate Gauge
+            // Circumference = 2 * PI * 40 ≈ 251.2
+            const circumference = 251.2;
+            const offset = circumference - (data.score / 100 * circumference);
+            
+            setTimeout(() => {
+                document.getElementById('score-circle').style.strokeDashoffset = offset;
+            }, 500);
+        });
+
+        function showModal() {
+            const modal = document.getElementById('successModal');
+            const backdrop = document.getElementById('modalBackdrop');
+            const panel = document.getElementById('modalPanel');
+            
+            modal.classList.remove('hidden');
+            // Trigger reflow
+            void modal.offsetWidth;
+            
+            backdrop.classList.remove('opacity-0');
+            backdrop.classList.add('opacity-100');
+            
+            panel.classList.remove('opacity-0', 'scale-95');
+            panel.classList.add('opacity-100', 'scale-100');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('successModal');
+            const backdrop = document.getElementById('modalBackdrop');
+            const panel = document.getElementById('modalPanel');
+            
+            backdrop.classList.remove('opacity-100');
+            backdrop.classList.add('opacity-0');
+            
+            panel.classList.remove('opacity-100', 'scale-100');
+            panel.classList.add('opacity-0', 'scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.textContent;
+            
+            // Get inputs
+            const inputs = e.target.querySelectorAll('input');
+            const userInfo = {
+                name: inputs[0].value.trim(),
+                phone: inputs[1].value.trim(),
+                company: inputs[2].value.trim()
+            };
+
+            if (!userInfo.name || !userInfo.phone || !userInfo.company) {
+                alert('请填写完整信息');
+                return;
+            }
+
+            btn.textContent = '提交中...';
+            btn.disabled = true;
+
+            // Get stored data
+            const quizResult = JSON.parse(localStorage.getItem('quizResult') || '{}');
+            const userSelections = JSON.parse(localStorage.getItem('userSelections') || '{}');
+
+            // Validate quiz data
+            if (!quizResult.score || !quizResult.level) {
+                alert('测评数据不完整，无法提交。请尝试重新测评。');
+                btn.textContent = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            // Send to API
+            fetch('/api/maturity/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userInfo, quizResult, userSelections })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showModal();
+                    btn.textContent = '已提交';
+                    // Optional: Clear localStorage or redirect
+                    // localStorage.removeItem('quizResult');
+                    // localStorage.removeItem('userSelections');
+                } else {
+                    alert('提交失败: ' + (data.error || '未知错误'));
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            })
+            .catch(err => {
+                console.error('Submit error:', err);
+                alert('网络请求失败，请稍后重试');
+                btn.textContent = originalText;
+                btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>

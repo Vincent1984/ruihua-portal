@@ -1,0 +1,325 @@
+:root {
+  /* Brand Colors - Ruihua Purple */
+  --brand-primary: #7c4dff;
+  --brand-hover: #651fff;
+  --brand-active: #6200ea;
+  --brand-light: #ede7ff;
+  --brand-bg: #f5f3ff;
+  
+  /* Neutral Colors */
+  --text-main: #1d2129;
+  --text-secondary: #4e5969;
+  --text-tertiary: #86909c;
+  --text-disabled: #c9cdd4;
+  
+  --border-color: #e5e6eb;
+  --bg-body: #f2f3f5;
+  --bg-white: #ffffff;
+  
+  /* Functional Colors */
+  --success: #00b42a;
+  --warning: #ff7d00;
+  --danger: #f53f3f;
+  --info: #165dff;
+  
+  /* Spacing & Sizing */
+  --radius-sm: 4px;
+  --radius-md: 8px; /* Standard */
+  --radius-lg: 16px;
+  
+  --spacing-base: 8px;
+  
+  /* Transitions */
+  --anim-duration: 0.3s;
+  --anim-ease: cubic-bezier(0.34, 0.69, 0.1, 1);
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--text-main);
+  background-color: var(--bg-body);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Layout */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  background-color: #001529; /* Deep dark blue for sidebar */
+  color: rgba(255, 255, 255, 0.65);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  transition: width var(--anim-duration) var(--anim-ease);
+  z-index: 1000;
+}
+
+.sidebar-header {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  background-color: #002140;
+  color: #fff;
+  font-weight: 600;
+  font-size: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar-menu {
+  flex: 1;
+  padding: 16px 0;
+  overflow-y: auto;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 24px;
+  cursor: pointer;
+  transition: all var(--anim-duration) var(--anim-ease);
+  color: rgba(255, 255, 255, 0.65);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.menu-item:hover {
+  color: #fff;
+}
+
+.menu-item.active {
+  background-color: var(--brand-primary);
+  color: #fff;
+}
+
+.menu-item i {
+  margin-right: 10px;
+  font-size: 16px;
+  width: 16px;
+  text-align: center;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background-color: var(--bg-body);
+}
+
+.header {
+  height: 64px;
+  background: #fff;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+}
+
+.page-content {
+  padding: 24px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Cards & Sections */
+.card {
+  background: #fff;
+  border-radius: var(--radius-md);
+  box-shadow: 0 1px 2px -2px rgba(0, 0, 0, 0.16), 0 3px 6px 0 rgba(0, 0, 0, 0.12), 0 5px 12px 4px rgba(0, 0, 0, 0.09);
+  border: none;
+  margin-bottom: 24px;
+  transition: transform var(--anim-duration) var(--anim-ease), box-shadow var(--anim-duration) var(--anim-ease);
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text-main);
+  background: transparent;
+}
+
+.card-body {
+  padding: 24px;
+}
+
+/* Forms & Inputs */
+.form-control {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  padding: 8px 12px;
+  transition: all var(--anim-duration);
+  font-size: 14px;
+}
+
+.form-control:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 2px rgba(124, 77, 255, 0.2);
+}
+
+.btn {
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  padding: 8px 16px;
+  transition: all var(--anim-duration) var(--anim-ease);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background-color: var(--brand-primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: var(--brand-hover);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  background-color: var(--brand-active);
+  transform: translateY(0);
+}
+
+.btn-success {
+  background-color: var(--success);
+  color: #fff;
+}
+
+.btn-danger {
+  background-color: var(--danger);
+  color: #fff;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+
+.btn-outline:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
+/* Tables */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table th {
+  background-color: var(--bg-body);
+  color: var(--text-secondary);
+  font-weight: 600;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+  transition: background-color var(--anim-duration);
+}
+
+.table tr:hover td {
+  background-color: var(--brand-bg);
+}
+
+/* Utilities */
+.text-brand { color: var(--brand-primary); }
+.text-secondary { color: var(--text-secondary); }
+.bg-light { background-color: var(--bg-body) !important; }
+
+/* Status Badges */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge-success { background: #e8ffea; color: #00b42a; border: 1px solid #b7eb8f; }
+.badge-warning { background: #fff7e6; color: #ff7d00; border: 1px solid #ffd591; }
+.badge-danger { background: #ffece8; color: #f53f3f; border: 1px solid #ffccc7; }
+
+/* Loading State */
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  backdrop-filter: blur(2px);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--brand-light);
+  border-top-color: var(--brand-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Section Management */
+.section {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.section.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    height: 100%;
+    transform: translateX(-100%);
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .main-content {
+    margin-left: 0;
+  }
+}
