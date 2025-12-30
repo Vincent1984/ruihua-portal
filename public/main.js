@@ -88,8 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (firstIcon) firstIcon.classList.add('rotate');
 });
 
-// 全局模拟验证码（DEMO用，真正接入短信时，改为后端校验）
-let __mockVerifyCode = null;
+// 验证码倒计时相关变量
 let __verifyCountdown = 0;
 let __verifyTimer = null;
 
@@ -102,7 +101,7 @@ function initVerifyCodeSender() {
 
   if (!sendBtn || !phoneInput) return;
 
-  sendBtn.addEventListener("click", function () {
+  sendBtn.addEventListener("click", async function () {
     const phone = phoneInput.value.trim();
     const phonePattern = /^1[3-9]\d{9}$/;
 
@@ -112,15 +111,35 @@ function initVerifyCodeSender() {
       return;
     }
 
-    // 生成 6 位随机验证码（DEMO）
-    __mockVerifyCode = ("" + Math.floor(100000 + Math.random() * 900000));
-    console.log("【模拟验证码】", __mockVerifyCode);
+    // 发送真实短信验证码
+    try {
+      sendBtn.disabled = true;
+      sendBtn.textContent = "发送中...";
 
-    // 这里可以换成你真实的发送短信接口：
-    // fetch('/api/sendSms', { method: 'POST', body: JSON.stringify({ phone }) })
+      const response = await fetch('/api/send-verification-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ phone })
+      });
 
-    startVerifyCountdown(sendBtn);
-    alert("验证码已发送（演示环境），请在 5 分钟内完成输入。");
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        startVerifyCountdown(sendBtn);
+        alert("验证码已发送，请注意查收短信。");
+      } else {
+        sendBtn.disabled = false;
+        sendBtn.textContent = "获取验证码";
+        alert(result.error || "验证码发送失败，请稍后重试");
+      }
+    } catch (error) {
+      console.error('发送验证码失败:', error);
+      sendBtn.disabled = false;
+      sendBtn.textContent = "获取验证码";
+      alert("网络错误，请稍后重试");
+    }
   });
 }
 
@@ -157,7 +176,7 @@ function initAppointmentForms() {
   [quickForm, pageForm].forEach((form) => {
     if (!form) return;
 
-    form.addEventListener("submit", function (e) {
+    form.addEventListener("submit", async function (e) {
       e.preventDefault();
 
       const name = form.querySelector("#name");
@@ -165,6 +184,7 @@ function initAppointmentForms() {
       const company = form.querySelector("#company");
       const title = form.querySelector("#title");
       const codeInput = form.querySelector("#verifyCode");
+      const problem = form.querySelector("#problem");
 
       // 基本必填校验
       if (!name.value.trim()) {
@@ -198,24 +218,64 @@ function initAppointmentForms() {
         return;
       }
 
-      // 模拟验证码校验
-      if (!__mockVerifyCode) {
-        alert("请先获取验证码");
-        return;
+      // 提交预约数据到后端
+      try {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "提交中...";
+        }
+
+        const formData = {
+          name: name.value.trim(),
+          phone: phone.value.trim(),
+          company: company.value.trim(),
+          title: title.value,
+          problem: problem ? problem.value.trim() : '',
+          verificationCode: codeInput.value.trim(),
+          source: 'website'
+        };
+
+        const response = await fetch('/api/appointments', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          alert("提交成功！我们会尽快与您联系。");
+          form.reset();
+          
+          // 重置发送验证码按钮状态
+          const sendBtn = document.getElementById("sendCodeBtn");
+          if (sendBtn && __verifyTimer) {
+            clearInterval(__verifyTimer);
+            __verifyTimer = null;
+            sendBtn.disabled = false;
+            sendBtn.textContent = "获取验证码";
+          }
+        } else {
+          alert(result.error || "提交失败，请稍后重试");
+        }
+
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "立即预约";
+        }
+      } catch (error) {
+        console.error('提交预约失败:', error);
+        alert("网络错误，请稍后重试");
+        
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "立即预约";
+        }
       }
-
-      if (codeInput.value.trim() !== __mockVerifyCode) {
-        alert("验证码不正确，请检查后重新输入");
-        codeInput.focus();
-        return;
-      }
-
-      // 通过校验，模拟提交
-      alert("提交成功！我们会尽快与您联系。");
-
-      // 重置表单 & 验证码（按需保留或删除）
-      form.reset();
-      __mockVerifyCode = null;
     });
   });
 }

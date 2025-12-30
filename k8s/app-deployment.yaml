@@ -5,8 +5,14 @@ metadata:
   namespace: default
   labels:
     app: ruihua-cms-app
+    version: v1.0
 spec:
   replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   selector:
     matchLabels:
       app: ruihua-cms-app
@@ -14,63 +20,120 @@ spec:
     metadata:
       labels:
         app: ruihua-cms-app
+        version: v1.0
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
       containers:
       - name: ruihua-cms-app
-        image: ruihua-cms:latest
+        image: portal-app:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 3000
+          name: http
+          protocol: TCP
         envFrom:
         - configMapRef:
             name: ruihua-cms-config
         volumeMounts:
         - name: uploads-storage
           mountPath: /app/public/uploads
+        - name: logs-storage
+          mountPath: /app/logs
         resources:
           requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
             memory: "256Mi"
             cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
         livenessProbe:
           httpGet:
             path: /
             port: 3000
-          initialDelaySeconds: 30
-          periodSeconds: 10
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
         readinessProbe:
           httpGet:
             path: /
             port: 3000
-          initialDelaySeconds: 5
-          periodSeconds: 5
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        startupProbe:
+          httpGet:
+            path: /
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30
+          successThreshold: 1
       volumes:
       - name: uploads-storage
         persistentVolumeClaim:
           claimName: uploads-pvc
+      - name: logs-storage
+        persistentVolumeClaim:
+          claimName: logs-pvc
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: ruihua-cms-service
   namespace: default
+  labels:
+    app: ruihua-cms-app
 spec:
   selector:
     app: ruihua-cms-app
   ports:
   - port: 80
     targetPort: 3000
+    protocol: TCP
+    name: http
   type: ClusterIP
+  sessionAffinity: None
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: uploads-pvc
   namespace: default
+  labels:
+    app: ruihua-cms-app
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: logs-pvc
+  namespace: default
+  labels:
+    app: ruihua-cms-app
 spec:
   accessModes:
   - ReadWriteOnce
   resources:
     requests:
       storage: 2Gi
+  storageClassName: standard

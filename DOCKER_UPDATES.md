@@ -1,142 +1,176 @@
-# Docker 配置更新说明
+# Docker 配置更新说明 - v2.0
 
-## 🔄 **更新内容**
+## 🔄 **最新更新内容**
 
-### **1. Dockerfile 优化**
-- ✅ 添加了系统依赖和时区设置
-- ✅ 使用非 root 用户运行应用
-- ✅ 添加健康检查
-- ✅ 优化文件复制顺序
-- ✅ 清理 npm 缓存
+### **1. Dockerfile 全面优化**
+- ✅ 升级到更安全的构建方式，使用 `npm ci` 替代 `npm install`
+- ✅ 添加 curl 工具用于健康检查
+- ✅ 创建专用的 nodejs 用户（UID: 1001）
+- ✅ 复制所有必要的静态文件（HTML、admin、favicon等）
+- ✅ 创建 authors 子目录用于用户头像上传
+- ✅ 优化健康检查使用 curl 替代 node 脚本
+- ✅ 增强安全性配置
 
-### **2. 依赖更新**
-在 `package.json` 中添加了缺失的依赖：
-- ✅ `axios`: 用于钉钉通知功能
-- ✅ `dotenv`: 用于环境变量管理
+### **2. Kubernetes 配置全面增强**
+
+#### **ConfigMap 完善**
+- ✅ 添加 JWT 密钥配置
+- ✅ 添加 TLS 配置（开发环境）
+- ✅ 完整的钉钉通知配置
+- ✅ 短信服务完整配置
+
+#### **Deployment 优化**
+- ✅ 增加安全上下文配置（非 root 用户）
+- ✅ 优化资源限制（内存：256Mi-512Mi，CPU：200m-500m）
+- ✅ 完善健康检查配置（liveness、readiness、startup）
+- ✅ 添加滚动更新策略
+- ✅ 增加日志存储卷
+- ✅ 添加版本标签和元数据
+
+#### **存储优化**
+- ✅ 增加日志存储卷（2Gi）
+- ✅ 扩大上传存储卷到 5Gi
+- ✅ 添加存储类配置
 
 ### **3. Docker Compose 增强**
-- ✅ 添加钉钉通知环境变量
-- ✅ 添加健康检查配置
-- ✅ 优化服务依赖关系
+- ✅ 添加完整的环境变量配置
+- ✅ 使用 curl 进行健康检查
+- ✅ 添加日志卷挂载
+- ✅ 配置专用网络
+- ✅ 添加 MongoDB 配置卷
 
-### **4. 新增文件**
+## 🚀 **新功能完整支持**
 
-#### **构建脚本**
-- `docker-build.sh` - Linux/Mac 构建脚本
-- `docker-build.bat` - Windows 构建脚本
-
-#### **多阶段构建**
-- `Dockerfile.multi-stage` - 优化的多阶段构建文件
-
-#### **文档**
-- `docs/docker-deployment.md` - 详细的部署指南
-
-### **5. .dockerignore 优化**
-排除了不必要的文件：
-- 文档文件 (`docs/`, `*.md`)
-- 开发配置 (`.vscode`, `.idea`)
-- Kubernetes 配置 (`k8s/`)
-- 环境变量文件 (`.env*`)
-
-## 🚀 **使用方法**
-
-### **快速启动**
-```bash
-# 使用 Docker Compose（推荐）
-docker-compose up -d
-
-# 查看状态
-docker-compose ps
-docker-compose logs -f app
-```
-
-### **手动构建**
-```bash
-# Linux/Mac
-chmod +x docker-build.sh
-./docker-build.sh
-
-# Windows
-docker-build.bat
-```
-
-### **环境变量配置**
-更新 `docker-compose.yml` 中的环境变量：
-```yaml
-environment:
-  - DINGTALK_WEBHOOK_URL=https://oapi.dingtalk.com/robot/send?access_token=YOUR_TOKEN
-  - DINGTALK_SECRET=YOUR_SECRET
-  - ADMIN_USERNAME=your_username
-  - ADMIN_PASSWORD=your_password
-```
-
-## 🔧 **新功能支持**
-
-### **预约功能**
-- ✅ 预约数据保存到 MongoDB
+### **预约管理系统**
+- ✅ 预约提交和管理
+- ✅ 短信验证码功能
 - ✅ 钉钉通知集成
-- ✅ 管理后台预约管理
+- ✅ UTM 参数跟踪
+- ✅ CSV 导出功能
 
-### **配置管理**
-- ✅ 环境变量配置
-- ✅ 数据库配置文件
-- ✅ 钉钉通知配置
+### **成熟度诊断系统**
+- ✅ 在线诊断测试
+- ✅ 结果分析和导出
+- ✅ Excel/CSV 格式支持
 
-### **健康检查**
-- ✅ 应用健康状态监控
-- ✅ 数据库连接检查
-- ✅ 自动重启机制
+### **白皮书下载管理**
+- ✅ 下载申请管理
+- ✅ 重复提交检测
+- ✅ 数据导出功能
 
-## 📊 **镜像信息**
+### **完整管理功能**
+- ✅ 角色权限管理
+- ✅ 操作日志记录
+- ✅ 文件上传管理
+- ✅ 用户头像上传
 
-### **基础镜像**
-- `node:18-alpine` - 轻量级 Node.js 运行环境
+## 📋 **环境变量完整配置**
 
-### **镜像大小优化**
-- 使用 Alpine Linux 减少镜像大小
-- 多阶段构建进一步优化
-- 清理不必要的文件和缓存
+| 变量名 | 说明 | 示例值 |
+|--------|------|--------|
+| MONGODB_URL | MongoDB 连接字符串 | mongodb://mongodb:27017/ruihua_cms |
+| DINGTALK_WEBHOOK_URL | 钉钉机器人 Webhook | https://oapi.dingtalk.com/robot/send?access_token=xxx |
+| DINGTALK_SECRET | 钉钉机器人密钥 | SECxxx |
+| SMS_API_URL | 短信服务 API | https://rcs.uninets.com.cn/uninetsOutInterface/domesticSmsSend |
+| SMS_USERNAME | 短信服务用户名 | rrxt |
+| SMS_PASSWORD | 短信服务密码 | Renrui123 |
+| JWT_SECRET | JWT 签名密钥 | ruihua_secret_key_change_this_in_production |
+| NODE_TLS_REJECT_UNAUTHORIZED | TLS 配置 | 0 |
 
-### **安全性**
-- 非 root 用户运行
-- 最小权限原则
-- 敏感信息通过环境变量管理
+## 🔧 **部署方式**
 
-## 🔍 **故障排查**
-
-### **常用命令**
+### **Docker Compose 部署（开发/测试）**
 ```bash
-# 查看容器状态
-docker ps
+# 构建并启动服务
+docker-compose up -d --build
 
 # 查看日志
 docker-compose logs -f app
 
+# 停止服务
+docker-compose down
+```
+
+### **Kubernetes 部署（生产环境）**
+```bash
+# 应用配置
+kubectl apply -f k8s/configmap.yaml
+kubectl apply -f k8s/mongodb-deployment.yaml
+kubectl apply -f k8s/app-deployment.yaml
+
+# 检查状态
+kubectl get pods
+kubectl get services
+kubectl logs -f deployment/ruihua-cms-app
+```
+
+## 🔒 **安全注意事项**
+
+1. **生产环境**：请更改默认的 JWT_SECRET
+2. **数据库**：建议为 MongoDB 配置认证
+3. **HTTPS**：生产环境应配置 SSL/TLS
+4. **密钥管理**：敏感信息应使用 Kubernetes Secrets
+5. **网络策略**：配置适当的网络访问控制
+
+## 📊 **监控和日志**
+
+- 应用日志存储在 `/app/logs` 目录
+- 健康检查端点：`GET /`
+- 上传文件存储在 `/app/public/uploads`
+- 用户头像存储在 `/app/public/uploads/authors/{userId}`
+
+## 🔍 **故障排除**
+
+### **常见问题**
+1. **MongoDB 连接失败**：检查 MONGODB_URL 配置
+2. **钉钉通知失败**：验证 DINGTALK_WEBHOOK_URL 和 DINGTALK_SECRET
+3. **短信发送失败**：检查 SMS 相关配置
+4. **文件上传失败**：确认存储卷挂载正确
+
+### **调试命令**
+```bash
+# 查看容器日志
+docker logs ruihua-cms-app
+
 # 进入容器调试
 docker exec -it ruihua-cms-app sh
 
-# 检查健康状态
-docker inspect ruihua-cms-app | grep Health -A 10
+# 检查环境变量
+docker exec ruihua-cms-app env | grep DINGTALK
+
+# Kubernetes 调试
+kubectl describe pod <pod-name>
+kubectl exec -it <pod-name> -- sh
 ```
 
-### **常见问题**
-1. **端口冲突**: 修改 `docker-compose.yml` 中的端口映射
-2. **数据库连接失败**: 检查 MongoDB 容器状态
-3. **文件上传失败**: 检查 `public/uploads` 目录权限
-
-## 📝 **下一步**
-
-1. **配置钉钉通知**: 更新环境变量中的 Webhook URL 和密钥
-2. **修改管理员密码**: 更新 `ADMIN_USERNAME` 和 `ADMIN_PASSWORD`
-3. **生产环境部署**: 参考 `docs/docker-deployment.md`
-4. **监控和日志**: 配置日志收集和监控系统
-
-## 🎯 **验证步骤**
+## 🎯 **功能验证清单**
 
 部署完成后，验证以下功能：
-- [ ] 网站首页正常访问
-- [ ] 管理后台登录正常
+- [ ] 网站首页正常访问 (http://localhost:3000)
+- [ ] 管理后台登录正常 (/admin/index.html)
 - [ ] 预约表单提交成功
+- [ ] 短信验证码发送和验证
 - [ ] 预约数据保存到数据库
-- [ ] 钉钉通知发送成功（如已配置）
+- [ ] 钉钉通知发送成功
 - [ ] 管理后台预约管理功能正常
+- [ ] 成熟度诊断功能正常
+- [ ] 白皮书下载功能正常
+- [ ] 文件上传功能正常
+- [ ] 数据导出功能正常
+
+## 📈 **性能优化**
+
+### **资源配置建议**
+- **开发环境**: 1 CPU, 512MB 内存
+- **测试环境**: 2 CPU, 1GB 内存  
+- **生产环境**: 4 CPU, 2GB 内存
+
+### **存储配置建议**
+- **上传文件存储**: 5-10GB
+- **日志存储**: 2-5GB
+- **数据库存储**: 根据数据量调整
+
+## 🔄 **版本历史**
+
+- **v2.0**: 完整功能支持，K8s 配置优化，安全性增强
+- **v1.0**: 基础 Docker 配置，预约功能支持

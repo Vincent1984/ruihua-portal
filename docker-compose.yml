@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    image: portal-app:latest
+    # build: .
     ports:
       - "3000:3000"
     depends_on:
@@ -16,20 +17,25 @@ services:
       - PORT=3000
       - ADMIN_USERNAME=zhice
       - ADMIN_PASSWORD=zhiceruihua123
-      - DINGTALK_WEBHOOK_URL=https://oapi.dingtalk.com/robot/send?access_token=YOUR_ACCESS_TOKEN
-      - DINGTALK_SECRET=YOUR_SECRET_KEY
+      - DINGTALK_WEBHOOK_URL=https://oapi.dingtalk.com/robot/send?access_token=862cc9da41b5779bbdb9d3c967e9da553ae0ea59e45f9e67cf3e3dd0af48e77f
+      - DINGTALK_SECRET=SECed8d93cf0a8a5fb61938069393315e4074109958ea40da68657a913b21d9d5f9
       - SMS_API_URL=https://rcs.uninets.com.cn/uninetsOutInterface/domesticSmsSend
       - SMS_USERNAME=rrxt
       - SMS_PASSWORD=Renrui123
+      - JWT_SECRET=ruihua_secret_key_change_this_in_production
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
     volumes:
       - ./public/uploads:/app/public/uploads
+      - ./logs:/app/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - ruihua-network
 
   mongodb:
     image: mongo:6.0
@@ -37,6 +43,7 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
     environment:
       - MONGO_INITDB_DATABASE=ruihua_cms
     restart: unless-stopped
@@ -46,6 +53,15 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - ruihua-network
 
 volumes:
   mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+
+networks:
+  ruihua-network:
+    driver: bridge
