@@ -4,9 +4,9 @@ REM Docker 构建和部署脚本 (Windows)
 setlocal
 
 REM 配置变量
-set IMAGE_NAME=ruihua-cms
+set IMAGE_NAME=ruihuawebsite
 set IMAGE_TAG=latest
-set CONTAINER_NAME=ruihua-cms-app
+set CONTAINER_NAME=ruihuawebsite-app
 
 echo 🚀 开始构建 Docker 镜像...
 

@@ -1,4 +1,4 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 
 const express = require('express');
 const mongoose = require('mongoose');
@@ -92,8 +92,11 @@ function authRequired(req, res, next) {
 }
 
 // DB Connection
-mongoose.connect('mongodb://127.0.0.1:27017/ruihua')
-    .then(() => console.log('MongoDB Connected'))
+console.log('Environment MONGODB_URL:', process.env.MONGODB_URL);
+const mongoUrl = process.env.MONGODB_URL || 'mongodb://127.0.0.1:27017/ruihua_cms';
+console.log('Using MongoDB URL:', mongoUrl);
+mongoose.connect(mongoUrl)
+    .then(() => console.log('MongoDB Connected to:', mongoUrl))
     .catch(err => console.error('MongoDB Connection Error:', err));
 
 // Multer Config for Uploads
@@ -976,7 +979,7 @@ app.post('/api/send-verification-code', async (req, res) => {
         const code = generateVerificationCode();
         
         // 准备短信内容
-        const smsContent = `【人瑞人才科技集团】验证码为：${code} 你正在预约组织人效体检，需要进行验证码校验（3分钟内有效），请勿向任何人提供此验证码。`;
+        const smsContent = `【瑞华智策】验证码为：${code} 你正在预约组织人效体检，需要进行验证码校验（3分钟内有效），请勿向任何人提供此验证码。`;
         
         // 发送短信
         try {

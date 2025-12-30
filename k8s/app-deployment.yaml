@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ruihua-cms-app
+  name: ruihuawebsite-app
   namespace: default
   labels:
-    app: ruihua-cms-app
+    app: ruihuawebsite-app
     version: v1.0
 spec:
   replicas: 2
@@ -15,11 +15,11 @@ spec:
       maxSurge: 1
   selector:
     matchLabels:
-      app: ruihua-cms-app
+      app: ruihuawebsite-app
   template:
     metadata:
       labels:
-        app: ruihua-cms-app
+        app: ruihuawebsite-app
         version: v1.0
     spec:
       securityContext:
@@ -28,8 +28,8 @@ spec:
         runAsGroup: 1001
         fsGroup: 1001
       containers:
-      - name: ruihua-cms-app
-        image: portal-app:latest
+      - name: ruihuawebsite-app
+        image: ruihua-imagerepo-cn-shanghai.cr.volces.com/ruihua/ruihuawebsite:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
@@ -37,7 +37,7 @@ spec:
           protocol: TCP
         envFrom:
         - configMapRef:
-            name: ruihua-cms-config
+            name: ruihuawebsite-config
         volumeMounts:
         - name: uploads-storage
           mountPath: /app/public/uploads
@@ -93,13 +93,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ruihua-cms-service
+  name: ruihuawebsite-service
   namespace: default
   labels:
-    app: ruihua-cms-app
+    app: ruihuawebsite-app
 spec:
   selector:
-    app: ruihua-cms-app
+    app: ruihuawebsite-app
   ports:
   - port: 80
     targetPort: 3000
@@ -114,7 +114,7 @@ metadata:
   name: uploads-pvc
   namespace: default
   labels:
-    app: ruihua-cms-app
+    app: ruihuawebsite-app
 spec:
   accessModes:
   - ReadWriteOnce
@@ -129,7 +129,7 @@ metadata:
   name: logs-pvc
   namespace: default
   labels:
-    app: ruihua-cms-app
+    app: ruihuawebsite-app
 spec:
   accessModes:
   - ReadWriteOnce
@@ -137,3 +137,4 @@ spec:
     requests:
       storage: 2Gi
   storageClassName: standard
+

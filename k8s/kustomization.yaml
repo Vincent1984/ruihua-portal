@@ -7,11 +7,11 @@ resources:
 - app-deployment.yaml
 
 images:
-- name: ruihua-cms
+- name: ruihuawebsite
   newTag: latest
 
 commonLabels:
-  project: ruihua-cms
+  project: ruihuawebsite
   version: v1.0
 
 namespace: default

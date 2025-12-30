@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# 瑞华 CMS Kubernetes 部署脚本
+# 瑞华智策 Kubernetes 部署脚本
 
-echo "🚀 开始部署瑞华 CMS 到 Kubernetes..."
+echo "🚀 开始部署瑞华智策应用到 Kubernetes..."
 
 # 检查 kubectl 是否可用
 if ! command -v kubectl &> /dev/null; then
@@ -18,51 +18,65 @@ fi
 
 echo "✅ Kubernetes 集群连接正常"
 
-# 构建 Docker 镜像
-echo "📦 构建 Docker 镜像..."
-docker build -t ruihua-cms:latest .
-
-# 如果使用 minikube，加载镜像到 minikube
-if command -v minikube &> /dev/null && minikube status &> /dev/null; then
-    echo "📥 加载镜像到 minikube..."
-    minikube image load ruihua-cms:latest
-fi
+# 使用远程镜像仓库的镜像
+echo "📦 使用镜像: ruihua-imagerepo-cn-shanghai.cr.volces.com/ruihua/ruihuawebsite:latest"
 
 # 应用 Kubernetes 配置
 echo "🔧 应用 Kubernetes 配置..."
 
-# 创建命名空间（可选）
-# kubectl apply -f namespace.yaml
-
 # 应用配置
-kubectl apply -f configmap.yaml
-kubectl apply -f mongodb-deployment.yaml
+echo "📝 应用 ConfigMap..."
+kubectl apply -f k8s/configmap.yaml
+
+echo "🗄️ 部署 MongoDB..."
+kubectl apply -f k8s/mongodb-deployment.yaml
 
 # 等待 MongoDB 就绪
 echo "⏳ 等待 MongoDB 启动..."
 kubectl wait --for=condition=ready pod -l app=mongodb --timeout=300s
 
+if [ $? -eq 0 ]; then
+    echo "✅ MongoDB 启动成功"
+else
+    echo "❌ MongoDB 启动超时"
+    exit 1
+fi
+
 # 部署应用
-kubectl apply -f app-deployment.yaml
+echo "🚀 部署应用..."
+kubectl apply -f k8s/app-deployment.yaml
 
 # 等待应用就绪
 echo "⏳ 等待应用启动..."
-kubectl wait --for=condition=ready pod -l app=ruihua-cms-app --timeout=300s
+kubectl wait --for=condition=ready pod -l app=ruihuawebsite-app --timeout=300s
 
-echo "✅ 部署完成！"
+if [ $? -eq 0 ]; then
+    echo "✅ 应用启动成功"
+else
+    echo "❌ 应用启动超时"
+    kubectl get pods -l app=ruihuawebsite-app
+    exit 1
+fi
+
+echo "🎉 部署完成！"
 
 # 显示服务状态
 echo ""
 echo "📊 服务状态："
-kubectl get pods,svc,ingress
+kubectl get pods,svc -l app=ruihuawebsite-app
+kubectl get pods,svc -l app=mongodb
 
 echo ""
 echo "🌐 访问信息："
-echo "如果使用 minikube，请运行以下命令获取访问地址："
-echo "minikube service ruihua-cms-service --url"
-echo ""
-echo "或者使用端口转发："
-echo "kubectl port-forward svc/ruihua-cms-service 3000:80"
+echo "使用端口转发访问应用："
+echo "kubectl port-forward svc/ruihuawebsite-service 3000:80"
 echo "然后访问: http://localhost:3000"
 echo ""
+echo "管理后台: http://localhost:3000/admin/index.html"
 echo "默认管理员账号: zhice / zhiceruihua123"
+echo ""
+echo "查看应用日志:"
+echo "kubectl logs -l app=ruihuawebsite-app -f"
+echo ""
+echo "查看 MongoDB 日志:"
+echo "kubectl logs -l app=mongodb -f"

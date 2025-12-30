@@ -5,9 +5,9 @@
 set -e
 
 # 配置变量
-IMAGE_NAME="ruihua-cms"
+IMAGE_NAME="ruihuawebsite"
 IMAGE_TAG="latest"
-CONTAINER_NAME="ruihua-cms-app"
+CONTAINER_NAME="ruihuawebsite-app"
 
 echo "🚀 开始构建 Docker 镜像..."
 

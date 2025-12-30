@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: ruihua-cms-config
+  name: ruihuawebsite-config
   namespace: default
 data:
   # 数据库配置
