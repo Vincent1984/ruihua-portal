@@ -58,7 +58,7 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
 // Serve specific HTML files from root

@@ -22,6 +22,8 @@ spec:
         app: ruihuawebsite-app
         version: v1.0
     spec:
+      imagePullSecrets:
+      - name: ruihua-registry-secret
       securityContext:
         runAsNonRoot: true
         runAsUser: 1001
@@ -38,11 +40,7 @@ spec:
         envFrom:
         - configMapRef:
             name: ruihuawebsite-config
-        volumeMounts:
-        - name: uploads-storage
-          mountPath: /app/public/uploads
-        - name: logs-storage
-          mountPath: /app/logs
+
         resources:
           requests:
             memory: "256Mi"
@@ -80,13 +78,7 @@ spec:
           timeoutSeconds: 5
           failureThreshold: 30
           successThreshold: 1
-      volumes:
-      - name: uploads-storage
-        persistentVolumeClaim:
-          claimName: uploads-pvc
-      - name: logs-storage
-        persistentVolumeClaim:
-          claimName: logs-pvc
+
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
 ---
@@ -107,34 +99,5 @@ spec:
     name: http
   type: ClusterIP
   sessionAffinity: None
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: uploads-pvc
-  namespace: default
-  labels:
-    app: ruihuawebsite-app
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  storageClassName: standard
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: logs-pvc
-  namespace: default
-  labels:
-    app: ruihuawebsite-app
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 2Gi
-  storageClassName: standard
+
 
