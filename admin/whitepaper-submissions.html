@@ -18,9 +18,9 @@
         })();
     </script>
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <!-- Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
     <!-- Custom Theme -->
     <link rel="stylesheet" href="admin-theme.css">
     <style>
@@ -74,6 +74,9 @@
             </a>
             <a href="/admin/maturity.html" class="menu-item">
                 <i class="bi bi-bar-chart-steps"></i> 成熟度诊断
+            </a>
+            <a href="/admin/efficiency.html" class="menu-item">
+                <i class="bi bi-graph-up-arrow"></i> 组织人效管理
             </a>
             
             <div class="mt-4 px-3">
@@ -242,182 +245,8 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    let currentPage = 1;
-    let totalPages = 1;
-    let currentData = []; // Store current page data for modal
-
-    // Auth Helpers
-    function getAuthHeaders() {
-        const token = sessionStorage.getItem('token');
-        return {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        };
-    }
-
-    function toggleLoading(show) {
-        document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
-    }
-
-    // Load Data
-    async function loadData(page = 1) {
-        toggleLoading(true);
-        try {
-            const name = document.getElementById('searchName').value.trim();
-            const phone = document.getElementById('searchPhone').value.trim();
-            const whitepaperName = document.getElementById('searchWhitepaper').value.trim();
-            const utm_source = document.getElementById('searchUtmSource').value.trim();
-
-            const params = new URLSearchParams({
-                page,
-                limit: 10,
-                ...(name && { name }),
-                ...(phone && { phone }),
-                ...(whitepaperName && { whitepaperName }),
-                ...(utm_source && { utm_source })
-            });
-
-            const res = await fetch(`/api/whitepaper/list?${params.toString()}`, {
-                headers: getAuthHeaders()
-            });
-
-            if (res.status === 401) {
-                window.location.href = '/admin/index.html';
-                return;
-            }
-
-            const data = await res.json();
-            
-            if (data.error) {
-                alert('加载失败: ' + data.error);
-                return;
-            }
-
-            currentData = data.data; // Store for modal
-            renderTable(data.data);
-            updatePagination(data.pagination);
-        } catch (error) {
-            console.error('Load Error:', error);
-            alert('加载数据出错');
-        } finally {
-            toggleLoading(false);
-        }
-    }
-
-    function renderTable(items) {
-        const tbody = document.getElementById('dataTableBody');
-        tbody.innerHTML = '';
-
-        if (!items || items.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">暂无数据</td></tr>';
-            return;
-        }
-
-        items.forEach((item, index) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${item.name || '-'}</td>
-                <td>${item.phone || '-'}</td>
-                <td>${item.company || '-'}</td>
-                <td>${item.position || '-'}</td>
-                <td><span class="badge bg-light text-dark border">${item.whitepaperName || '-'}</span></td>
-                <td>${item.source ? '<a href="' + item.source + '" target="_blank" class="text-decoration-none" title="' + item.source + '"><i class="bi bi-link-45deg"></i> 链接</a>' : '-'}</td>
-                <td>${item.utm_source ? '<span class="badge bg-primary-subtle text-primary-emphasis">' + item.utm_source + '</span>' : '-'}</td>
-                <td>${new Date(item.submittedAt).toLocaleString('zh-CN')}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary" onclick="showDetail(${index})">详情</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function showDetail(index) {
-        const item = currentData[index];
-        if (!item) return;
-
-        document.getElementById('d-name').textContent = item.name || '-';
-        document.getElementById('d-phone').textContent = item.phone || '-';
-        document.getElementById('d-company').textContent = item.company || '-';
-        document.getElementById('d-position').textContent = item.position || '-';
-        document.getElementById('d-email').textContent = item.email || '-';
-        document.getElementById('d-time').textContent = new Date(item.submittedAt).toLocaleString('zh-CN');
-        document.getElementById('d-whitepaper').textContent = item.whitepaperName || '-';
-        document.getElementById('d-source').textContent = item.source || '-';
-        
-        document.getElementById('d-utm-source').textContent = item.utm_source || '-';
-        document.getElementById('d-utm-medium').textContent = item.utm_medium || '-';
-        document.getElementById('d-utm-campaign').textContent = item.utm_campaign || '-';
-        document.getElementById('d-utm-term').textContent = item.utm_term || '-';
-        document.getElementById('d-utm-content').textContent = item.utm_content || '-';
-
-        const modal = new bootstrap.Modal(document.getElementById('detailModal'));
-        modal.show();
-    }
-
-    function updatePagination(pagination) {
-        currentPage = pagination.page;
-        totalPages = pagination.pages;
-        document.getElementById('currentPage').textContent = currentPage;
-        document.getElementById('totalPages').textContent = totalPages;
-        document.getElementById('totalCount').textContent = pagination.total;
-    }
-
-    function changePage(delta) {
-        const newPage = currentPage + delta;
-        if (newPage >= 1 && newPage <= totalPages) {
-            loadData(newPage);
-        }
-    }
-
-    function exportData() {
-        const name = document.getElementById('searchName').value.trim();
-        const phone = document.getElementById('searchPhone').value.trim();
-        const whitepaperName = document.getElementById('searchWhitepaper').value.trim();
-        const utm_source = document.getElementById('searchUtmSource').value.trim();
-
-        const params = new URLSearchParams({
-            ...(name && { name }),
-            ...(phone && { phone }),
-            ...(whitepaperName && { whitepaperName }),
-            ...(utm_source && { utm_source })
-        });
-
-        toggleLoading(true);
-        fetch(`/api/whitepaper/export?${params.toString()}`, {
-            headers: getAuthHeaders()
-        })
-        .then(res => {
-            if (res.status === 401) {
-                window.location.href = '/admin/index.html';
-                throw new Error('Unauthorized');
-            }
-            if (!res.ok) throw new Error('Export failed');
-            return res.blob();
-        })
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `whitepaper_submissions_${new Date().toISOString().slice(0,10)}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-        })
-        .catch(err => {
-            console.error(err);
-            alert('导出失败: ' + err.message);
-        })
-        .finally(() => toggleLoading(false));
-    }
-
-    // Initialize
-    document.addEventListener('DOMContentLoaded', () => {
-        loadData();
-    });
-</script>
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/downloadWhitepaper.js"></script>
 </body>
 </html>

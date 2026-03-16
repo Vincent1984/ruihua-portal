@@ -1294,7 +1294,19 @@ async function loadArticleDetail() {
                 document.getElementById('expert-desc').textContent = data.author.desc || '人力资本价值经营研究院';
             }
             if (document.getElementById('expert-detail')) {
-                document.getElementById('expert-detail').textContent = data.author.detail || '瑞华智策汇聚了来自华为、人瑞人才及全球顶尖咨询机构的实战专家。';
+                const detailEl = document.getElementById('expert-detail');
+                const detailText = (data.author.detail || '').trim();
+                
+                if (detailText) {
+                    detailEl.textContent = detailText;
+                    detailEl.style.maxHeight = '1000px';
+                    detailEl.style.opacity = '1';
+                    detailEl.style.marginTop = ''; // Use CSS class value
+                } else {
+                    detailEl.style.maxHeight = '0';
+                    detailEl.style.opacity = '0';
+                    detailEl.style.marginTop = '0';
+                }
             }
             if (document.getElementById('expert-avatar')) {
                 const avatarEl = document.getElementById('expert-avatar');
@@ -1330,6 +1342,44 @@ async function loadArticleDetail() {
             checkArticleStatus(currentArticleId);
         }
 
+        // --- GEO: Inject Article Schema ---
+        const schemaScript = document.createElement('script');
+        schemaScript.type = 'application/ld+json';
+        const articleSchema = {
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "headline": data.title,
+            "image": data.coverImage ? [data.coverImage] : [],
+            "datePublished": data.publishDate,
+            "dateModified": data.updatedAt || data.publishDate,
+            "author": {
+                "@type": "Person",
+                "name": (data.author && data.author.name) ? data.author.name : "瑞华智策"
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "瑞华智策",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://www.ruihuaconsulting.com/images/logo.png"
+                }
+            },
+            "description": data.summary || data.title
+        };
+        schemaScript.text = JSON.stringify(articleSchema);
+        document.head.appendChild(schemaScript);
+
+        // --- GEO: Update Meta Tags ---
+        if(data.summary) {
+            let metaDesc = document.querySelector('meta[name="description"]');
+            if (!metaDesc) {
+                metaDesc = document.createElement('meta');
+                metaDesc.name = "description";
+                document.head.appendChild(metaDesc);
+            }
+            metaDesc.content = data.summary;
+        }
+
     } catch (error) {
         console.error('Error loading article:', error);
     }
@@ -1338,8 +1388,13 @@ async function loadArticleDetail() {
 // 前台文章详情页 - 点赞
 async function likeArticle() {
     const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id');
-    if (!id) return;
+    // Use currentArticleId if available (for slug URLs), otherwise fallback to URL param
+    const id = (typeof currentArticleId !== 'undefined' && currentArticleId) ? currentArticleId : urlParams.get('id');
+    
+    if (!id) {
+        console.error('No article ID found');
+        return;
+    }
 
     // Check LocalStorage
     const likedArticles = JSON.parse(localStorage.getItem('liked_articles') || '[]');
@@ -1348,7 +1403,16 @@ async function likeArticle() {
         return;
     }
 
+    const btn = document.getElementById('likeBtn');
+    const icon = btn ? btn.querySelector('i') : null;
+    const originalIconClass = icon ? icon.className : '';
+    
     try {
+        if (btn) {
+            btn.disabled = true;
+            if (icon) icon.className = 'fas fa-spinner fa-spin text-xl';
+        }
+
         const response = await fetch('/api/articles/' + id + '/like', { method: 'POST' });
         const data = await response.json();
         
@@ -1357,19 +1421,24 @@ async function likeArticle() {
             const likeCount = document.getElementById('likeCount');
             if(likeCount) likeCount.textContent = data.likes;
             
-            const btn = document.getElementById('likeBtn');
             if(btn) {
                 btn.classList.add('text-red-500', 'bg-red-50');
-                const icon = btn.querySelector('i');
-                if(icon) icon.classList.replace('far', 'fas');
+                if(icon) icon.className = 'fas fa-heart text-xl group-hover:scale-110 transition-transform';
             }
             
             // Save to LocalStorage
             likedArticles.push(id);
             localStorage.setItem('liked_articles', JSON.stringify(likedArticles));
+        } else {
+            alert('点赞失败: ' + (data.error || '未知错误'));
+            if (icon) icon.className = originalIconClass;
         }
     } catch (error) {
         console.error('Error liking article:', error);
+        alert('网络错误，请稍后重试');
+        if (icon) icon.className = originalIconClass;
+    } finally {
+        if (btn) btn.disabled = false;
     }
 }
 
@@ -1528,6 +1597,7 @@ function updateProgressBar() {
 // --- Whitepaper Download Modal Functions ---
 
 function openWhitepaperModal() {
+    console.log('Attempting to open whitepaper modal...');
     try {
         const modal = document.getElementById('whitepaperModal');
         const backdrop = document.getElementById('wpModalBackdrop');
@@ -1535,22 +1605,33 @@ function openWhitepaperModal() {
         
         if (modal) {
             modal.classList.remove('hidden');
+            modal.style.display = 'block'; // Force display
+            modal.style.zIndex = '9999'; // Force high z-index
+            
             // Prevent body scroll
             document.body.style.overflow = 'hidden';
             
+            // Force layout recalculation for transition
+            void modal.offsetWidth; 
+
             // Trigger animations
-            setTimeout(() => {
-                if(backdrop) backdrop.classList.remove('opacity-0');
-                if(panel) {
-                    panel.classList.remove('opacity-0', 'scale-95');
-                    panel.classList.add('opacity-100', 'scale-100');
-                }
-            }, 10);
+            if(backdrop) {
+                backdrop.classList.remove('opacity-0');
+                backdrop.style.opacity = '1'; // Force opacity
+            }
+            if(panel) {
+                panel.classList.remove('opacity-0', 'scale-95');
+                panel.classList.add('opacity-100', 'scale-100');
+                panel.style.opacity = '1'; // Force opacity
+                panel.style.transform = 'scale(1)'; // Force transform
+            }
         } else {
             console.error('Whitepaper modal element not found');
+            alert('下载弹窗无法打开，请刷新页面重试');
         }
     } catch (e) {
         console.error('Error opening whitepaper modal:', e);
+        alert('系统错误，请联系管理员');
     }
 }
 
@@ -1561,10 +1642,15 @@ function closeWhitepaperModal() {
         const panel = document.getElementById('wpModalPanel');
         
         if (modal) {
-            if(backdrop) backdrop.classList.add('opacity-0');
+            if(backdrop) {
+                backdrop.classList.add('opacity-0');
+                backdrop.style.opacity = ''; // Remove inline style
+            }
             if(panel) {
                 panel.classList.remove('opacity-100', 'scale-100');
                 panel.classList.add('opacity-0', 'scale-95');
+                panel.style.opacity = ''; // Remove inline style
+                panel.style.transform = ''; // Remove inline style
             }
             
             // Restore body scroll
@@ -1572,6 +1658,8 @@ function closeWhitepaperModal() {
 
             setTimeout(() => {
                 modal.classList.add('hidden');
+                modal.style.display = ''; // Remove inline style
+                modal.style.zIndex = ''; // Remove inline style
             }, 300);
         }
     } catch (e) {
@@ -1647,9 +1735,13 @@ async function handleWhitepaperSubmit(event) {
         if (response.ok) {
             closeWhitepaperModal();
             form.reset();
-            setTimeout(() => {
-                openWpSuccessModal();
-            }, 300);
+            // Show success message and download instructions
+            alert('提交成功！我们将把资料发送至您的邮箱。');
+            
+            // If download link is provided, trigger download
+            // (Assuming backend might return a direct link or we use a static one for now)
+            // For now, simulate download or redirect
+            // window.location.href = '/path/to/whitepaper.pdf'; 
         } else {
             alert(result.error || '提交失败，请稍后重试');
         }

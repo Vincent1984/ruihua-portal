@@ -24,7 +24,7 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <!-- Custom Theme -->
-    <link rel="stylesheet" href="admin-theme.css">
+    <link rel="stylesheet" href="admin-theme.css?v=20260112-2">
     <style>
         /* Quill Editor Fixes */
         .ql-container { height: 300px; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
@@ -32,6 +32,21 @@
         
         /* Animation Keyframes */
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Mobile Sidebar Backdrop */
+        .sidebar-backdrop {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 900;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .sidebar-backdrop.show {
+            display: block;
+            opacity: 1;
+        }
     </style>
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/favicon.ico">
@@ -40,28 +55,31 @@
 <body>
 
 <div class="admin-layout">
+    <!-- Sidebar Backdrop -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="adminSidebar">
         <div class="sidebar-header">
             <i class="bi bi-grid-1x2-fill me-2"></i> CMS 系统
         </div>
         <div class="sidebar-menu">
-            <a href="#" onclick="show('dashboard')" id="nav-dashboard" class="menu-item active">
+            <a href="#" onclick="show('dashboard'); return false;" id="nav-dashboard" class="menu-item active">
                 <i class="bi bi-speedometer2"></i> 数据看板
             </a>
-            <a href="#" onclick="show('banner')" id="nav-banner" class="menu-item">
+            <a href="#" onclick="show('banner'); return false;" id="nav-banner" class="menu-item">
                 <i class="bi bi-image"></i> Banner管理
             </a>
-            <a href="#" onclick="show('sidebar')" id="nav-sidebar" class="menu-item">
+            <a href="#" onclick="show('sidebar'); return false;" id="nav-sidebar" class="menu-item">
                 <i class="bi bi-layout-sidebar"></i> 文章侧边栏管理
             </a>
-            <a href="#" onclick="show('article')" id="nav-article" class="menu-item">
+            <a href="#" onclick="show('article'); return false;" id="nav-article" class="menu-item">
                 <i class="bi bi-file-text"></i> 文章管理
             </a>
-            <a href="#" onclick="show('faq')" id="nav-faq" class="menu-item">
+            <a href="#" onclick="show('faq'); return false;" id="nav-faq" class="menu-item">
                 <i class="bi bi-question-circle"></i> FAQ管理
             </a>
-            <a href="#" onclick="show('appointments')" id="nav-appointments" class="menu-item">
+            <a href="#" onclick="show('appointments'); return false;" id="nav-appointments" class="menu-item">
                 <i class="bi bi-list-check"></i> 预约管理
             </a>
             <a href="/admin/whitepaper-submissions.html" class="menu-item">
@@ -70,11 +88,14 @@
             <a href="/admin/maturity.html" class="menu-item">
                 <i class="bi bi-bar-chart-steps"></i> 成熟度诊断
             </a>
+            <a href="/admin/efficiency.html" class="menu-item">
+                <i class="bi bi-graph-up-arrow"></i> 组织人效管理
+            </a>
             <!-- UTM Stats Removed -->
             
             <div class="mt-4 px-3">
                 <div class="text-secondary text-uppercase small mb-2" style="font-size: 12px; padding-left: 10px;">系统设置</div>
-                <a href="#" onclick="show('permissions')" id="nav-permissions" class="menu-item">
+                <a href="#" onclick="show('permissions'); return false;" id="nav-permissions" class="menu-item">
                     <i class="bi bi-shield-lock"></i> 权限管理
                 </a>
                 <a href="/admin/index.html" class="menu-item text-danger mt-2">
@@ -88,7 +109,12 @@
     <div class="main-content">
         <!-- Header -->
         <div class="header">
-            <h4 class="m-0" id="page-title">数据看板</h4>
+            <div class="d-flex align-items-center">
+                <button class="btn btn-link text-dark p-0 me-3 d-md-none" onclick="toggleSidebar()">
+                    <i class="bi bi-list fs-4"></i>
+                </button>
+                <h4 class="m-0" id="page-title">数据看板</h4>
+            </div>
             <div class="d-flex align-items-center">
                 <div class="dropdown">
                     <button class="btn btn-outline border-0 dropdown-toggle" type="button" data-bs-toggle="dropdown">
@@ -701,12 +727,27 @@
     </div>
 </div>
 
- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
- <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
- <script src="/js/script.js"></script>
- <!-- Chart.js -->
- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
- <!-- Custom JS -->
- <script src="admin.js"></script>
- </body>
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/quill/1.3.6/quill.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- Vue 3 & Pinia -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/3.3.4/vue.global.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/pinia/2.1.6/pinia.iife.min.js"></script>
+
+    <!-- Modular Admin JS -->
+    <script src="js/utils.js"></script>
+    <script src="js/store.js"></script>
+    <script src="js/router.js"></script>
+    
+    <script src="js/dashboard.js"></script>
+    <script src="js/banner-management.js"></script>
+    <script src="js/sidebar-management.js"></script>
+    <script src="js/article-management.js"></script>
+    <script src="js/faq-management.js"></script>
+    <script src="js/appointment-management.js"></script>
+    <script src="js/permission-management.js"></script>
+    <script src="js/logs.js"></script>
+</body>
 </html>

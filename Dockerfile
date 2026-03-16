@@ -36,8 +36,8 @@ COPY models/ ./models/
 COPY public/ ./public/
 COPY admin/ ./admin/
 COPY *.html ./
+COPY *.txt ./
 COPY favicon.ico ./
-COPY robots.txt ./
 
 # 创建必要的目录并设置权限
 RUN mkdir -p public/uploads/authors && \

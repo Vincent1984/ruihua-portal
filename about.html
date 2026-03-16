@@ -4,140 +4,222 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>关于我们 - 瑞华智策 | 人力资本价值经营专家</title>
-
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="/js/tailwind-config.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    
+    <script src="/js/tailwind-config.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />  
     <link rel="stylesheet" href="/css/styles.css" />
     <link rel="stylesheet" href="/css/geek-honors.css" />
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/favicon.ico">
     <link rel="apple-touch-icon" href="/favicon.ico">
+    <link rel="canonical" href="https://www.ruihuaconsulting.com/about/" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.ruihuaconsulting.com/about/" />
+    
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "AboutPage",
+      "mainEntity": {
+        "@type": "Organization",
+        "name": "瑞华智策",
+        "description": "依托人瑞人才 (6919.HK) 十五年行业深耕，以'专业+技术'双轮驱动，帮助企业构建 AI 时代持续增长的韧性组织。",
+        "url": "https://www.ruihuaconsulting.com",
+        "logo": "https://www.ruihuaconsulting.com/images/logo.png",
+        "parentOrganization": {
+            "@type": "Organization",
+            "name": "人瑞人才",
+            "url": "https://www.renruihr.com",
+            "stockSymbol": "6919.HK"
+        },
+        "award": [
+            "大中华区人力资源机构客户满意度大奖",
+            "新质生产力标杆企业",
+            "国家级高新技术企业认证"
+        ],
+        "knowsAbout": [
+            "人力资本价值经营",
+            "AHCVM",
+            "OHCVM",
+            "AI Agent管理"
+        ]
+      }
+    }
+    </script>
 </head>
 <body class="bg-white text-slate-800 antialiased selection:bg-brand-100 selection:text-brand-900">
 
-    <nav class="fixed w-full z-50 glass-nav transition-all duration-300">
+    <nav class="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
-                <a href="index.html" class="flex-shrink-0 flex items-center gap-3 group">
-                    <img src="/images/logo.png" alt="瑞华智策 Logo" class="site-logo w-auto" />
-                    <div class="hidden sm:block border-l border-slate-200 pl-3">
-                       <!-- <span class="text-xs text-slate-400">人瑞人才旗下公司</span>-->
-                        <span class="text-xs text-brand-600 font-medium ml-1">人力资本价值经营一体化解决方案</span>
-                    </div>
-                </a>
+                <div class="flex items-center gap-2">
+                    <a href="/" class="flex items-center gap-2">
+                        <img src="/images/logo.png" alt="瑞华智策 Logo" class="h-8 w-auto" />
+                    </a>
+                    <span class="hidden sm:inline-block text-slate-300 mx-2">|</span>
+                    <span class="hidden sm:inline-block text-sm text-slate-500">人力资本价值经营一体化解决方案</span>
+                </div>
                 <div class="hidden lg:flex space-x-2">
-                    <a href="index.html" class="nav-link">首页</a>
-                    <a href="solutions.html" class="nav-link">解决方案</a>
-                    <a href="resources.html" class="nav-link">行业洞察</a>
-                    <a href="index.html#cases" class="nav-link">成功案例</a>
-                    <a href="about.html" class="nav-link  font-semibold text-brand-700 bg-brand-50">关于我们</a>
+                    <a href="/" class="nav-link">首页</a>
+                    <a href="/solutions/" class="nav-link">解决方案</a>
+                    <a href="/resources/" class="nav-link">行业洞察</a>
+                    <a href="/#cases" class="nav-link">成功案例</a>
+                    <a href="/about/" class="nav-link  font-semibold text-brand-700 bg-brand-50">关于我们</a>
                 </div>
                 <div class="hidden md:flex items-center space-x-4">
-                    <a href="productivity.html" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-full font-medium transition shadow-lg shadow-brand-500/20 hover:-translate-y-0.5 text-sm">
+                    <a href="/productivity/" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-full font-medium transition shadow-lg shadow-brand-500/20 hover:-translate-y-0.5 text-sm">
                         预约专家咨询
                     </a>
                 </div>
-                <button class="lg:hidden p-2 rounded-lg hover:bg-slate-100" onclick="toggleMobileMenu()">
+                <button class="lg:hidden p-2 rounded-lg hover:bg-slate-100" onclick="toggleMobileMenu()" aria-label="Toggle navigation">
                     <i class="fas fa-bars text-slate-600 text-xl"></i>
                 </button>
             </div>
         </div>
         <div id="mobileMenu" class="hidden lg:hidden bg-white border-t border-slate-100 px-4 py-4">
             <div class="flex flex-col space-y-2">
-                <a href="index.html" class="nav-link">首页</a>
-                <a href="solutions.html" class="mobile-nav-link">解决方案</a>
-                <a href="resources.html" class="mobile-nav-link">行业洞察</a>
-                <a href="index.html#cases" class="mobile-nav-link">成功案例</a>
-                <a href="about.html" class="mobile-nav-link  font-semibold text-brand-700 bg-brand-50">关于我们</a>
-                <a href="productivity.html" class="bg-brand-600 text-white font-medium py-3 px-4 rounded-lg text-center mt-2">预约专家咨询</a>
+                <a href="/" class="nav-link">首页</a>
+                <a href="/solutions/" class="mobile-nav-link">解决方案</a>
+                <a href="/resources/" class="mobile-nav-link">行业洞察</a>
+                <a href="/#cases" class="mobile-nav-link">成功案例</a>
+                <a href="/about/" class="mobile-nav-link  font-semibold text-brand-700 bg-brand-50">关于我们</a>
+                <a href="/productivity/" class="bg-brand-600 text-white font-medium py-3 px-4 rounded-lg text-center mt-2">预约专家咨询</a>
             </div>
         </div>
     </nav>
 
-    <section class="pt-40 pb-20 bg-slate-900 text-white relative overflow-hidden">
-        <div class="absolute inset-0 overflow-hidden">
-            <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-600 rounded-full blur-[120px] opacity-20 -mr-20 -mt-20"></div>
-            <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-600 rounded-full blur-[100px] opacity-20 -ml-20 -mb-20"></div>
+    <main>
+    <section class="relative h-[45vh] min-h-[400px] flex items-center justify-center overflow-hidden bg-slate-900 mt-20 mx-4 md:mx-6 lg:mx-8 rounded-[2rem] shadow-2xl group">
+        <!-- Animated Background -->
+        <div class="absolute inset-0 z-0">
+            <!-- Dark Gradient Base -->
+            <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"></div>
+            
+            <!-- Animated Orbs -->
+            <div class="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-brand-600/30 rounded-full blur-[120px] animate-pulse-slow"></div>
+            <div class="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[100px] animate-pulse-slow" style="animation-delay: 2s;"></div>
+            
+            <!-- Grid Pattern -->
+            <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgNDBMMDQgMEgyMEwwIDIwek00MCA0MFYyMEwyMCA0MHoiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNhKSIvPjwvc3ZnPg==')] opacity-30"></div>
         </div>
-        
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-            <span class="text-brand-400 font-bold tracking-widest uppercase text-sm mb-4 block">About Us</span>
-            
-            <h1 class="text-4xl md:text-5xl font-extrabold mb-8">
-                <span class="block mb-3">人力资本价值经营一体化解决方案</span>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 to-blue-300">陪伴中国企业健康增长</span>
-                
+
+        <!-- Content Container -->
+        <div class="relative z-10 w-full max-w-5xl mx-auto px-4 text-center">
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6 animate-fade-in-up">
+                <span class="w-2 h-2 rounded-full bg-brand-400 animate-ping"></span>
+                <span class="text-xs font-bold tracking-[0.2em] text-brand-200 uppercase">About Us</span>
+            </div>
+
+            <!-- Main Title -->
+            <h1 class="text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-6 leading-tight tracking-tight animate-fade-in-up delay-100">
+                <span class="block mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400">人力资本价值经营</span>
+                <span class="relative inline-block">
+                    <span class="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-brand-300 to-blue-300">一体化解决方案</span>
+                    <svg class="absolute w-full h-3 -bottom-1 left-0 text-brand-500/30 -z-0" viewBox="0 0 100 10" preserveAspectRatio="none">
+                        <path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="8" fill="none" />
+                    </svg>
+                </span>
             </h1>
-            
-            <p class="text-base md:text-lg text-slate-300 w-full max-w-none mx-auto leading-relaxed md:whitespace-nowrap">
-                依托人瑞人才 (6919.HK) 十五年行业深耕，以“专业+技术”双轮驱动，帮助企业构建 AI 时代持续增长的韧性组织。
+
+            <!-- Subtitle -->
+            <p class="text-base md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed animate-fade-in-up delay-200 font-light">
+                <span class="text-white font-medium">陪伴中国企业健康增长</span> · 依托人瑞人才 (6919.HK) 十五年行业深耕<br class="hidden md:block" />
+                以“专业+技术”双轮驱动，帮助企业构建 AI 时代持续增长的韧性组织
             </p>
+
+            <!-- Scroll Indicator -->
+            <div class="absolute bottom-[-60px] left-1/2 transform -translate-x-1/2 animate-bounce-slow opacity-50 hover:opacity-100 transition-opacity cursor-pointer" onclick="document.getElementById('company').scrollIntoView({behavior: 'smooth'})" role="button" tabindex="0" aria-label="Scroll down">
+                <div class="w-6 h-10 rounded-full border-2 border-white/30 flex justify-center p-1">
+                    <div class="w-1 h-2 bg-white/50 rounded-full animate-scroll-down"></div>
+                </div>
+            </div>
         </div>
     </section>
 
-    <section id="company" class="py-24 bg-slate-50 relative">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid lg:grid-cols-2 gap-16 items-center">
-                <div>
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-600 text-xs font-bold uppercase mb-6 shadow-sm">
-                        Since 2025
-                    </div>
-                    <h2 class="text-3xl font-bold text-slate-900 mb-6">
-                        关于我们
-                    </h2>
-                    <div class="prose prose-lg text-slate-600">
-                        <p class="mb-4">
-                            瑞华智策于 2025 年正式创立，是<strong>人瑞人才 (股份代号: 6919.HK)</strong> —— 中国领先的一体化人力资源服务与数字技术解决方案提供商旗下的全资子公司。
-                        </p>
-                        <p class="mb-4">
-                            我们专注于为企业提供一体化的“人力资本价值经营”解决方案。依托人瑞人才深耕行业十五年来对大型企业管理升级的深刻理解，瑞华智策从诞生伊始就奠定了<strong>“专业+技术”双轮驱动</strong>的服务内核。
-                        </p>
-                        <p>
-                            通过<strong>“咨询+技术+服务”</strong>三位一体的模式，我们助力企业从“资源红利”向“价值红利”转型，优化人力资本投入产出比，实现从人效提升到利润增长的经营目标。
-                        </p>
-                    </div>
-                    
-                    <div class="grid grid-cols-3 gap-6 mt-10 border-t border-slate-100 pt-8">
+    <section id="company" class="py-24 bg-slate-50 relative overflow-hidden">
+        <!-- Background Grid Pattern -->
+        <div class="absolute inset-0 z-0 opacity-[0.03]" style="background-image: linear-gradient(#4f46e5 1px, transparent 1px), linear-gradient(90deg, #4f46e5 1px, transparent 1px); background-size: 40px 40px;"></div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <!-- Header -->
+            <div class="max-w-3xl mb-16">
+                <span class="text-brand-600 font-bold tracking-widest uppercase text-sm mb-4 block relative pl-12 before:content-[''] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-8 before:h-[2px] before:bg-brand-600">Who We Are</span>
+                <h2 class="text-4xl md:text-5xl font-bold text-slate-900 leading-tight">
+                    人瑞旗下咨询与技术服务品牌，<br>
+                    <span class="relative inline-block mt-2">
+                        <span class="relative z-10">定义人力资本价值经营新标准</span>
+                        <span class="absolute bottom-1 left-0 w-full h-3 bg-brand-200/50 -z-0"></span>
+                    </span>
+                </h2>
+            </div>
+
+            <!-- Modern Grid Layout -->
+            <div class="grid lg:grid-cols-12 gap-8 mb-16">
+                <!-- Main Content Card -->
+                <div class="lg:col-span-8 bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-slate-100 hover:shadow-xl transition-all duration-300 relative group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-brand-50 to-transparent rounded-tr-3xl -z-0"></div>
+                    <p class="text-xl text-slate-700 leading-relaxed mb-8 font-medium">
+                        瑞华智策于 2025 年正式创立，是 <strong class="text-brand-600">人瑞人才 (6919.HK)</strong> 旗下的全资子公司。依托集团十五年服务数千家头部企业的深厚积淀，我们致力于为企业提供最具实战价值的管理升级方案。
+                    </p>
+                    <div class="grid md:grid-cols-2 gap-8">
                         <div>
-                            <div class="text-3xl font-bold text-brand-600">6919.HK</div>
-                            <div class="text-xs text-slate-500 mt-1">母公司上市代码</div>
+                            <div class="w-10 h-10 rounded-lg bg-brand-100 flex items-center justify-center text-brand-600 mb-4">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-900 mb-2">双轮驱动内核</h4>
+                            <p class="text-slate-500 text-sm leading-relaxed">坚持“专业+技术”的服务理念，将管理咨询与数字化落地深度融合。</p>
                         </div>
                         <div>
-                            <div class="text-3xl font-bold text-brand-600">15+</div>
-                            <div class="text-xs text-slate-500 mt-1">年行业深耕积淀</div>
-                        </div>
-                        <div>
-                            <div class="text-3xl font-bold text-brand-600">20%</div>
-                            <div class="text-xs text-slate-500 mt-1">致力于提升人效</div>
+                            <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 mb-4">
+                                <i class="fas fa-sync-alt"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-900 mb-2">闭环服务体系</h4>
+                            <p class="text-slate-500 text-sm leading-relaxed">首创“咨询+技术+服务”模式，确保策略在业务一线产生真实回响。</p>
                         </div>
                     </div>
                 </div>
-                
-                <div class="relative">
-                    <div class="absolute -inset-4 bg-gradient-to-tr from-brand-100 to-blue-100 rounded-[2rem] transform rotate-3"></div>
-                    <img src="/images/ruihua.jpg" alt="上海国际静安中心" class="relative rounded-2xl shadow-xl w-full h-[500px] object-cover">
+
+                <!-- Highlight Card -->
+                <div class="lg:col-span-4 bg-brand-600 rounded-3xl p-8 md:p-10 text-white relative overflow-hidden flex flex-col justify-between shadow-lg shadow-brand-500/30 group">
+                    <!-- Decor -->
+                    <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                    <div class="absolute bottom-0 left-0 -ml-8 -mb-8 w-32 h-32 bg-brand-400/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
                     
-                    <div class="absolute -bottom-8 -left-8 bg-white p-6 rounded-xl shadow-2xl max-w-xs animate-float">
-                        <div class="flex items-center gap-4 mb-3">
-                            <div class="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center text-brand-600 text-xl">
-                                <i class="fas fa-handshake"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-slate-900">价值共赢</h4>
-                                <p class="text-xs text-slate-500">客户 · 企业 · 人才</p>
-                            </div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white text-xl mb-6 border border-white/10">
+                            <i class="fas fa-rocket"></i>
                         </div>
-                        <p class="text-xs text-slate-600 leading-relaxed">
-                            推动企业健康增长，共同探索 AI 时代下的 HR 管理新范式。
+                        <h3 class="text-2xl font-bold mb-4">从资源红利向<br>价值红利转型</h3>
+                        <p class="text-brand-100 text-sm leading-relaxed mb-8">
+                            优化人力资本投入产出比，实现从人效提升到利润增长的经营目标。
                         </p>
                     </div>
+                    <a href="solutions.html" class="inline-flex items-center gap-2 text-white font-bold hover:gap-3 transition-all relative z-10">
+                        了解更多解决方案 <i class="fas fa-arrow-right"></i>
+                    </a>
                 </div>
             </div>
 
-
+            <!-- Interactive Stats Bar -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 text-center group">
+                    <div class="text-3xl lg:text-4xl font-bold text-slate-900 mb-1 group-hover:text-brand-600 transition-colors">6919<span class="text-lg text-slate-400">.HK</span></div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold">母公司上市代码</div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 text-center group">
+                    <div class="text-3xl lg:text-4xl font-bold text-slate-900 mb-1 group-hover:text-brand-600 transition-colors">2025</div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold">品牌创立年份</div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 text-center group">
+                    <div class="text-3xl lg:text-4xl font-bold text-slate-900 mb-1 group-hover:text-brand-600 transition-colors">15<span class="text-lg text-brand-500">+</span></div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold">年行业深耕</div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 text-center group">
+                    <div class="text-3xl lg:text-4xl font-bold text-slate-900 mb-1 group-hover:text-brand-600 transition-colors">20<span class="text-lg text-brand-500">%</span></div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold">平均人效提升</div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -153,7 +235,7 @@
 
             <div class="grid lg:grid-cols-2 gap-8 mb-20">
                 <!-- Mission -->
-                <div class="bg-white rounded-2xl p-8 md:p-12 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-lg transition duration-300">
+                <article class="bg-white rounded-2xl p-8 md:p-12 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-lg transition duration-300">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-brand-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
                     <div class="relative z-10">
                         <div class="w-12 h-12 bg-brand-100 text-brand-600 rounded-xl flex items-center justify-center text-2xl mb-6">
@@ -164,10 +246,10 @@
                             为企业提供一体化的人力资本价值经营解决方案，帮助企业实现从<span class="text-brand-600 font-medium">人效提升</span>到<span class="text-brand-600 font-medium">利润增长</span>的经营目标。
                         </p>
                     </div>
-                </div>
+                </article>
 
                 <!-- Vision -->
-                <div class="bg-white rounded-2xl p-8 md:p-12 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-lg transition duration-300">
+                <article class="bg-white rounded-2xl p-8 md:p-12 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-lg transition duration-300">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
                     <div class="relative z-10">
                         <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-2xl mb-6">
@@ -178,7 +260,7 @@
                             共同探索 AI 时代下的 HR 管理新范式，锻造可持续发展的韧性组织，实现<span class="text-blue-600 font-medium">客户价值、企业价值与人才价值</span>的共赢。
                         </p>
                     </div>
-                </div>
+                </article>
             </div>
 
             <!-- Values -->
@@ -189,7 +271,7 @@
                 
                 <div class="grid md:grid-cols-3 gap-8">
                     <!-- Long-termism -->
-                    <div class="bg-white rounded-xl p-8 border-t-4 border-brand-500 shadow-sm hover:shadow-md transition hover:-translate-y-1">
+                    <article class="bg-white rounded-xl p-8 border-t-4 border-brand-500 shadow-sm hover:shadow-md transition hover:-translate-y-1">
                         <div class="mb-6">
                             <span class="inline-block px-3 py-1 bg-brand-50 text-brand-700 text-xs font-bold rounded-full uppercase tracking-wide">Long-termism</span>
                         </div>
@@ -197,10 +279,10 @@
                         <p class="text-slate-600">
                             和企业一起向“长期主义”要成果，作为服务宗旨贯穿始终。
                         </p>
-                    </div>
+                    </article>
 
                     <!-- Result-oriented -->
-                    <div class="bg-white rounded-xl p-8 border-t-4 border-blue-500 shadow-sm hover:shadow-md transition hover:-translate-y-1">
+                    <article class="bg-white rounded-xl p-8 border-t-4 border-blue-500 shadow-sm hover:shadow-md transition hover:-translate-y-1">
                         <div class="mb-6">
                             <span class="inline-block px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full uppercase tracking-wide">Result-oriented</span>
                         </div>
@@ -208,10 +290,10 @@
                         <p class="text-slate-600">
                             所有服务的价值锚点都是和客户一起“拿到结果”，提供结果即服务 (RAAS)。
                         </p>
-                    </div>
+                    </article>
 
                     <!-- Win-win Ecosystem -->
-                    <div class="bg-white rounded-xl p-8 border-t-4 border-purple-500 shadow-sm hover:shadow-md transition hover:-translate-y-1">
+                    <article class="bg-white rounded-xl p-8 border-t-4 border-purple-500 shadow-sm hover:shadow-md transition hover:-translate-y-1">
                         <div class="mb-6">
                             <span class="inline-block px-3 py-1 bg-purple-50 text-purple-700 text-xs font-bold rounded-full uppercase tracking-wide">Win-win Ecosystem</span>
                         </div>
@@ -219,7 +301,7 @@
                         <p class="text-slate-600">
                             全面拥抱 AI，构建人机共生的员工队伍，实现生态内的多方价值增值。
                         </p>
-                    </div>
+                    </article>
                 </div>
             </div>
         </div>
@@ -247,12 +329,12 @@
                         </div>
                         <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-white border-4 border-brand-600 rounded-full transform -translate-x-1/2 z-10 mt-2 md:mt-0"></div>
                         <div class="md:w-5/12 pl-12 md:pl-0 order-2">
-                            <div class="bg-brand-50 rounded-xl p-6 shadow-sm border border-brand-100 relative group hover:shadow-md transition">
+                            <article class="bg-brand-50 rounded-xl p-6 shadow-sm border border-brand-100 relative group hover:shadow-md transition">
                                 <div class="hidden md:block absolute top-6 -left-2 w-4 h-4 bg-brand-50 border-l border-b border-brand-100 transform rotate-45"></div>
                                 <div class="md:hidden absolute top-6 -left-2 w-4 h-4 bg-brand-50 border-l border-b border-brand-100 transform rotate-45"></div>
                                 <h3 class="text-xl font-bold text-slate-900 mb-2">瑞华智策成立</h3>
                                 <p class="text-slate-700">瑞华智策公司成立，开启人力资本价值经营新篇章。</p>
-                            </div>
+                            </article>
                         </div>
                     </div>
                 </div>
@@ -265,7 +347,7 @@
                         </div>
                         <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-white border-4 border-slate-300 rounded-full transform -translate-x-1/2 z-10 mt-2 md:mt-0"></div>
                         <div class="md:w-5/12 pl-12 md:pl-0 order-2 md:text-right">
-                            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
+                            <article class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
                                 <div class="hidden md:block absolute top-6 -right-2 w-4 h-4 bg-white border-r border-t border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
                                 <div class="md:hidden absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
                                 <ul class="space-y-2 text-slate-600 text-sm inline-block text-left">
@@ -273,7 +355,7 @@
                                     <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 人瑞人才获评“上海市优质人力资源服务机构”</li>
                                     <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 人瑞人才数字化系统2.0上线</li>
                                 </ul>
-                            </div>
+                            </article>
                         </div>
                     </div>
                 </div>
@@ -286,14 +368,14 @@
                         </div>
                         <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-white border-4 border-slate-300 rounded-full transform -translate-x-1/2 z-10 mt-2 md:mt-0"></div>
                         <div class="md:w-5/12 pl-12 md:pl-0 order-2">
-                            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
+                            <article class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
                                 <div class="hidden md:block absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
                                 <div class="md:hidden absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
                                 <ul class="space-y-2 text-slate-600 text-sm">
                                     <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 出版《产业数字人才研究与发展报告》，全面助力企业数字化转型</li>
                                     <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 人瑞人才全面推进数字化转型，瑞智系统二期上线</li>
                                 </ul>
-                            </div>
+                            </article>
                         </div>
                     </div>
                 </div>
@@ -306,7 +388,7 @@
                         </div>
                         <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-white border-4 border-slate-300 rounded-full transform -translate-x-1/2 z-10 mt-2 md:mt-0"></div>
                         <div class="md:w-5/12 pl-12 md:pl-0 order-2 md:text-right">
-                            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
+                            <article class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
                                 <div class="hidden md:block absolute top-6 -right-2 w-4 h-4 bg-white border-r border-t border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
                                 <div class="md:hidden absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
                                 <ul class="space-y-2 text-slate-600 text-sm inline-block text-left">
@@ -314,7 +396,7 @@
                                     <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 与极客邦科技达成战略合作关系，共建数字化人才生态链</li>
                                     <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 通过全球软件领域最高级CMMI5认证</li>
                                 </ul>
-                            </div>
+                            </article>
                         </div>
                     </div>
                 </div>
@@ -327,14 +409,14 @@
                         </div>
                         <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-white border-4 border-slate-300 rounded-full transform -translate-x-1/2 z-10 mt-2 md:mt-0"></div>
                         <div class="md:w-5/12 pl-12 md:pl-0 order-2">
-                            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
+                            <article class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
                                 <div class="hidden md:block absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
                                 <div class="md:hidden absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
                                 <ul class="space-y-2 text-slate-600 text-sm">
                                     <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 打造人才生态链，构建数字化人才领域专业服务能力</li>
                                     <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 2021年度最佳人力资源综合服务机构</li>
                                 </ul>
-                            </div>
+                            </article>
                         </div>
                     </div>
                 </div>
@@ -347,7 +429,7 @@
                         </div>
                         <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-white border-4 border-slate-300 rounded-full transform -translate-x-1/2 z-10 mt-2 md:mt-0"></div>
                         <div class="md:w-5/12 pl-12 md:pl-0 order-2 md:text-right">
-                            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
+                            <article class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
                                 <div class="hidden md:block absolute top-6 -right-2 w-4 h-4 bg-white border-r border-t border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
                                 <div class="md:hidden absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
                                 <ul class="space-y-2 text-slate-600 text-sm inline-block text-left">
@@ -355,7 +437,7 @@
                                     <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 《中国灵活用工发展报告》出版</li>
                                     <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 中国首家人力资源民营企业博士后工作站落户人瑞</li>
                                 </ul>
-                            </div>
+                            </article>
                         </div>
                     </div>
                 </div>
@@ -368,14 +450,14 @@
                         </div>
                         <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-white border-4 border-slate-300 rounded-full transform -translate-x-1/2 z-10 mt-2 md:mt-0"></div>
                         <div class="md:w-5/12 pl-12 md:pl-0 order-2">
-                            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
+                            <article class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
                                 <div class="hidden md:block absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
                                 <div class="md:hidden absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
                                 <ul class="space-y-2 text-slate-600 text-sm">
                                     <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 《经营者思维》出版，对未来企业人力资源战略管理提出建设性思考</li>
                                     <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 12.13港交所上市，股份代号：6919.HK</li>
                                 </ul>
-                            </div>
+                            </article>
                         </div>
                     </div>
                 </div>
@@ -388,7 +470,7 @@
                         </div>
                         <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-white border-4 border-slate-300 rounded-full transform -translate-x-1/2 z-10 mt-2 md:mt-0"></div>
                         <div class="md:w-5/12 pl-12 md:pl-0 order-2 md:text-right">
-                            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
+                            <article class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
                                 <div class="hidden md:block absolute top-6 -right-2 w-4 h-4 bg-white border-r border-t border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
                                 <div class="md:hidden absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
                                 <ul class="space-y-2 text-slate-600 text-sm inline-block text-left">
@@ -396,7 +478,7 @@
                                     <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 首部行业专著《灵活用工》出版，输出标准，引领行业规范</li>
                                     <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 获评中国人力资源开发研究会 “杰出综合服务供应商”奖</li>
                                 </ul>
-                            </div>
+                            </article>
                         </div>
                     </div>
                 </div>
@@ -409,7 +491,7 @@
                         </div>
                         <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-white border-4 border-slate-300 rounded-full transform -translate-x-1/2 z-10 mt-2 md:mt-0"></div>
                         <div class="md:w-5/12 pl-12 md:pl-0 order-2">
-                            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
+                            <article class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
                                 <div class="hidden md:block absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
                                 <div class="md:hidden absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
                                 <div class="space-y-4 text-slate-600 text-sm">
@@ -426,7 +508,7 @@
                                         <p>公司在成都成立；开创以效果为导向的人力资源服务新模式</p>
                                     </div>
                                 </div>
-                            </div>
+                            </article>
                         </div>
                     </div>
                 </div>
@@ -538,7 +620,7 @@
 
             <div class="grid md:grid-cols-3 gap-8 items-start">
                 
-                <div class="bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 group">
+                <article class="bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 group">
                     <div class="h-80 bg-slate-200 relative overflow-hidden">
                          <img src="/images/andi.png" alt="高燕 Andi" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                         <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-slate-900/90 to-transparent p-6">
@@ -569,9 +651,9 @@
                             </li>
                         </ul>
                     </div>
-                </div>
+                </article>
 
-                <div class="bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 group transform md:-translate-y-4 shadow-xl border-t-4 border-brand-500 z-10 relative">
+                <article class="bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 group transform md:-translate-y-4 shadow-xl border-t-4 border-brand-500 z-10 relative">
                     <div class="h-80 bg-slate-200 relative overflow-hidden">
                         <img src="/images/zhangjianguo.png" alt="张建国" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                         <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-brand-900/90 to-transparent p-6">
@@ -599,9 +681,9 @@
                             </li>
                         </ul>
                     </div>
-                </div>
+                </article>
 
-                <div class="bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 group">
+                <article class="bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 group">
                     <div class="h-80 bg-slate-200 relative overflow-hidden">
                         <img src="/images/vincent.png" alt="杨兴宇 Vincent" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                         <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-slate-900/90 to-transparent p-6">
@@ -629,7 +711,7 @@
                             </li>
                         </ul>
                     </div>
-                </div>
+                </article>
 
             </div>
         </div>
@@ -645,17 +727,18 @@
                 无论您处于转型初期，还是需要解决具体的用工难题，瑞华智策的专家团队都准备好为您服务。
             </p>
             <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <a href="productivity.html" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-brand-500/30 transition hover:-translate-y-1">
+                <a href="/productivity/" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-brand-500/30 transition hover:-translate-y-1">
                     预约组织人效体检
                 </a>
-                <a href="index.html#contact" class="bg-white border border-slate-200 text-slate-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition shadow-sm">
+                <a href="/#contact" class="bg-white border border-slate-200 text-slate-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition shadow-sm">
                     联系我们
                 </a>
             </div>
         </div>
     </section>
 
-    <div id="footer-container"></div>
+    </main>
+    <footer id="footer-container" role="contentinfo"></footer>
 
     <script src="/js/script.js"></script>
     <script src="/js/main.js"></script>

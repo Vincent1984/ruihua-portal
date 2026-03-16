@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
 const MaturitySubmissionSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    phone: { type: String, required: true },
-    company: { type: String, required: true },
+    name: { type: String, required: false },
+    phone: { type: String, required: false },
+    company: { type: String, required: false },
     score: { type: Number, required: true },
     level: { type: String, required: true },
     answers: { type: Object, required: true }, // Stores { q1: ['A'], q2: ['B'], ... }

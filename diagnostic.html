@@ -4,163 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>瑞华智策 - 人力资本价值经营成熟度诊断</title>
-    <style>
-        :root {
-            --brand-color: #7c4dff;
-            --brand-color-hover: #651fff;
-            --brand-color-light: #ece6ff;
-            --text-main: #1a1a1a;
-            --text-sec: #666;
-            --bg-color: #f9f9fa;
-        }
-
-        body { 
-            margin: 0; 
-            padding: 0; 
-            font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; 
-            background: var(--bg-color); 
-            color: var(--text-main); 
-            line-height: 1.6; 
-        }
-
-        /* --- 问卷首页 --- */
-        #quiz-view { 
-            max-width: 850px; 
-            margin: 40px auto; 
-            padding: 50px; 
-            background: #fff; 
-            border-radius: 20px; 
-            box-shadow: 0 20px 60px rgba(0,0,0,0.08); 
-        }
-        
-        .quiz-title { 
-            text-align: center; 
-            color: var(--brand-color); 
-            margin-bottom: 40px; 
-            line-height: 1.4;
-        }
-        
-        .quiz-title-prefix {
-            display: block;
-            font-size: 32px;
-            font-weight: 800;
-            margin-bottom: 15px;
-            color: var(--brand-color);
-        }
-        
-        .quiz-title-main {
-            font-size: 24px;
-            font-weight: 500;
-            color: #555;
-            display: block;
-            max-width: 90%;
-            margin: 0 auto;
-        }
-
-        /* Module tag style removed */
-        
-        .q-item { 
-            margin-bottom: 30px; 
-            border-bottom: 1px solid #f0f0f0; 
-            padding-bottom: 25px; 
-        }
-        
-        .q-text { 
-            font-weight: 600; 
-            margin-bottom: 15px; 
-            display: block; 
-            font-size: 16px; 
-            color: #333;
-        }
-        
-        .opt-grid { 
-            display: grid; 
-            grid-template-columns: 1fr; 
-            gap: 12px; 
-        }
-        
-        @media (min-width: 600px) {
-            .opt-grid { grid-template-columns: 1fr 1fr; }
-            .opt-grid.single-col { grid-template-columns: 1fr; }
-        }
-
-        .opt { 
-            border: 2px solid #f0f0f0; 
-            padding: 14px 18px; 
-            border-radius: 12px; 
-            cursor: pointer; 
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
-            font-size: 15px; 
-            color: #555;
-            background: #fff;
-            position: relative;
-        }
-        
-        .opt:hover { 
-            border-color: var(--brand-color); 
-            background: var(--brand-color-light); 
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(124, 77, 255, 0.1);
-        }
-        
-        .opt.selected { 
-            background: var(--brand-color); 
-            color: #fff; 
-            border-color: var(--brand-color); 
-            box-shadow: 0 8px 20px rgba(124, 77, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .submit-btn { 
-            width: 100%; 
-            padding: 18px; 
-            background: var(--brand-color); 
-            color: #fff; 
-            border: none; 
-            border-radius: 12px; 
-            font-size: 18px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            margin-top: 30px; 
-            transition: all 0.3s;
-            box-shadow: 0 10px 25px rgba(124, 77, 255, 0.3);
-        }
-        
-        .submit-btn:hover {
-            background: var(--brand-color-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 15px 35px rgba(124, 77, 255, 0.4);
-        }
-
-        /* --- 诊断报告页 --- */
-    /* #report-view { display: none; } - Removed as we now redirect */
-    </style>
-    <script>
-        // 定义题目分数映射 (Profile questions 0分, others weighted)
-        const qScores = {
-            q1: {A:0, B:0, C:0},
-            q2: {A:0, B:0, C:0, D:0, E:0, F:0},
-            q3: {A:0, B:0, C:0, D:0},
-            q4: {A:5, B:10, C:20, D:0},
-            q5: {A:5, B:5, C:20, D:0},
-            q6: {A:0, B:10, C:20, D:30},
-            q7: {A:20, B:10, C:0},
-            q8: {A:2, B:2, C:2, D:2, E:5, F:0}, // Multi-select
-            q9: {A:0, B:10, C:15, D:20},
-            q10: {A:20, B:10, C:0}
-        };
-    </script>
+    <link rel="canonical" href="https://www.ruihuaconsulting.com/diagnostic/" />
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="/js/main.js" defer></script>
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/favicon.ico">
     <link rel="apple-touch-icon" href="/favicon.ico">
 </head>
-<body>
+<body class="diagnostic-body">
 
 <div id="quiz-view">
-    <div class="quiz-title">
+    <h1 class="quiz-title">
         <span class="quiz-title-prefix">测一测：</span>
         <span class="quiz-title-main">贵司的人力投入是企业的增长动力源，还是沉重的成本负担？</span>
-    </div>
+    </h1>
 
     <!-- Module A -->
     <!-- <div class="module-tag">模块 A：基本画像</div> -->
@@ -168,31 +26,31 @@
     <div class="q-item" id="q1">
         <span class="q-text">1. 贵公司目前员工规模约为：</span>
         <div class="opt-grid">
-            <div class="opt" onclick="ans('q1', 'A', this)">A. < 500</div>
-            <div class="opt" onclick="ans('q1', 'B', this)">B. 500-5000</div>
-            <div class="opt" onclick="ans('q1', 'C', this)">C. > 5000</div>
+            <div class="opt" data-q="q1" data-val="A">A. < 500</div>
+            <div class="opt" data-q="q1" data-val="B">B. 500-5000</div>
+            <div class="opt" data-q="q1" data-val="C">C. > 5000</div>
         </div>
     </div>
 
     <div class="q-item" id="q2">
         <span class="q-text">2. 贵公司所在行业类型更接近于：</span>
         <div class="opt-grid">
-            <div class="opt" onclick="ans('q2', 'A', this)">A. 制造/工业</div>
-            <div class="opt" onclick="ans('q2', 'B', this)">B. 工程项目/建筑</div>
-            <div class="opt" onclick="ans('q2', 'C', this)">C. 软件/SaaS/互联网</div>
-            <div class="opt" onclick="ans('q2', 'D', this)">D. 连锁零售/连锁服务</div>
-            <div class="opt" onclick="ans('q2', 'E', this)">E. 咨询/专业服务</div>
-            <div class="opt" onclick="ans('q2', 'F', this)">F. 其他</div>
+            <div class="opt" data-q="q2" data-val="A">A. 制造/工业</div>
+            <div class="opt" data-q="q2" data-val="B">B. 工程项目/建筑</div>
+            <div class="opt" data-q="q2" data-val="C">C. 软件/SaaS/互联网</div>
+            <div class="opt" data-q="q2" data-val="D">D. 连锁零售/连锁服务</div>
+            <div class="opt" data-q="q2" data-val="E">E. 咨询/专业服务</div>
+            <div class="opt" data-q="q2" data-val="F">F. 其他</div>
         </div>
     </div>
 
     <div class="q-item" id="q3">
         <span class="q-text">3. 人力成本（薪酬、社保、公积金等）在总成本中的大致占比：</span>
         <div class="opt-grid">
-            <div class="opt" onclick="ans('q3', 'A', this)">A. < 20%</div>
-            <div class="opt" onclick="ans('q3', 'B', this)">B. 20%–40%</div>
-            <div class="opt" onclick="ans('q3', 'C', this)">C. 40%–60%</div>
-            <div class="opt" onclick="ans('q3', 'D', this)">D. > 60%</div>
+            <div class="opt" data-q="q3" data-val="A">A. < 20%</div>
+            <div class="opt" data-q="q3" data-val="B">B. 20%–40%</div>
+            <div class="opt" data-q="q3" data-val="C">C. 40%–60%</div>
+            <div class="opt" data-q="q3" data-val="D">D. > 60%</div>
         </div>
     </div>
 
@@ -202,39 +60,39 @@
     <div class="q-item" id="q4">
         <span class="q-text">4. 在年度人力预算/编制评审时，贵司目前使用的主要依据是：</span>
         <div class="opt-grid single-col">
-            <div class="opt" onclick="ans('q4', 'A', this)">A. 历史基数微调，辅以主观判断</div>
-            <div class="opt" onclick="ans('q4', 'B', this)">B. 简单的人均产出/人均成本对比</div>
-            <div class="opt" onclick="ans('q4', 'C', this)">C. 有相对明确的人力投入与收入/利润的量化模型</div>
-            <div class="opt" onclick="ans('q4', 'D', this)">D. 不清楚</div>
+            <div class="opt" data-q="q4" data-val="A">A. 历史基数微调，辅以主观判断</div>
+            <div class="opt" data-q="q4" data-val="B">B. 简单的人均产出/人均成本对比</div>
+            <div class="opt" data-q="q4" data-val="C">C. 有相对明确的人力投入与收入/利润的量化模型</div>
+            <div class="opt" data-q="q4" data-val="D">D. 不清楚</div>
         </div>
     </div>
 
     <div class="q-item" id="q5">
         <span class="q-text">5. 对于关键业务单元（如某事业部/区域），贵司能否定期看到如下指标？</span>
         <div class="opt-grid single-col">
-            <div class="opt" onclick="ans('q5', 'A', this)">A. 仅能定期看到收入、毛利、净利等财务结果指标</div>
-            <div class="opt" onclick="ans('q5', 'B', this)">B. 涵盖 A 级指标，并增加了人力成本、人均产出等初级人效指标</div>
-            <div class="opt" onclick="ans('q5', 'C', this)">C. 涵盖 A、B 级指标，并进一步集成了人才投入（培训、领导力建设）与经营结果的因果关联指标</div>
-            <div class="opt" onclick="ans('q5', 'D', this)">D. 指标获取困难，基本看不到或非常零散</div>
+            <div class="opt" data-q="q5" data-val="A">A. 仅能定期看到收入、毛利、净利等财务结果指标</div>
+            <div class="opt" data-q="q5" data-val="B">B. 涵盖 A 级指标，并增加了人力成本、人均产出等初级人效指标</div>
+            <div class="opt" data-q="q5" data-val="C">C. 涵盖 A、B 级指标，并进一步集成了人才投入（培训、领导力建设）与经营结果的因果关联指标</div>
+            <div class="opt" data-q="q5" data-val="D">D. 指标获取困难，基本看不到或非常零散</div>
         </div>
     </div>
 
     <div class="q-item" id="q6">
         <span class="q-text">6. 对于培训、人才发展等人力资本投入，目前贵司对“业务回报”的认知更接近于：</span>
         <div class="opt-grid single-col">
-            <div class="opt" onclick="ans('q6', 'A', this)">A. 基本看不到，更多凭感觉</div>
-            <div class="opt" onclick="ans('q6', 'B', this)">B. 个别项目有简单的前后对比或主管评价</div>
-            <div class="opt" onclick="ans('q6', 'C', this)">C. 对关键项目会做业务指标层面的 ROI/ROHC 分析</div>
-            <div class="opt" onclick="ans('q6', 'D', this)">D. 有体系化的评估模型和管理机制</div>
+            <div class="opt" data-q="q6" data-val="A">A. 基本看不到，更多凭感觉</div>
+            <div class="opt" data-q="q6" data-val="B">B. 个别项目有简单的前后对比或主管评价</div>
+            <div class="opt" data-q="q6" data-val="C">C. 对关键项目会做业务指标层面的 ROI/ROHC 分析</div>
+            <div class="opt" data-q="q6" data-val="D">D. 有体系化的评估模型和管理机制</div>
         </div>
     </div>
 
     <div class="q-item" id="q7">
         <span class="q-text">7. 最近 12 个月，管理层是否明确提出过“希望看到人力投入的回报/产出”的诉求？</span>
         <div class="opt-grid">
-            <div class="opt" onclick="ans('q7', 'A', this)">A. 经常提</div>
-            <div class="opt" onclick="ans('q7', 'B', this)">B. 偶尔提</div>
-            <div class="opt" onclick="ans('q7', 'C', this)">C. 很少或没有</div>
+            <div class="opt" data-q="q7" data-val="A">A. 经常提</div>
+            <div class="opt" data-q="q7" data-val="B">B. 偶尔提</div>
+            <div class="opt" data-q="q7" data-val="C">C. 很少或没有</div>
         </div>
     </div>
 
@@ -244,22 +102,22 @@
     <div class="q-item" id="q8">
         <span class="q-text">8. 目前已在用的核心系统包括（可多选）：</span>
         <div class="opt-grid">
-            <div class="opt" onclick="ans('q8', 'A', this)">A. HR 系统（人事、薪酬、考勤/绩效）</div>
-            <div class="opt" onclick="ans('q8', 'B', this)">B. 财务系统</div>
-            <div class="opt" onclick="ans('q8', 'C', this)">C. CRM/销售系统</div>
-            <div class="opt" onclick="ans('q8', 'D', this)">D. 项目管理/ERP 系统</div>
-            <div class="opt" onclick="ans('q8', 'E', this)">E. 数据中台/BI 报表系统</div>
-            <div class="opt" onclick="ans('q8', 'F', this)">F. 以上都没有或仅有基础财务</div>
+            <div class="opt" data-q="q8" data-val="A">A. HR 系统（人事、薪酬、考勤/绩效）</div>
+            <div class="opt" data-q="q8" data-val="B">B. 财务系统</div>
+            <div class="opt" data-q="q8" data-val="C">C. CRM/销售系统</div>
+            <div class="opt" data-q="q8" data-val="D">D. 项目管理/ERP 系统</div>
+            <div class="opt" data-q="q8" data-val="E">E. 数据中台/BI 报表系统</div>
+            <div class="opt" data-q="q8" data-val="F">F. 以上都没有或仅有基础财务</div>
         </div>
     </div>
 
     <div class="q-item" id="q9">
         <span class="q-text">9. 这些系统的数据目前主要用于：</span>
         <div class="opt-grid single-col">
-            <div class="opt" onclick="ans('q9', 'A', this)">A. 各系统独立运行，仅能产出单一模块的报表，满足日常基础管理</div>
-            <div class="opt" onclick="ans('q9', 'B', this)">B. 已能在财务或人力等特定领域内进行深度分析（如预算管控、招聘效能分析）</div>
-            <div class="opt" onclick="ans('q9', 'C', this)">C. 初步打破部门墙，尝试将人力与财务或业务数据进行双向交叉比对</div>
-            <div class="opt" onclick="ans('q9', 'D', this)">D. 实现成熟的“人—业—财”一体化联合分析，通过数据驱动业务决策与战略落地</div>
+            <div class="opt" data-q="q9" data-val="A">A. 各系统独立运行，仅能产出单一模块的报表，满足日常基础管理</div>
+            <div class="opt" data-q="q9" data-val="B">B. 已能在财务或人力等特定领域内进行深度分析（如预算管控、招聘效能分析）</div>
+            <div class="opt" data-q="q9" data-val="C">C. 初步打破部门墙，尝试将人力与财务或业务数据进行双向交叉比对</div>
+            <div class="opt" data-q="q9" data-val="D">D. 实现成熟的“人—业—财”一体化联合分析，通过数据驱动业务决策与战略落地</div>
         </div>
     </div>
 
@@ -269,141 +127,16 @@
     <div class="q-item" id="q10">
         <span class="q-text">10. 如果有一个 3-6 个月的小范围试点... 贵司是否愿意进一步了解？</span>
         <div class="opt-grid">
-            <div class="opt" onclick="ans('q10', 'A', this)">A. 愿意，并可考虑选一个业务单元试点</div>
-            <div class="opt" onclick="ans('q10', 'B', this)">B. 愿意先了解，但暂不确定试点</div>
-            <div class="opt" onclick="ans('q10', 'C', this)">C. 暂时不考虑</div>
+            <div class="opt" data-q="q10" data-val="A">A. 愿意，并可考虑选一个业务单元试点</div>
+            <div class="opt" data-q="q10" data-val="B">B. 愿意先了解，但暂不确定试点</div>
+            <div class="opt" data-q="q10" data-val="C">C. 暂时不考虑</div>
         </div>
     </div>
 
-    <button class="submit-btn" onclick="submit()">提交并获取专家诊断报告</button>
+    <button class="submit-btn" id="submit-diagnostic-btn">提交并获取专家诊断报告</button>
 </div>
 
 <!-- Removed #report-view HTML block as it's now a separate page -->
 
-<script>
-    // Store user selections: { q1: ['A'], q8: ['A', 'C'] }
-    let userSelections = {};
-
-    function ans(q, optKey, element) {
-        // Multi-select logic for Q8
-        if (q === 'q8') {
-            // Initialize array if not exists
-            if (!userSelections[q]) userSelections[q] = [];
-            
-            // Special handling for Option F ("None of the above")
-            if (optKey === 'F') {
-                // If clicking F, clear others
-                if (!userSelections[q].includes('F')) {
-                    userSelections[q] = ['F'];
-                    // Visual update
-                    document.querySelectorAll(`#${q} .opt`).forEach(o => o.classList.remove('selected'));
-                    element.classList.add('selected');
-                } else {
-                    // Deselect F
-                    userSelections[q] = [];
-                    element.classList.remove('selected');
-                }
-            } else {
-                // If clicking others, ensure F is removed
-                if (userSelections[q].includes('F')) {
-                     userSelections[q] = userSelections[q].filter(k => k !== 'F');
-                     document.querySelector(`#${q} .opt:last-child`).classList.remove('selected');
-                }
-                
-                // Toggle current
-                if (userSelections[q].includes(optKey)) {
-                    userSelections[q] = userSelections[q].filter(k => k !== optKey);
-                    element.classList.remove('selected');
-                } else {
-                    userSelections[q].push(optKey);
-                    element.classList.add('selected');
-                }
-            }
-        } else {
-            // Single choice logic
-            userSelections[q] = [optKey];
-            document.querySelectorAll(`#${q} .opt`).forEach(o => o.classList.remove('selected'));
-            element.classList.add('selected');
-        }
-    }
-
-    function submit() {
-        // Validate all 10 questions answered
-        const requiredQuestions = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9', 'q10'];
-        const missing = requiredQuestions.filter(q => !userSelections[q] || userSelections[q].length === 0);
-        
-        if (missing.length > 0) { 
-            alert('请完成所有 10 道题目后再提交'); 
-            // Scroll to first missing question
-            const firstMissing = document.getElementById(missing[0]);
-            if(firstMissing) firstMissing.scrollIntoView({behavior: 'smooth', block: 'center'});
-            return; 
-        }
-        
-        // Calculate Score
-        let totalScore = 0;
-        const maxPossibleScore = 143; // Sum of max scores for all questions
-        
-        // Sum scores
-        for (const [q, opts] of Object.entries(userSelections)) {
-            if (qScores[q]) {
-                opts.forEach(opt => {
-                    // Safety check
-                    if (qScores[q][opt] !== undefined) {
-                        totalScore += qScores[q][opt];
-                    }
-                });
-            }
-        }
-        
-        // Normalize score to 0-100 scale
-        const final = Math.round((totalScore / maxPossibleScore) * 100);
-
-        // Prepare result object
-        let resultObj = {
-            score: final,
-            level: "",
-            summary: "",
-            insight: "",
-            currentStatus: "",
-            potential: "",
-            action: ""
-        };
-
-        if (final < 50) {
-            resultObj.level = "初步意识阶段";
-            resultObj.summary = "人力投入仍被视为纯粹的财务负担，尚未与业务增长逻辑形成数据上的连接。";
-            resultObj.insight = "数据烟囱现象严重，人力资本回报（ROHC）缺乏量化核算，管理决策主要依赖经验和主观判断。";
-            resultObj.currentStatus = "缺乏跨部门联合分析，预算主要基于历史基数微调，而非基于产出预测。";
-            resultObj.potential = "通过 ROHC 框架可识别至少 15% 的效能提升空间，识别出高投入低产出的冗余环节。";
-            resultObj.action = "建立人–业–财统一视图，选定单一业务单元算清‘人力投资回报’，建立标杆。";
-        } else if (final < 80) {
-            resultObj.level = "建设起步阶段";
-            resultObj.summary = "您企业已经具备了较好的数据基础，并开始尝试人效对比。目前处于从'定性评估'向'定量经营'转型的关键期。";
-            resultObj.insight = "部门间数据壁垒正在打破，部分核心业务线已实现量化管理，但尚未形成全公司的经营闭环。";
-            resultObj.currentStatus = "已有基础报表体系，管理层开始关注 ROI，但数据实时性和颗粒度尚不足以支持即时决策。";
-            resultObj.potential = "将 ROHC 框架嵌入绩效与薪酬管理，可显著增强组织敏捷性，优化人才配置结构。";
-            resultObj.action = "扩展 ROHC 指标应用到更多业务单元，引入系统与数据打通实现动态监控。";
-        } else {
-            resultObj.level = "体系化升级阶段";
-            resultObj.summary = "人力资本已成为驱动业务增长的核心引擎，数据链路全面贯通，具备高度的经营敏捷性。";
-            resultObj.insight = "具备实时监控 ROHC 指标的能力，人力投入已实现精细化投产比分析，管理决策具备高度预测性。";
-            resultObj.currentStatus = "系统数据已实现‘人-业-财’深度对齐，支持管理层随时进行基于数据的投产调优。";
-            resultObj.potential = "具备引入 AI 预测模型的数字化基础，可实现人才流失、招聘及投入产出的智能预测。";
-            resultObj.action = "在人力规划中嵌入 AI 工具做持续监控，并将 ROHC 框架提升至资产化经营管理高度。";
-        }
-
-        // Save to localStorage
-        try {
-            localStorage.setItem('quizResult', JSON.stringify(resultObj));
-            localStorage.setItem('userSelections', JSON.stringify(userSelections));
-            // Redirect to result page
-            window.location.href = 'diagnostic-result.html';
-        } catch (e) {
-            console.error('Save result failed:', e);
-            alert('无法保存测评结果，可能是因为浏览器禁用了本地存储（如隐私模式）。请尝试更换浏览器或关闭隐私模式。');
-        }
-    }
-</script>
 </body>
 </html>

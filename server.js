@@ -1,4 +1,4 @@
-﻿require('dotenv').config();
+require('dotenv').config();
 
 const express = require('express');
 const mongoose = require('mongoose');
@@ -10,6 +10,9 @@ const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const axios = require('axios');
 const crypto = require('crypto');
+const mongoSanitize = require('express-mongo-sanitize');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 // Import Models
 const Appointment = require('./models/Appointment');
@@ -18,6 +21,7 @@ const OperationLog = require('./models/OperationLog');
 const Role = require('./models/Role');
 const Admin = require('./models/admin'); // Corrected model name
 const MaturitySubmission = require('./models/MaturitySubmission');
+const EfficiencySubmission = require('./models/EfficiencySubmission');
 const Faq = require('./models/Faq');
 const Category = require('./models/Category');
 const Setting = require('./models/Setting');
@@ -25,18 +29,74 @@ const Subscription = require('./models/Subscription');
 const WhitepaperSubmission = require('./models/WhitepaperSubmission');
 const VerificationCode = require('./models/VerificationCode');
 const quizData = require('./config/quizData'); // Import Quiz Data
+const efficiencyQuizData = require('./config/efficiencyQuizData'); // Import Efficiency Quiz Data
 const XLSX = require('xlsx'); // Import xlsx
 const { slugify } = require('transliteration');
 
 const app = express();
+app.disable('x-powered-by');
 const PORT = process.env.PORT || 3000;
-const SECRET_KEY = 'ruihua_secret_key_change_this'; // In production, use env var
+const SECRET_KEY = process.env.SECRET_KEY || 'default_secret_key_if_env_missing';
 
 // Middleware
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "cdn.tailwindcss.com", "cdnjs.cloudflare.com", "cdn.jsdelivr.net", "cdn.quilljs.com", "cdn.bootcdn.net"],
+            scriptSrcAttr: ["'unsafe-inline'"], 
+            styleSrc: ["'self'", "'unsafe-inline'", "cdn.tailwindcss.com", "cdnjs.cloudflare.com", "fonts.googleapis.com", "cdn.jsdelivr.net", "cdn.quilljs.com", "cdn.bootcdn.net"],
+            fontSrc: ["'self'", "cdnjs.cloudflare.com", "fonts.gstatic.com", "cdn.jsdelivr.net", "cdn.bootcdn.net"],
+            imgSrc: ["'self'", "data:", "blob:", "picsum.photos", "placehold.co"], 
+            connectSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdn.quilljs.com", "https://cdn.bootcdn.net"],
+            upgradeInsecureRequests: null, // Disable auto-upgrade for localhost dev environment
+        },
+    },
+    crossOriginEmbedderPolicy: false
+}));
+
+// Global Rate Limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again after 15 minutes',
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+app.use('/api/', limiter); // Apply to API routes only
+
+// Stricter Rate Limiting for Login - REMOVED
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Manual Mongo Sanitize to fix "Cannot set property query" error
+// The default middleware fails because req.query is sometimes a getter-only property in this environment.
+app.use((req, res, next) => {
+    try {
+        if (req.body) req.body = mongoSanitize.sanitize(req.body);
+        if (req.params) req.params = mongoSanitize.sanitize(req.params);
+        if (req.query) {
+            const sanitized = mongoSanitize.sanitize(req.query);
+            try {
+                req.query = sanitized;
+            } catch (err) {
+                // Fallback: If req.query is read-only (getter), define it as a value property
+                Object.defineProperty(req, 'query', {
+                    value: sanitized,
+                    writable: true,
+                    enumerable: true,
+                    configurable: true
+                });
+            }
+        }
+    } catch (e) {
+        console.error('Sanitization Error:', e);
+    }
+    next();
+});
 
 // UTM Tracking Middleware
 app.use((req, res, next) => {
@@ -61,19 +121,134 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
+// Apply Rate Limiter AFTER static files
+// Rate limiter removed
+
 // Serve specific HTML files from root
 const rootHtmlFiles = [
-    'about.html', 'article.html', 'diagnostic-result.html', 'diagnostic.html', 
-    'form.html', 'form2.html', 'index.html', 'privacy.html', 
-    'productivity.html', 'resources.html', 'solutions.html'
+    'article.html', 'diagnostic-result.html', 
+    'form.html', 'form2.html', 'privacy.html',
+    'efficiency-diagnostic.html', 'sales-toolkit.html'
+    // Removed productivity.html and diagnostic.html from here to handle them manually below with redirects
 ];
 
 rootHtmlFiles.forEach(file => {
     app.get('/' + file, (req, res) => res.sendFile(path.join(__dirname, file)));
 });
 
-// Serve index.html for root path
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+// Serve verification txt file
+app.get('/f30f7f41e5fa707ed66d41aeb3791adb.txt', (req, res) => {
+    res.sendFile(path.join(__dirname, 'f30f7f41e5fa707ed66d41aeb3791adb.txt'));
+});
+
+// 404 Handler (Should be the last route)
+// BUT we have other routes below.
+// Express executes routes in order.
+// We need to place the 404 handler at the VERY END of the file, after all other app.get/post calls.
+// Let's search for where the routes end.
+
+// URL Rewrites and Redirects for SEO (Directory Style)
+// 1. about.html -> /about/
+app.get('/about/', (req, res) => res.sendFile(path.join(__dirname, 'about.html')));
+app.get('/about.html', (req, res) => res.redirect(301, '/about/'));
+
+// 2. solutions.html -> /solutions/
+app.get('/solutions/', (req, res) => res.sendFile(path.join(__dirname, 'solutions.html')));
+app.get('/solutions.html', (req, res) => res.redirect(301, '/solutions/'));
+
+// 3. resources.html -> /resources/
+app.get('/resources/', (req, res) => res.sendFile(path.join(__dirname, 'resources.html')));
+app.get('/resources.html', (req, res) => res.redirect(301, '/resources/'));
+
+// 4. productivity.html -> /productivity/
+app.get('/productivity/', (req, res) => res.sendFile(path.join(__dirname, 'productivity.html')));
+app.get('/productivity', (req, res) => res.redirect(301, '/productivity/'));
+app.get('/productivity.html', (req, res) => res.redirect(301, '/productivity/'));
+
+// 5. diagnostic.html -> /diagnostic/
+app.get('/diagnostic/', (req, res) => res.sendFile(path.join(__dirname, 'diagnostic.html')));
+app.get('/diagnostic', (req, res) => res.redirect(301, '/diagnostic/'));
+app.get('/diagnostic.html', (req, res) => res.redirect(301, '/diagnostic/'));
+
+
+// Handle /index.html redirection to root
+app.get('/index.html', (req, res) => {
+    if (process.env.NODE_ENV === 'development') {
+        // In development, serve the file directly for debugging if needed, 
+        // though strictly following instructions we might redirect.
+        // User asked: "Ensure all direct access to /index.html is 301 redirected to root /"
+        // BUT also "In dev env retain direct access capability".
+        // So we check env.
+        res.sendFile(path.join(__dirname, 'index.html'));
+    } else {
+        res.redirect(301, '/');
+    }
+});
+
+// Serve index.html for root path with Cache-Control
+app.get('/', (req, res) => {
+    // Cache for 1 hour (3600s), but validate with ETag
+    res.set('Cache-Control', 'public, max-age=3600');
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// --- SEO: Sitemap.xml ---
+app.get('/sitemap.xml', async (req, res) => {
+    try {
+        const SITE_URL = process.env.SITE_URL || 'https://www.ruihuaconsulting.com';
+        
+        // Static Pages
+        const staticPages = [
+            { url: '', priority: 1.0, changefreq: 'weekly' },
+            { url: 'solutions/', priority: 0.9, changefreq: 'weekly' },
+            { url: 'resources/', priority: 0.9, changefreq: 'weekly' },
+            { url: 'productivity.html', priority: 0.8, changefreq: 'weekly' },
+            { url: 'diagnostic.html', priority: 0.8, changefreq: 'weekly' },
+            { url: 'about/', priority: 0.7, changefreq: 'monthly' },
+            { url: 'privacy.html', priority: 0.3, changefreq: 'yearly' }
+        ];
+
+        let xml = '<?xml version="1.0" encoding="UTF-8"?>';
+        xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+
+        // Add Static Pages
+        const today = new Date().toISOString().split('T')[0];
+        staticPages.forEach(page => {
+            xml += `
+    <url>
+        <loc>${SITE_URL}/${page.url}</loc>
+        <lastmod>${today}</lastmod>
+        <changefreq>${page.changefreq}</changefreq>
+        <priority>${page.priority}</priority>
+    </url>`;
+        });
+
+        // Add Dynamic Articles
+        const articles = await Article.find({}, 'slug publishDate updatedAt');
+        articles.forEach(article => {
+            const date = article.updatedAt || article.publishDate || new Date();
+            const lastmod = new Date(date).toISOString().split('T')[0];
+            const slug = article.slug || article._id;
+            
+            xml += `
+    <url>
+        <loc>${SITE_URL}/article/${slug}.html</loc>
+        <lastmod>${lastmod}</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>`;
+        });
+
+        xml += '\n</urlset>';
+        
+        res.header('Content-Type', 'application/xml');
+        res.send(xml);
+    } catch (e) {
+        console.error('Sitemap Error:', e);
+        res.status(500).send('Error generating sitemap');
+    }
+});
+
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
@@ -105,10 +280,27 @@ const storage = multer.diskStorage({
         cb(null, path.join(__dirname, 'public/uploads/'))
     },
     filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname)) // Append extension
+        // Sanitize filename to prevent path traversal or other issues
+        const cleanName = path.basename(file.originalname).replace(/[^a-zA-Z0-9.-]/g, '_');
+        cb(null, Date.now() + '_' + cleanName);
     }
 });
-const upload = multer({ storage: storage });
+
+// Fix File Upload Vulnerability: Limit file size and type
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // Limit to 5MB
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+        if (mimetype && extname) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Only images and documents are allowed!'));
+        }
+    }
+});
 
 // Helper: Operation Logging
 async function logOp(action, module, detail, operator) {
@@ -182,8 +374,10 @@ app.post('/api/login', async (req, res) => {
         if (admin.password.startsWith('$')) {
              isMatch = await bcrypt.compare(password, admin.password);
         } else {
-             isMatch = (password === admin.password);
-             // Auto-hash plain password for security upgrade? Maybe later.
+             // REMOVED plaintext fallback for security
+             // isMatch = (password === admin.password);
+             console.warn(`User ${username} has a plaintext password. Please reset it.`);
+             return res.status(401).json({ success: false, message: 'Password security upgrade required. Please contact admin.' });
         }
 
         if (!isMatch) {
@@ -555,6 +749,35 @@ app.delete('/api/faqs/:id', authRequired, requirePerm('faq:delete'), async (req,
         await logOp('delete', 'FAQ', `Deleted FAQ: ${req.params.id}`, req.user.username);
         res.json({ success: true });
     } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// --- Maturity/Diagnostic Submission API ---
+app.post('/api/maturity-submission', async (req, res) => {
+    try {
+        const { answers, score, level, resultDetail, name, phone, company } = req.body;
+        
+        if (!answers || !score || !level) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const submission = new MaturitySubmission({
+            answers,
+            score,
+            level,
+            resultDetail,
+            name, 
+            phone, 
+            company
+        });
+
+        await submission.save();
+        await logOp('create', 'Diagnostic', `New diagnostic submission with score: ${score}`);
+        
+        res.json({ success: true, id: submission._id });
+    } catch (e) {
+        console.error('Diagnostic Submission Error:', e);
         res.status(500).json({ error: e.message });
     }
 });
@@ -983,19 +1206,28 @@ app.post('/api/send-verification-code', async (req, res) => {
         
         // 发送短信
         try {
-            const smsResponse = await axios.post(process.env.SMS_API_URL, {
+            const smsPayload = {
                 loginname: process.env.SMS_USERNAME,
                 password: process.env.SMS_PASSWORD,
                 phone: phone,
                 content: smsContent
-            }, {
+            };
+            
+            console.log('=== SMS发送请求 ===');
+            console.log('API URL:', process.env.SMS_API_URL);
+            console.log('手机号:', phone);
+            console.log('短信内容:', smsContent);
+            console.log('用户名:', process.env.SMS_USERNAME);
+            
+            const smsResponse = await axios.post(process.env.SMS_API_URL, smsPayload, {
                 headers: {
                     'Content-Type': 'application/json; charset=utf-8'
                 },
                 timeout: 10000
             });
             
-            console.log('SMS API Response:', smsResponse.data);
+            console.log('=== SMS API响应 ===');
+            console.log('完整响应:', JSON.stringify(smsResponse.data, null, 2));
             
             if (smsResponse.data.retcode !== '0') {
                 console.error('SMS send failed:', smsResponse.data);
@@ -1354,6 +1586,11 @@ app.get('/api/config/quiz', (req, res) => {
     res.json(quizData);
 });
 
+// Get Efficiency Quiz Config
+app.get('/api/config/efficiency-quiz', (req, res) => {
+    res.json(efficiencyQuizData);
+});
+
 // Export Maturity Data
 app.get('/api/maturity/export', authRequired, requirePerm('appointment:list'), async (req, res) => {
     try {
@@ -1432,18 +1669,22 @@ app.delete('/api/maturity/:id', authRequired, requirePerm('appointment:delete'),
 
 // --- Whitepaper Submission API ---
 app.post('/api/whitepaper/submit', async (req, res) => {
+    console.log('Received whitepaper submission:', req.body);
     try {
         const { name, phone, company, position, email, whitepaperName, source, ...utmParams } = req.body;
 
         if (!name || !phone || !company || !email || !whitepaperName) {
+            console.log('Missing fields:', { name, phone, company, email, whitepaperName });
             return res.status(400).json({ error: '请填写所有必填项' });
         }
 
         // Validations
         if (!/^1[3-9]\d{9}$/.test(phone)) {
+            console.log('Invalid phone:', phone);
             return res.status(400).json({ error: '请输入有效的11位手机号码' });
         }
         if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+            console.log('Invalid email:', email);
             return res.status(400).json({ error: '请输入有效的邮箱地址' });
         }
 
@@ -1456,6 +1697,7 @@ app.post('/api/whitepaper/submit', async (req, res) => {
         });
 
         if (existing) {
+            console.log('Duplicate submission:', { phone, whitepaperName });
             return res.status(400).json({ error: '您已提交过申请，请勿重复提交' });
         }
 
@@ -1473,8 +1715,8 @@ app.post('/api/whitepaper/submit', async (req, res) => {
             ...utmParams
         });
 
-        await newSubmission.save();
-        // await logOp('create', 'Whitepaper', `New download request: ${whitepaperName} by ${name}`);
+        const saved = await newSubmission.save();
+        console.log('Submission saved successfully:', saved._id);
 
         res.json({ success: true });
     } catch (e) {
@@ -1589,6 +1831,196 @@ app.post('/api/subscribe', async (req, res) => {
     } catch (e) {
         console.error('Subscription Error:', e);
         res.status(500).json({ error: '服务器内部错误' });
+    }
+});
+
+// === Efficiency Diagnosis Routes ===
+
+// Submit Efficiency Diagnosis
+app.post('/api/efficiency-diagnosis', async (req, res) => {
+    console.log('Received efficiency diagnosis submission:', JSON.stringify(req.body, null, 2));
+    try {
+        const data = req.body;
+        const answers = data.answers || {};
+        const detailedAnswers = [];
+
+        // Populate detailed answers using efficiencyQuizData
+        const scoreMap = { 'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5 };
+        
+        for (const [key, value] of Object.entries(answers)) {
+            const questionData = efficiencyQuizData[key];
+            if (questionData) {
+                detailedAnswers.push({
+                    questionId: key,
+                    questionText: questionData.question,
+                    selectedOption: value,
+                    optionText: questionData.options[value] || '',
+                    score: scoreMap[value] || 0
+                });
+            }
+        }
+
+        const submission = new EfficiencySubmission({
+            ...data,
+            detailedAnswers
+        });
+        
+        const saved = await submission.save();
+        console.log('Efficiency diagnosis saved successfully:', saved._id);
+        res.status(201).json({ success: true, message: '提交成功' });
+    } catch (error) {
+        console.error('Error saving efficiency diagnosis:', error);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// Export Efficiency Diagnosis Data
+app.get('/api/efficiency-diagnosis/export', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const { format = 'xlsx' } = req.query;
+        const submissions = await EfficiencySubmission.find().sort({ createdAt: -1 }).limit(1000);
+        
+        const data = submissions.map(sub => {
+            const row = {
+                '提交时间': new Date(sub.createdAt).toLocaleString(),
+                '公司名称': sub.company,
+                '行业': sub.industry,
+                '员工人数': sub.employeeCount,
+                '姓名': sub.name,
+                '电话': sub.phone,
+                '职位': sub.position,
+                '邮箱': sub.email,
+                '营业收入': sub.revenue,
+                '毛利润': sub.grossProfit,
+                '净利润': sub.netProfit,
+                '人力总成本': sub.hrCost,
+                '企业总成本': sub.totalCost,
+            };
+
+            // Map answers with full text
+            // Priority: detailedAnswers > realtime mapping > raw value
+            const questions = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'E1', 'E2', 'E3', 'E4', 'E5', 'E6'];
+            
+            questions.forEach(qKey => {
+                let answerText = '';
+                
+                // Try to find in stored detailed answers
+                if (sub.detailedAnswers && sub.detailedAnswers.length > 0) {
+                    const detail = sub.detailedAnswers.find(d => d.questionId === qKey);
+                    if (detail) {
+                        answerText = `${detail.selectedOption}. ${detail.optionText}`;
+                    }
+                }
+
+                // Fallback to real-time mapping if detailedAnswers is missing/empty
+                if (!answerText && sub.answers && sub.answers[qKey]) {
+                    const optionKey = sub.answers[qKey];
+                    const config = efficiencyQuizData[qKey];
+                    if (config && config.options && config.options[optionKey]) {
+                        answerText = `${optionKey}. ${config.options[optionKey]}`;
+                    } else {
+                        answerText = optionKey; // Just the letter 'A'
+                    }
+                }
+
+                const questionLabel = efficiencyQuizData[qKey] ? `${qKey}-${efficiencyQuizData[qKey].text}` : qKey;
+                row[questionLabel] = answerText;
+            });
+
+            return row;
+        });
+
+        if (format === 'csv') {
+             const ws = XLSX.utils.json_to_sheet(data);
+             const csv = XLSX.utils.sheet_to_csv(ws);
+             res.setHeader('Content-Disposition', 'attachment; filename="efficiency_diagnosis_export.csv"');
+             res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+             res.send('\uFEFF' + csv);
+        } else {
+             const wb = XLSX.utils.book_new();
+             const ws = XLSX.utils.json_to_sheet(data);
+             XLSX.utils.book_append_sheet(wb, ws, 'Efficiency Diagnosis');
+             const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+             res.setHeader('Content-Disposition', 'attachment; filename="efficiency_diagnosis_export.xlsx"');
+             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+             res.send(buffer);
+        }
+    } catch (error) {
+        console.error('Export error:', error);
+        res.status(500).send('Export failed');
+    }
+});
+
+// Get Efficiency Diagnosis Submissions (Admin)
+app.get('/api/efficiency-diagnosis', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const { page = 1, limit = 20 } = req.query;
+        const skip = (page - 1) * limit;
+        const total = await EfficiencySubmission.countDocuments();
+        const list = await EfficiencySubmission.find()
+            .sort({ createdAt: -1 })
+            .skip(parseInt(skip))
+            .limit(parseInt(limit));
+            
+        res.json({
+            data: list,
+            pagination: {
+                total,
+                page: parseInt(page),
+                pages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching efficiency submissions:', error);
+        res.status(500).json({ success: false, message: '获取数据失败' });
+    }
+});
+
+// Get Single Efficiency Diagnosis Detail (Admin)
+app.get('/api/efficiency-diagnosis/:id', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const submission = await EfficiencySubmission.findById(req.params.id);
+        if (!submission) return res.status(404).json({ error: 'Not found' });
+        res.json(submission);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Delete Efficiency Diagnosis
+app.delete('/api/efficiency-diagnosis/:id', authRequired, requirePerm('appointment:delete'), async (req, res) => {
+    try {
+        await EfficiencySubmission.findByIdAndDelete(req.params.id);
+        await logOp('delete', 'Efficiency', `Deleted submission: ${req.params.id}`, req.user.username);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// 404 Handler
+app.use((req, res, next) => {
+    if (req.path.startsWith('/api') || req.xhr) {
+        return res.status(404).json({ error: 'Not Found' });
+    }
+    res.status(404).sendFile(path.join(__dirname, '404.html'));
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+    console.error('Unhandled Error:', err.stack);
+    // If headers are already sent, delegate to the default Express error handler
+    if (res.headersSent) {
+        return next(err);
+    }
+    // Check if it's an API request or Page request
+    if (req.path.startsWith('/api') || req.xhr) {
+        res.status(err.status || 500).json({ 
+            error: '服务器内部错误', 
+            message: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error' 
+        });
+    } else {
+        res.status(err.status || 500).send('<h1>500 - 服务器内部错误</h1><p>请稍后再试。</p>');
     }
 });
 

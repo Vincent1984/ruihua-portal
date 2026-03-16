@@ -21,8 +21,8 @@ export class FooterComponent {
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col md:flex-row justify-between gap-10 mb-10">
                     <div class="md:max-w-xl text-left">
-                        <a href="index.html" class="inline-block mb-4">
-                            <img src="/images/logo.png" alt="瑞华智策" class="h-16 md:h-20 brightness-200 block">
+                        <a href="/" class="inline-block mb-4">
+                            <img src="/images/logo.png" alt="瑞华智策" class="footer-logo block">
                         </a>
                         <p class="text-slate-400 text-sm mb-4">瑞华智策以「咨询+技术+服务」三位一体的模式，助力企业构建「人力资本价值经营」体系，打造 AI 时代持续增长的韧性组织。</p>
                         <div class="flex items-center gap-2 text-sm text-slate-500"><i class="fas fa-building"></i><span>人瑞人才</span><span class="text-brand-400 font-medium">(6919.HK)</span><span>旗下全资子公司</span></div>
@@ -91,6 +91,9 @@ export class FooterComponent {
 
         container.innerHTML = footerHTML;
 
+        // 初始化百度统计
+        this.initBaiduAnalytics();
+
         // 初始化页脚交互功能 (社交媒体弹窗等)
         // 检查全局函数是否存在，如果存在则调用
         if (typeof window.initSocialPopups === 'function') {
@@ -101,6 +104,16 @@ export class FooterComponent {
             // 但最佳实践是组件自己管理交互
             this.initInteractions();
         }
+    }
+
+    initBaiduAnalytics() {
+        window._hmt = window._hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?3302f271fa7fe8d2ddc6176b39359827";
+            var s = document.getElementsByTagName("script")[0]; 
+            s.parentNode.insertBefore(hm, s);
+        })();
     }
 
     initInteractions() {
