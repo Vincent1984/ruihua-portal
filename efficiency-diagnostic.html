@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>组织人效诊断调研 - 瑞华智策</title>
+    
+    <!-- Open Graph Meta Tags for Social Sharing (WeChat, etc.) -->
+    <meta property="og:title" content="组织人效深度快诊 - 瑞华智策">
+    <meta property="og:description" content="内嵌瑞华智策原创评估模型和16个行业标杆数据，高效扫描经营痛点，定位问题方向，生成初步诊断报告和改进方向">
+    <meta property="og:image" content="https://www.ruihuaconsulting.com/images/rhlogo.png">
+    <meta property="og:url" content="https://www.ruihuaconsulting.com/efficiency-diagnostic.html">
+    <meta property="og:type" content="website">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/tailwind-config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <style>
+        /* Global Animation Settings */
+        :root {
+            --transition-speed: 0.2s;
+            --transition-ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Reduced Motion Preference */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        /* Question Card */
+        .question-card {
+            transition: transform 0.3s var(--transition-ease), box-shadow 0.3s var(--transition-ease);
+            will-change: transform, box-shadow;
+        }
+        /* Removed distracting hover effect on the entire card */
+        /* .question-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        } */
+
+        /* Option Label & Content */
+        .option-label {
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .option-content {
+            transition: all var(--transition-speed) var(--transition-ease);
+            border: 1px solid #e2e8f0; /* slate-200 */
+            background-color: white;
+            will-change: border-color, background-color, transform;
+        }
+
+        /* Hover State - Only highlight text */
+        .option-label:hover .option-content {
+            /* Removed background/border/transform changes to keep element stable */
+            border-color: #e2e8f0; /* Keep original */
+            background-color: white; /* Keep original */
+            transform: none;
+        }
+        
+        /* Highlight text content on hover */
+        .option-content span {
+            transition: color 0.2s ease;
+        }
+        .option-label:hover .option-content span {
+            color: #4f46e5; /* brand-600/indigo-600 */
+            font-weight: 500; /* Slight weight increase if desired, or remove if layout shifts */
+        }
+
+        /* Active/Pressed State */
+        .option-label:active .option-content {
+            transform: scale(0.995);
+            background-color: #f1f5f9; /* slate-100 */
+        }
+
+        /* Checked State */
+        .option-radio:checked + .option-content {
+            border-color: #4f46e5;
+            background-color: #eef2ff;
+            box-shadow: 0 0 0 1px #4f46e5; /* Add ring effect */
+            transform: none; /* Reset hover transform on selected */
+        }
+
+        /* Radio Indicator */
+        .option-indicator {
+            transition: all var(--transition-speed) var(--transition-ease);
+            position: relative;
+            background-color: white;
+        }
+
+        .option-radio:checked + .option-content .option-indicator {
+            background-color: #4f46e5;
+            border-color: #4f46e5;
+            transform: scale(1.1);
+        }
+
+        /* Radio Dot Animation */
+        .option-indicator::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40%;
+            height: 40%;
+            background-color: white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform var(--transition-speed) var(--transition-ease);
+        }
+
+        .option-radio:checked + .option-content .option-indicator::after {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Focus Accessibility */
+        .option-radio:focus-visible + .option-content {
+            outline: 2px solid #4f46e5;
+            outline-offset: 2px;
+        }
+        
+        /* Input Fields Focus Transition */
+        input[type="text"], 
+        input[type="email"], 
+        input[type="tel"], 
+        input[type="number"], 
+        select {
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+
+        /* Error Message Style */
+        .error-message {
+            color: #ef4444; /* red-500 */
+            font-size: 0.75rem; /* text-xs */
+            margin-top: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+        .error-message::before {
+            content: '\f06a'; /* FontAwesome exclamation-circle */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+        }
+        .input-error {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 1px #ef4444 !important;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-2px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Submit Button Animation */
+        #submitBtn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #submitBtn:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+    <!-- Navbar -->
+    <nav class="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center gap-2">
+                    <a href="/" class="flex items-center gap-2">
+                        <img src="/images/logo.png" alt="瑞华智策 Logo" class="h-8 w-auto" />
+                    </a>
+                    <span class="hidden sm:inline-block text-slate-300 mx-2">|</span>
+                    <span class="hidden sm:inline-block text-sm text-slate-500">人力资本价值经营一体化解决方案</span>
+                </div>
+                <div class="hidden lg:flex space-x-2">
+                    <a href="/" class="nav-link">首页</a>
+                    <a href="/solutions/" class="nav-link">解决方案</a>
+                    <a href="/resources/" class="nav-link">行业洞察</a>
+                    <a href="/about/" class="nav-link">关于我们</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-32 pb-20">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6">
+            
+            <!-- Header -->
+            <div class="text-center mb-12">
+                <span class="text-brand-600 font-bold tracking-widest uppercase text-sm">Organization Efficiency Diagnosis</span>
+                <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mt-4 mb-6">组织人效诊断调研</h1>
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-left relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-2 h-full bg-brand-600"></div>
+                    
+                    <div class="bg-brand-50 p-4 rounded-lg border border-brand-100 mb-6">
+                        <h4 class="font-bold text-brand-800 mb-2 flex items-center gap-2">
+                            <i class="fas fa-shield-alt"></i> 【数据安全与保密承诺】
+                        </h4>
+                        <p class="text-sm text-brand-700 leading-relaxed text-justify">
+                            瑞华智策向您做出严正法律承诺：本次调研严格遵循《数据保密与非披露协议（NDA）》标准，您的数据仅供本次诊断模型运算使用，未经贵司书面授权，绝不向任何第三方（含非项目组人员）泄露或用于其他商业用途，所有数据将在生成报告后进行脱敏归档，保障信息链路安全。
+                        </p>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 bg-slate-50 p-4 rounded-lg border border-slate-200 hover:border-brand-300 transition-colors">
+                        <div class="flex items-center h-6">
+                            <input id="nda-agreement" type="checkbox" class="w-5 h-5 text-brand-600 border-slate-300 rounded focus:ring-brand-500 cursor-pointer transition-all duration-200">
+                        </div>
+                        <div class="text-sm leading-6">
+                            <label for="nda-agreement" class="font-medium text-slate-900 cursor-pointer select-none">
+                                我已阅读并确认《数据安全与保密承诺》，同意开启调研！
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Survey Form (Initially Disabled/Hidden) -->
+            <div id="survey-overlay" class="fixed inset-0 z-40 bg-white/50 backdrop-blur-[2px] hidden"></div>
+            
+            <form id="surveyForm" class="space-y-8 relative">
+                <!-- Overlay to prevent interaction when not agreed -->
+                <div id="form-mask" class="absolute inset-0 z-10 bg-white/60 backdrop-blur-[1px] rounded-2xl transition-all duration-500 flex items-start justify-center pt-32">
+                    <div class="bg-white px-6 py-4 rounded-full shadow-lg border border-slate-200 flex items-center gap-3 animate-bounce">
+                        <i class="fas fa-arrow-up text-brand-600"></i>
+                        <span class="text-slate-700 font-medium text-sm">请先阅读并勾选上方的保密承诺以开启调研</span>
+                    </div>
+                </div>
+                
+                <!-- Section 1: Enterprise Info -->
+                <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+                    <h2 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2 pb-4 border-b border-slate-100">
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-brand-100 text-brand-600 text-sm">1</span>
+                        企业基本情况
+                    </h2>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-2">公司名称 <span class="text-red-500">*</span></label>
+                            <input type="text" name="company" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors bg-slate-50 focus:bg-white" placeholder="请输入公司完整名称">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">所属行业 <span class="text-red-500">*</span></label>
+                            <input type="text" name="industry" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors bg-slate-50 focus:bg-white" placeholder="例如：制造业、互联网...">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">平均员工人数 <span class="text-red-500">*</span></label>
+                            <input type="text" name="employeeCount" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors bg-slate-50 focus:bg-white" placeholder="例如：1200">
+                        
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 2: Financial Data -->
+                <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+                    <h2 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2 pb-4 border-b border-slate-100">
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-brand-100 text-brand-600 text-sm">2</span>
+                        财务数据 (年度/万元)
+                    </h2>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">营业收入（万元）</label>
+                            <input type="number" name="revenue" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors bg-slate-50 focus:bg-white" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">营业毛利润（万元）</label>
+                            <input type="number" name="grossProfit" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors bg-slate-50 focus:bg-white" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">营业净利润（万元）</label>
+                            <input type="number" name="netProfit" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors bg-slate-50 focus:bg-white" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">人力总成本（万元）</label>
+                            <input type="number" name="hrCost" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors bg-slate-50 focus:bg-white" placeholder="0">
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-2">企业总成本（万元）</label>
+                            <input type="number" name="totalCost" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors bg-slate-50 focus:bg-white" placeholder="0">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 3: Contact Info -->
+                <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+                    <h2 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2 pb-4 border-b border-slate-100">
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-brand-100 text-brand-600 text-sm">3</span>
+                        您的信息
+                    </h2>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">姓名 <span class="text-red-500">*</span></label>
+                            <input type="text" name="name" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors bg-slate-50 focus:bg-white" placeholder="请输入您的姓名">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">职位 <span class="text-red-500">*</span></label>
+                            <input type="text" name="position" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors bg-slate-50 focus:bg-white" placeholder="请输入您的职位">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">电话 <span class="text-red-500">*</span></label>
+                            <input type="tel" name="phone" required pattern="^1[3-9]\d{9}$" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors bg-slate-50 focus:bg-white" placeholder="请输入您的手机号码">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">邮箱 <span class="text-red-500">*</span></label>
+                            <input type="email" name="email" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors bg-slate-50 focus:bg-white" placeholder="请输入您的工作邮箱">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Part A: Architecture -->
+                <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+                    <div class="mb-6 pb-4 border-b border-slate-100">
+                        <h2 class="text-xl font-bold text-slate-900">Architecture (组织架构)</h2>
+                    </div>
+                    
+                    <div class="space-y-8">
+                        <!-- A1 -->
+                        <div class="question-card">
+                            <h3 class="font-bold text-slate-900 mb-4">A1. 前中后台人员比</h3>
+                            <p class="text-sm text-slate-600 mb-4">题目：贵司的总部职能部门（中后台）与研发/生产/销售部门（前台）的比例如何？</p>
+                            <div class="space-y-3">
+                                <label class="block option-label">
+                                    <input type="radio" name="A1" value="A" required class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">A. 头大身子小。总部庞大臃肿，官僚严重，一线缺人。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A1" value="B" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">B. 上重下轻。中后台管控强，服务弱，一线感到束缚。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A1" value="C" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">C. 相对平衡。职能与业务比例适中，能维持正常运转。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A1" value="D" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">D. 精简中台。后台精简，资源开始向研发生产一线倾斜。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A1" value="E" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">E. 倒三角结构。资源极致向一线倾斜，全员服务“听得见炮火的人”。</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- A2 -->
+                        <div class="question-card">
+                            <h3 class="font-bold text-slate-900 mb-4">A2. 平均管理幅宽</h3>
+                            <p class="text-sm text-slate-600 mb-4">题目：观察您公司带团队的管理者，他们的管理幅度通常处于什么状态？</p>
+                            <div class="space-y-3">
+                                <label class="block option-label">
+                                    <input type="radio" name="A2" value="A" required class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">A. 官多兵少。很多“光杆司令”或只管2-3个人。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A2" value="B" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">B. 偏窄。管理人数3-5人，管理者容易陷入具体事务。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A2" value="C" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">C. 适中。多数管理者管辖5-8人，兼顾业务与管理。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A2" value="D" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">D. 较宽。组织较扁平，管理者能有效赋能10人以上员工。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A2" value="E" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">E. 高效扁平。授权体系完善，网状结构高效协同。</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- A3 -->
+                        <div class="question-card">
+                            <h3 class="font-bold text-slate-900 mb-4">A3. 组织层级深度</h3>
+                            <p class="text-sm text-slate-600 mb-4">题目：从公司最高决策者到业务团队和一线员工，中间的“汇报层级”分几级？</p>
+                            <div class="space-y-3">
+                                <label class="block option-label">
+                                    <input type="radio" name="A3" value="A" required class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">A. 深井高塔。层级≥7层，一线声音很难传上去。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A3" value="B" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">B. 迟缓。层级≥5层，市场或生产现场的问题反应慢半拍。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A3" value="C" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">C. 标准。层级数量符合行业常规（3-4层），中规中矩。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A3" value="D" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">D. 敏捷。相对扁平，高层能较快掌握一线动态。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A3" value="E" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">E. 极速直通。极度扁平，决策者直面一线，组织反应灵敏。</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- A4 -->
+                        <div class="question-card">
+                            <h3 class="font-bold text-slate-900 mb-4">A4. 战略目标穿透率</h3>
+                            <p class="text-sm text-slate-600 mb-4">题目：关于公司的年度战略目标，您认为从高层到一线的目标穿透程度如何？</p>
+                            <div class="space-y-3">
+                                <label class="block option-label">
+                                    <input type="radio" name="A4" value="A" required class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">A. 上热下冷。战略只停留在高层会议室，基层不清楚，考核目标无关联度。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A4" value="B" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">B. 模糊断层。基层员工考核指标沿用传统指标，与公司新的战略方向缺乏联动。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A4" value="C" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">C. 部分关联。核心业务团队目标清晰，辅助部门的工作与战略及业务目标关联度低。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A4" value="D" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">D. 清晰传达。公司级战略目标拆解，最终落实到工作目标中的人员比例80%以上。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A4" value="E" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">E. 利出一孔。公司级战略目标通过“公司-部门-个人”层层分解，战略解码彻底，全员KPI/OKR都与公司目标对齐，劲往一处使。</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- A5 -->
+                        <div class="question-card">
+                            <h3 class="font-bold text-slate-900 mb-4">A5. 组织杠杆比</h3>
+                            <p class="text-sm text-slate-600 mb-4">题目：观察公司的核心骨干（如技术专家、项目经理），他们的工作状态更接近哪种？</p>
+                            <div class="space-y-3">
+                                <label class="block option-label">
+                                    <input type="radio" name="A5" value="A" required class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">A. 保姆式。缺乏标准体系，骨干必须亲力亲为，带不动人。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A5" value="B" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">B. 师徒制。依靠“传帮带”，复制速度慢，一旦骨干离开业务停摆。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A5" value="C" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">C. 班长制。能带领小团队作业，但高度依赖个人能力，难以规模化。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A5" value="D" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">D. 指挥官。流程较成熟，骨干主要做决策和关键节点把控。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A5" value="E" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">E. 系统驱动。机制完善，1个核心人才通过SOP能撬动庞大的执行团队。</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- A6 -->
+                        <div class="question-card">
+                            <h3 class="font-bold text-slate-900 mb-4">A6. 跨部门协作质量</h3>
+                            <p class="text-sm text-slate-600 mb-4">题目：在涉及“研发-工艺-生产”或“销售-交付”的跨部门配合时，现状更像哪种？</p>
+                            <div class="space-y-3">
+                                <label class="block option-label">
+                                    <input type="radio" name="A6" value="A" required class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">A. 深沟高垒。部门墙高耸，出了问题先撇清责任，相互指责。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A6" value="B" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">B. 机械传递。“扔过墙去”，把东西给到下家就不管了，缺乏闭环。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A6" value="C" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">C. 按部就班。流程通畅，能把事做完，但缺乏主动补位意识。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A6" value="D" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">D. 主动协同。遇到灰色地带会主动沟通，以解决问题为先。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="A6" value="E" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">E. 无缝融合。目标利益捆绑，如同一个战壕的战友，信息完全透明。</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Part C: Capability -->
+                <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+                    <div class="mb-6 pb-4 border-b border-slate-100">
+                        <h2 class="text-xl font-bold text-slate-900">Capability (人才动能)</h2>
+                        <p class="text-sm text-slate-500 mt-1">核心诊断：关键岗位（尤其是产研、技术、管理核心）是否兵强马壮，能否支撑业务升级。</p>
+                    </div>
+                    
+                    <div class="space-y-8">
+                        <!-- C1 -->
+                        <div class="question-card">
+                            <h3 class="font-bold text-slate-900 mb-4">C1. 关键岗位满编率</h3>
+                            <p class="text-sm text-slate-600 mb-4">题目：针对公司定义的关键岗位（如项目经理、高级工程师、车间主任），目前的实际在岗人数是否满足编制需求？</p>
+                            <div class="space-y-3">
+                                <label class="block option-label">
+                                    <input type="radio" name="C1" value="A" required class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">A. 严重缺编。满编率≤80%，核心位置长期空缺，业务经常因缺人停摆。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C1" value="B" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">B. 捉襟见肘。满编率80%-90%，经常需要拆东墙补西墙。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C1" value="C" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">C. 基本满足。满编率90%-95%，基本够用，偶有空缺能尽快补上。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C1" value="D" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">D. 充裕。满编率>95%，只有极个别岗位暂时空缺。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C1" value="E" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">E. 兵强马壮。满编率100%，核心阵地人员齐整，甚至有富余储备。</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- C2 -->
+                        <div class="question-card">
+                            <h3 class="font-bold text-slate-900 mb-4">C2. 核心岗位人才胜任率</h3>
+                            <p class="text-sm text-slate-600 mb-4">题目：聚焦研发与制造技术核心岗位，您认为目前在岗人员中，完全胜任的比例有多少？</p>
+                            <div class="space-y-3">
+                                <label class="block option-label">
+                                    <input type="radio" name="C2" value="A" required class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">A. 小马拉大车。胜任率≤60%，新手或平庸者居多，事故频发。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C2" value="B" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">B. 勉强维持。胜任率60%-75%，日常工作能应付，遇到技术难题就卡壳。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C2" value="C" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">C. 中规中矩。胜任率75%-85%，核心骨干能顶住，但腰部力量不足。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C2" value="D" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">D. 独当一面。胜任率85%-90%，大部分人业务娴熟，产出稳定。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C2" value="E" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">E. 精兵强将。胜任率≥90%，几乎全员精英，技术攻关能力极强。</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- C3 -->
+                        <div class="question-card">
+                            <h3 class="font-bold text-slate-900 mb-4">C3. 新员工试用期转正率</h3>
+                            <p class="text-sm text-slate-600 mb-4">题目：回顾过去一年新招聘的员工，通过试用期并留下来长期发展的比例大约是多少？</p>
+                            <div class="space-y-3">
+                                <label class="block option-label">
+                                    <input type="radio" name="C3" value="A" required class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">A. 大进大出。转正率≤70%，来了就走，要么不胜任，要么无法融入。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C3" value="B" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">B. 流失偏高。转正率70%-80%，招聘培训成本浪费较大。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C3" value="C" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">C. 正常损耗。转正率80%-90%，符合行业常态，多数能留下。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C3" value="D" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">D. 精准匹配。转正率90%-95%，招聘画像准，新人落地稳。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C3" value="E" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">E. 高效着陆。转正率≥95%，极少看走眼，新人适应极快。</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- C4 -->
+                        <div class="question-card">
+                            <h3 class="font-bold text-slate-900 mb-4">C4. 高绩效人才密度</h3>
+                            <p class="text-sm text-slate-600 mb-4">题目：全公司范围内，真正能被评为“优秀/S级”的高绩效人才占比大约是多少？</p>
+                            <div class="space-y-3">
+                                <label class="block option-label">
+                                    <input type="radio" name="C4" value="A" required class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">A. 平庸扎堆。占比≤10%，老白兔多，缺乏能打硬仗的人。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C4" value="B" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">B. 寥若晨星。占比10%-15%，只有少数几个明星员工在撑着。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C4" value="C" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">C. 二八定律。占比约20%，靠20%的人干80%的活。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C4" value="D" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">D. 人才聚集。占比25%-30%，优秀人才比较多，团队有冲劲。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C4" value="E" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">E. 群星璀璨。占比≥30%，满眼都是能人，整体战斗力极强。</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- C5 -->
+                        <div class="question-card">
+                            <h3 class="font-bold text-slate-900 mb-4">C5. 内部人才晋升率</h3>
+                            <p class="text-sm text-slate-600 mb-4">题目：当出现中高层管理或高级技术专家空缺时，通过内部提拔填补的比例是多少？</p>
+                            <div class="space-y-3">
+                                <label class="block option-label">
+                                    <input type="radio" name="C5" value="A" required class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">A. 极端失衡。&lt;10%（全靠空降）或 &gt;90%（近亲繁殖），生态不健康。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C5" value="B" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">B. 青黄不接。10%-20%，内部培养严重不足，过度依赖猎头。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C5" value="C" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">C. 起步阶段。20%-30%，开始有意识培养，但仍以外部招聘为主。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C5" value="D" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">D. 良性循环。30%-50%，主要靠内部提拔，辅以外部引进。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C5" value="E" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">E. 黄金比例。50%-70%，既有通畅的上升通道，又保持外部活水。</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- C6 -->
+                        <div class="question-card">
+                            <h3 class="font-bold text-slate-900 mb-4">C6. 关键岗位人才储备率</h3>
+                            <p class="text-sm text-slate-600 mb-4">题目：平均每个关键岗位（如主设、工艺主管），后面有几个合格的“备胎/继任者”？</p>
+                            <div class="space-y-3">
+                                <label class="block option-label">
+                                    <input type="radio" name="C6" value="A" required class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">A. 裸奔。0个，一个萝卜一个坑，走一个就瘫痪。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C6" value="B" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">B. 极缺。只有个别核心岗位有人盯着，大部分没后手。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C6" value="C" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">C. 一备一。1.0个，勉强能做到有B角，维持业务连续性。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C6" value="D" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">D. 梯队厚。1.5个，人才梯队较厚，选择余地大。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="C6" value="E" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">E. 人才池。≥2.0个，甚至出现良性竞争，完全不怕核心人员流失。</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Part E: Energy -->
+                <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+                    <div class="mb-6 pb-4 border-b border-slate-100">
+                        <h2 class="text-xl font-bold text-slate-900">Energy (效能激活)</h2>
+                        <p class="text-sm text-slate-500 mt-1">核心诊断：组织的薪酬竞争力、成长投入与激励机制，能否维持核心人才的高效能产出。</p>
+                    </div>
+                    
+                    <div class="space-y-8">
+                        <!-- E1 -->
+                        <div class="question-card">
+                            <h3 class="font-bold text-slate-900 mb-4">E1. 核心人才主动流失率</h3>
+                            <p class="text-sm text-slate-600 mb-4">题目：过去一年，公司关键岗位的主动离职率大约是多少？</p>
+                            <div class="space-y-3">
+                                <label class="block option-label">
+                                    <input type="radio" name="E1" value="A" required class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">A. 严重失血。> 20%，骨干频繁跳槽，业务连续性严重受损。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E1" value="B" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">B. 偏高。15%-20%，人心浮动，留人压力较大。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E1" value="C" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">C. 行业平均。10%-15%，属于正常的人才新陈代谢。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E1" value="D" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">D. 稳定。5%-10%，核心团队基本稳固，只有个别流失。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E1" value="E" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">E. 超级稳定。&lt; 5%，除极特殊情况外，核心骨干几乎不走。</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- E2 -->
+                        <div class="question-card">
+                            <h3 class="font-bold text-slate-900 mb-4">E2. 组织创新活跃度</h3>
+                            <p class="text-sm text-slate-600 mb-4">题目：在技术改进、工艺优化或降本增效方面，员工主动提出提案的活跃程度如何？</p>
+                            <div class="space-y-3">
+                                <label class="block option-label">
+                                    <input type="radio" name="E2" value="A" required class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">A. 沉默。几乎为0，员工认为“多做多错”，只被动执行指令。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E2" value="B" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">B. 被动。只有在公司搞活动强摊指标时，才会有凑数的建议。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E2" value="C" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">C. 偶发。少数技术积极分子会提，大部分人还是“事不关己”。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E2" value="D" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">D. 活跃。形成了制度，每月都有一定数量的高质量提案。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E2" value="E" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">E. 蔚然成风。全员改善，哪怕一颗螺丝钉的优化也会被重视和奖励。</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- E3 -->
+                        <div class="question-card">
+                            <h3 class="font-bold text-slate-900 mb-4">E3. 薪酬总包外部竞争力</h3>
+                            <p class="text-sm text-slate-600 mb-4">题目：对比同行业竞争对手，贵公司核心岗位的年度薪酬总包处于什么分位值？</p>
+                            <div class="space-y-3">
+                                <label class="block option-label">
+                                    <input type="radio" name="E3" value="A" required class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">A. 低洼地。P25以下（明显低于行情），招人极难，完全靠情怀。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E3" value="B" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">B. 偏低。P25-P50，竞争力较弱，经常因薪资谈崩候选人。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E3" value="C" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">C. 随大流。P50（市场平均水平），不具备优势，也不拖后腿。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E3" value="D" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">D. 有竞争力。P75（中上水平），对优秀人才有一定吸引力。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E3" value="E" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">E. 头部领先。P90（行业顶薪），具有极强的虹吸效应，想挖谁都能挖动。</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- E4 -->
+                        <div class="question-card">
+                            <h3 class="font-bold text-slate-900 mb-4">E4. 关键岗位专业培训覆盖率</h3>
+                            <p class="text-sm text-slate-600 mb-4">题目：针对研发和技术核心人员，公司每年提供与业务强相关的专业培训的覆盖率是多少？</p>
+                            <div class="space-y-3">
+                                <label class="block option-label">
+                                    <input type="radio" name="E4" value="A" required class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">A. 几乎没有。&lt; 10%，全靠员工自学或“干中学”，野蛮生长。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E4" value="B" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">B. 零星点缀。10%-30%，偶尔派几个人出去听课，不成体系。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E4" value="C" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">C. 基础覆盖。30%-60%，有基本的年度培训计划，但针对性一般。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E4" value="D" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">D. 重点投入。60%-90%，核心人员每年都有固定的专业进修机会。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E4" value="E" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">E. 全员赋能。> 90%，建立了完善的技术培训体系和知识库，全员学习。</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- E5 -->
+                        <div class="question-card">
+                            <h3 class="font-bold text-slate-900 mb-4">E5. 绩效激励区分度</h3>
+                            <p class="text-sm text-slate-600 mb-4">题目：在年终奖或项目奖金分配时，表现最好的与表现平庸的员工，奖金差距有多大？</p>
+                            <div class="space-y-3">
+                                <label class="block option-label">
+                                    <input type="radio" name="E5" value="A" required class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">A. 大锅饭。几乎无差距（1:1），干多干少一个样。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E5" value="B" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">B. 撒胡椒面。差距微小（约1.2倍），员工感觉“拼命干不划算”。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E5" value="C" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">C. 适度拉开。有差距（约1.5倍），能体现基本的公平。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E5" value="D" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">D. 奖罚分明。差距明显（2-3倍），对奋斗者有较强激励。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E5" value="E" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">E. 极度刺激。有效区分（>3倍或有股权），彻底拉开身位。</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- E6 -->
+                        <div class="question-card">
+                            <h3 class="font-bold text-slate-900 mb-4">E6. 团队氛围</h3>
+                            <p class="text-sm text-slate-600 mb-4">题目：当团队遇到技术瓶颈、质量事故或交付压力时，内部的协作氛围通常是怎样的？</p>
+                            <div class="space-y-3">
+                                <label class="block option-label">
+                                    <input type="radio" name="E6" value="A" required class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">A. 互相推诿。优先撇清责任，害怕背锅，部门墙高耸。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E6" value="B" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">B. 沉默压抑。大家心照不宣但不解决，坐等领导发号施令。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E6" value="C" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">C. 就事论事。按流程处理，比较职业化，但缺乏情感连接。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E6" value="D" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">D. 积极补位。哪怕不是自己的事，也愿意搭把手解决问题。</span>
+                                    </div>
+                                </label>
+                                <label class="block option-label">
+                                    <input type="radio" name="E6" value="E" class="hidden option-radio">
+                                    <div class="option-content border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:bg-slate-50">
+                                        <div class="option-indicator w-5 h-5 rounded-full border border-slate-300 flex-shrink-0 mt-0.5 relative after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:w-2.5 after:h-2.5 after:bg-white after:rounded-full after:opacity-0 after:transition-opacity"></div>
+                                        <span class="text-sm text-slate-700">E. 相互成就。胜则举杯相庆，败则拼死相救，信任感极高。</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="text-center pt-8">
+                    <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white font-bold py-4 px-12 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 w-full md:w-auto min-w-[300px]" id="submitBtn">
+                        <span class="normal-text">提交调研问卷</span>
+                        <span class="loading-text hidden"><i class="fas fa-spinner fa-spin mr-2"></i>提交中...</span>
+                    </button>
+                    <p class="text-sm text-slate-500 mt-4">提交即表示您同意我们的数据隐私保护政策</p>
+                </div>
+
+            </form>
+        </div>
+    </main>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity opacity-0" id="modalBackdrop"></div>
+
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                <!-- Modal Panel -->
+                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" id="modalPanel">
+                    <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                        <div class="flex flex-col items-center text-center">
+                            <!-- Icon -->
+                            <div class="mx-auto flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-brand-50 mb-4">
+                                <i class="fas fa-check text-2xl text-brand-600"></i>
+                            </div>
+                            
+                            <!-- Text -->
+                            <h3 class="text-2xl font-bold leading-6 text-slate-900 mb-2" id="modal-title">提交成功</h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-slate-500">2个工作日内，咨询顾问会跟您联系...</p>
+                            </div>
+
+                            <!-- QR Code -->
+                            <div class="mt-6 mb-2 p-2 border border-slate-100 rounded-xl shadow-sm">
+                                <img src="/images/consultant-qr.png" alt="咨询师二维码" class="w-40 h-40 object-contain">
+                            </div>
+                            <p class="text-xs text-slate-400 mb-6">扫码链接资深咨询师</p>
+
+                            <!-- Button -->
+                            <button type="button" class="w-full inline-flex justify-center rounded-xl bg-brand-600 px-3 py-3 text-sm font-bold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 transition-all duration-200" onclick="closeModal()">
+                                我已添加
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer id="footer-container"></footer>
+
+    <script src="/js/script.js"></script>
+    <script src="/js/main.js"></script>
+    <script type="module">
+        import { FooterComponent } from '/js/FooterComponent.js';
+        const footer = new FooterComponent();
+        footer.render();
+    </script>
+
+    <script>
+        // Modal Logic
+        const modal = document.getElementById('successModal');
+        const backdrop = document.getElementById('modalBackdrop');
+        const panel = document.getElementById('modalPanel');
+
+        // NDA Agreement Logic
+        const ndaCheckbox = document.getElementById('nda-agreement');
+        const formMask = document.getElementById('form-mask');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Initial State
+        if (submitBtn) submitBtn.disabled = true;
+
+        ndaCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                // Enable Form
+                formMask.classList.add('opacity-0', 'pointer-events-none');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            } else {
+                // Disable Form
+                formMask.classList.remove('opacity-0', 'pointer-events-none');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            }
+        });
+
+        function showModal() {
+            modal.classList.remove('hidden');
+            // Trigger reflow
+            void modal.offsetWidth;
+            
+            // Animate in
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+            panel.classList.add('opacity-100', 'translate-y-0', 'sm:scale-100');
+        }
+
+        function closeModal() {
+            // Animate out
+            backdrop.classList.add('opacity-0');
+            panel.classList.remove('opacity-100', 'translate-y-0', 'sm:scale-100');
+            panel.classList.add('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                window.location.href = '/';
+            }, 300);
+        }
+
+        document.getElementById('surveyForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Re-validate NDA just in case
+            if (!document.getElementById('nda-agreement').checked) {
+                alert('请先确认并勾选数据保密承诺！');
+                document.getElementById('nda-agreement').focus();
+                return;
+            }
+
+            const btn = document.getElementById('submitBtn');
+            const normalText = btn.querySelector('.normal-text');
+            const loadingText = btn.querySelector('.loading-text');
+            
+            // Basic Validation
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Collect radio answers
+            const answers = {};
+            const sections = ['A', 'C', 'E'];
+            const questionsPerSection = 6;
+            
+            // Validation Logic
+            let firstErrorElement = null;
+            let isValid = true;
+
+            // Helper to show error
+            const showError = (element, message) => {
+                // Check if error already exists
+                let container = element.closest('div');
+                // For radio buttons, container is .space-y-3 -> .question-card
+                if (element.type === 'radio') {
+                    container = element.closest('.question-card');
+                }
+                
+                if (!container) return;
+
+                // Remove existing error if any
+                const existingError = container.querySelector('.error-message');
+                if (existingError) existingError.remove();
+
+                // Create error message
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'error-message';
+                errorMsg.textContent = message;
+
+                // Add error class to input
+                if (element.type !== 'radio') {
+                    element.classList.add('input-error');
+                    // Append after input
+                    element.parentNode.insertBefore(errorMsg, element.nextSibling);
+                } else {
+                    // For radio, append at the end of question card
+                    container.appendChild(errorMsg);
+                }
+
+                if (!firstErrorElement) firstErrorElement = element.type === 'radio' ? container : element;
+                isValid = false;
+
+                // Auto-clear on input
+                const clearError = () => {
+                    errorMsg.remove();
+                    element.classList.remove('input-error');
+                    if (element.type === 'radio') {
+                        // Remove listener from all radios in group
+                        const radios = document.getElementsByName(element.name);
+                        radios.forEach(r => r.removeEventListener('change', clearError));
+                    } else {
+                        element.removeEventListener('input', clearError);
+                    }
+                };
+
+                if (element.type === 'radio') {
+                    const radios = document.getElementsByName(element.name);
+                    radios.forEach(r => r.addEventListener('change', clearError));
+                } else {
+                    element.addEventListener('input', clearError);
+                }
+            };
+
+            // 1. Validate Enterprise Info & Contact Info
+            const requiredFields = [
+                { name: 'company', msg: '请输入公司名称' },
+                { name: 'industry', msg: '请输入所属行业' },
+                { name: 'employeeCount', msg: '请输入平均员工人数' },
+                { name: 'name', msg: '请输入您的姓名' },
+                { name: 'position', msg: '请输入您的职位' },
+                { name: 'phone', msg: '请输入手机号码' },
+                { name: 'email', msg: '请输入工作邮箱' }
+            ];
+
+            requiredFields.forEach(field => {
+                const input = this.querySelector(`[name="${field.name}"]`);
+                if (input && !input.value.trim()) {
+                    showError(input, field.msg);
+                }
+            });
+
+            // Specific validation for employee count (must be positive integer)
+            const empInput = this.querySelector('[name="employeeCount"]');
+            if (empInput && empInput.value.trim()) {
+                const count = Number(empInput.value);
+                if (isNaN(count) || count <= 0 || !Number.isInteger(count)) {
+                    showError(empInput, '员工人数必须为正整数');
+                }
+            }
+
+             // Specific validation for phone pattern
+            const phoneInput = this.querySelector('[name="phone"]');
+            if (phoneInput && phoneInput.value.trim()) {
+                if (!/^1[3-9]\d{9}$/.test(phoneInput.value)) {
+                    showError(phoneInput, '请输入有效的11位手机号码');
+                }
+            }
+
+
+            // 2. Validate Questions (A, C, E sections)
+            sections.forEach(sec => {
+                for (let i = 1; i <= questionsPerSection; i++) {
+                    const key = `${sec}${i}`;
+                    if (data[key]) {
+                        answers[key] = data[key];
+                        delete data[key]; // Move to answers object
+                    } else {
+                        // Find the first radio of this group to attach error
+                        const firstRadio = this.querySelector(`input[name="${key}"]`);
+                        if (firstRadio) {
+                            showError(firstRadio, '请完成此选择题');
+                        }
+                    }
+                }
+            });
+
+            if (!isValid) {
+                if (firstErrorElement) {
+                    firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    if (firstErrorElement.focus) firstErrorElement.focus();
+                }
+                return;
+            }
+
+            data.answers = answers;
+
+            // Loading state
+            btn.disabled = true;
+            normalText.classList.add('hidden');
+            loadingText.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/efficiency-diagnosis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showModal();
+                } else {
+                    alert('提交失败: ' + (result.message || result.error || '未知错误'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('网络错误，请稍后重试');
+            } finally {
+                btn.disabled = false;
+                normalText.classList.remove('hidden');
+                loadingText.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

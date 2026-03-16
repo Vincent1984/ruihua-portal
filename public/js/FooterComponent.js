@@ -22,7 +22,7 @@ export class FooterComponent {
                 <div class="flex flex-col md:flex-row justify-between gap-10 mb-10">
                     <div class="md:max-w-xl text-left">
                         <a href="/" class="inline-block mb-4">
-                            <img src="/images/logo.png" alt="瑞华智策" class="footer-logo block">
+                            <img src="/images/logo.png" alt="瑞华智策" class="footer-logo block h-10 w-auto">
                         </a>
                         <p class="text-slate-400 text-sm mb-4">瑞华智策以「咨询+技术+服务」三位一体的模式，助力企业构建「人力资本价值经营」体系，打造 AI 时代持续增长的韧性组织。</p>
                         <div class="flex items-center gap-2 text-sm text-slate-500"><i class="fas fa-building"></i><span>人瑞人才</span><span class="text-brand-400 font-medium">(6919.HK)</span><span>旗下全资子公司</span></div>
@@ -31,7 +31,7 @@ export class FooterComponent {
                         <h4 class="font-bold text-white mb-4">联系我们</h4>
                         <ul class="space-y-2 text-sm text-slate-400 mb-4">
                             <li class="flex items-center gap-2"><i class="fas fa-envelope text-brand-400"></i><a href="mailto:rxzj@renruihr.com" class="hover:text-white transition">rxzj@renruihr.com</a></li>
-                            <li class="flex items-center gap-2"><i class="fas fa-phone text-brand-400"></i><span>400-175-0886</span></li>
+                            <li class="flex items-center gap-2"><i class="fas fa-phone text-brand-400"></i><a href="/productivity/" class="hover:text-white transition">预约专家咨询</a></li>
                             <li class="flex items-center gap-2"><i class="fas fa-location-dot text-brand-400"></i><span>上海 · 北京 · 深圳 · 成都</span></li>
                         </ul>
                         <div class="flex gap-4 relative">
@@ -83,7 +83,7 @@ export class FooterComponent {
                         <span class="hidden md:inline text-slate-700">|</span>
                         <a href="https://beian.miit.gov.cn/" target="_blank" class="hover:text-white transition">沪ICP备12042344号-24</a>
                     </div>
-                    <div class="flex gap-6 text-sm text-slate-500"><a href="privacy.html" class="hover:text-white transition">隐私政策</a></div>
+                    <div class="flex gap-6 text-sm text-slate-500"><a href="/privacy.html" class="hover:text-white transition">隐私政策</a></div>
                 </div>
             </div>
         </footer>
@@ -107,13 +107,21 @@ export class FooterComponent {
     }
 
     initBaiduAnalytics() {
-        window._hmt = window._hmt || [];
-        (function() {
-            var hm = document.createElement("script");
+        try {
+            // 在开发环境或本地预览下不加载统计脚本
+            const isDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+            if (isDev) return;
+            window._hmt = window._hmt || [];
+            const hm = document.createElement("script");
             hm.src = "https://hm.baidu.com/hm.js?3302f271fa7fe8d2ddc6176b39359827";
-            var s = document.getElementsByTagName("script")[0]; 
+            hm.referrerPolicy = "no-referrer-when-downgrade";
+            hm.onload = () => console.log('Baidu Analytics loaded');
+            hm.onerror = (e) => console.warn('Baidu Analytics blocked or failed', e);
+            const s = document.getElementsByTagName("script")[0];
             s.parentNode.insertBefore(hm, s);
-        })();
+        } catch (e) {
+            console.warn('initBaiduAnalytics error', e);
+        }
     }
 
     initInteractions() {

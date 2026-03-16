@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>视频中心 - 瑞华智策</title>
+  <meta name="description" content="瑞华智策视频中心：产品演示、专家访谈、客户案例与直播回放。" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/js/tailwind-config.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+</head>
+<body class="bg-white text-slate-800 antialiased selection:bg-brand-100 selection:text-brand-900">
+  <header class="fixed w-full z-50 glass-nav transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-20">
+        <div class="flex items-center gap-2">
+          <a href="/" class="flex items-center gap-2" title="瑞华智策首页">
+            <img src="/images/logo.png" alt="瑞华智策 Logo" class="h-8 w-auto" />
+          </a>
+          <span class="hidden sm:inline-block text-slate-300 mx-2">|</span>
+          <span class="hidden sm:inline-block text-sm text-slate-500">视频中心</span>
+        </div>
+        <nav class="hidden lg:flex space-x-2" aria-label="桌面端导航">
+          <a href="/" class="nav-link" title="首页">首页</a>
+          <a href="/solutions/" class="nav-link" title="解决方案">解决方案</a>
+          <a href="/resources/" class="nav-link" title="行业洞察">行业洞察</a>
+          <a href="/videos.html" class="nav-link font-semibold text-brand-700 bg-brand-50" title="视频中心">视频中心</a>
+          <a href="/about/" class="nav-link" title="关于我们">关于我们</a>
+        </nav>
+        <div class="hidden md:flex items-center space-x-4">
+          <button onclick="toggleMobileMenu()" class="text-slate-500 hover:text-brand-600 transition-colors p-2 rounded-full hover:bg-slate-50" aria-label="菜单">
+            <i class="fas fa-bars text-lg"></i>
+          </button>
+          <a href="/productivity/" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-full font-medium transition shadow-lg shadow-brand-500/20 hover:-translate-y-0.5 text-sm" title="预约专家咨询">
+            预约专家咨询
+          </a>
+        </div>
+        <button class="lg:hidden p-2 rounded-lg hover:bg-slate-100" onclick="toggleMobileMenu()" aria-label="切换移动端菜单">
+          <i class="fas fa-bars text-slate-600 text-xl"></i>
+        </button>
+      </div>
+    </div>
+    <nav id="mobileMenu" class="hidden lg:hidden bg-white border-t border-slate-100 px-4 py-4" aria-label="移动端导航">
+      <div class="flex flex-col space-y-2">
+        <a href="/" class="mobile-nav-link" title="首页">首页</a>
+        <a href="/solutions/" class="mobile-nav-link" title="解决方案">解决方案</a>
+        <a href="/resources/" class="mobile-nav-link" title="行业洞察">行业洞察</a>
+        <a href="/videos.html" class="mobile-nav-link font-semibold text-brand-700 bg-brand-50" title="视频中心">视频中心</a>
+        <a href="/about/" class="mobile-nav-link" title="关于我们">关于我们</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="pt-28">
+    <section id="video-hero" class="px-4 sm:px-6 lg:px-8 mb-10">
+      <!-- 动态渲染视频Banner -->
+    </section>
+
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap gap-2 mb-6" id="video-tabs" role="tablist" aria-label="视频分类">
+        <!-- 动态生成分类Tab -->
+      </div>
+      <div id="videos-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- 动态加载视频卡片 -->
+      </div>
+      <div class="flex justify-center mt-8" id="videos-pager"></div>
+    </section>
+  </main>
+
+  <div id="footer-container" class="mt-16"></div>
+
+  <script src="/js/main.js"></script>
+  <script src="/js/videos.js"></script>
+  <script type="module">
+    import { FooterComponent } from '/js/FooterComponent.js';
+    new FooterComponent().render('#footer-container');
+  </script>
+</body>
+<style type="text/tailwindcss">
+  .vc-tab {
+    @apply px-6 py-2.5 rounded-xl text-sm font-medium text-slate-600 bg-white border border-slate-200 hover:border-brand-400 hover:text-brand-600 hover:bg-brand-50/50 transition-all duration-300 shadow-sm relative overflow-hidden flex items-center gap-2;
+  }
+  .vc-tab::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-full h-0.5 bg-brand-500 scale-x-0 transition-transform duration-300 origin-right;
+  }
+  .vc-tab:hover::after {
+    @apply scale-x-100 origin-left;
+  }
+  .vc-tab.active {
+    @apply bg-brand-600 text-white border-brand-600 shadow-md shadow-brand-500/20 ring-4 ring-brand-500/10;
+  }
+  .vc-tab.active::after {
+    @apply hidden;
+  }
+  .vc-tab:not(.active):hover {
+    @apply -translate-y-0.5 shadow-md border-brand-200;
+  }
+</style>
+</html>
+

@@ -21,6 +21,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Quill CSS -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <!-- Highlight.js CSS for Code Blocks -->
+    <link href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/monokai-sublime.css" rel="stylesheet">
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <!-- Custom Theme -->
@@ -342,6 +344,12 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span>文章列表</span>
                         <div class="d-flex gap-2">
+                            <select class="form-select form-select-sm" id="artSearchStatus" style="width: 100px;" onchange="searchArticles()">
+                                <option value="">所有状态</option>
+                                <option value="published">已发布</option>
+                                <option value="draft">草稿</option>
+                                <option value="archived">归档</option>
+                            </select>
                             <div class="input-group input-group-sm" style="width: 250px;">
                                 <input type="text" class="form-control" id="artSearchKeyword" placeholder="搜索标题/内容">
                                 <button class="btn btn-outline-secondary" type="button" onclick="searchArticles()"><i class="bi bi-search"></i></button>
@@ -353,6 +361,9 @@
                     <div class="card-body p-0">
                         <div class="p-3 bg-light border-bottom d-none" id="artBatchActions">
                             <span class="me-2">已选择 <span id="artSelectedCount">0</span> 项</span>
+                            <button class="btn btn-success btn-sm me-1" onclick="batchStatusArt('published')">设为发布</button>
+                            <button class="btn btn-warning btn-sm me-1" onclick="batchStatusArt('draft')">设为草稿</button>
+                            <button class="btn btn-secondary btn-sm me-1" onclick="batchStatusArt('archived')">设为归档</button>
                             <button class="btn btn-danger btn-sm" onclick="batchDeleteArt()">批量删除</button>
                         </div>
                         <table class="table align-middle mb-0">
@@ -561,6 +572,21 @@
                 </div>
                 
                 <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">文章标签</label>
+                        <input type="text" id="artTags" class="form-control" placeholder="标签1, 标签2 (逗号分隔)">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">状态</label>
+                        <select id="artStatus" class="form-select">
+                            <option value="published">已发布</option>
+                            <option value="draft">草稿</option>
+                            <option value="archived">归档</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
                     <div class="col-md-4">
                         <label class="form-label small text-secondary">所属分类</label>
                         <select id="artCategory" class="form-control">
@@ -625,13 +651,39 @@
                 </div>
 
                 <div class="mb-0">
-                    <label class="form-label small text-secondary">文章内容</label>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label small text-secondary mb-0">文章内容</label>
+                        <div>
+                            <span class="badge bg-light text-secondary me-2" id="wordCount">0 字</span>
+                            <span class="badge bg-light text-success me-2 d-none" id="saveStatus"><i class="bi bi-check"></i> 已自动保存</span>
+                            <button class="btn btn-xs btn-outline-secondary" type="button" onclick="showHistory()" title="历史记录">
+                                <i class="bi bi-clock-history"></i>
+                            </button>
+                        </div>
+                    </div>
                     <div id="editor"></div>
                 </div>
             </div>
             <div class="modal-footer border-top-0">
                 <button class="btn btn-outline" data-bs-dismiss="modal">取消</button>
                 <button class="btn btn-primary" onclick="saveArt()">保存发布</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- History Modal -->
+<div class="modal fade" id="historyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title">历史版本记录</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="list-group list-group-flush" id="historyList" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Loaded via JS -->
+                </div>
             </div>
         </div>
     </div>
@@ -727,27 +779,30 @@
     </div>
 </div>
 
-    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.bootcdn.net/ajax/libs/quill/1.3.6/quill.min.js"></script>
+    <!-- Highlight.js (Must be loaded before Quill) -->
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/highlight.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill@1.3.6/dist/quill.min.js"></script>
     <!-- Chart.js -->
-    <script src="https://cdn.bootcdn.net/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     
     <!-- Vue 3 & Pinia -->
-    <script src="https://cdn.bootcdn.net/ajax/libs/vue/3.3.4/vue.global.min.js"></script>
-    <script src="https://cdn.bootcdn.net/ajax/libs/pinia/2.1.6/pinia.iife.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pinia@2.1.6/dist/pinia.iife.min.js"></script>
 
     <!-- Modular Admin JS -->
     <script src="js/utils.js"></script>
     <script src="js/store.js"></script>
     <script src="js/router.js"></script>
     
-    <script src="js/dashboard.js"></script>
-    <script src="js/banner-management.js"></script>
-    <script src="js/sidebar-management.js"></script>
-    <script src="js/article-management.js"></script>
-    <script src="js/faq-management.js"></script>
-    <script src="js/appointment-management.js"></script>
-    <script src="js/permission-management.js"></script>
-    <script src="js/logs.js"></script>
+    <script src="js/dashboard.js?v=20260130"></script>
+    <script src="js/banner-management.js?v=20260130"></script>
+    <script src="js/sidebar-management.js?v=20260130"></script>
+    <script src="js/article-management.js?v=20260130-2"></script>
+    <script src="js/faq-management.js?v=20260130"></script>
+    <script src="js/appointment-management.js?v=20260130"></script>
+    <script src="js/permission-management.js?v=20260130"></script>
+    <script src="js/logs.js?v=20260130"></script>
 </body>
 </html>

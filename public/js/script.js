@@ -1244,7 +1244,16 @@ async function loadArticleDetail() {
             apiUrl = `/api/articles/detail/query?slug=${slug}`;
         }
 
-        const response = await fetch(apiUrl);
+        // Add timestamp to prevent caching
+        const separator = apiUrl.includes('?') ? '&' : '?';
+        apiUrl += `${separator}_t=${Date.now()}`;
+
+        const response = await fetch(apiUrl, {
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            }
+        });
         if (!response.ok) {
             const t = document.getElementById('article-title');
             const c = document.getElementById('article-container');
@@ -1270,19 +1279,67 @@ async function loadArticleDetail() {
         // Store the resolved ID
         currentArticleId = data._id;
 
+        // Format Date Helper
+        const formatDate = (dateStr) => {
+            if (!dateStr) return '--';
+            const date = new Date(dateStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hour = String(date.getHours()).padStart(2, '0');
+            const minute = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hour}:${minute}`;
+        };
+
+        // Format Count Helper
+        const formatCount = (num) => {
+            if (!num && num !== 0) return '--';
+            if (num > 1000) {
+                return (num / 1000).toFixed(1) + ' k';
+            }
+            return num;
+        };
+
         // Render Data
         document.title = data.title + ' - 瑞华智策';
         if(document.getElementById('breadcrumb-title')) document.getElementById('breadcrumb-title').textContent = data.title;
         if(document.getElementById('article-title')) document.getElementById('article-title').textContent = data.title;
-        if(document.getElementById('article-date')) document.getElementById('article-date').textContent = new Date(data.publishDate).toLocaleDateString('zh-CN');
         
-        // Estimate read time
+        // 1. Publish Date
+        if(document.getElementById('article-date')) {
+            document.getElementById('article-date').textContent = formatDate(data.publishDate);
+        }
+
+        // 2. Read Time
         const readTime = Math.ceil((data.content || '').length / 500) || 1;
         if(document.getElementById('article-readtime')) document.getElementById('article-readtime').textContent = readTime;
         
+        // 3. Author
         if(document.getElementById('article-author')) {
              const authorName = data.author && data.author.name ? data.author.name : (typeof data.author === 'string' ? data.author : '瑞华智策');
              document.getElementById('article-author').textContent = authorName;
+        }
+
+        // 4. Views
+        if(document.getElementById('article-views')) {
+            const views = data.views || 0;
+            document.getElementById('article-views').textContent = formatCount(views);
+            // Set full count in title for tooltip
+            const container = document.getElementById('article-views-container');
+            if(container) container.setAttribute('title', `精确阅读量: ${views}`);
+        }
+        
+        // 5. Updated At (Refactored Logic: Strict DB Source)
+        if(document.getElementById('article-updated')) {
+            // Priority: DB updatedAt > DB publishDate > '--'
+            // Never use client-side Date.now() or server current time
+            let updatedTime = data.updatedAt;
+            
+            // If updatedAt is missing or invalid, fallback to publishDate
+            if (!updatedTime) updatedTime = data.publishDate;
+            
+            // If article is unmodified (updatedAt equals publishDate), this will display the same time
+            document.getElementById('article-updated').textContent = formatDate(updatedTime);
         }
 
         // Render Sidebar Author Info
@@ -1329,9 +1386,26 @@ async function loadArticleDetail() {
             }
         }
         
+        // Render Summary if available
+        if (data.summary) {
+            const summaryEl = document.getElementById('article-summary');
+            if (summaryEl) {
+                summaryEl.textContent = data.summary;
+                summaryEl.classList.remove('hidden');
+            }
+        }
+
         // Render Content
         const container = document.getElementById('article-container');
-        if(container) container.innerHTML = data.content || '';
+        if(container) {
+            container.innerHTML = data.content || '';
+            // Highlight Code Blocks if Highlight.js is loaded
+            if (window.hljs) {
+                container.querySelectorAll('pre.ql-syntax').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
+            }
+        }
         
         // Update Like Count
         const likeCount = document.getElementById('likeCount');
@@ -1735,13 +1809,14 @@ async function handleWhitepaperSubmit(event) {
         if (response.ok) {
             closeWhitepaperModal();
             form.reset();
-            // Show success message and download instructions
-            alert('提交成功！我们将把资料发送至您的邮箱。');
             
-            // If download link is provided, trigger download
-            // (Assuming backend might return a direct link or we use a static one for now)
-            // For now, simulate download or redirect
-            // window.location.href = '/path/to/whitepaper.pdf'; 
+            // Show success modal if exists, else alert
+            const successModal = document.getElementById('wpSuccessModal');
+            if (successModal) {
+                openWpSuccessModal();
+            } else {
+                alert('提交成功！我们将把资料发送至您的邮箱。');
+            }
         } else {
             alert(result.error || '提交失败，请稍后重试');
         }
@@ -1753,3 +1828,24 @@ async function handleWhitepaperSubmit(event) {
         btn.innerHTML = originalText;
     }
 }
+
+// Double check binding for Whitepaper button
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('whitepaper-link');
+    if(btn) {
+        // Remove existing listeners by cloning
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        // Re-bind
+        newBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof openWhitepaperModal === 'function') {
+                openWhitepaperModal();
+            } else {
+                console.error('openWhitepaperModal is not defined');
+            }
+        });
+        console.log('Whitepaper button rebound successfully (from script.js)');
+    }
+});

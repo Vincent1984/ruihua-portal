@@ -1,0 +1,138 @@
+/* Diagnostic Result Page Specific Styles */
+
+/* 1. Layout & Spacing Fixes */
+:root {
+    --header-height: 64px;
+    --brand-color: #7c3aed; /* Brand-600 */
+    --brand-light: #ede9fe; /* Brand-100 */
+    --text-main: #1e293b;   /* Slate-900 */
+    --text-muted: #64748b;  /* Slate-500 */
+}
+
+body {
+    background-color: #f8fafc; /* Slate-50 */
+}
+
+/* Ensure sticky nav doesn't overlap content when jumping to anchors */
+html {
+    scroll-padding-top: calc(var(--header-height) + 20px);
+}
+
+/* 2. Hero Section Adjustments */
+header {
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); /* Brand-600 to Brand-700 */
+}
+
+/* Negative margin handling for mobile */
+@media (max-width: 640px) {
+    main {
+        margin-top: -2rem !important; /* Reduce negative margin on mobile */
+        padding-bottom: 3rem;
+    }
+    
+    header {
+        padding-bottom: 4rem !important;
+    }
+}
+
+/* 3. Gauge Chart Animation */
+.gauge-circle {
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+}
+
+/* 4. Card Enhancements */
+.result-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* 5. Metrics Bars */
+.metric-bar-bg {
+    background-color: #f1f5f9;
+    border-radius: 9999px;
+    height: 0.625rem;
+    overflow: hidden;
+}
+
+.metric-bar-fill {
+    height: 100%;
+    border-radius: 9999px;
+    background-color: var(--brand-color);
+    width: 0;
+    transition: width 1s ease-out 0.5s;
+}
+
+/* Target injected content from main.js without changing JS */
+#status-metrics .bg-brand {
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1) 0.3s; /* Add delay and ease */
+}
+
+/* 6. Action Plan Roadmap */
+.roadmap-card {
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.roadmap-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border-color: var(--brand-color);
+}
+
+/* 7. Modal Transitions */
+#successModal {
+    z-index: 9999;
+}
+
+#modalBackdrop {
+    background-color: rgba(15, 23, 42, 0.6); /* Fallback for bg-slate-900/60 */
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: opacity 0.3s ease-in-out;
+}
+
+#modalPanel {
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 8. Fallback for Tailwind Colors (in case CDN is slow/fails) */
+.bg-brand { background-color: var(--brand-color) !important; }
+.text-brand { color: var(--brand-color) !important; }
+.bg-brand-light { background-color: var(--brand-light) !important; }
+
+/* 9. Loading State */
+.loading-skeleton {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    background-color: #e2e8f0;
+    border-radius: 0.25rem;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .5; }
+}
+
+/* 11. Footer / Lead Capture Enhancements */
+.result-footer {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.result-footer:hover {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+/* Smooth input transition */
+input {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+input:hover {
+    border-color: #cbd5e1; /* slate-300 */
+}
+
+/* Button ripple/shine effect handled by utility classes, ensuring z-index correct */
+button span {
+    position: relative;
+    z-index: 10;
+}

@@ -1,0 +1,142 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "created_at": "2026-01-06T12:00:00Z",
+    "operator": "AI Assistant",
+    "description": "瑞华智策 (Ruihua Zhice) Visual Identity System Record"
+  },
+  "vi_system": {
+    "brand_name": {
+      "full_cn": "瑞华智策",
+      "slogan_cn": "人力资本价值经营一体化解决方案",
+      "tagline_en": "Consulting Inside AI"
+    },
+    "logo": {
+      "path": "/images/logo.png",
+      "alt_text": "瑞华智策 Logo",
+      "usage_rules": {
+        "header_display": "Combined with brand name and slogan",
+        "link_target": "Root (/)",
+        "container_height": "h-20 (80px)",
+        "responsive_behavior": "Auto width, adaptive visibility"
+      }
+    },
+    "color_system": {
+      "primary_palette": {
+        "brand_50": "#f5f3ff",
+        "brand_100": "#ede9fe",
+        "brand_200": "#ddd6fe",
+        "brand_300": "#a78bfa",
+        "brand_400": "#a855f7",
+        "brand_500": "#8b5cf6",
+        "brand_600": "#7c3aed",
+        "brand_700": "#6d28d9",
+        "brand_800": "#5b21b6",
+        "brand_900": "#4c1d95"
+      },
+      "neutral_palette": {
+        "slate_850": "#1e293b",
+        "slate_900": "#0f172a",
+        "white": "#ffffff",
+        "slate_50": "#f8fafc"
+      },
+      "css_variables": {
+        "--brand": "#4f46e5",
+        "--brand-dark": "#4338ca",
+        "--brand-soft": "#eef2ff",
+        "--bg-honors": "#F5FAFF",
+        "--border-honors": "#E5E5E5",
+        "--text-honors-title": "#2C2C32",
+        "--text-honors-body": "#555555"
+      }
+    },
+    "typography": {
+      "font_family": {
+        "sans": [
+          "MiSansNumbers",
+          "PingFang SC",
+          "Hiragino Sans GB",
+          "Microsoft YaHei",
+          "Helvetica Neue",
+          "Helvetica",
+          "Arial",
+          "sans-serif"
+        ],
+        "mono": [
+          "MiSansNumbers",
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "Monaco",
+          "Consolas",
+          "Liberation Mono",
+          "Courier New",
+          "monospace"
+        ]
+      },
+      "custom_fonts": [
+        {
+          "name": "MiSansNumbers",
+          "weights": [400, 500, 700, 800],
+          "usage": "Numbers and special characters"
+        }
+      ]
+    },
+    "graphic_elements": {
+      "icons": "Font Awesome 6.4.0",
+      "patterns": {
+        "grid": "SVG data URI (40x40 grid)"
+      },
+      "shapes": {
+        "rounded_buttons": "rounded-full (9999px) or rounded-xl (12px)",
+        "rounded_cards": "rounded-xl (12px) or rounded-2xl (16px)"
+      },
+      "gradients": [
+        "bg-gradient-to-r from-brand-100 to-blue-100",
+        "bg-gradient-to-br from-brand-50 to-blue-50"
+      ],
+      "shadows": [
+        "shadow-lg shadow-brand-500/20",
+        "shadow-xl shadow-brand-500/30"
+      ]
+    },
+    "layout_specifications": {
+      "container": {
+        "max_width": "max-w-7xl",
+        "padding_x": "px-4 sm:px-6 lg:px-8",
+        "centering": "mx-auto"
+      },
+      "navigation": {
+        "height": "h-20",
+        "style": "fixed, glass-nav (backdrop-blur)"
+      },
+      "spacing": {
+        "section_padding": "pt-32 pb-24",
+        "grid_gap": "gap-12"
+      }
+    },
+    "component_styles": {
+      "buttons": {
+        "primary": {
+          "bg": "bg-brand-600",
+          "hover": "hover:bg-brand-700",
+          "text": "text-white",
+          "shadow": "shadow-lg shadow-brand-500/20"
+        },
+        "secondary": {
+          "bg": "bg-white",
+          "border": "border border-slate-200",
+          "hover": "hover:border-brand-500 hover:text-brand-600"
+        }
+      },
+      "cards": {
+        "hero_card": {
+          "bg": "bg-white/80",
+          "backdrop": "backdrop-blur-sm",
+          "border": "border border-white/50",
+          "shadow": "shadow-sm hover:shadow-md"
+        }
+      }
+    }
+  }
+}

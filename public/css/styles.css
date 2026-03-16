@@ -44,59 +44,11 @@
   box-shadow: 0 2px 8px hsl(var(--cat-hue), 50%, 90%);
 }
 
-/* MiSans for Numbers Only */
-@font-face {
-  font-family: 'MiSansNumbers';
-  src: url('https://cdn.jsdelivr.net/npm/misans@4.0.0/lib/Normal/MiSans-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  unicode-range: U+0030-0039, U+0025, U+002B, U+002D, U+002E, U+002C, U+002F, U+003A, U+0024, U+00A5, U+20AC, U+00A3; /* 0-9 % + - . , / : $ ¥ € £ */
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'MiSansNumbers';
-  src: url('https://cdn.jsdelivr.net/npm/misans@4.0.0/lib/Normal/MiSans-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  unicode-range: U+0030-0039, U+0025, U+002B, U+002D, U+002E, U+002C, U+002F, U+003A, U+0024, U+00A5, U+20AC, U+00A3;
-  font-display: swap;
-}
-
-/* Fallback for ExtraBold (800) -> Bold (700) to ensure MiSans is used */
-@font-face {
-  font-family: 'MiSansNumbers';
-  src: url('https://cdn.jsdelivr.net/npm/misans@4.0.0/lib/Normal/MiSans-Bold.woff2') format('woff2');
-  font-weight: 800;
-  font-style: normal;
-  unicode-range: U+0030-0039, U+0025, U+002B, U+002D, U+002E, U+002C, U+002F, U+003A, U+0024, U+00A5, U+20AC, U+00A3;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'MiSansNumbers';
-  src: url('https://cdn.jsdelivr.net/npm/misans@4.0.0/lib/Normal/MiSans-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  unicode-range: U+0030-0039, U+0025, U+002B, U+002D, U+002E, U+002C, U+002F, U+003A, U+0024, U+00A5, U+20AC, U+00A3;
-  font-display: swap;
-}
-
-:root {
-  --brand: #4f46e5;
-  --brand-dark: #4338ca;
-  --brand-soft: #eef2ff;
-
-  /* Honors Module Colors - Based on Design Standard */
-  --bg-honors: #F5FAFF;      /* 氢蓝透明底色 */
-  --border-honors: #E5E5E5;  /* 分割线颜色 */
-  --text-honors-title: #2C2C32; /* 标题颜色 */
-  --text-honors-body: #555555;  /* 正文颜色 */
-}
+/* MiSans for Numbers Only - Temporarily disabled due to CDN stability issues */
 
 /* 基础排版 */
 body {
-  font-family: "MiSansNumbers", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
   line-height: 1.6;
   letter-spacing: 0.02em;
   -webkit-font-smoothing: antialiased;
@@ -133,8 +85,7 @@ body {
   transform: scale(1.15);
 }
 
-/* FAQ 手风琴基础样式 - 已废弃，改用 Tailwind + JS 控制 */
-/* .faq-content { ... } */
+
 
 
 /* 小箭头旋转效果 */

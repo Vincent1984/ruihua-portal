@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>瑞华智策 - 组织人效管理</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
+    <!-- Custom Theme -->
+    <link rel="stylesheet" href="admin-theme.css">
+    <!-- Vue 3 -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/3.3.4/vue.global.min.js"></script>
+    <!-- Axios -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/axios/1.3.6/axios.min.js"></script>
+    <style>
+        [v-cloak] { display: none; }
+        .sidebar-menu a { text-decoration: none; display: block; }
+    </style>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+</head>
+<body>
+
+<div class="admin-layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <i class="bi bi-grid-1x2-fill me-2"></i> CMS 系统
+        </div>
+        <div class="sidebar-menu">
+            <a href="/admin/dashboard.html" class="menu-item">
+                <i class="bi bi-speedometer2"></i> 数据看板
+            </a>
+            <a href="/admin/dashboard.html" class="menu-item">
+                <i class="bi bi-image"></i> Banner管理
+            </a>
+            <a href="/admin/dashboard.html" class="menu-item">
+                <i class="bi bi-layout-sidebar"></i> 文章侧边栏管理
+            </a>
+            <a href="/admin/dashboard.html" class="menu-item">
+                <i class="bi bi-file-text"></i> 文章管理
+            </a>
+            <a href="/admin/dashboard.html" class="menu-item">
+                <i class="bi bi-question-circle"></i> FAQ管理
+            </a>
+            <a href="/admin/dashboard.html" class="menu-item">
+                <i class="bi bi-list-check"></i> 表单管理
+            </a>
+            <a href="/admin/whitepaper-submissions.html" class="menu-item">
+                <i class="bi bi-file-earmark-arrow-down"></i> 白皮书下载
+            </a>
+            <a href="/admin/maturity.html" class="menu-item">
+                <i class="bi bi-bar-chart-steps"></i> 成熟度诊断
+            </a>
+            <!-- New Item -->
+            <a href="/admin/efficiency.html" class="menu-item active">
+                <i class="bi bi-graph-up-arrow"></i> 组织人效管理
+            </a>
+            
+            <div class="mt-4 px-3">
+                <div class="text-secondary text-uppercase small mb-2" style="font-size: 12px; padding-left: 10px;">系统设置</div>
+                <a href="/admin/dashboard.html" class="menu-item">
+                    <i class="bi bi-shield-lock"></i> 权限管理
+                </a>
+                <a href="/admin/index.html" class="menu-item text-danger mt-2">
+                    <i class="bi bi-box-arrow-right"></i> 退出登录
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="app" v-cloak>
+        <!-- Header -->
+        <div class="header">
+            <h4 class="m-0">组织人效诊断数据</h4>
+            <div class="d-flex align-items-center gap-3">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="bi bi-download me-1"></i> 导出数据
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" @click.prevent="exportData('xlsx')">导出 Excel</a></li>
+                        <li><a class="dropdown-item" href="#" @click.prevent="exportData('csv')">导出 CSV</a></li>
+                    </ul>
+                </div>
+
+                <div class="dropdown">
+                    <button class="btn btn-outline border-0 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle me-1"></i> 管理员
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item text-danger" href="/admin/index.html">退出</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="page-content">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <span>调研记录列表</span>
+                    <button class="btn btn-sm btn-outline-secondary" @click="fetchData">
+                        <i class="bi bi-arrow-clockwise"></i> 刷新
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>提交时间</th>
+                                    <th>公司名称</th>
+                                    <th>所属行业</th>
+                                    <th>规模</th>
+                                    <th>联系人</th>
+                                    <th>电话</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-if="loading">
+                                    <td colspan="7" class="text-center py-5 text-muted">
+                                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                                        <span class="ms-2">数据加载中...</span>
+                                    </td>
+                                </tr>
+                                <template v-else>
+                                    <tr v-for="item in list" :key="item._id">
+                                        <td>{{ formatDate(item.createdAt) }}</td>
+                                        <td>{{ item.company }}</td>
+                                        <td>{{ item.industry }}</td>
+                                        <td>{{ item.employeeCount }}</td>
+                                        <td>{{ item.name }} <span class="text-muted small">({{ item.position || '-' }})</span></td>
+                                        <td>{{ item.phone }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-link text-primary" @click="showDetail(item)">查看详情</button>
+                                            <button class="btn btn-sm btn-link text-danger" @click="deleteItem(item._id)">删除</button>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="list.length === 0">
+                                        <td colspan="7" class="text-center py-4 text-muted">暂无数据</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white py-3 d-flex justify-content-between align-items-center">
+                    <span class="text-secondary small">共 {{ total }} 条记录</span>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item" :class="{ disabled: page <= 1 }">
+                                <a class="page-link" href="#" @click.prevent="changePage(page - 1)">上一页</a>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link">{{ page }} / {{ totalPages }}</span>
+                            </li>
+                            <li class="page-item" :class="{ disabled: page >= totalPages }">
+                                <a class="page-link" href="#" @click.prevent="changePage(page + 1)">下一页</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail Modal -->
+        <div class="modal fade" id="detailModal" tabindex="-1" ref="detailModal">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content" v-if="currentItem">
+                    <div class="modal-header">
+                        <h5 class="modal-title">调研详情 - {{ currentItem.company }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h6 class="text-primary border-bottom pb-2">基本信息</h6>
+                                <p class="mb-1"><strong>提交时间:</strong> {{ formatDate(currentItem.createdAt) }}</p>
+                                <p class="mb-1"><strong>公司名称:</strong> {{ currentItem.company }}</p>
+                                <p class="mb-1"><strong>所属行业:</strong> {{ currentItem.industry }}</p>
+                                <p class="mb-1"><strong>员工人数:</strong> {{ currentItem.employeeCount }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-primary border-bottom pb-2">联系人信息</h6>
+                                <p class="mb-1"><strong>姓名:</strong> {{ currentItem.name }}</p>
+                                <p class="mb-1"><strong>职位:</strong> {{ currentItem.position || '-' }}</p>
+                                <p class="mb-1"><strong>电话:</strong> {{ currentItem.phone }}</p>
+                                <p class="mb-1"><strong>邮箱:</strong> {{ currentItem.email || '-' }}</p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                             <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2">财务数据 (万元)</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-4"><small class="text-muted d-block">营业收入</small>{{ currentItem.revenue || '-' }}</div>
+                                    <div class="col-md-4"><small class="text-muted d-block">毛利润</small>{{ currentItem.grossProfit || '-' }}</div>
+                                    <div class="col-md-4"><small class="text-muted d-block">净利润</small>{{ currentItem.netProfit || '-' }}</div>
+                                    <div class="col-md-4"><small class="text-muted d-block">人力总成本</small>{{ currentItem.hrCost || '-' }}</div>
+                                    <div class="col-md-4"><small class="text-muted d-block">企业总成本</small>{{ currentItem.totalCost || '-' }}</div>
+                                </div>
+                             </div>
+                        </div>
+
+                        <h6 class="text-primary border-bottom pb-2 mb-3">问卷回答</h6>
+                        <div v-if="currentItem.answers" class="small">
+                            <div class="mb-3">
+                                <strong>架构合理性 (Architecture)</strong>
+                                <div class="row mt-2">
+                                    <div class="col-md-12 mb-2" v-for="(val, key) in filterKeys(currentItem.answers, 'A')" :key="key">
+                                        <div class="fw-bold text-dark">{{ getQuestionText(key) }}</div>
+                                        <div class="text-secondary ps-3 border-start border-3 border-primary bg-light p-2 rounded" v-html="getAnswerDetail(key, val, currentItem.detailedAnswers)">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <strong>人才胜任度 (Capability)</strong>
+                                <div class="row mt-2">
+                                    <div class="col-md-12 mb-2" v-for="(val, key) in filterKeys(currentItem.answers, 'C')" :key="key">
+                                        <div class="fw-bold text-dark">{{ getQuestionText(key) }}</div>
+                                        <div class="text-secondary ps-3 border-start border-3 border-success bg-light p-2 rounded" v-html="getAnswerDetail(key, val, currentItem.detailedAnswers)">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <strong>组织能量 (Energy)</strong>
+                                <div class="row mt-2">
+                                    <div class="col-md-12 mb-2" v-for="(val, key) in filterKeys(currentItem.answers, 'E')" :key="key">
+                                        <div class="fw-bold text-dark">{{ getQuestionText(key) }}</div>
+                                        <div class="text-secondary ps-3 border-start border-3 border-warning bg-light p-2 rounded" v-html="getAnswerDetail(key, val, currentItem.detailedAnswers)">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="/admin/js/efficiencyDiagnosis.js"></script>
+</body>
+</html>

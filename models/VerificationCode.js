@@ -21,7 +21,8 @@ const verificationCodeSchema = new mongoose.Schema({
     }
 });
 
-// 创建复合索引，确保同一手机号在有效期内只能有一个验证码
-verificationCodeSchema.index({ phone: 1, createdAt: 1 }, { unique: true });
+// 移除 unique 约束，允许同一手机号在不同时间生成验证码
+// 如果需要限制频率，已经在业务逻辑中通过 createdAt 判断了
+verificationCodeSchema.index({ phone: 1, createdAt: -1 });
 
 module.exports = mongoose.model('VerificationCode', verificationCodeSchema);

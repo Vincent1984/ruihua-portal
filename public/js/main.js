@@ -336,28 +336,30 @@ async function loadFaqData() {
         return;
     }
 
-    container.innerHTML = '';
+    let html = '';
     
     faqs.forEach(faq => {
-        const div = document.createElement('div');
-        div.className = 'faq-item border-b border-slate-100 pb-8 last:border-0 last:pb-0';
-        
         // Check for answer content and provide fallback
         const answerText = faq.answer || '暂无详细回答';
         
-        div.innerHTML = `
-            <button class="faq-toggle-btn flex justify-between items-center w-full text-left font-bold text-xl text-slate-900 focus:outline-none group transition-colors duration-300 hover:text-brand-600" aria-expanded="false">
-                <span class="pr-4">${faq.question}</span>
-                <i class="fas fa-chevron-down faq-icon text-slate-400 group-hover:text-brand-600 transition-transform duration-300"></i>
-            </button>
-            <div class="faq-content overflow-hidden transition-all duration-300 ease-in-out" style="max-height: 0px; opacity: 0;">
-                <div class="pt-4 text-slate-600 text-sm leading-relaxed" style="color: #475569;">
-                    <p>${answerText}</p>
-                </div>
+        html += `
+            <div class="faq-item border-b border-slate-100 pb-8 last:border-0 last:pb-0">
+                <dt>
+                    <button class="faq-toggle-btn flex justify-between items-center w-full text-left font-bold text-xl text-slate-900 focus:outline-none group transition-colors duration-300 hover:text-brand-600" aria-expanded="false">
+                        <span class="pr-4">${faq.question}</span>
+                        <i class="fas fa-chevron-down faq-icon text-slate-400 group-hover:text-brand-600 transition-transform duration-300"></i>
+                    </button>
+                </dt>
+                <dd class="faq-content overflow-hidden transition-all duration-300 ease-in-out" style="max-height: 0px; opacity: 0;">
+                    <div class="pt-4 text-slate-600 text-sm leading-relaxed" style="color: #475569;">
+                        <p>${answerText}</p>
+                    </div>
+                </dd>
             </div>
         `;
-        container.appendChild(div);
     });
+
+    container.innerHTML = html;
     
   } catch (error) {
     console.error('Error loading FAQs:', error);
@@ -375,54 +377,39 @@ function switchTab(tabIndex) {
     
     // 1. Update Buttons
     const buttons = document.querySelectorAll('.tab-btn');
-    if (!buttons.length) {
-      console.warn('No tab buttons found');
-      return;
-    }
+    if (!buttons.length) return;
 
     buttons.forEach(btn => {
-      // Reset all buttons to inactive state
-      btn.classList.remove('active', 'bg-brand-600', 'text-white', 'shadow-lg');
-      btn.classList.add('text-slate-400', 'hover:text-white');
-      btn.setAttribute('aria-selected', 'false');
+      // Logic: Only toggle the 'active' class and aria-selected attribute.
+      // Visual styling should be handled by CSS or Tailwind classes (e.g., group-[.active]:bg-brand-600)
+      // to allow different tab styles on different pages.
+      
+      if(btn.id === `tab-${tabIndex}-btn`) {
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+      } else {
+          btn.classList.remove('active');
+          btn.setAttribute('aria-selected', 'false');
+      }
     });
-
-    const activeBtn = document.getElementById(`tab-${tabIndex}-btn`);
-    if (activeBtn) {
-      // Set active button state
-      activeBtn.classList.remove('text-slate-400', 'hover:text-white');
-      activeBtn.classList.add('active', 'bg-brand-600', 'text-white', 'shadow-lg');
-      activeBtn.setAttribute('aria-selected', 'true');
-    } else {
-      console.error(`Tab button tab-${tabIndex}-btn not found`);
-    }
 
     // 2. Update Content
     const contents = document.querySelectorAll('.tab-content');
-    if (!contents.length) {
-      console.warn('No tab content sections found');
-      return;
-    }
+    if (!contents.length) return;
 
     contents.forEach(content => {
-      // Hide all content
-      content.classList.add('hidden', 'opacity-0', 'translate-y-4');
-      content.classList.remove('active', 'opacity-100', 'translate-y-0');
+      content.classList.add('hidden');
+      content.style.display = 'none'; // Force hide
+      content.classList.remove('block'); 
+      content.classList.remove('active');
     });
 
     const activeContent = document.getElementById(`tab-${tabIndex}-content`);
     if (activeContent) {
-      // Show active content with transition
       activeContent.classList.remove('hidden');
-      
-      // Use requestAnimationFrame for smoother transition handling
-      requestAnimationFrame(() => {
-        // Double RAF to ensure browser has painted the 'display: block' state
-        requestAnimationFrame(() => {
-          activeContent.classList.remove('opacity-0', 'translate-y-4');
-          activeContent.classList.add('active', 'opacity-100', 'translate-y-0');
-        });
-      });
+      activeContent.style.display = 'block'; // Force show
+      activeContent.classList.add('block');
+      activeContent.classList.add('active');
     } else {
       console.error(`Tab content tab-${tabIndex}-content not found`);
     }
@@ -544,17 +531,17 @@ addResponsiveStyles();
 // 知识库数据
 const searchKB = [
     {
-        keywords: ['ahcvm', '自有员工', '内部员工', '人效', 'roi'],
-        title: 'AHCVM 自有员工价值经营解决方案',
+        keywords: ['hcvm', '自有员工', '内部员工', '人效', 'roi'],
+        title: 'HCVM 自有员工价值经营解决方案',
         desc: '针对企业核心职能团队（研发、销售等），通过数字化平台与AI赋能，实现从人效量化到价值跃迁的完整闭环。',
-        url: 'solutions.html#own-employees',
+        url: '/solutions-hcvm/',
         type: '解决方案'
     },
     {
         keywords: ['ohcvm', '外部用工', '外包', '灵活用工', '合规', '风控'],
         title: 'OHCVM 外部用工价值经营解决方案',
         desc: '针对企业外包与灵活用工场景，提供全流程合规风控、成本优化与人才资产化管理服务。',
-        url: 'solutions.html#non-own-employees',
+        url: 'solutions-ohcvm.html',
         type: '解决方案'
     },
     {

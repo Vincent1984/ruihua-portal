@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>瑞华智策 - 视频管理</title>
+  <script>
+    (function () {
+      try {
+        var isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+        var token = sessionStorage.getItem('token');
+        if (!isLoggedIn || !token) {
+          window.location.href = '/admin/index.html';
+        }
+      } catch (e) {
+        window.location.href = '/admin/index.html';
+      }
+    })();
+  </script>
+  <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="admin-theme.css">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/favicon.ico">
+</head>
+<body>
+
+<div class="admin-layout">
+  <div class="sidebar">
+    <div class="sidebar-header"><i class="bi bi-grid-1x2-fill me-2"></i> CMS 系统</div>
+    <div class="sidebar-menu">
+      <a href="/admin/dashboard.html" class="menu-item"><i class="bi bi-speedometer2"></i> 数据看板</a>
+      <a href="/admin/dashboard.html" onclick="sessionStorage.setItem('lastSection', 'article')" class="menu-item">
+        <i class="bi bi-file-text"></i> 文章管理
+      </a>
+      <a href="/admin/video-management.html" class="menu-item active"><i class="bi bi-camera-reels"></i> 视频管理</a>
+      <a href="/admin/whitepaper-submissions.html" class="menu-item"><i class="bi bi-file-earmark-arrow-down"></i> 白皮书下载</a>
+      <a href="/admin/maturity.html" class="menu-item"><i class="bi bi-bar-chart-steps"></i> 成熟度诊断</a>
+      <a href="/admin/efficiency.html" class="menu-item"><i class="bi bi-graph-up-arrow"></i> 组织人效管理</a>
+      <div class="mt-4 px-3">
+        <div class="text-secondary text-uppercase small mb-2" style="font-size: 12px; padding-left: 10px;">系统设置</div>
+        <a href="/admin/dashboard.html" onclick="sessionStorage.setItem('lastSection', 'permissions')" class="menu-item">
+          <i class="bi bi-shield-lock"></i> 权限管理
+        </a>
+        <a href="/admin/index.html" class="menu-item text-danger mt-2"><i class="bi bi-box-arrow-right"></i> 退出登录</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="header">
+      <h4 class="m-0">视频管理</h4>
+      <div class="d-flex align-items-center">
+        <div class="dropdown">
+          <button class="btn btn-outline border-0 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle me-1"></i> 管理员
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item text-danger" href="/admin/index.html">退出</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+          <div class="d-flex gap-2">
+            <input id="sKeyword" type="text" class="form-control" placeholder="搜索标题/描述..." style="width: 240px;">
+            <select id="sCategory" class="form-select" style="width: 180px;">
+              <option value="">全部分类</option>
+            </select>
+            <button class="btn btn-outline-secondary" onclick="loadVideos(1)"><i class="bi bi-search"></i> 查询</button>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary" onclick="openModal()"><i class="bi bi-plus-lg"></i> 新增视频</button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>标题</th>
+                  <th>分类</th>
+                  <th>发布时间</th>
+                  <th>推荐</th>
+                  <th>浏览</th>
+                  <th class="text-end">操作</th>
+                </tr>
+              </thead>
+              <tbody id="listBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+          <div class="text-secondary small">共 <span id="totalCount">0</span> 条记录，当前第 <span id="currentPage">1</span>/<span id="totalPages">1</span> 页</div>
+          <nav><ul class="pagination pagination-sm mb-0">
+            <li class="page-item"><button class="page-link" onclick="changePage(-1)">上一页</button></li>
+            <li class="page-item"><button class="page-link" onclick="changePage(1)">下一页</button></li>
+          </ul></nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">视频编辑</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="vId">
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label class="form-label">标题</label>
+            <input id="vTitle" type="text" class="form-control" placeholder="请输入标题">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">分类</label>
+            <select id="vCategory" class="form-select"></select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">缩略图 URL</label>
+            <input id="vThumb" type="text" class="form-control" placeholder="/uploads/xxx.jpg 或 https://...">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">视频链接</label>
+            <input id="vUrl" type="text" class="form-control" placeholder="如 https://v.qq.com/... 或 mp4 地址">
+          </div>
+          <div class="col-12">
+            <label class="form-label">嵌入代码（可选）</label>
+            <textarea id="vEmbed" class="form-control" rows="3" placeholder="如 iframe 代码，留空则使用视频链接"></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label">简介 (列表页展示)</label>
+            <textarea id="vDesc" class="form-control" rows="2" placeholder="简短描述..."></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label">详细介绍 (详情页展示 - 支持 HTML)</label>
+            <textarea id="vContent" class="form-control" rows="4" placeholder="详细介绍视频内容..."></textarea>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">讲师姓名</label>
+            <input id="vSpeakerName" type="text" class="form-control" placeholder="如：张老师">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">讲师头衔</label>
+            <input id="vSpeakerTitle" type="text" class="form-control" placeholder="如：瑞华资深顾问">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">讲师头像 URL</label>
+            <input id="vSpeakerAvatar" type="text" class="form-control" placeholder="/images/xxx.png">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">视频时长</label>
+            <input id="vDuration" type="text" class="form-control" placeholder="如：45:20">
+          </div>
+          <div class="col-md-8">
+            <label class="form-label">标签 (逗号分隔)</label>
+            <input id="vTags" type="text" class="form-control" placeholder="如：组织人效, 数字化转型">
+          </div>
+          <div class="col-md-4 d-flex align-items-center gap-2">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="vReco">
+              <label class="form-check-label" for="vReco">推荐</label>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">发布时间</label>
+            <input id="vDate" type="datetime-local" class="form-control">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Slug（可选）</label>
+            <input id="vSlug" type="text" class="form-control" placeholder="如 demo-video-001">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" onclick="saveVideo()">保存</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+<div id="loadingOverlay" style="display:none" class="loading-overlay">
+  <div class="spinner-border text-primary" role="status"></div>
+  </div>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="js/core.js"></script>
+<script>
+let curPage = 1, totalPages = 1, pageSize = 10;
+let catMap = [];
+const modalEl = document.getElementById('editModal');
+let bsModal;
+document.addEventListener('DOMContentLoaded', () => {
+  bsModal = new bootstrap.Modal(modalEl);
+  loadCategories();
+  loadVideos(1);
+});
+
+function toggleLoading(show) {
+  const overlay = document.getElementById('loadingOverlay');
+  if (!overlay) return;
+  overlay.style.display = show ? 'flex' : 'none';
+}
+
+async function loadCategories() {
+  try {
+    const res = await fetch('/api/video-categories');
+    const cats = await res.json();
+    const s = document.getElementById('sCategory');
+    const v = document.getElementById('vCategory');
+    s.innerHTML = '<option value="">全部分类</option>' + cats.map(c => `<option value="${c.code}">${c.name}</option>`).join('');
+    v.innerHTML = cats.map(c => `<option value="${c.code}">${c.name}</option>`).join('');
+    catMap = cats.reduce((m,c) => (m[c.code]=c.name,m), {});
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function changePage(delta) {
+  const next = Math.min(Math.max(1, curPage + delta), totalPages);
+  if (next !== curPage) loadVideos(next);
+}
+
+async function loadVideos(page=1) {
+  try {
+    curPage = page;
+    const kw = document.getElementById('sKeyword').value.trim();
+    const cat = document.getElementById('sCategory').value;
+    const params = new URLSearchParams({ page, limit: pageSize });
+    if (kw) params.set('keyword', kw);
+    if (cat) params.set('category', cat);
+    toggleLoading(true);
+    const res = await fetch('/api/videos?' + params.toString());
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : (data.data || []);
+    const pagination = Array.isArray(data) ? null : (data.pagination || null);
+    if (pagination) {
+      totalPages = pagination.pages || 1;
+      document.getElementById('totalCount').textContent = pagination.total || list.length;
+      document.getElementById('currentPage').textContent = pagination.page || 1;
+      document.getElementById('totalPages').textContent = pagination.pages || 1;
+    } else {
+      totalPages = 1;
+      document.getElementById('totalCount').textContent = list.length;
+      document.getElementById('currentPage').textContent = 1;
+      document.getElementById('totalPages').textContent = 1;
+    }
+    const tbody = document.getElementById('listBody');
+    tbody.innerHTML = list.map(v => `
+      <tr>
+        <td>
+          <div class="d-flex align-items-center gap-2">
+            <img src="${v.thumbnail || 'https://placehold.co/80x45'}" alt="" style="width:80px;height:45px;object-fit:cover;border-radius:6px;border:1px solid #eee">
+            <div>
+              <div class="fw-bold">${v.title || ''}</div>
+              <div class="text-muted small text-truncate" style="max-width:420px">${v.description || ''}</div>
+            </div>
+          </div>
+        </td>
+        <td>${catMap[v.category] || v.category || '-'}</td>
+        <td>${v.publishDate ? new Date(v.publishDate).toLocaleString() : '-'}</td>
+        <td>${v.isRecommended ? '<span class="badge bg-warning text-dark">是</span>' : '-'}</td>
+        <td>${v.views || 0}</td>
+        <td class="text-end">
+          <button class="btn btn-sm btn-outline-primary" onclick="openModal('${v._id}')">编辑</button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteVideo('${v._id}')">删除</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    console.error(e);
+  } finally {
+    toggleLoading(false);
+  }
+}
+
+async function openModal(id=null) {
+  document.getElementById('vId').value = '';
+  document.getElementById('vTitle').value = '';
+  document.getElementById('vCategory').value = '';
+  document.getElementById('vThumb').value = '';
+  document.getElementById('vUrl').value = '';
+  document.getElementById('vEmbed').value = '';
+  document.getElementById('vDesc').value = '';
+  document.getElementById('vContent').value = '';
+  document.getElementById('vSpeakerName').value = '';
+  document.getElementById('vSpeakerTitle').value = '';
+  document.getElementById('vSpeakerAvatar').value = '';
+  document.getElementById('vDuration').value = '';
+  document.getElementById('vTags').value = '';
+  document.getElementById('vReco').checked = false;
+  document.getElementById('vDate').value = '';
+  document.getElementById('vSlug').value = '';
+  if (id) {
+    try {
+      toggleLoading(true);
+      const res = await fetch('/api/videos/' + id);
+      const v = await res.json();
+      document.getElementById('vId').value = v._id;
+      document.getElementById('vTitle').value = v.title || '';
+      document.getElementById('vCategory').value = v.category || '';
+      document.getElementById('vThumb').value = v.thumbnail || '';
+      document.getElementById('vUrl').value = v.videoUrl || '';
+      document.getElementById('vEmbed').value = v.embedCode || '';
+      document.getElementById('vDesc').value = v.description || '';
+      document.getElementById('vContent').value = v.content || '';
+      document.getElementById('vSpeakerName').value = v.speakerName || '';
+      document.getElementById('vSpeakerTitle').value = v.speakerTitle || '';
+      document.getElementById('vSpeakerAvatar').value = v.speakerAvatar || '';
+      document.getElementById('vDuration').value = v.duration || '';
+      document.getElementById('vTags').value = v.tags ? v.tags.join(', ') : '';
+      document.getElementById('vReco').checked = !!v.isRecommended;
+      document.getElementById('vDate').value = v.publishDate ? new Date(v.publishDate).toISOString().slice(0,16) : '';
+      document.getElementById('vSlug').value = v.slug || '';
+    } catch(e){ console.error(e); } finally { toggleLoading(false); }
+  }
+  bsModal.show();
+}
+
+async function saveVideo() {
+  const id = document.getElementById('vId').value;
+  const data = {
+    title: document.getElementById('vTitle').value.trim(),
+    category: document.getElementById('vCategory').value,
+    thumbnail: document.getElementById('vThumb').value.trim(),
+    videoUrl: document.getElementById('vUrl').value.trim(),
+    embedCode: document.getElementById('vEmbed').value.trim(),
+    description: document.getElementById('vDesc').value.trim(),
+    content: document.getElementById('vContent').value.trim(),
+    speakerName: document.getElementById('vSpeakerName').value.trim(),
+    speakerTitle: document.getElementById('vSpeakerTitle').value.trim(),
+    speakerAvatar: document.getElementById('vSpeakerAvatar').value.trim(),
+    duration: document.getElementById('vDuration').value.trim(),
+    tags: document.getElementById('vTags').value.split(',').map(t => t.trim()).filter(t => t),
+    isRecommended: document.getElementById('vReco').checked,
+    publishDate: document.getElementById('vDate').value ? new Date(document.getElementById('vDate').value) : undefined,
+    slug: document.getElementById('vSlug').value.trim()
+  };
+  if (!data.title) { showToast('标题不能为空', 'error'); return; }
+  try {
+    toggleLoading(true);
+    const url = id ? '/api/videos/' + id : '/api/videos';
+    const method = id ? 'PUT' : 'POST';
+    const res = await fetch(url, { method, headers: { 'Content-Type':'application/json', ...authHeaders() }, body: JSON.stringify(data) });
+    const r = await res.json();
+    if (r.success) {
+      showToast('保存成功');
+      bsModal.hide();
+      loadVideos(curPage);
+    } else {
+      showToast(r.error || '保存失败', 'error');
+    }
+  } catch (e) {
+    console.error(e);
+    showToast('请求失败', 'error');
+  } finally {
+    toggleLoading(false);
+  }
+}
+
+async function deleteVideo(id) {
+  if (!confirm('确定删除该视频吗？')) return;
+  try {
+    toggleLoading(true);
+    const res = await fetch('/api/videos/' + id, { method: 'DELETE', headers: authHeaders() });
+    const r = await res.json();
+    if (r.success) {
+      showToast('删除成功');
+      loadVideos(curPage);
+    } else {
+      showToast(r.error || '删除失败', 'error');
+    }
+  } catch (e) {
+    console.error(e);
+  } finally {
+    toggleLoading(false);
+  }
+}
+</script>
+</body>
+</html>
+

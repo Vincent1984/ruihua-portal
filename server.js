@@ -17,6 +17,7 @@ const rateLimit = require('express-rate-limit');
 // Import Models
 const Appointment = require('./models/Appointment');
 const Article = require('./models/Article');
+const ArticleHistory = require('./models/ArticleHistory');
 const OperationLog = require('./models/OperationLog');
 const Role = require('./models/Role');
 const Admin = require('./models/admin'); // Corrected model name
@@ -28,26 +29,33 @@ const Setting = require('./models/Setting');
 const Subscription = require('./models/Subscription');
 const WhitepaperSubmission = require('./models/WhitepaperSubmission');
 const VerificationCode = require('./models/VerificationCode');
+const Video = require('./models/Video');
 const quizData = require('./config/quizData'); // Import Quiz Data
 const efficiencyQuizData = require('./config/efficiencyQuizData'); // Import Efficiency Quiz Data
 const XLSX = require('xlsx'); // Import xlsx
 const { slugify } = require('transliteration');
+const domainNormalizer = require('./middleware/domainNormalizer');
+const legacyRedirects = require('./middleware/legacyRedirects');
 
 const app = express();
 app.disable('x-powered-by');
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.SECRET_KEY || 'default_secret_key_if_env_missing';
 
+// Domain Normalization Middleware (Should be early)
+app.use(domainNormalizer);
+app.use(legacyRedirects);
+
 // Middleware
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "cdn.tailwindcss.com", "cdnjs.cloudflare.com", "cdn.jsdelivr.net", "cdn.quilljs.com", "cdn.bootcdn.net"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "cdn.tailwindcss.com", "cdnjs.cloudflare.com", "cdn.jsdelivr.net", "cdn.quilljs.com", "cdn.bootcdn.net", "https://hm.baidu.com"],
             scriptSrcAttr: ["'unsafe-inline'"], 
             styleSrc: ["'self'", "'unsafe-inline'", "cdn.tailwindcss.com", "cdnjs.cloudflare.com", "fonts.googleapis.com", "cdn.jsdelivr.net", "cdn.quilljs.com", "cdn.bootcdn.net"],
             fontSrc: ["'self'", "cdnjs.cloudflare.com", "fonts.gstatic.com", "cdn.jsdelivr.net", "cdn.bootcdn.net"],
-            imgSrc: ["'self'", "data:", "blob:", "picsum.photos", "placehold.co"], 
+            imgSrc: ["'self'", "data:", "blob:", "picsum.photos", "placehold.co", "https://hm.baidu.com"], 
             connectSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdn.quilljs.com", "https://cdn.bootcdn.net"],
             upgradeInsecureRequests: null, // Disable auto-upgrade for localhost dev environment
         },
@@ -64,6 +72,15 @@ const limiter = rateLimit({
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 app.use('/api/', limiter); // Apply to API routes only
+
+// Disable caching for API routes
+app.use('/api/', (req, res, next) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    res.set('Surrogate-Control', 'no-store');
+    next();
+});
 
 // Stricter Rate Limiting for Login - REMOVED
 
@@ -128,13 +145,27 @@ app.use('/admin', express.static(path.join(__dirname, 'admin')));
 const rootHtmlFiles = [
     'article.html', 'diagnostic-result.html', 
     'form.html', 'form2.html', 'privacy.html',
-    'efficiency-diagnostic.html', 'sales-toolkit.html'
-    // Removed productivity.html and diagnostic.html from here to handle them manually below with redirects
+    'efficiency-diagnostic.html', 'sales-toolkit.html',
+    'videos.html', 'video-detail.html'
+    // Removed solutions-ahcvm.html and solutions-ohcvm.html to handle directory style redirects
 ];
 
 rootHtmlFiles.forEach(file => {
     app.get('/' + file, (req, res) => res.sendFile(path.join(__dirname, file)));
 });
+
+// Solutions HCVM Redirects & Serving
+app.get('/solutions-hcvm/', (req, res) => res.sendFile(path.join(__dirname, 'solutions-hcvm.html')));
+app.get('/solutions-ahcvm/', (req, res) => res.redirect(301, '/solutions-hcvm/'));
+app.get('/solutions-ahcvm.html', (req, res) => res.redirect(301, '/solutions-hcvm/'));
+
+// Solutions OHCVM Redirects & Serving
+app.get('/solutions-ohcvm/', (req, res) => res.sendFile(path.join(__dirname, 'solutions-ohcvm.html')));
+
+// Video Detail Redirects & Serving
+app.get('/video/:slug/', (req, res) => res.sendFile(path.join(__dirname, 'video-detail.html')));
+app.get('/video/:slug.html', (req, res) => res.redirect(301, '/video/' + req.params.slug + '/'));
+app.get('/video/:slug', (req, res) => res.redirect(301, '/video/' + req.params.slug + '/'));
 
 // Serve verification txt file
 app.get('/f30f7f41e5fa707ed66d41aeb3791adb.txt', (req, res) => {
@@ -169,6 +200,10 @@ app.get('/productivity.html', (req, res) => res.redirect(301, '/productivity/'))
 app.get('/diagnostic/', (req, res) => res.sendFile(path.join(__dirname, 'diagnostic.html')));
 app.get('/diagnostic', (req, res) => res.redirect(301, '/diagnostic/'));
 app.get('/diagnostic.html', (req, res) => res.redirect(301, '/diagnostic/'));
+
+// 6. videos.html -> /videos/
+app.get('/videos/', (req, res) => res.sendFile(path.join(__dirname, 'videos.html')));
+app.get('/videos.html', (req, res) => res.redirect(301, '/videos/'));
 
 
 // Handle /index.html redirection to root
@@ -478,12 +513,32 @@ app.get('/api/dashboard/stats', authRequired, async (req, res) => {
 });
 
 // --- Article Routes ---
-app.get('/article/:slug', (req, res) => {
-    // This route handles /article/some-slug.html (express ignores the extension in the param if defined like this, 
-    // BUT we need to be careful. Actually, standard way is to use a wildcard or handle it explicitly)
-    // Better approach for static serving with dynamic routing:
-    // Send the article.html file, and let the frontend JS fetch the data based on the URL.
-    res.sendFile(path.join(__dirname, 'article.html'));
+app.get('/article/:slug', async (req, res) => {
+    try {
+        let slug = req.params.slug;
+        // Strip .html extension if present
+        if (slug.endsWith('.html')) {
+            slug = slug.slice(0, -5);
+        }
+
+        // Check if article exists and is published (Feature Flag: ENABLE_STRICT_404, default true)
+        if (process.env.ENABLE_STRICT_404 !== 'false') {
+            const article = await Article.findOne({ slug, status: 'published' });
+            
+            if (!article) {
+                // Article not found or deleted
+                res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+                res.status(404).sendFile(path.join(__dirname, '404.html'));
+                return;
+            }
+        }
+
+        // Article exists, send the template. Frontend will fetch data.
+        res.sendFile(path.join(__dirname, 'article.html'));
+    } catch (e) {
+        console.error('Article Route Error:', e);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
 // Also handle the case where .html is part of the url explicitly if the above doesn't catch it
@@ -493,12 +548,8 @@ app.get('/article/:slug.html', (req, res) => {
 
 // --- Article API ---
 app.get('/api/articles', async (req, res) => {
-    // Public endpoint, but maybe we want to filter drafts for public?
-    // Current implementation returns all matching query.
-    // For admin, we might need a separate endpoint or just use this.
-    // Let's keep it public for now.
     try {
-        const { keyword, category, featured, page, limit } = req.query;
+        const { keyword, category, featured, page, limit, status, tag } = req.query;
         let query = {};
         
         if (keyword) {
@@ -512,6 +563,14 @@ app.get('/api/articles', async (req, res) => {
 
         if (featured === 'true') {
             query.isRecommended = true;
+        }
+
+        if (status && status !== 'all') {
+            query.status = status;
+        }
+
+        if (tag) {
+            query.tags = tag;
         }
 
         let articles;
@@ -546,11 +605,10 @@ app.get('/api/articles/detail/query', async (req, res) => {
         const { slug } = req.query;
         if (!slug) return res.status(400).json({ error: 'Slug is required' });
         
-        const article = await Article.findOneAndUpdate(
-            { slug },
-            { $inc: { views: 1 } },
-            { new: true }
-        );
+        // Increment views without triggering update hooks/timestamps issues
+        await Article.updateOne({ slug }, { $inc: { views: 1 } });
+        
+        const article = await Article.findOne({ slug });
         if (!article) return res.status(404).json({ error: 'Article not found' });
         res.json(article);
     } catch (e) {
@@ -566,6 +624,10 @@ app.get('/api/articles/:id', async (req, res) => {
             // console.log('Invalid ID detected');
             return res.status(404).json({ error: 'Invalid article id' });
         }
+        
+        // Increment views safely
+        await Article.updateOne({ _id: id }, { $inc: { views: 1 } });
+        
         const article = await Article.findById(id);
         if (!article) return res.status(404).json({ error: 'Article not found' });
         res.json(article);
@@ -586,8 +648,14 @@ app.post('/api/articles', authRequired, requirePerm('article:create'), async (re
         }
         
         const newArticle = new Article(req.body);
+        
+        // Ensure publishDate and updatedAt are identical on creation
+        const now = new Date();
+        if (!newArticle.publishDate) newArticle.publishDate = now;
+        if (!newArticle.updatedAt) newArticle.updatedAt = now;
+        
         // Handle slug if not provided
-        if (!newArticle.slug) newArticle.slug = 'art-' + Date.now();
+        if (!newArticle.slug) newArticle.slug = 'art-' + now.getTime();
         await newArticle.save();
         
         // Update category count
@@ -615,7 +683,28 @@ app.put('/api/articles/:id', authRequired, requirePerm('article:edit'), async (r
         }
 
         const oldArt = await Article.findById(req.params.id);
-        const updatedArticle = await Article.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        
+        // Save History
+        if (oldArt) {
+            const historyCount = await ArticleHistory.countDocuments({ articleId: oldArt._id });
+            await ArticleHistory.create({
+                articleId: oldArt._id,
+                title: oldArt.title,
+                content: oldArt.content,
+                summary: oldArt.summary,
+                coverImage: oldArt.coverImage,
+                tags: oldArt.tags,
+                status: oldArt.status,
+                editor: req.user.username,
+                version: historyCount + 1
+            });
+        }
+
+        const updatedArticle = await Article.findByIdAndUpdate(
+            req.params.id, 
+            { ...req.body, updatedAt: Date.now() }, 
+            { new: true }
+        );
         
         // Handle category count update if changed
         if (oldArt && oldArt.category !== req.body.category) {
@@ -627,6 +716,67 @@ app.put('/api/articles/:id', authRequired, requirePerm('article:edit'), async (r
         res.json({ success: true, data: updatedArticle });
     } catch (e) {
         if (e.code === 11000) return res.status(400).json({ error: 'URL (Slug) 已存在' });
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// --- Article History API ---
+app.get('/api/articles/:id/history', authRequired, requirePerm('article:edit'), async (req, res) => {
+    try {
+        const history = await ArticleHistory.find({ articleId: req.params.id })
+            .sort({ version: -1 })
+            .limit(20);
+        res.json(history);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.get('/api/articles/history/:historyId', authRequired, requirePerm('article:edit'), async (req, res) => {
+    try {
+        const record = await ArticleHistory.findById(req.params.historyId);
+        if (!record) return res.status(404).json({ error: 'History record not found' });
+        res.json(record);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/articles/:id/restore/:historyId', authRequired, requirePerm('article:edit'), async (req, res) => {
+    try {
+        const history = await ArticleHistory.findById(req.params.historyId);
+        if (!history) return res.status(404).json({ error: 'History record not found' });
+        
+        // Save current as history before restore
+        const current = await Article.findById(req.params.id);
+        if (current) {
+            const historyCount = await ArticleHistory.countDocuments({ articleId: current._id });
+            await ArticleHistory.create({
+                articleId: current._id,
+                title: current.title,
+                content: current.content,
+                summary: current.summary,
+                coverImage: current.coverImage,
+                tags: current.tags,
+                status: current.status,
+                editor: req.user.username,
+                version: historyCount + 1
+            });
+        }
+
+        const restored = await Article.findByIdAndUpdate(req.params.id, {
+            title: history.title,
+            content: history.content,
+            summary: history.summary,
+            coverImage: history.coverImage,
+            tags: history.tags,
+            status: history.status,
+            updatedAt: Date.now() // Ensure updated time is refreshed on restore
+        }, { new: true });
+
+        await logOp('update', 'Article', `Restored article ${req.params.id} to version ${history.version}`, req.user.username);
+        res.json({ success: true, data: restored });
+    } catch (e) {
         res.status(500).json({ error: e.message });
     }
 });
@@ -653,6 +803,46 @@ app.delete('/api/articles/:id', authRequired, requirePerm('article:delete'), asy
         }
         await logOp('delete', 'Article', `Deleted article: ${req.params.id}`, req.user.username);
         res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Batch Delete
+app.post('/api/articles/batch-delete', authRequired, requirePerm('article:delete'), async (req, res) => {
+    try {
+        const { ids } = req.body;
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ error: 'Invalid IDs' });
+        }
+        
+        // Find articles to decrement category counts
+        const articles = await Article.find({ _id: { $in: ids } });
+        for (const art of articles) {
+            if (art.category) {
+                await Category.updateOne({ code: art.category }, { $inc: { articleCount: -1 } });
+            }
+        }
+
+        await Article.deleteMany({ _id: { $in: ids } });
+        await logOp('delete', 'Article', `Batch deleted ${ids.length} articles`, req.user.username);
+        res.json({ success: true, count: ids.length });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Batch Status Update
+app.post('/api/articles/batch-status', authRequired, requirePerm('article:edit'), async (req, res) => {
+    try {
+        const { ids, status } = req.body;
+        if (!Array.isArray(ids) || ids.length === 0 || !status) {
+            return res.status(400).json({ error: 'Invalid parameters' });
+        }
+
+        await Article.updateMany({ _id: { $in: ids } }, { status });
+        await logOp('update', 'Article', `Batch updated status to ${status} for ${ids.length} articles`, req.user.username);
+        res.json({ success: true, count: ids.length });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
@@ -885,7 +1075,9 @@ const ALLOWED_PERMS = [
     'article:list','article:create','article:edit','article:delete',
     'faq:list','faq:create','faq:edit','faq:delete',
     'banner:manage','sidebar:manage',
-    'appointment:list', 'appointment:delete', 'appointment:edit' // Added appointment perms
+    'appointment:list', 'appointment:delete', 'appointment:edit', // Added appointment perms
+    // Video permissions
+    'video:list', 'video:create', 'video:edit', 'video:delete'
 ];
 
 app.post('/api/roles', authRequired, requirePerm('all'), async (req, res) => {
@@ -1206,18 +1398,17 @@ app.post('/api/send-verification-code', async (req, res) => {
         
         // 发送短信
         try {
+            console.log(`[SMS DEBUG] Preparing to send SMS to ${phone}`);
+            console.log(`[SMS DEBUG] URL: ${process.env.SMS_API_URL}`);
+            console.log(`[SMS DEBUG] Username: ${process.env.SMS_USERNAME}`);
+            // Do not log password
+            
             const smsPayload = {
                 loginname: process.env.SMS_USERNAME,
                 password: process.env.SMS_PASSWORD,
                 phone: phone,
                 content: smsContent
             };
-            
-            console.log('=== SMS发送请求 ===');
-            console.log('API URL:', process.env.SMS_API_URL);
-            console.log('手机号:', phone);
-            console.log('短信内容:', smsContent);
-            console.log('用户名:', process.env.SMS_USERNAME);
             
             const smsResponse = await axios.post(process.env.SMS_API_URL, smsPayload, {
                 headers: {
@@ -1226,14 +1417,16 @@ app.post('/api/send-verification-code', async (req, res) => {
                 timeout: 10000
             });
             
-            console.log('=== SMS API响应 ===');
-            console.log('完整响应:', JSON.stringify(smsResponse.data, null, 2));
+            console.log('[SMS DEBUG] SMS API Response Status:', smsResponse.status);
+            console.log('[SMS DEBUG] SMS API Response Data:', JSON.stringify(smsResponse.data));
             
             if (smsResponse.data.retcode !== '0') {
-                console.error('SMS send failed:', smsResponse.data);
+                console.error('[SMS ERROR] SMS send failed. Retcode:', smsResponse.data.retcode);
                 return res.status(500).json({ error: '短信发送失败：' + (smsResponse.data.pno || '未知错误') });
             }
             
+            console.log('[SMS DEBUG] SMS sent successfully. Saving to DB...');
+
             // 保存验证码到数据库
             const verificationCode = new VerificationCode({
                 phone: phone,
@@ -1241,6 +1434,7 @@ app.post('/api/send-verification-code', async (req, res) => {
             });
             
             await verificationCode.save();
+            console.log('[SMS DEBUG] Verification code saved to DB.');
             
             res.json({ 
                 success: true, 
@@ -1249,9 +1443,9 @@ app.post('/api/send-verification-code', async (req, res) => {
             });
             
         } catch (smsError) {
-            console.error('SMS API Error:', smsError.message);
+            console.error('[SMS ERROR] Exception occurred:', smsError.message);
             if (smsError.response) {
-                console.error('SMS API Response:', smsError.response.data);
+                console.error('[SMS ERROR] Response Data:', smsError.response.data);
             }
             return res.status(500).json({ error: '短信发送失败，请稍后重试' });
         }
@@ -1992,6 +2186,136 @@ app.delete('/api/efficiency-diagnosis/:id', authRequired, requirePerm('appointme
     try {
         await EfficiencySubmission.findByIdAndDelete(req.params.id);
         await logOp('delete', 'Efficiency', `Deleted submission: ${req.params.id}`, req.user.username);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// --- Video Module ---
+// Video Categories
+app.get('/api/video-categories', async (req, res) => {
+    try {
+        const setting = await Setting.findOne({ key: 'video_categories' });
+        const defaults = [
+            { code: 'demo', name: '产品演示' },
+            { code: 'interview', name: '专家访谈' },
+            { code: 'case', name: '客户案例' },
+            { code: 'replay', name: '直播回放' }
+        ];
+        res.json((setting && Array.isArray(setting.value) && setting.value.length) ? setting.value : defaults);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Public: List videos (with optional pagination)
+app.get('/api/videos', async (req, res) => {
+    try {
+        const { keyword, category, featured, page, limit } = req.query;
+        const query = {};
+        if (keyword) {
+            const regex = new RegExp(keyword, 'i');
+            query.$or = [{ title: regex }, { description: regex }];
+        }
+        if (category && category !== 'all') {
+            query.category = category;
+        }
+        if (featured === 'true') {
+            query.isRecommended = true;
+        }
+        const sort = { publishDate: -1 };
+        if (page && limit) {
+            const skip = (parseInt(page) - 1) * parseInt(limit);
+            const total = await Video.countDocuments(query);
+            const data = await Video.find(query).sort(sort).skip(skip).limit(parseInt(limit));
+            return res.json({
+                data,
+                pagination: {
+                    total,
+                    page: parseInt(page),
+                    pages: Math.ceil(total / parseInt(limit))
+                }
+            });
+        }
+        const list = await Video.find(query).sort(sort);
+        res.json(list);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Public: Get video detail by id and increment views
+app.get('/api/videos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(404).json({ error: 'Invalid video id' });
+        }
+        await Video.updateOne({ _id: id }, { $inc: { views: 1 } });
+        const video = await Video.findById(id);
+        if (!video) return res.status(404).json({ error: 'Video not found' });
+        res.json(video);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Public: Get video detail by slug
+app.get('/api/videos/detail/query', async (req, res) => {
+    try {
+        const { slug } = req.query;
+        if (!slug) return res.status(400).json({ error: 'Slug is required' });
+        await Video.updateOne({ slug }, { $inc: { views: 1 } });
+        const video = await Video.findOne({ slug });
+        if (!video) return res.status(404).json({ error: 'Video not found' });
+        res.json(video);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Admin: Create video
+app.post('/api/videos', authRequired, requirePerm('video:create'), async (req, res) => {
+    try {
+        const { slug } = req.body;
+        if (slug) {
+            const existing = await Video.findOne({ slug });
+            if (existing) return res.status(400).json({ error: 'URL (Slug) 已存在，请更换' });
+        }
+        const video = new Video(req.body);
+        if (!video.slug) video.slug = 'vid-' + Date.now();
+        if (!video.publishDate) video.publishDate = new Date();
+        await video.save();
+        await logOp('create', 'Video', `Created video: ${video.title}`, req.user.username);
+        res.json({ success: true, data: video });
+    } catch (e) {
+        if (e.code === 11000) return res.status(400).json({ error: 'URL (Slug) 已存在' });
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Admin: Update video
+app.put('/api/videos/:id', authRequired, requirePerm('video:edit'), async (req, res) => {
+    try {
+        const { slug } = req.body;
+        if (slug) {
+            const existing = await Video.findOne({ slug, _id: { $ne: req.params.id } });
+            if (existing) return res.status(400).json({ error: 'URL (Slug) 已存在，请更换' });
+        }
+        const updated = await Video.findByIdAndUpdate(req.params.id, { ...req.body }, { new: true });
+        await logOp('update', 'Video', `Updated video: ${updated?.title || req.params.id}`, req.user.username);
+        res.json({ success: true, data: updated });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Admin: Delete video
+app.delete('/api/videos/:id', authRequired, requirePerm('video:delete'), async (req, res) => {
+    try {
+        await Video.findByIdAndDelete(req.params.id);
+        await logOp('delete', 'Video', `Deleted video: ${req.params.id}`, req.user.username);
         res.json({ success: true });
     } catch (e) {
         res.status(500).json({ error: e.message });
