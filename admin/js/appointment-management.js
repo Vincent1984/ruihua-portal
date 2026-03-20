@@ -5,23 +5,31 @@ function loadAppointments(page = 1) {
     window.appointmentCurrentPage = page;
     toggleLoading(true);
     
-    fetch(`/api/appointments?page=${page}&limit=10`, { headers: authHeaders() })
+    const statusFilter = document.getElementById('appointmentStatusFilter')?.value || '';
+    const sort = document.getElementById('appointmentSort')?.value || '-1';
+    
+    fetch(`/api/appointments?page=${page}&limit=10&status=${statusFilter}&sort=${sort}`, { headers: authHeaders() })
     .then(res => res.json())
     .then(data => {
-        const tbody = document.getElementById('appointmentList');
+        const tbody = document.getElementById('appointmentsList');
         if (!tbody) return;
 
         if (data.data && data.data.length > 0) {
-            tbody.innerHTML = data.data.map(app => `
+            tbody.innerHTML = data.data.map(app => {
+                const utm = [app.utm_source, app.utm_medium, app.utm_campaign].filter(Boolean).join(' / ') || '-';
+                return `
                 <tr>
-                    <td>${new Date(app.createdAt).toLocaleString()}</td>
-                    <td>${app.name}</td>
-                    <td>${app.phone}</td>
+                    <td>${app.name || '-'}</td>
+                    <td>${app.phone || '-'}</td>
                     <td>${app.company || '-'}</td>
-                    <td>${app.serviceType || '-'}</td>
+                    <td>${app.title || '-'}</td>
+                    <td style="max-width: 200px;" class="text-truncate" title="${app.problem || ''}">${app.problem || '-'}</td>
+                    <td>${app.source || '-'}</td>
+                    <td><span class="badge bg-light text-dark border">${utm}</span></td>
                     <td>
                         <span class="badge bg-${getStatusColor(app.status)}">${getStatusText(app.status)}</span>
                     </td>
+                    <td>${new Date(app.createdAt).toLocaleString()}</td>
                     <td>
                         <div class="btn-group btn-group-sm">
                             <button class="btn btn-outline-success" onclick="updateAppointmentStatus('${app._id}', 'contacted')" title="标记为已联系">
@@ -36,17 +44,13 @@ function loadAppointments(page = 1) {
                         </div>
                     </td>
                 </tr>
-                <tr class="bg-light">
-                    <td colspan="7" class="small text-muted py-2 px-4">
-                        <i class="bi bi-chat-quote me-2"></i>需求描述: ${app.description || '无'}
-                    </td>
-                </tr>
-            `).join('');
+                `;
+            }).join('');
 
             // Pagination
             renderAppointmentPagination(data.pagination);
         } else {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">暂无预约记录</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-muted">暂无预约记录</td></tr>';
         }
     })
     .catch(err => {
@@ -116,33 +120,37 @@ function deleteAppointment(id) {
 }
 
 function renderAppointmentPagination(pagination) {
-    const container = document.getElementById('appointmentPagination');
-    if (!container || !pagination) return;
+    if (!pagination) return;
     
-    const { page, pages } = pagination;
+    const { total, page, pages } = pagination;
+    window.appointmentTotalPages = pages || 1;
     
-    let html = '';
+    const totalEl = document.getElementById('appointmentsTotal');
+    if (totalEl) totalEl.textContent = total || 0;
     
-    // Prev
-    html += `<li class="page-item ${page <= 1 ? 'disabled' : ''}">
-        <button class="page-link" onclick="loadAppointments(${page - 1})">上一页</button>
-    </li>`;
+    const pageNumEl = document.getElementById('appointmentPageNum');
+    if (pageNumEl) pageNumEl.textContent = page || 1;
     
-    // Pages
-    for (let i = 1; i <= pages; i++) {
-        if (i === 1 || i === pages || (i >= page - 2 && i <= page + 2)) {
-            html += `<li class="page-item ${i === page ? 'active' : ''}">
-                <button class="page-link" onclick="loadAppointments(${i})">${i}</button>
-            </li>`;
-        } else if (i === page - 3 || i === page + 3) {
-            html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-        }
+    const totalPagesEl = document.getElementById('appointmentTotalPages');
+    if (totalPagesEl) totalPagesEl.textContent = pages || 1;
+}
+
+function changeAppointmentPage(delta) {
+    const currentPage = window.appointmentCurrentPage || 1;
+    const totalPages = window.appointmentTotalPages || 1;
+    
+    let newPage = currentPage + delta;
+    if (newPage < 1) newPage = 1;
+    if (newPage > totalPages) newPage = totalPages;
+    
+    if (newPage !== currentPage) {
+        loadAppointments(newPage);
     }
-    
-    // Next
-    html += `<li class="page-item ${page >= pages ? 'disabled' : ''}">
-        <button class="page-link" onclick="loadAppointments(${page + 1})">下一页</button>
-    </li>`;
-    
-    container.innerHTML = html;
+}
+
+// Export function
+function exportAppointments() {
+    const statusFilter = document.getElementById('appointmentStatusFilter')?.value || '';
+    const sort = document.getElementById('appointmentSort')?.value || '-1';
+    window.location.href = `/api/appointments/export?token=${sessionStorage.getItem('token')}&status=${statusFilter}&sort=${sort}`;
 }

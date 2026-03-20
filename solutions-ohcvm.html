@@ -26,6 +26,7 @@
                     <a href="/" class="nav-link" title="首页">首页</a>
                     <a href="/solutions/" class="nav-link font-semibold text-brand-700 bg-brand-50" title="解决方案">解决方案</a>
                     <a href="/resources/" class="nav-link" title="行业洞察">行业洞察</a>
+                    <a href="/videos/" class="nav-link" title="视频中心">视频中心</a>
                     <a href="/#cases" class="nav-link" title="成功案例">成功案例</a>
                     <a href="/about/" class="nav-link" title="关于我们">关于我们</a>
                 </nav>
@@ -47,6 +48,7 @@
                 <a href="/" class="mobile-nav-link font-semibold text-brand-700 bg-brand-50" title="首页">首页</a>
                 <a href="/solutions/" class="mobile-nav-link" title="解决方案">解决方案</a>
                 <a href="/resources/" class="mobile-nav-link" title="行业洞察">行业洞察</a>
+                <a href="/videos/" class="mobile-nav-link" title="视频中心">视频中心</a>
                 <a href="/#cases" class="mobile-nav-link" title="成功案例">成功案例</a>
                 <a href="/about/" class="mobile-nav-link" title="关于我们">关于我们</a>
                 <button onclick="toggleSearch()" class="mobile-nav-link text-left flex items-center gap-2 text-slate-600 hover:text-brand-600">
@@ -958,6 +960,14 @@
     </main>
 
     <footer id="footer-container" role="contentinfo"></footer>
+    <script type="module">
+        import { NavComponent } from '/js/NavComponent.js';
+        import { FooterComponent } from '/js/FooterComponent.js';
+        
+        // Initialize Components
+        const nav = new NavComponent();
+        const footer = new FooterComponent();
+    </script>
 
     <!-- Sticky CTA -->
     <div id="sticky-cta" class="sticky-cta bg-white/90 backdrop-blur-md border-t border-slate-200 p-4 md:hidden shadow-[0_-5px_20px_rgba(0,0,0,0.1)]">
@@ -1004,9 +1014,4 @@
     <script src="/js/script.js"></script>
     <script src="/js/main.js"></script>
     <script src="/js/solutions.js"></script>
-    <script type="module">
-        import { FooterComponent } from '/js/FooterComponent.js';
-        const footer = new FooterComponent();
-        footer.render();
-    </script>
 </body></html>

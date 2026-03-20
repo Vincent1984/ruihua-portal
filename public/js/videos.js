@@ -11,7 +11,8 @@ const vc = {
   },
   async init() {
     await this.loadCategories();
-    await this.loadVideos(true);
+    this.loadFeaturedVideo(); // Load featured independently
+    await this.loadVideos();
     this.bind();
   },
   bind() {
@@ -37,38 +38,143 @@ const vc = {
         this.state.page = 1;
         document.querySelectorAll('.vc-tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
-        this.loadVideos(true);
+        this.loadVideos();
       }
     });
   },
   async loadCategories() {
     try {
-      const res = await fetch('/api/video-categories');
-      const cats = await res.json();
-      const tabs = [{ code: 'all', name: '全部', icon: 'fa-layer-group' }, ...cats];
-      
-      // 为每个分类分配一个图标（如果 API 没给的话）
-      const iconMap = {
-        'demo': 'fa-desktop',
-        'interview': 'fa-microphone-lines',
-        'case': 'fa-briefcase',
-        'replay': 'fa-clock-rotate-left'
-      };
+      // Step 1: Try to load from localStorage cache first
+      const CACHE_KEY = 'ruihua_video_categories_cache';
+      const CACHE_TIME_KEY = 'ruihua_video_categories_cache_time';
+      const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-      this.state.categories = tabs;
-      const container = document.getElementById('video-tabs');
-      if (!container) return;
-      container.innerHTML = tabs.map((c, i) => `
-        <button class="vc-tab tab-btn ${i === 0 ? 'active' : ''}" data-cat="${c.code}" aria-selected="${i === 0 ? 'true' : 'false'}">
-          <i class="fas ${c.icon || iconMap[c.code] || 'fa-tag'} text-xs"></i>
-          ${c.name}
-        </button>
-      `).join('');
+      let cachedCats = null;
+      const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+      if (cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
+        try {
+          cachedCats = JSON.parse(localStorage.getItem(CACHE_KEY));
+        } catch (e) {}
+      }
+
+      if (cachedCats) {
+        this.renderCategoryTabs(cachedCats);
+        // Async diff validation
+        this.validateAndSyncCategories(cachedCats);
+      } else {
+        // No cache or expired, fetch directly
+        const res = await fetch('/api/video-categories/list');
+        const json = await res.json();
+        const cats = json.data || [];
+        localStorage.setItem(CACHE_KEY, JSON.stringify(cats));
+        localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+        this.renderCategoryTabs(cats);
+      }
     } catch (e) {
       console.error('加载视频分类失败', e);
     }
   },
-  async loadVideos(updateBanner = false) {
+  
+  async validateAndSyncCategories(cachedCats) {
+    try {
+      const res = await fetch('/api/video-categories/list');
+      const json = await res.json();
+      const latestCats = json.data || [];
+      const latestStr = JSON.stringify(latestCats);
+      const cachedStr = JSON.stringify(cachedCats);
+      
+      if (latestStr !== cachedStr) {
+        console.warn('[Data Sync] 分类数据存在差异，正在自动修正...');
+        localStorage.setItem('ruihua_video_categories_cache', latestStr);
+        localStorage.setItem('ruihua_video_categories_cache_time', Date.now().toString());
+        this.renderCategoryTabs(latestCats);
+      }
+    } catch (e) {
+      console.error('分类数据一致性校验失败', e);
+    }
+  },
+
+  renderCategoryTabs(cats) {
+    const formattedCats = cats.map(c => ({
+      code: c._id || c.code,
+      name: c.name,
+      icon: c.icon
+    }));
+    const tabs = [{ code: 'all', name: '全部', icon: 'fa-layer-group' }, ...formattedCats];
+    
+    // 为每个分类分配一个图标（如果 API 没给的话）
+    const iconMap = {
+      'demo': 'fa-desktop',
+      'interview': 'fa-microphone-lines',
+      'case': 'fa-briefcase',
+      'replay': 'fa-clock-rotate-left'
+    };
+
+    this.state.categories = tabs;
+    const container = document.getElementById('video-tabs');
+    if (!container) return;
+    
+    // Remember current active tab code to re-apply it
+    const activeCode = this.state.category || 'all';
+
+    container.innerHTML = tabs.map((c, i) => `
+      <button class="vc-tab tab-btn ${c.code === activeCode ? 'active' : ''}" data-cat="${c.code}" aria-selected="${c.code === activeCode ? 'true' : 'false'}">
+        <i class="fas ${c.icon || iconMap[c.code] || 'fa-tag'} text-xs"></i>
+        ${c.name}
+      </button>
+    `).join('');
+  },
+  async loadFeaturedVideo() {
+    const banner = document.getElementById('video-hero');
+    if (!banner) return;
+    
+    const CACHE_KEY = 'ruihua_video_featured_cache';
+    const CACHE_TIME_KEY = 'ruihua_video_featured_cache_time';
+    const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+    
+    let featuredVideo = null;
+    const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+    if (cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
+      try {
+        featuredVideo = JSON.parse(localStorage.getItem(CACHE_KEY));
+      } catch (e) {}
+    }
+    
+    if (featuredVideo) {
+      this.renderBanner(featuredVideo);
+    }
+    
+    // Fetch latest in background or if no cache
+    try {
+      const res = await fetch('/api/videos?featured=true&limit=1');
+      const data = await res.json();
+      const list = Array.isArray(data) ? data : (data.data || []);
+      const latestVideo = list.length > 0 ? list[0] : null;
+      
+      // Update cache and UI if changed or first load
+      const latestStr = JSON.stringify(latestVideo);
+      const cachedStr = JSON.stringify(featuredVideo);
+      
+      if (latestStr !== cachedStr) {
+        if (latestVideo) {
+          localStorage.setItem(CACHE_KEY, latestStr);
+          localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+          this.renderBanner(latestVideo);
+        } else {
+          localStorage.removeItem(CACHE_KEY);
+          banner.style.display = 'none';
+        }
+      } else if (!latestVideo) {
+         banner.style.display = 'none';
+      }
+    } catch (e) {
+      console.error('加载推荐视频失败', e);
+      if (!featuredVideo) {
+        banner.style.display = 'none';
+      }
+    }
+  },
+  async loadVideos() {
     const grid = document.getElementById('videos-grid');
     const pager = document.getElementById('videos-pager');
     if (!grid) return;
@@ -104,9 +210,6 @@ const vc = {
         if (pager) pager.innerHTML = '';
         return;
       }
-      if (updateBanner) {
-        this.renderBanner(list[0]);
-      }
       grid.innerHTML = list.map(v => this.cardHtml(v)).join('');
       if (pager) pager.innerHTML = this.pagerHtml(this.state.page, this.state.totalPages);
     } catch (e) {
@@ -118,6 +221,7 @@ const vc = {
   renderBanner(video) {
     const banner = document.getElementById('video-hero');
     if (!banner || !video) return;
+    banner.style.display = 'block';
     const cover = video.thumbnail || `https://picsum.photos/seed/${video.slug || video._id || Date.now()}/1200/600`;
     const title = video.title || '精选视频';
     const desc = video.description || '精选视频内容推荐';

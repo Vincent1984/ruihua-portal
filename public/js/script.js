@@ -1215,60 +1215,69 @@ let currentArticleId = null;
 // 前台文章详情页 - 加载文章详情
 async function loadArticleDetail() {
     try {
-        const urlParams = new URLSearchParams(window.location.search);
-        let id = urlParams.get('id');
-        let slug = null;
+        let data;
+        let isInitialLoad = false;
         
-        // If no ID, try to extract slug from URL path
-        if (!id) {
-            const path = window.location.pathname;
-            // Matches /article/some-slug or /article/some-slug.html
-            const match = path.match(/\/article\/(.+?)(\.html)?$/);
-            if (match && match[1]) {
-                slug = match[1].replace('.html', '');
-            }
-        }
-        
-        if (!id && !slug) {
-            const t = document.getElementById('article-title');
-            const c = document.getElementById('article-container');
-            if (t) t.textContent = '未找到文章';
-            if (c) c.innerHTML = `<div class="text-center text-slate-500 py-10">抱歉，未提供有效的文章ID或链接。</div>`;
-            return;
-        }
-
-        let apiUrl;
-        if (id) {
-            apiUrl = '/api/articles/' + id;
+        // If SSR data is available, use it immediately
+        if (window.__ARTICLE_DATA__) {
+            data = window.__ARTICLE_DATA__;
+            isInitialLoad = true;
         } else {
-            apiUrl = `/api/articles/detail/query?slug=${slug}`;
-        }
-
-        // Add timestamp to prevent caching
-        const separator = apiUrl.includes('?') ? '&' : '?';
-        apiUrl += `${separator}_t=${Date.now()}`;
-
-        const response = await fetch(apiUrl, {
-            headers: {
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache'
+            const urlParams = new URLSearchParams(window.location.search);
+            let id = urlParams.get('id');
+            let slug = null;
+            
+            // If no ID, try to extract slug from URL path
+            if (!id) {
+                const path = window.location.pathname;
+                // Matches /article/some-slug or /article/some-slug.html
+                const match = path.match(/\/article\/(.+?)(\.html)?$/);
+                if (match && match[1]) {
+                    slug = match[1].replace('.html', '');
+                }
             }
-        });
-        if (!response.ok) {
-            const t = document.getElementById('article-title');
-            const c = document.getElementById('article-container');
-            if (response.status === 404) {
-                if (t) t.textContent = '文章不存在或已删除';
-                if (c) c.innerHTML = `<div class="text-center text-slate-500 py-10">抱歉，您访问的文章不存在或已被删除。</div>`;
+            
+            if (!id && !slug) {
+                const t = document.getElementById('article-title');
+                const c = document.getElementById('article-container');
+                if (t) t.textContent = '未找到文章';
+                if (c) c.innerHTML = `<div class="text-center text-slate-500 py-10">抱歉，未提供有效的文章ID或链接。</div>`;
+                return;
+            }
+
+            let apiUrl;
+            if (id) {
+                apiUrl = '/api/articles/' + id;
             } else {
-                if (t) t.textContent = '文章加载失败';
-                if (c) c.innerHTML = `<div class="text-center text-slate-500 py-10">加载文章时出现错误，请稍后重试。</div>`;
+                apiUrl = `/api/articles/detail/query?slug=${slug}`;
             }
-            return;
-        }
-        const data = await response.json();
 
-        if (data.error) {
+            // Add timestamp to prevent caching
+            const separator = apiUrl.includes('?') ? '&' : '?';
+            apiUrl += `${separator}_t=${Date.now()}`;
+
+            const response = await fetch(apiUrl, {
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            });
+            if (!response.ok) {
+                const t = document.getElementById('article-title');
+                const c = document.getElementById('article-container');
+                if (response.status === 404) {
+                    if (t) t.textContent = '文章不存在或已删除';
+                    if (c) c.innerHTML = `<div class="text-center text-slate-500 py-10">抱歉，您访问的文章不存在或已被删除。</div>`;
+                } else {
+                    if (t) t.textContent = '文章加载失败';
+                    if (c) c.innerHTML = `<div class="text-center text-slate-500 py-10">加载文章时出现错误，请稍后重试。</div>`;
+                }
+                return;
+            }
+            data = await response.json();
+        }
+
+        if (data && data.error) {
             const t = document.getElementById('article-title');
             const c = document.getElementById('article-container');
             if (t) t.textContent = '文章加载失败';
@@ -1278,6 +1287,12 @@ async function loadArticleDetail() {
         
         // Store the resolved ID
         currentArticleId = data._id;
+
+        // If it was SSR loaded, we still want to hit the API in the background to increment views
+        if (isInitialLoad) {
+            const id = data._id;
+            fetch(`/api/articles/${id}?_t=${Date.now()}`, { method: 'GET', headers: { 'Cache-Control': 'no-cache' } }).catch(e => console.error('View increment failed', e));
+        }
 
         // Format Date Helper
         const formatDate = (dateStr) => {
@@ -1309,10 +1324,6 @@ async function loadArticleDetail() {
         if(document.getElementById('article-date')) {
             document.getElementById('article-date').textContent = formatDate(data.publishDate);
         }
-
-        // 2. Read Time
-        const readTime = Math.ceil((data.content || '').length / 500) || 1;
-        if(document.getElementById('article-readtime')) document.getElementById('article-readtime').textContent = readTime;
         
         // 3. Author
         if(document.getElementById('article-author')) {
@@ -1389,15 +1400,53 @@ async function loadArticleDetail() {
         // Render Summary if available
         if (data.summary) {
             const summaryEl = document.getElementById('article-summary');
-            if (summaryEl) {
-                summaryEl.textContent = data.summary;
+            const summaryTextEl = document.getElementById('article-summary-text');
+            if (summaryEl && summaryTextEl) {
+                summaryTextEl.textContent = data.summary;
                 summaryEl.classList.remove('hidden');
             }
         }
+        
+        // Render Q&A Section
+        if (data.qa && Array.isArray(data.qa) && data.qa.length > 0) {
+            const qaSection = document.getElementById('article-qa-section');
+            const qaContainer = document.getElementById('article-qa-container');
+            
+            if (qaSection && qaContainer) {
+                qaContainer.innerHTML = data.qa.map((qaItem, idx) => `
+                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <button class="w-full text-left px-5 py-4 font-bold text-slate-800 flex justify-between items-center focus:outline-none bg-slate-50/50 hover:bg-slate-50 transition-colors" onclick="toggleFrontQA(${idx})">
+                            <span class="flex gap-3"><span class="text-brand-600">Q.</span> ${qaItem.question}</span>
+                            <i class="fas fa-chevron-down text-slate-400 transition-transform duration-300" id="front-qa-icon-${idx}"></i>
+                        </button>
+                        <div class="px-5 pb-4 pt-2 text-slate-600 leading-relaxed bg-white d-none border-t border-slate-100" id="front-qa-body-${idx}" style="display: none;">
+                            <span class="font-bold text-slate-400 me-2">A.</span> ${qaItem.answer}
+                        </div>
+                    </div>
+                `).join('');
+                
+                qaSection.classList.remove('hidden');
+                
+                // Add toggle helper function to window if not exists
+                if (!window.toggleFrontQA) {
+                    window.toggleFrontQA = function(idx) {
+                        const body = document.getElementById(`front-qa-body-${idx}`);
+                        const icon = document.getElementById(`front-qa-icon-${idx}`);
+                        if (body.style.display === 'none') {
+                            body.style.display = 'block';
+                            icon.style.transform = 'rotate(180deg)';
+                        } else {
+                            body.style.display = 'none';
+                            icon.style.transform = 'rotate(0deg)';
+                        }
+                    };
+                }
+            }
+        }
 
-        // Render Content
+        // Render Content (Only update if we don't have SSR or data.content exists)
         const container = document.getElementById('article-container');
-        if(container) {
+        if(container && data.content) {
             container.innerHTML = data.content || '';
             // Highlight Code Blocks if Highlight.js is loaded
             if (window.hljs) {
@@ -1575,84 +1624,9 @@ function checkArticleStatus(id) {
     }
 }
 
-// 渲染侧边栏 (前台)
+// 渲染侧边栏 (前台) - Disabled due to SSR implementation
 async function renderSidebar() {
-    try {
-        const response = await fetch('/api/sidebar');
-        const data = await response.json();
-        
-        if (data && !data.error) {
-            // 更新白皮书信息
-            const wp = data.whitepaper || {};
-            if (wp.title) {
-                const t = document.getElementById('whitepaper-title');
-                if (t) t.textContent = wp.title;
-            }
-            if (wp.link) {
-                const l = document.getElementById('whitepaper-link');
-                if (l) l.href = wp.link;
-            }
-            if (wp.desc) {
-                const d = document.getElementById('whitepaper-desc');
-                if (d) d.textContent = wp.desc;
-            }
-            if (wp.count) {
-                const c = document.getElementById('whitepaper-count');
-                if (c) c.textContent = wp.count;
-            }
-
-            // Image handling
-            const titleEl = document.getElementById('whitepaper-title');
-            if (titleEl) {
-                const iconContainer = titleEl.previousElementSibling;
-                if (iconContainer && iconContainer.classList.contains('w-16')) {
-                    if (wp.img) {
-                        // Replace content with image
-                        iconContainer.innerHTML = `<img src="${wp.img}" alt="Whitepaper" class="w-full h-full object-cover rounded-full">`;
-                        // Remove default background/color classes to avoid clash
-                        iconContainer.classList.remove('bg-brand-50', 'text-brand-600');
-                    } else {
-                        // Revert to default icon
-                        iconContainer.innerHTML = `<i class="fas fa-file-pdf"></i>`;
-                        iconContainer.classList.add('bg-brand-50', 'text-brand-600');
-                    }
-                }
-            }
-            
-            // 更新推荐文章
-            const recArticles = data.recommendedArticles || [];
-            if (recArticles[0]) {
-                if (recArticles[0].title) {
-                    const el = document.getElementById('rec-title-1');
-                    if (el) el.textContent = recArticles[0].title;
-                }
-                if (recArticles[0].link) {
-                    const el = document.getElementById('rec-link-1');
-                    if (el) el.href = recArticles[0].link;
-                }
-                if (recArticles[0].category) {
-                    const el = document.getElementById('rec-cat-1');
-                    if (el) el.textContent = recArticles[0].category;
-                }
-            }
-            if (recArticles[1]) {
-                if (recArticles[1].title) {
-                    const el = document.getElementById('rec-title-2');
-                    if (el) el.textContent = recArticles[1].title;
-                }
-                if (recArticles[1].link) {
-                    const el = document.getElementById('rec-link-2');
-                    if (el) el.href = recArticles[1].link;
-                }
-                if (recArticles[1].category) {
-                    const el = document.getElementById('rec-cat-2');
-                    if (el) el.textContent = recArticles[1].category;
-                }
-            }
-        }
-    } catch (error) {
-        console.error('渲染侧边栏失败:', error);
-    }
+    // 侧边栏已经在服务端 SSR 阶段注入，无需前端 AJAX 二次渲染，保证 SEO 与用户体验
 }
 
 // 阅读进度条

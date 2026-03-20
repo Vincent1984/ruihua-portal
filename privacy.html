@@ -32,6 +32,7 @@
                     <a href="/" class="nav-link font-medium text-slate-600 hover:text-brand-600 px-3 py-2 rounded-lg transition">首页</a>
                     <a href="/solutions/" class="nav-link font-medium text-slate-600 hover:text-brand-600 px-3 py-2 rounded-lg transition">解决方案</a>
                     <a href="/resources/" class="nav-link font-medium text-slate-600 hover:text-brand-600 px-3 py-2 rounded-lg transition">行业洞察</a>
+                    <a href="/videos/" class="nav-link font-medium text-slate-600 hover:text-brand-600 px-3 py-2 rounded-lg transition">视频中心</a>
                     <a href="/about/" class="nav-link font-medium text-slate-600 hover:text-brand-600 px-3 py-2 rounded-lg transition">关于我们</a>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -173,34 +174,10 @@
         </div>
     </div>
 
-    <footer class="bg-slate-900 pt-16 pb-8 text-white mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row justify-between gap-10 mb-10">
-                <div class="md:max-w-xl text-left">
-                    <a href="/" class="inline-block mb-4">
-                        <img src="/images/logo.png" alt="瑞华智策" class="h-16 md:h-20 brightness-200 block">
-                    </a>
-                    <p class="text-slate-400 text-sm mb-4">瑞华智策以「咨询+技术+服务」三位一体的模式，助力企业构建「人力资本价值经营」体系，打造 AI 时代持续增长的韧性组织。</p>
-                    <div class="flex items-center gap-2 text-sm text-slate-500"><i class="fas fa-building"></i><span>人瑞人才</span><span class="text-brand-400 font-medium">(6919.HK)</span><span>旗下全资子公司</span></div>
-                </div>
-                <div>
-                    <h4 class="font-bold text-white mb-4">联系我们</h4>
-                    <ul class="space-y-2 text-sm text-slate-400 mb-4">
-                        <li class="flex items-center gap-2"><i class="fas fa-envelope text-brand-400"></i><a href="mailto:rxzj@renruihr.com" class="hover:text-white transition">rxzj@renruihr.com</a></li>
-                        <li class="flex items-center gap-2"><i class="fas fa-phone text-brand-400"></i><span>400-175-0886</span></li>
-                        <li class="flex items-center gap-2"><i class="fas fa-location-dot text-brand-400"></i><span>上海 · 北京 · 深圳 · 成都</span></li>
-                    </ul>
-                    <div class="flex gap-4">
-                        <a href="#" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-brand-600 transition"><i class="fab fa-weixin"></i></a>
-                        <a href="#" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-brand-600 transition"><i class="fab fa-linkedin-in"></i></a>
-                    </div>
-                </div>
-            </div>
-            <div class="pt-6 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
-                <p class="text-sm text-slate-500">© 2025 瑞华智策 Ruihua Intelligent Strategy. All rights reserved.</p>
-                <div class="flex gap-6 text-sm text-slate-500"><a href="privacy.html" class="text-white font-medium transition">隐私政策</a></div>
-            </div>
-        </div>
-    </footer>
+    <footer id="footer-container" role="contentinfo"></footer>
+    <script type="module">
+        import { FooterComponent } from '/js/FooterComponent.js';
+        const footer = new FooterComponent();
+    </script>
 </body>
 </html>

@@ -1,0 +1,127 @@
+openapi: 3.0.0
+info:
+  title: Ruihua Portal API - FAQ & Video Management
+  version: 1.0.0
+  description: API for managing FAQs and Videos with Rich Text content.
+
+paths:
+  /api/faqs:
+    get:
+      summary: Get list of FAQs
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [published, draft, archived]
+          description: Filter by status
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: Limit number of results
+      responses:
+        '200':
+          description: A list of FAQs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Faq'
+    post:
+      summary: Create a new FAQ
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FaqInput'
+      responses:
+        '200':
+          description: FAQ created successfully
+
+  /api/faqs/{id}:
+    put:
+      summary: Update an existing FAQ
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FaqInput'
+      responses:
+        '200':
+          description: FAQ updated successfully
+    delete:
+      summary: Delete an FAQ
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: FAQ deleted successfully
+
+components:
+  schemas:
+    Faq:
+      type: object
+      properties:
+        _id:
+          type: string
+        question:
+          type: string
+        description:
+          type: string
+        answer:
+          type: string
+        order:
+          type: integer
+        status:
+          type: string
+          enum: [published, draft, archived]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          
+    FaqInput:
+      type: object
+      required:
+        - question
+        - answer
+      properties:
+        question:
+          type: string
+        description:
+          type: string
+        answer:
+          type: string
+        order:
+          type: integer
+        status:
+          type: string
+          enum: [published, draft, archived]
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

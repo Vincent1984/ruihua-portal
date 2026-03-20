@@ -33,6 +33,7 @@ const Video = require('./models/Video');
 const quizData = require('./config/quizData'); // Import Quiz Data
 const efficiencyQuizData = require('./config/efficiencyQuizData'); // Import Efficiency Quiz Data
 const XLSX = require('xlsx'); // Import xlsx
+const xss = require('xss');
 const { slugify } = require('transliteration');
 const domainNormalizer = require('./middleware/domainNormalizer');
 const legacyRedirects = require('./middleware/legacyRedirects');
@@ -46,11 +47,54 @@ const SECRET_KEY = process.env.SECRET_KEY || 'default_secret_key_if_env_missing'
 app.use(domainNormalizer);
 app.use(legacyRedirects);
 
+// Reusable Footer Injection for SSR pages
+const injectFooterHTML = (document) => {
+    const currentYear = new Date().getFullYear();
+    const footerHtml = `
+    <footer class="bg-slate-900 pt-16 pb-8 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between gap-10 mb-10">
+                <div class="md:max-w-xl text-left">
+                    <a href="/" class="inline-block mb-4">
+                        <img src="/images/logo.png" alt="瑞华智策" class="footer-logo block h-10 w-auto">
+                    </a>
+                    <p class="text-slate-400 text-sm mb-4">瑞华智策以「咨询+技术+服务」三位一体的模式，助力企业构建「人力资本价值经营」体系，打造 AI 时代持续增长的韧性组织。</p>
+                    <div class="flex items-center gap-2 text-sm text-slate-500"><i class="fas fa-building"></i><span>人瑞人才</span><span class="text-brand-400 font-medium">(6919.HK)</span><span>旗下全资子公司</span></div>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-4">联系我们</h4>
+                    <ul class="space-y-2 text-sm text-slate-400 mb-4">
+                        <li class="flex items-center gap-2"><i class="fas fa-envelope text-brand-400"></i><a href="mailto:rxzj@renruihr.com" class="hover:text-white transition">rxzj@renruihr.com</a></li>
+                        <li class="flex items-center gap-2"><i class="fas fa-phone text-brand-400"></i><a href="/productivity/" class="hover:text-white transition">预约专家咨询</a></li>
+                        <li class="flex items-center gap-2"><i class="fas fa-location-dot text-brand-400"></i><span>上海 · 北京 · 深圳 · 成都</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="pt-6 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-sm text-slate-500">
+                    <p>© ${currentYear} 瑞华智策 Ruihua Intelligent Strategy. All rights reserved.</p>
+                    <span class="hidden md:inline text-slate-700">|</span>
+                    <a href="https://beian.miit.gov.cn/" target="_blank" class="hover:text-white transition">沪ICP备12042344号-24</a>
+                </div>
+                <div class="flex gap-6 text-sm text-slate-500"><a href="/privacy.html" class="hover:text-white transition">隐私政策</a></div>
+            </div>
+        </div>
+    </footer>
+    `;
+    const footerPlaceholder = document.getElementById('footer-container');
+    if (footerPlaceholder) {
+        footerPlaceholder.innerHTML = footerHtml;
+    }
+};
+
 // Middleware
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
+            imgSrc: ["'self'", "data:", "blob:", "picsum.photos", "placehold.co", "https://hm.baidu.com", "unpkg.com", "https://*.volces.com"],
+            connectSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdn.quilljs.com", "https://cdn.bootcdn.net", "unpkg.com", "https://*.volces.com"],
+            mediaSrc: ["'self'", "blob:", "https://*.volces.com"],
             scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "cdn.tailwindcss.com", "cdnjs.cloudflare.com", "cdn.jsdelivr.net", "cdn.quilljs.com", "cdn.bootcdn.net", "https://hm.baidu.com"],
             scriptSrcAttr: ["'unsafe-inline'"], 
             styleSrc: ["'self'", "'unsafe-inline'", "cdn.tailwindcss.com", "cdnjs.cloudflare.com", "fonts.googleapis.com", "cdn.jsdelivr.net", "cdn.quilljs.com", "cdn.bootcdn.net"],
@@ -85,8 +129,8 @@ app.use('/api/', (req, res, next) => {
 // Stricter Rate Limiting for Login - REMOVED
 
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
 // Manual Mongo Sanitize to fix "Cannot set property query" error
@@ -143,33 +187,436 @@ app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
 // Serve specific HTML files from root
 const rootHtmlFiles = [
-    'article.html', 'diagnostic-result.html', 
-    'form.html', 'form2.html', 'privacy.html',
-    'efficiency-diagnostic.html', 'sales-toolkit.html',
-    'videos.html', 'video-detail.html'
-    // Removed solutions-ahcvm.html and solutions-ohcvm.html to handle directory style redirects
+    'form.html', 'form2.html',
+    'efficiency-diagnostic.html',
+    'video-detail.html',
+    'privacy.html',
+    'solutions.html',
+    'solutions-hcvm.html',
+    'solutions-ohcvm.html',
+    'about.html'
 ];
 
 rootHtmlFiles.forEach(file => {
-    app.get('/' + file, (req, res) => res.sendFile(path.join(__dirname, file)));
+    if (['privacy.html', 'solutions.html', 'solutions-hcvm.html', 'solutions-ohcvm.html', 'about.html'].includes(file)) {
+        app.get('/' + file, (req, res) => renderStaticHtmlWithFooter(res, file));
+    } else {
+        app.get('/' + file, (req, res) => res.sendFile(path.join(__dirname, file)));
+    }
+});
+
+// Helper for SEO SSR on Article Page
+const fs = require('fs');
+const { JSDOM } = require('jsdom');
+let articleTemplateCache = null;
+
+async function getArticleTemplate() {
+    if (process.env.NODE_ENV === 'production' && articleTemplateCache) {
+        return articleTemplateCache;
+    }
+    const html = await fs.promises.readFile(path.join(__dirname, 'article.html'), 'utf8');
+    if (process.env.NODE_ENV === 'production') {
+        articleTemplateCache = html;
+    }
+    return html;
+}
+
+async function renderArticlePage(req, res, article) {
+    try {
+        let html = await getArticleTemplate();
+        if (article) {
+            const dom = new JSDOM(html);
+            const document = dom.window.document;
+
+            // 1. SEO Tags
+            const titleText = (article.title || '文章详情') + ' - 瑞华智策';
+            document.title = titleText;
+            
+            // Canonical Tag
+            let canonical = document.querySelector('link[rel="canonical"]');
+            if (!canonical) {
+                canonical = document.createElement('link');
+                canonical.rel = 'canonical';
+                document.head.appendChild(canonical);
+            }
+            const SITE_URL = process.env.SITE_URL || 'https://www.ruihuaconsulting.com';
+            canonical.href = `${SITE_URL}/article/${article.slug || article._id}.html`;
+
+            if (article.summary) {
+                let metaDesc = document.querySelector('meta[name="description"]');
+                if (!metaDesc) {
+                    metaDesc = document.createElement('meta');
+                    metaDesc.name = 'description';
+                    document.head.appendChild(metaDesc);
+                }
+                metaDesc.content = article.summary.replace(/\r?\n/g, ' ');
+            }
+
+            // --- GEO: Inject Article Schema ---
+            let schemaScript = document.querySelector('script[type="application/ld+json"]');
+            if (!schemaScript) {
+                schemaScript = document.createElement('script');
+                schemaScript.type = 'application/ld+json';
+                document.head.appendChild(schemaScript);
+            }
+            const articleSchema = {
+                "@context": "https://schema.org",
+                "@type": "Article",
+                "headline": article.title,
+                "image": article.coverImage ? [article.coverImage] : [],
+                "datePublished": article.publishDate,
+                "dateModified": article.updatedAt || article.publishDate,
+                "author": {
+                    "@type": "Person",
+                    "name": (article.author && article.author.name) ? article.author.name : "瑞华智策"
+                },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "瑞华智策",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": "https://www.ruihuaconsulting.com/images/logo.png"
+                    }
+                },
+                "description": article.summary || ""
+            };
+            schemaScript.textContent = JSON.stringify(articleSchema);
+
+            // 2. Article Content (SSR)
+            const titleEl = document.getElementById('article-title');
+            if (titleEl) titleEl.textContent = article.title || '';
+
+            const breadcrumbEl = document.getElementById('breadcrumb-title');
+            if (breadcrumbEl) breadcrumbEl.textContent = article.title || '';
+
+            const containerEl = document.getElementById('article-container');
+            if (containerEl && article.content) {
+                containerEl.innerHTML = article.content;
+            }
+
+            const summaryEl = document.getElementById('article-summary');
+            const summaryTextEl = document.getElementById('article-summary-text');
+            if (summaryEl && summaryTextEl && article.summary) {
+                summaryTextEl.textContent = article.summary;
+                summaryEl.classList.remove('hidden');
+            }
+
+            const authorEl = document.getElementById('article-author');
+            if (authorEl && article.author && article.author.name) {
+                authorEl.textContent = article.author.name;
+            }
+
+            const dateEl = document.getElementById('article-date');
+            if (dateEl && article.publishDate) {
+                const d = new Date(article.publishDate);
+                dateEl.textContent = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            }
+
+            const updatedEl = document.getElementById('article-updated');
+            if (updatedEl && article.updatedAt) {
+                const d = new Date(article.updatedAt);
+                updatedEl.textContent = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            }
+
+            const viewsEl = document.getElementById('article-views');
+            if (viewsEl) {
+                viewsEl.textContent = article.views || 0;
+            }
+            
+            // SSR Render Q&A Section
+            if (article.qaList && article.qaList.length > 0) {
+                const qaSection = document.getElementById('article-qa-section');
+                const qaContainer = document.getElementById('article-qa-container');
+                if (qaSection && qaContainer) {
+                    qaSection.classList.remove('hidden');
+                    let qaHtml = '';
+                    let qaSchemaItems = [];
+                    
+                    article.qaList.forEach((qa, idx) => {
+                        qaHtml += `
+                            <div class="bg-slate-50 rounded-xl p-5 border border-slate-100">
+                                <h4 class="font-bold text-slate-800 mb-2 flex items-start gap-2">
+                                    <span class="text-brand-600">Q:</span> ${qa.question}
+                                </h4>
+                                <div class="text-slate-600 text-sm leading-relaxed flex items-start gap-2">
+                                    <span class="text-brand-600 font-bold">A:</span> 
+                                    <div>${qa.answer}</div>
+                                </div>
+                            </div>
+                        `;
+                        qaSchemaItems.push({
+                            "@type": "Question",
+                            "name": qa.question,
+                            "acceptedAnswer": {
+                                "@type": "Answer",
+                                "text": qa.answer
+                            }
+                        });
+                    });
+                    
+                    qaContainer.innerHTML = qaHtml;
+                    
+                    // Inject FAQ Schema
+                    if (qaSchemaItems.length > 0) {
+                        const faqSchema = {
+                            "@context": "https://schema.org",
+                            "@type": "FAQPage",
+                            "mainEntity": qaSchemaItems
+                        };
+                        const faqSchemaScript = document.createElement('script');
+                        faqSchemaScript.type = 'application/ld+json';
+                        faqSchemaScript.textContent = JSON.stringify(faqSchema);
+                        document.head.appendChild(faqSchemaScript);
+                    }
+                }
+            }
+
+            // Fetch and inject Sidebar SSR Data
+            try {
+                const Setting = require('./models/Setting');
+                const ArticleModel = require('./models/Article'); // Make sure we use the correct model reference
+                
+                const sidebarSetting = await Setting.findOne({ key: 'sidebar_modules' });
+                const sidebarModules = sidebarSetting && Array.isArray(sidebarSetting.value) ? sidebarSetting.value : [];
+                
+                // Sort active modules
+                const activeModules = sidebarModules.filter(m => m.active !== false).sort((a, b) => (a.order || 0) - (b.order || 0));
+                
+                const sidebarContainer = document.getElementById('sidebar-modules-container');
+                if (sidebarContainer) {
+                    let modulesHtml = '';
+                    
+                    for (const mod of activeModules) {
+                        if (mod.rule === 'custom_html') {
+                            modulesHtml += `<div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mt-6">${mod.customHtml || ''}</div>`;
+                        } else if (mod.rule === 'efficiency_agent') {
+                            const conf = mod.effConfig || {};
+                            const eTitle = conf.title || '组织人效智能体检Agent';
+                            const eDesc = conf.desc || '通过科学的诊断模型，为您精准定位组织效能痛点，量化人力资本投资回报。';
+                            const eBtn = conf.btnText || '预约体验 →';
+                            const eLink = conf.link || '/productivity/';
+                            
+                            let raceHtml = '';
+                            if (conf.rTitle || conf.rDesc || conf.aTitle || conf.aDesc || conf.cTitle || conf.cDesc || conf.eTitle || conf.eDesc) {
+                                raceHtml += '<div class="grid grid-cols-2 gap-3 mb-6">';
+                                
+                                if (conf.rTitle || conf.rDesc) {
+                                    raceHtml += `
+                                        <div class="bg-white rounded-xl p-3 shadow-sm transform transition hover:-translate-y-1">
+                                            <div class="text-violet-600 font-bold text-lg mb-1 flex items-center gap-2"><span class="text-2xl">R</span> <span class="text-slate-800 text-sm">${conf.rTitle || '人效对标'}</span></div>
+                                            <p class="text-xs text-slate-500 leading-tight">${conf.rDesc || '排查利润黑洞<br>识别低效投入'}</p>
+                                        </div>
+                                    `;
+                                }
+                                
+                                if (conf.aTitle || conf.aDesc) {
+                                    raceHtml += `
+                                        <div class="bg-white rounded-xl p-3 shadow-sm transform transition hover:-translate-y-1">
+                                            <div class="text-indigo-500 font-bold text-lg mb-1 flex items-center gap-2"><span class="text-2xl">A</span> <span class="text-slate-800 text-sm">${conf.aTitle || '结构适配'}</span></div>
+                                            <p class="text-xs text-slate-500 leading-tight">${conf.aDesc || '评估组织架构<br>支撑业务增长'}</p>
+                                        </div>
+                                    `;
+                                }
+                                
+                                if (conf.cTitle || conf.cDesc) {
+                                    raceHtml += `
+                                        <div class="bg-white rounded-xl p-3 shadow-sm transform transition hover:-translate-y-1">
+                                            <div class="text-purple-500 font-bold text-lg mb-1 flex items-center gap-2"><span class="text-2xl">C</span> <span class="text-slate-800 text-sm">${conf.cTitle || '人才动能'}</span></div>
+                                            <p class="text-xs text-slate-500 leading-tight">${conf.cDesc || '识别核心能力<br>评估梯队健康度'}</p>
+                                        </div>
+                                    `;
+                                }
+                                
+                                if (conf.eTitle || conf.eDesc) {
+                                    raceHtml += `
+                                        <div class="bg-white rounded-xl p-3 shadow-sm transform transition hover:-translate-y-1">
+                                            <div class="text-blue-500 font-bold text-lg mb-1 flex items-center gap-2"><span class="text-2xl">E</span> <span class="text-slate-800 text-sm">${conf.eTitle || '组织活力'}</span></div>
+                                            <p class="text-xs text-slate-500 leading-tight">${conf.eDesc || '量化员工敬业度<br>判断长效动力'}</p>
+                                        </div>
+                                    `;
+                                }
+                                
+                                raceHtml += '</div>';
+                            } else if (conf.rTitle === undefined && !conf.effConfig) {
+                                // Default fallback for old data without RACE config explicitly saved
+                                raceHtml = `
+                                    <div class="grid grid-cols-2 gap-3 mb-6">
+                                        <div class="bg-white rounded-xl p-3 shadow-sm transform transition hover:-translate-y-1">
+                                            <div class="text-violet-600 font-bold text-lg mb-1 flex items-center gap-2"><span class="text-2xl">R</span> <span class="text-slate-800 text-sm">人效对标</span></div>
+                                            <p class="text-xs text-slate-500 leading-tight">排查利润黑洞<br>识别低效投入</p>
+                                        </div>
+                                        <div class="bg-white rounded-xl p-3 shadow-sm transform transition hover:-translate-y-1">
+                                            <div class="text-indigo-500 font-bold text-lg mb-1 flex items-center gap-2"><span class="text-2xl">A</span> <span class="text-slate-800 text-sm">结构适配</span></div>
+                                            <p class="text-xs text-slate-500 leading-tight">评估组织架构<br>支撑业务增长</p>
+                                        </div>
+                                        <div class="bg-white rounded-xl p-3 shadow-sm transform transition hover:-translate-y-1">
+                                            <div class="text-purple-500 font-bold text-lg mb-1 flex items-center gap-2"><span class="text-2xl">C</span> <span class="text-slate-800 text-sm">人才动能</span></div>
+                                            <p class="text-xs text-slate-500 leading-tight">识别核心能力<br>评估梯队健康度</p>
+                                        </div>
+                                        <div class="bg-white rounded-xl p-3 shadow-sm transform transition hover:-translate-y-1">
+                                            <div class="text-blue-500 font-bold text-lg mb-1 flex items-center gap-2"><span class="text-2xl">E</span> <span class="text-slate-800 text-sm">组织活力</span></div>
+                                            <p class="text-xs text-slate-500 leading-tight">量化员工敬业度<br>判断长效动力</p>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                            
+                            modulesHtml += `
+                            <div class="bg-gradient-to-br from-violet-600 to-indigo-700 rounded-3xl p-6 mt-6 text-white shadow-xl relative overflow-hidden group">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-700"></div>
+                                <div class="relative z-10">
+                                    <div class="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-yellow-300 mb-4 border border-white/10">
+                                        <i class="fas fa-bolt"></i> 限时免费评估
+                                    </div>
+                                    <h3 class="text-xl font-bold mb-3 leading-snug">${eTitle}</h3>
+                                    <p class="text-indigo-100 text-sm mb-6 leading-relaxed opacity-90">${eDesc}</p>
+                                    
+                                    ${raceHtml}
+                                    
+                                    <a href="${eLink}" class="block w-full bg-white text-violet-700 hover:bg-slate-50 font-bold py-3.5 px-4 rounded-xl text-center transition-colors shadow-md">
+                                        ${eBtn}
+                                    </a>
+                                </div>
+                            </div>
+                            `;
+                        } else {
+                            // Fetch articles based on rule
+                            let q = { status: 'published' };
+                            if (mod.rule === 'category' && article.category) {
+                                q.category = article.category;
+                                q._id = { $ne: article._id };
+                            } else if (mod.rule === 'tags' && article.tags && article.tags.length > 0) {
+                                q.tags = { $in: article.tags };
+                                q._id = { $ne: article._id };
+                            } else if (mod.rule === 'latest') {
+                                q._id = { $ne: article._id };
+                            }
+                            
+                            const articles = await ArticleModel.find(q)
+                                .sort({ publishDate: -1 })
+                                .limit(mod.count || 5)
+                                .select('title slug category');
+                                
+                            if (articles.length > 0) {
+                                let listHtml = '';
+                                articles.forEach((art, idx) => {
+                                    let colorClass = 'text-blue-600';
+                                    if (idx % 3 === 1) colorClass = 'text-purple-600';
+                                    if (idx % 3 === 2) colorClass = 'text-emerald-600';
+                                    listHtml += `
+                                        <a href="/article/${art.slug}.html" class="block group flex items-start gap-3">
+                                            <span class="text-sm font-bold ${colorClass} mt-0.5">${idx + 1}.</span>
+                                            <div>
+                                                <h5 class="text-sm font-bold text-slate-700 group-hover:text-brand-600 transition leading-snug">${art.title}</h5>
+                                            </div>
+                                        </a>
+                                        ${idx < articles.length - 1 ? '<div class="h-px bg-slate-100"></div>' : ''}
+                                    `;
+                                });
+                                
+                                modulesHtml += `
+                                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mt-6">
+                                        <h4 class="text-sm font-bold text-slate-900 mb-4">${mod.title}</h4>
+                                        <div class="space-y-4">${listHtml}</div>
+                                    </div>
+                                `;
+                            }
+                        }
+                    }
+                    
+                    // Insert the dynamically generated modules into the sidebar, appending after the author box
+                    sidebarContainer.innerHTML = sidebarContainer.innerHTML + modulesHtml;
+                }
+                
+                // Keep backwards compatibility for old __SIDEBAR_DATA__ if needed by other client scripts
+                const sbScriptEl = document.createElement('script');
+                sbScriptEl.textContent = `window.__SIDEBAR_DATA__ = ${JSON.stringify({ modules: activeModules }).replace(/</g, '\\u003c')};`;
+                document.body.appendChild(sbScriptEl);
+                
+            // Render Author Box (Fallback to article author, or default)
+            const expTitle = document.getElementById('expert-title');
+            if (expTitle) expTitle.textContent = (article.author && article.author.name) ? article.author.name : '瑞华智策专家组';
+            
+            const expDesc = document.getElementById('expert-desc');
+            if (expDesc) expDesc.textContent = (article.author && article.author.desc) ? article.author.desc : '人力资本价值经营研究院';
+            
+            const expDetail = document.getElementById('expert-detail');
+            if (expDetail) {
+                if (article.author && article.author.detail) {
+                    expDetail.textContent = article.author.detail;
+                } else {
+                    expDetail.textContent = '瑞华智策汇聚了来自华为、人瑞人才及全球顶尖咨询机构的实战专家。';
+                }
+            }
+            
+            // SSR Render Footer
+            try {
+                injectFooterHTML(document);
+            } catch (compErr) {
+                console.warn('SSR components rendering skipped:', compErr.message);
+            }
+                
+                const expAvatar = document.getElementById('expert-avatar');
+                if (expAvatar) {
+                    expAvatar.src = (article.author && article.author.avatar) ? article.author.avatar : '/images/rhzclogo.png';
+                }
+
+            } catch (sidebarErr) {
+                console.error('SSR Sidebar Error:', sidebarErr);
+            }
+
+            // Inject initial data to prevent redundant client-side fetch (Exclude raw HTML content to avoid payload bloat/SEO penalty)
+            const scriptEl = document.createElement('script');
+            const safeArticleData = { ...article.toObject() };
+            delete safeArticleData.content; // Remove full HTML text from inline script
+            scriptEl.textContent = `window.__ARTICLE_DATA__ = ${JSON.stringify(safeArticleData).replace(/</g, '\\u003c')};`;
+            document.body.appendChild(scriptEl);
+
+            html = dom.serialize();
+        }
+        res.send(html);
+    } catch (err) {
+        console.error('Error rendering article page:', err);
+        res.status(500).send('Internal Server Error');
+    }
+}
+
+app.get('/article.html', async (req, res) => {
+    try {
+        let article = null;
+        if (req.query.id && mongoose.Types.ObjectId.isValid(req.query.id)) {
+            article = await Article.findById(req.query.id);
+        }
+        await renderArticlePage(req, res, article);
+    } catch (e) {
+        console.error('Article HTML Route Error:', e);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
 // Solutions HCVM Redirects & Serving
-app.get('/solutions-hcvm/', (req, res) => res.sendFile(path.join(__dirname, 'solutions-hcvm.html')));
 app.get('/solutions-ahcvm/', (req, res) => res.redirect(301, '/solutions-hcvm/'));
 app.get('/solutions-ahcvm.html', (req, res) => res.redirect(301, '/solutions-hcvm/'));
 
-// Solutions OHCVM Redirects & Serving
-app.get('/solutions-ohcvm/', (req, res) => res.sendFile(path.join(__dirname, 'solutions-ohcvm.html')));
+// 7. solutions related routes
+app.get('/solutions/', (req, res) => renderStaticHtmlWithFooter(res, 'solutions.html'));
+app.get('/solutions.html', (req, res) => res.redirect(301, '/solutions/'));
 
-// Video Detail Redirects & Serving
-app.get('/video/:slug/', (req, res) => res.sendFile(path.join(__dirname, 'video-detail.html')));
-app.get('/video/:slug.html', (req, res) => res.redirect(301, '/video/' + req.params.slug + '/'));
-app.get('/video/:slug', (req, res) => res.redirect(301, '/video/' + req.params.slug + '/'));
+app.get('/solutions-hcvm/', (req, res) => renderStaticHtmlWithFooter(res, 'solutions-hcvm.html'));
+app.get('/solutions-hcvm.html', (req, res) => res.redirect(301, '/solutions-hcvm/'));
+
+// Solutions OHCVM Redirects & Serving
+app.get('/solutions-ohcvm/', (req, res) => renderStaticHtmlWithFooter(res, 'solutions-ohcvm.html'));
+app.get('/solutions-ohcvm.html', (req, res) => res.redirect(301, '/solutions-ohcvm/'));
 
 // Serve verification txt file
 app.get('/f30f7f41e5fa707ed66d41aeb3791adb.txt', (req, res) => {
     res.sendFile(path.join(__dirname, 'f30f7f41e5fa707ed66d41aeb3791adb.txt'));
+});
+
+// Serve Baidu verification html file
+app.get('/baidu_verify_codeva-p4La8BZmYb.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'baidu_verify_codeva-p4La8BZmYb.html'));
 });
 
 // 404 Handler (Should be the last route)
@@ -180,41 +627,169 @@ app.get('/f30f7f41e5fa707ed66d41aeb3791adb.txt', (req, res) => {
 
 // URL Rewrites and Redirects for SEO (Directory Style)
 // 1. about.html -> /about/
-app.get('/about/', (req, res) => res.sendFile(path.join(__dirname, 'about.html')));
+app.get('/about/', (req, res) => renderStaticHtmlWithFooter(res, 'about.html'));
 app.get('/about.html', (req, res) => res.redirect(301, '/about/'));
 
 // 2. solutions.html -> /solutions/
 app.get('/solutions/', (req, res) => res.sendFile(path.join(__dirname, 'solutions.html')));
 app.get('/solutions.html', (req, res) => res.redirect(301, '/solutions/'));
 
+// Helper for SEO SSR on Resources Page
+let resourcesTemplateCache = null;
+
+async function getResourcesTemplate() {
+    if (process.env.NODE_ENV === 'production' && resourcesTemplateCache) {
+        return resourcesTemplateCache;
+    }
+    const html = await fs.promises.readFile(path.join(__dirname, 'resources.html'), 'utf8');
+    if (process.env.NODE_ENV === 'production') {
+        resourcesTemplateCache = html;
+    }
+    return html;
+}
+
+async function renderResourcesPage(req, res) {
+    try {
+        let html = await getResourcesTemplate();
+        
+        const dom = new JSDOM(html);
+        const document = dom.window.document;
+        const container = document.getElementById('resources-grid');
+        
+        if (container) {
+            // Fetch Category mapping
+            const CategoryModel = require('./models/Category');
+            const categories = await CategoryModel.find().lean();
+            const categoryMap = {};
+            categories.forEach(cat => {
+                categoryMap[cat.code] = cat.name;
+            });
+
+            // Fetch All Published Articles
+            const ArticleModel = require('./models/Article');
+            const articles = await ArticleModel.find({ status: 'published' }).sort({ publishDate: -1 }).lean();
+
+            if (!articles || articles.length === 0) {
+                container.innerHTML = '<div class="text-center py-20 text-slate-500">该分类下暂无内容</div>';
+            } else {
+                let articlesHtml = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">';
+
+                articles.forEach(art => {
+                    const date = new Date(art.publishDate).toLocaleDateString('zh-CN', {year:'numeric', month:'2-digit', day:'2-digit'}).replace(/\//g, '-');
+                    const artUrl = art.slug ? `/article/${art.slug}.html` : `article.html?id=${art._id}`;
+                    const artCategoryName = categoryMap[art.category] || art.category || '推荐';
+
+                    const isWp = art.category === 'whitepaper' || art.category === '白皮书';
+                    const cardAction = isWp
+                        ? `<button onclick="event.preventDefault(); event.stopPropagation(); openDownloadModal('${(art.title||'').replace(/'/g, "\\'")}')" class="text-brand-600 font-semibold text-xs hover:underline flex items-center gap-1">立即下载 <i class="fas fa-arrow-right transform group-hover:translate-x-1 transition-transform"></i></button>`
+                        : `<span class="text-brand-600 font-semibold text-xs hover:underline flex items-center gap-1">阅读文章 <i class="fas fa-arrow-right transform group-hover:translate-x-1 transition-transform"></i></span>`;
+
+                    articlesHtml += `
+                    <a href="${artUrl}" class="bg-white rounded-xl overflow-hidden transition-all duration-300 group flex flex-col cursor-pointer fade-in-up relative z-0 hover:z-10 block" 
+                             style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-decoration: none;" 
+                             onmouseover="this.style.boxShadow='0 12px 24px rgba(0,0,0,0.15)'; this.style.transform='translateY(-4px)'" 
+                             onmouseout="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'; this.style.transform='translateY(0)'">
+                        <div class="relative overflow-hidden aspect-[16/9]">
+                            <span class="absolute top-3 left-3 bg-white/90 backdrop-blur text-slate-600 text-[10px] font-bold px-2 py-1 rounded-full z-10 uppercase shadow-sm tracking-wide">${artCategoryName}</span>
+                            <img src="${art.coverImage || 'https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'}" 
+                                 class="w-full h-full object-cover transition duration-700 group-hover:scale-105" 
+                                 alt="${art.title || ''}">
+                            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition duration-300"></div>
+                        </div>
+                        <div class="p-5 flex flex-col flex-grow">
+                            <h3 class="font-bold text-slate-900 mb-2 group-hover:text-brand-600 transition truncate text-[16px] leading-snug tracking-tight" title="${art.title || ''}">${art.title || ''}</h3>
+                            <div class="summary-wrapper flex-grow mb-4">
+                                <p class="text-slate-500 text-[13px] leading-relaxed">${art.summary || ''}</p>
+                            </div>
+                            <div class="mt-auto pt-3 border-t border-slate-50 flex justify-between items-center relative z-20">
+                                <span class="text-[11px] text-slate-400 font-medium">${date}</span>
+                                ${cardAction}
+                            </div>
+                        </div>
+                    </a>
+                    `;
+                });
+
+                articlesHtml += '</div>';
+                
+                if (articles.length >= 6) {
+                    articlesHtml += `<div class="mt-16 text-center"><button class="px-8 py-3 rounded-full border border-slate-300 text-slate-600 font-medium hover:bg-slate-50 hover:border-slate-400 transition text-sm">加载更多内容</button></div>`;
+                }
+
+                container.innerHTML = articlesHtml;
+                
+                // Inject Categories data
+                const catScriptEl = document.createElement('script');
+                catScriptEl.textContent = `window.__INITIAL_CATEGORIES__ = ${JSON.stringify(categories).replace(/</g, '\\u003c')};`;
+                document.body.appendChild(catScriptEl);
+                
+                // Expose initial data to window (Exclude raw HTML content to avoid payload bloat/SEO penalty)
+                const scriptEl = document.createElement('script');
+                const safeArticles = articles.map(art => {
+                    const safeArt = { ...art };
+                    delete safeArt.content;
+                    return safeArt;
+                });
+                scriptEl.textContent = `window.__INITIAL_ARTICLES__ = ${JSON.stringify(safeArticles).replace(/</g, '\\u003c')};`;
+                document.body.appendChild(scriptEl);
+            }
+        }
+        
+        // Inject Footer
+        try {
+            injectFooterHTML(document);
+        } catch (compErr) {
+            console.warn('SSR components rendering skipped:', compErr.message);
+        }
+        
+        res.send(dom.serialize());
+    } catch (err) {
+        console.error('Error rendering resources page:', err);
+        res.status(500).send('Internal Server Error');
+    }
+}
+
 // 3. resources.html -> /resources/
-app.get('/resources/', (req, res) => res.sendFile(path.join(__dirname, 'resources.html')));
+app.get('/resources/', renderResourcesPage);
 app.get('/resources.html', (req, res) => res.redirect(301, '/resources/'));
 
+// Helper function to render static HTML files with injected Footer
+const renderStaticHtmlWithFooter = async (res, filename) => {
+    try {
+        const fs = require('fs');
+        const { JSDOM } = require('jsdom');
+        const html = await fs.promises.readFile(path.join(__dirname, filename), 'utf8');
+        const dom = new JSDOM(html);
+        const document = dom.window.document;
+        
+        injectFooterHTML(document);
+        
+        res.send(dom.serialize());
+    } catch (e) {
+        console.error(`Error rendering ${filename} with footer:`, e);
+        res.sendFile(path.join(__dirname, filename));
+    }
+};
+
 // 4. productivity.html -> /productivity/
-app.get('/productivity/', (req, res) => res.sendFile(path.join(__dirname, 'productivity.html')));
+app.get('/productivity/', (req, res) => renderStaticHtmlWithFooter(res, 'productivity.html'));
 app.get('/productivity', (req, res) => res.redirect(301, '/productivity/'));
 app.get('/productivity.html', (req, res) => res.redirect(301, '/productivity/'));
 
 // 5. diagnostic.html -> /diagnostic/
-app.get('/diagnostic/', (req, res) => res.sendFile(path.join(__dirname, 'diagnostic.html')));
+app.get('/diagnostic/', (req, res) => renderStaticHtmlWithFooter(res, 'diagnostic.html'));
 app.get('/diagnostic', (req, res) => res.redirect(301, '/diagnostic/'));
 app.get('/diagnostic.html', (req, res) => res.redirect(301, '/diagnostic/'));
 
 // 6. videos.html -> /videos/
-app.get('/videos/', (req, res) => res.sendFile(path.join(__dirname, 'videos.html')));
+app.get('/videos/', (req, res) => renderStaticHtmlWithFooter(res, 'videos.html'));
 app.get('/videos.html', (req, res) => res.redirect(301, '/videos/'));
 
 
 // Handle /index.html redirection to root
 app.get('/index.html', (req, res) => {
     if (process.env.NODE_ENV === 'development') {
-        // In development, serve the file directly for debugging if needed, 
-        // though strictly following instructions we might redirect.
-        // User asked: "Ensure all direct access to /index.html is 301 redirected to root /"
-        // BUT also "In dev env retain direct access capability".
-        // So we check env.
-        res.sendFile(path.join(__dirname, 'index.html'));
+        renderStaticHtmlWithFooter(res, 'index.html');
     } else {
         res.redirect(301, '/');
     }
@@ -224,7 +799,7 @@ app.get('/index.html', (req, res) => {
 app.get('/', (req, res) => {
     // Cache for 1 hour (3600s), but validate with ETag
     res.set('Cache-Control', 'public, max-age=3600');
-    res.sendFile(path.join(__dirname, 'index.html'));
+    renderStaticHtmlWithFooter(res, 'index.html');
 });
 
 // --- SEO: Sitemap.xml ---
@@ -291,7 +866,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 function authRequired(req, res, next) {
     try {
         const auth = req.headers.authorization || '';
-        const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
+        let token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
+        if (!token && req.query.token) {
+            token = req.query.token;
+        }
         if (!token) return res.status(401).json({ error: 'Unauthorized' });
         const payload = jwt.verify(token, SECRET_KEY);
         req.user = payload;
@@ -521,10 +1099,10 @@ app.get('/article/:slug', async (req, res) => {
             slug = slug.slice(0, -5);
         }
 
+        let article = await Article.findOne({ slug, status: 'published' });
+
         // Check if article exists and is published (Feature Flag: ENABLE_STRICT_404, default true)
         if (process.env.ENABLE_STRICT_404 !== 'false') {
-            const article = await Article.findOne({ slug, status: 'published' });
-            
             if (!article) {
                 // Article not found or deleted
                 res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -533,8 +1111,8 @@ app.get('/article/:slug', async (req, res) => {
             }
         }
 
-        // Article exists, send the template. Frontend will fetch data.
-        res.sendFile(path.join(__dirname, 'article.html'));
+        // Article exists, send the template with SSR tags
+        await renderArticlePage(req, res, article);
     } catch (e) {
         console.error('Article Route Error:', e);
         res.status(500).send('Internal Server Error');
@@ -542,8 +1120,20 @@ app.get('/article/:slug', async (req, res) => {
 });
 
 // Also handle the case where .html is part of the url explicitly if the above doesn't catch it
-app.get('/article/:slug.html', (req, res) => {
-     res.sendFile(path.join(__dirname, 'article.html'));
+app.get('/article/:slug.html', async (req, res) => {
+    try {
+        let slug = req.params.slug;
+        const article = await Article.findOne({ slug, status: 'published' });
+        if (!article && process.env.ENABLE_STRICT_404 !== 'false') {
+            res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.status(404).sendFile(path.join(__dirname, '404.html'));
+            return;
+        }
+        await renderArticlePage(req, res, article);
+    } catch (e) {
+        console.error('Article HTML Route Error:', e);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
 // --- Article API ---
@@ -663,6 +1253,8 @@ app.post('/api/articles', authRequired, requirePerm('article:create'), async (re
             await Category.updateOne({ code: req.body.category }, { $inc: { articleCount: 1 } });
         }
         
+        await syncLLMsTxt(newArticle); // Trigger llms.txt sync
+        
         await logOp('create', 'Article', `Created article: ${newArticle.title}`, req.user.username);
         res.json({ success: true, data: newArticle });
     } catch (e) {
@@ -713,6 +1305,9 @@ app.put('/api/articles/:id', authRequired, requirePerm('article:edit'), async (r
         }
 
         await logOp('update', 'Article', `Updated article: ${updatedArticle.title}`, req.user.username);
+        
+        await syncLLMsTxt(updatedArticle); // Trigger llms.txt sync if published
+        
         res.json({ success: true, data: updatedArticle });
     } catch (e) {
         if (e.code === 11000) return res.status(400).json({ error: 'URL (Slug) 已存在' });
@@ -731,6 +1326,93 @@ app.get('/api/articles/:id/history', authRequired, requirePerm('article:edit'), 
         res.status(500).json({ error: e.message });
     }
 });
+
+const Author = require('./models/Author'); // Import Author Model
+
+// --- Author Management Routes ---
+app.get('/api/authors', async (req, res) => {
+    try {
+        const authors = await Author.find().sort({ createdAt: -1 });
+        res.json(authors);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/authors', authRequired, requirePerm('article:create'), async (req, res) => {
+    try {
+        const author = new Author(req.body);
+        await author.save();
+        await logOp('create', 'Author', `Created author: ${author.name}`, req.user.username);
+        res.json({ success: true, data: author });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.put('/api/authors/:id', authRequired, requirePerm('article:edit'), async (req, res) => {
+    try {
+        const author = await Author.findByIdAndUpdate(req.params.id, { ...req.body, updatedAt: Date.now() }, { new: true });
+        await logOp('update', 'Author', `Updated author: ${author.name}`, req.user.username);
+        res.json({ success: true, data: author });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.delete('/api/authors/:id', authRequired, requirePerm('article:delete'), async (req, res) => {
+    try {
+        await Author.findByIdAndDelete(req.params.id);
+        await logOp('delete', 'Author', `Deleted author: ${req.params.id}`, req.user.username);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// --- llms.txt Sync Logic ---
+async function syncLLMsTxt(article) {
+    try {
+        if (article.status !== 'published') return;
+        
+        const fs = require('fs').promises;
+        const filePath = path.join(__dirname, 'llms.txt'); // Serve from root logic, physically here? 
+        // Actually server serves static from root via specific routes, or public folder. 
+        // Let's put it in public/llms.txt or root and route it. 
+        // User asked for "root directory /llms.txt". Let's assume physical root of project or where server.js is.
+        // But serving static files usually comes from public. Let's put it in public for ease.
+        const publicPath = path.join(__dirname, 'public/llms.txt');
+        
+        const SITE_URL = process.env.SITE_URL || 'https://www.ruihuaconsulting.com';
+        const link = `${SITE_URL}/article/${article.slug || article._id}.html`;
+        const entry = `\n\n## ${article.title}\n- Link: ${link}\n- Summary: ${article.summary || 'No summary available.'}`;
+        
+        // Check if file exists, if not create header
+        try {
+            await fs.access(publicPath);
+        } catch {
+            await fs.writeFile(publicPath, '# Ruihua Consulting Knowledge Base\n\n');
+        }
+        
+        // Append
+        await fs.appendFile(publicPath, entry);
+        console.log('Appended to llms.txt:', article.title);
+    } catch (e) {
+        console.error('llms.txt sync failed:', e);
+    }
+}
+
+// Route to serve llms.txt from root
+app.get('/llms.txt', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/llms.txt'));
+});
+
+// Update Article Create/Update to trigger Sync
+// We need to inject this into existing POST/PUT /api/articles routes.
+// Instead of rewriting the whole block, I will append the function call in the next SearchReplace or manual edit.
+// Wait, I can't easily inject into the middle of a function with SearchReplace without matching a large block.
+// I will place these new routes BEFORE the article routes or AFTER.
+// Placing them here (around line 1100) is fine.
 
 app.get('/api/articles/history/:historyId', authRequired, requirePerm('article:edit'), async (req, res) => {
     try {
@@ -892,7 +1574,15 @@ app.delete('/api/categories/:id', authRequired, requirePerm('article:delete'), a
 // --- FAQ API ---
 app.get('/api/faqs', async (req, res) => {
     try {
-        const faqs = await Faq.find().sort({ order: 1 });
+        const query = {};
+        if (req.query.status) {
+            query.status = req.query.status;
+        }
+        let faqsQuery = Faq.find(query).sort({ order: 1 });
+        if (req.query.limit) {
+            faqsQuery = faqsQuery.limit(parseInt(req.query.limit));
+        }
+        const faqs = await faqsQuery;
         res.json(faqs);
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -913,6 +1603,11 @@ app.post('/api/faqs', authRequired, requirePerm('faq:create'), async (req, res) 
     try {
         // Remove category if passed (User requested removal)
         const { category, ...rest } = req.body;
+        
+        if (rest.answer) {
+            rest.answer = xss(rest.answer);
+        }
+        
         const newFaq = new Faq(rest);
         await newFaq.save();
         await logOp('create', 'FAQ', `Created FAQ: ${newFaq.question}`, req.user.username);
@@ -925,6 +1620,11 @@ app.post('/api/faqs', authRequired, requirePerm('faq:create'), async (req, res) 
 app.put('/api/faqs/:id', authRequired, requirePerm('faq:edit'), async (req, res) => {
     try {
         const { category, ...rest } = req.body;
+        
+        if (rest.answer) {
+            rest.answer = xss(rest.answer);
+        }
+        
         const faq = await Faq.findByIdAndUpdate(req.params.id, { ...rest, updatedAt: Date.now() }, { new: true });
         await logOp('update', 'FAQ', `Updated FAQ: ${faq.question}`, req.user.username);
         res.json({ success: true, data: faq });
@@ -1179,25 +1879,82 @@ app.put('/api/banner', authRequired, requirePerm('banner:manage'), async (req, r
     }
 });
 
-app.get('/api/sidebar', async (req, res) => {
+app.get('/api/sidebar/modules', async (req, res) => {
     try {
-        const setting = await Setting.findOne({ key: 'sidebar' });
-        res.json(setting ? setting.value : {});
+        const setting = await Setting.findOne({ key: 'sidebar_modules' });
+        res.json({ success: true, data: setting ? setting.value : [] });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        res.status(500).json({ success: false, error: e.message });
     }
 });
 
-app.put('/api/sidebar', authRequired, requirePerm('sidebar:manage'), async (req, res) => {
+app.post('/api/sidebar/modules', authRequired, requirePerm('sidebar:manage'), async (req, res) => {
     try {
+        const setting = await Setting.findOne({ key: 'sidebar_modules' });
+        let modules = setting ? setting.value : [];
+        if (!Array.isArray(modules)) modules = [];
+        
+        if (modules.length >= 5) {
+            return res.status(400).json({ success: false, error: '最多只能配置5个侧边栏模块' });
+        }
+        
+        const newModule = {
+            _id: new mongoose.Types.ObjectId().toString(),
+            ...req.body
+        };
+        
+        modules.push(newModule);
+        
         await Setting.findOneAndUpdate(
-            { key: 'sidebar' },
-            { value: req.body, updatedAt: Date.now() },
+            { key: 'sidebar_modules' },
+            { value: modules, updatedAt: Date.now() },
             { upsert: true, new: true }
         );
+        
+        res.json({ success: true, data: newModule });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+app.put('/api/sidebar/modules/:id', authRequired, requirePerm('sidebar:manage'), async (req, res) => {
+    try {
+        const setting = await Setting.findOne({ key: 'sidebar_modules' });
+        if (!setting) return res.status(404).json({ success: false, error: '模块不存在' });
+        
+        let modules = setting.value;
+        const index = modules.findIndex(m => m._id === req.params.id);
+        if (index === -1) return res.status(404).json({ success: false, error: '模块不存在' });
+        
+        modules[index] = { ...modules[index], ...req.body };
+        
+        await Setting.findOneAndUpdate(
+            { key: 'sidebar_modules' },
+            { value: modules, updatedAt: Date.now() }
+        );
+        
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+app.delete('/api/sidebar/modules/:id', authRequired, requirePerm('sidebar:manage'), async (req, res) => {
+    try {
+        const setting = await Setting.findOne({ key: 'sidebar_modules' });
+        if (!setting) return res.status(404).json({ success: false, error: '模块不存在' });
+        
+        let modules = setting.value;
+        modules = modules.filter(m => m._id !== req.params.id);
+        
+        await Setting.findOneAndUpdate(
+            { key: 'sidebar_modules' },
+            { value: modules, updatedAt: Date.now() }
+        );
+        
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
     }
 });
 
@@ -1250,6 +2007,34 @@ async function generateDeepseekSlug(title) {
     }
 }
 
+async function generateDeepseekText(systemPrompt, userPrompt) {
+    const API_KEY = process.env.DEEPSEEK_API_KEY || 'sk-ba4fcc924d5d48b5850326e5fe044a4d';
+    const API_URL = 'https://api.deepseek.com/chat/completions';
+    const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${API_KEY}`
+        },
+        body: JSON.stringify({
+            model: 'deepseek-chat',
+            messages: [
+                { role: 'system', content: systemPrompt || 'You are a helpful assistant.' },
+                { role: 'user', content: userPrompt || '' }
+            ],
+            stream: false
+        })
+    });
+
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Deepseek API Error: ${response.status} ${errText}`);
+    }
+
+    const data = await response.json();
+    return data?.choices?.[0]?.message?.content?.trim() || '';
+}
+
 // --- Tools API ---
 app.post('/api/tools/slug', authRequired, async (req, res) => {
     try {
@@ -1298,6 +2083,130 @@ app.post('/api/tools/slug', authRequired, async (req, res) => {
         await logOp('tool', 'Slug', `Generated slug: ${uniqueSlug} (AI: ${!!aiSlug})`);
         
         res.json({ slug: uniqueSlug });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/tools/tags', authRequired, async (req, res) => {
+    try {
+        const { title, content } = req.body;
+        if (!title && !content) return res.status(400).json({ error: 'Title or content required' });
+        
+        const systemPrompt = "You are an expert tag generator. Generate exactly 3 highly relevant tags based on the provided title and content. Each tag MUST be exactly 4 Chinese characters long. Return ONLY a comma-separated list of tags, no other text.";
+        const userPrompt = `Title: ${title}\nContent: ${(content || '').substring(0, 1000)}`;
+        
+        const aiResponse = await generateDeepseekText(systemPrompt, userPrompt);
+        const tags = aiResponse.split(',').map(t => t.trim()).filter(t => t);
+        
+        res.json({ tags });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/tools/summary', authRequired, async (req, res) => {
+    try {
+        const { title, content, type } = req.body;
+        if (!content) return res.status(400).json({ error: 'Content required' });
+        
+        let systemPrompt = "";
+        if (type === 'seo') {
+            systemPrompt = "You are an SEO expert. Generate a concise meta description (max 150 characters) for the following article.";
+        } else if (type === 'geo') {
+            systemPrompt = "You are an AI content optimizer. Generate a highly structured 'Generative Engine Optimization' summary (200-300 characters) that perfectly answers the core questions of this article, suitable for AI bots to scrape and understand.";
+        } else {
+            systemPrompt = "Summarize the following text in one short paragraph.";
+        }
+        
+        const userPrompt = `Title: ${title || ''}\nContent: ${content.substring(0, 3000)}`;
+        const summary = await generateDeepseekText(systemPrompt, userPrompt);
+        
+        res.json({ summary });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/tools/qa', authRequired, async (req, res) => {
+    try {
+        const { title, content } = req.body;
+        if (!content) return res.status(400).json({ error: 'Content required' });
+        
+        const systemPrompt = `You are a helpful assistant. Based on the provided content, generate exactly 3 Q&A pairs (Frequently Asked Questions) in Chinese.
+Return the result strictly as a JSON array of objects:
+[
+  { "question": "中文问题1？", "answer": "中文答案1。" },
+  { "question": "中文问题2？", "answer": "中文答案2。" },
+  { "question": "中文问题3？", "answer": "中文答案3。" }
+]
+Do not output any markdown formatting or other text.`;
+        const userPrompt = `Title: ${title || ''}\nContent: ${content.substring(0, 3000)}`;
+        
+        let jsonText = await generateDeepseekText(systemPrompt, userPrompt);
+        const match = jsonText.match(/\[\s*\{[\s\S]*\}\s*\]/);
+        if (match) jsonText = match[0];
+        else jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '').trim();
+        
+        const qaList = JSON.parse(jsonText);
+        // Important: Frontend expects { qa: [...] }
+        res.json({ qa: qaList });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/tools/geo-analysis', authRequired, async (req, res) => {
+    try {
+        const { title, content, metaTitle, metaDescription } = req.body;
+        if (!title) return res.status(400).json({ error: 'Title required' });
+        
+        const systemPrompt = `You are an advanced SEO and GEO (Generative Engine Optimization) analyzer.
+Evaluate the provided article data and return a JSON object with the following structure:
+{
+  "success": true,
+  "data": [
+    {
+      "location": "标题",
+      "priority": 5,
+      "suggestion": "Suggestion 1",
+      "expectedImpact": "提升点击率"
+    },
+    {
+      "location": "内容",
+      "priority": 4,
+      "suggestion": "Suggestion 2",
+      "expectedImpact": "增加收录概率"
+    }
+  ]
+}
+Return ONLY valid JSON.`;
+        const userPrompt = `Title: ${title}\nMeta Title: ${metaTitle || ''}\nMeta Desc: ${metaDescription || ''}\nContent: ${(content || '').substring(0, 2000)}`;
+        
+        let jsonText = await generateDeepseekText(systemPrompt, userPrompt);
+        const match = jsonText.match(/\{\s*"success"[\s\S]*\}/);
+        if (match) jsonText = match[0];
+        else jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '').trim();
+        
+        const result = JSON.parse(jsonText);
+        // Ensure structure matches frontend expectation
+        if (!result.success && result.data === undefined && Array.isArray(result.suggestions)) {
+            // map from old prompt style to new frontend expected style
+            const mappedData = result.suggestions.map(s => ({
+                location: "全局",
+                priority: 3,
+                suggestion: typeof s === 'string' ? s : JSON.stringify(s),
+                expectedImpact: "优化 AI 抓取效率"
+            }));
+            return res.json({ success: true, data: mappedData });
+        }
+        
+        // If it still doesn't have data array, wrap it
+        if (!result.data || !Array.isArray(result.data)) {
+            return res.json({ success: true, data: [] });
+        }
+        
+        res.json(result);
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
@@ -1628,22 +2537,28 @@ app.post('/api/appointments', async (req, res) => {
 
 app.get('/api/appointments', authRequired, async (req, res) => {
     try {
-        const { page = 1, limit = 20 } = req.query;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const status = req.query.status;
+        const sortOrder = parseInt(req.query.sort) || -1;
         
         const query = {};
+        if (status) {
+            query.status = status;
+        }
         
         const skip = (page - 1) * limit;
         const total = await Appointment.countDocuments(query);
         const appointments = await Appointment.find(query)
-            .sort({ createdAt: -1 })
-            .skip(parseInt(skip))
-            .limit(parseInt(limit));
+            .sort({ createdAt: sortOrder })
+            .skip(skip)
+            .limit(limit);
             
         res.json({
             data: appointments,
             pagination: {
                 total,
-                page: parseInt(page),
+                page,
                 pages: Math.ceil(total / limit)
             }
         });
@@ -1680,9 +2595,15 @@ app.delete('/api/appointments/:id', authRequired, async (req, res) => {
 // Export appointments (CSV)
 app.get('/api/appointments/export', authRequired, async (req, res) => {
     try {
-        const query = {};
+        const status = req.query.status;
+        const sortOrder = parseInt(req.query.sort) || -1;
         
-        const appointments = await Appointment.find(query).sort({ createdAt: -1 });
+        const query = {};
+        if (status) {
+            query.status = status;
+        }
+        
+        const appointments = await Appointment.find(query).sort({ createdAt: sortOrder });
         
         // Convert to CSV
         const fields = ['name', 'phone', 'company', 'title', 'problem', 'source', 'createdAt'];
@@ -2193,21 +3114,11 @@ app.delete('/api/efficiency-diagnosis/:id', authRequired, requirePerm('appointme
 });
 
 // --- Video Module ---
-// Video Categories
-app.get('/api/video-categories', async (req, res) => {
-    try {
-        const setting = await Setting.findOne({ key: 'video_categories' });
-        const defaults = [
-            { code: 'demo', name: '产品演示' },
-            { code: 'interview', name: '专家访谈' },
-            { code: 'case', name: '客户案例' },
-            { code: 'replay', name: '直播回放' }
-        ];
-        res.json((setting && Array.isArray(setting.value) && setting.value.length) ? setting.value : defaults);
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
-});
+// Legacy Video Categories (replaced by the dynamic tree in routes/videoRoutes.js)
+// But we keep this for legacy frontend compatibility if needed, or remove it to avoid conflicts
+// Since videoRoutes.js handles /api/video-categories for POST/PUT/DELETE, this GET route 
+// was likely causing conflicts or masking the POST route in videoRoutes.js if not ordered correctly.
+// We have moved the full Video module logic to routes/videoRoutes.js
 
 // Public: List videos (with optional pagination)
 app.get('/api/videos', async (req, res) => {
@@ -2219,12 +3130,19 @@ app.get('/api/videos', async (req, res) => {
             query.$or = [{ title: regex }, { description: regex }];
         }
         if (category && category !== 'all') {
-            query.category = category;
+            if (mongoose.Types.ObjectId.isValid(category)) {
+                query.$or = [{ category: category }, { videoCategories: category }];
+            } else {
+                query.category = category;
+            }
         }
         if (featured === 'true') {
             query.isRecommended = true;
         }
-        const sort = { publishDate: -1 };
+        let sort = { publishDate: -1 };
+        if (featured === 'true') {
+            sort = { recommendedAt: -1, publishDate: -1 };
+        }
         if (page && limit) {
             const skip = (parseInt(page) - 1) * parseInt(limit);
             const total = await Video.countDocuments(query);
@@ -2245,6 +3163,277 @@ app.get('/api/videos', async (req, res) => {
     }
 });
 
+// Public: Get video detail by slug
+app.get('/api/videos/detail/query', async (req, res) => {
+    try {
+        const { slug } = req.query;
+        if (!slug) return res.status(400).json({ error: 'Slug is required' });
+        await Video.updateOne({ slug }, { $inc: { views: 1 } });
+        const video = await Video.findOne({ slug }).populate('speakers.authorId');
+        if (!video) return res.status(404).json({ error: 'Video not found' });
+        res.json(video);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Video Detail Redirects & Serving
+app.get('/video/:slug/', async (req, res) => {
+    try {
+        await Video.updateOne({ slug: req.params.slug }, { $inc: { views: 1 } });
+        const video = await Video.findOne({ slug: req.params.slug }).populate('speakers.authorId');
+        if (!video) return res.status(404).sendFile(path.join(__dirname, '404.html'));
+
+        // SEO SSR logic for Video detail
+        const fs = require('fs');
+        const { JSDOM } = require('jsdom');
+        let html = await fs.promises.readFile(path.join(__dirname, 'video-detail.html'), 'utf8');
+        const dom = new JSDOM(html);
+        const document = dom.window.document;
+
+        // SSR Render Footer
+        try {
+            injectFooterHTML(document);
+        } catch (compErr) {
+            console.warn('SSR components rendering skipped:', compErr.message);
+        }
+
+        // Title Rule Update
+        const titleText = (video.metaTitle || video.title || '视频详情') + ' - 瑞华智策';
+        document.title = titleText;
+
+        const SITE_URL = process.env.SITE_URL || 'https://www.ruihuaconsulting.com';
+        
+        // Canonical Tag
+        let canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) {
+            canonical = document.createElement('link');
+            canonical.rel = 'canonical';
+            document.head.appendChild(canonical);
+        }
+        canonical.href = `${SITE_URL}/video/${video.slug}/`;
+
+        // Meta Tags
+        let metaDesc = document.querySelector('meta[name="description"]');
+        if (!metaDesc) {
+            metaDesc = document.createElement('meta');
+            metaDesc.name = 'description';
+            document.head.appendChild(metaDesc);
+        }
+        metaDesc.content = (video.metaDescription || video.description || video.title).replace(/\r?\n/g, ' ');
+
+        if (video.seoKeywords && video.seoKeywords.length > 0) {
+            let metaKw = document.createElement('meta');
+            metaKw.name = 'keywords';
+            metaKw.content = video.seoKeywords.join(',');
+            document.head.appendChild(metaKw);
+        }
+
+        if (video.geoSummary) {
+            let metaAi = document.createElement('meta');
+            metaAi.name = 'ai-summary';
+            metaAi.content = video.geoSummary.replace(/\r?\n/g, ' ');
+            document.head.appendChild(metaAi);
+        }
+
+        // Schema.org JSON-LD
+        let schemaScript = document.createElement('script');
+        schemaScript.type = 'application/ld+json';
+        const videoSchema = {
+            "@context": "https://schema.org",
+            "@type": "VideoObject",
+            "name": video.title,
+            "description": video.description || video.title,
+            "thumbnailUrl": video.thumbnail ? (video.thumbnail.startsWith('http') ? video.thumbnail : `${SITE_URL}${video.thumbnail}`) : `${SITE_URL}/images/default-video.jpg`,
+            "uploadDate": video.publishDate,
+            "publisher": {
+                "@type": "Organization",
+                "name": "瑞华智策",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": `${SITE_URL}/images/logo.png`
+                }
+            }
+        };
+        schemaScript.textContent = JSON.stringify(videoSchema);
+        document.head.appendChild(schemaScript);
+
+        // Pre-render core visual content
+        const titleEl = document.getElementById('video-title');
+        if (titleEl) titleEl.textContent = video.title;
+        
+        const dateEl = document.getElementById('video-date');
+        if (dateEl && video.publishDate) {
+            dateEl.textContent = new Date(video.publishDate).toLocaleDateString('zh-CN');
+        }
+
+        const viewsEl = document.getElementById('video-views');
+        if (viewsEl) viewsEl.textContent = (video.views || 0).toLocaleString();
+
+        const durationEl = document.getElementById('video-duration');
+        if (durationEl) durationEl.textContent = video.duration || '00:00';
+
+        // Pre-render Author / Speaker Info
+        const speakerSection = document.getElementById('speaker-section');
+        if (speakerSection) {
+            if (video.speakers && video.speakers.length > 0 && video.speakers[0].authorId) {
+                const author = video.speakers[0].authorId;
+                speakerSection.classList.remove('hidden');
+                speakerSection.classList.add('flex');
+                
+                const avatarEl = document.getElementById('speaker-avatar');
+                if (avatarEl) {
+                    avatarEl.src = author.avatar || '/images/vincent.png';
+                    avatarEl.alt = author.name;
+                }
+                const nameEl = document.getElementById('speaker-name');
+                if (nameEl) nameEl.textContent = author.name;
+                const titleEl2 = document.getElementById('speaker-title');
+                if (titleEl2) titleEl2.textContent = author.desc || video.speakers[0].role || '专家讲师';
+                const descEl = document.getElementById('speaker-desc');
+                if (descEl) {
+                    let detailText = author.detail ? author.detail.replace(/<[^>]*>?/gm, '') : '';
+                    descEl.textContent = detailText || `本次视频由 ${author.name} 担任讲师，深入解析行业洞见。`;
+                }
+            } else if (video.speakerName) {
+                speakerSection.classList.remove('hidden');
+                speakerSection.classList.add('flex');
+                
+                const avatarEl = document.getElementById('speaker-avatar');
+                if (avatarEl) {
+                    avatarEl.src = video.speakerAvatar || '/images/vincent.png';
+                    avatarEl.alt = video.speakerName;
+                }
+                const nameEl = document.getElementById('speaker-name');
+                if (nameEl) nameEl.textContent = video.speakerName;
+                const titleEl2 = document.getElementById('speaker-title');
+                if (titleEl2) titleEl2.textContent = video.speakerTitle || '特邀嘉宾';
+                const descEl = document.getElementById('speaker-desc');
+                if (descEl) descEl.textContent = video.speakerDesc || `本次视频由 ${video.speakerName} 担任讲师/分享嘉宾，深入解析行业洞见。`;
+            }
+        }
+
+        const contentEl = document.getElementById('video-content');
+        if (contentEl) {
+            let fullContent = '';
+            
+            // Inject GEO Summary at the beginning if available
+            if (video.geoSummary) {
+                fullContent += `
+                    <div class="bg-gradient-to-r from-brand-50 to-purple-50 rounded-xl p-5 mb-6 border border-brand-100 shadow-sm relative">
+                        <div class="flex items-center gap-1.5 mb-2">
+                            <i class="far fa-lightbulb text-brand-600 text-xs"></i>
+                            <h3 class="text-brand-800 font-bold text-xs m-0 leading-none">内容摘要</h3>
+                        </div>
+                        <p class="text-slate-700 text-xs leading-relaxed m-0">${video.geoSummary}</p>
+                    </div>
+                `;
+            }
+            
+            fullContent += video.content || video.description || '暂无详细介绍';
+            contentEl.innerHTML = fullContent;
+        }
+
+        // Render AI Generated Video FAQs (independent from global FAQs)
+        const faqSection = document.getElementById('faq-section');
+        console.log('[SSR DEBUG] video faqs:', video.faqs);
+        if (faqSection && video.faqs && video.faqs.length > 0) {
+            const faqAccordion = document.getElementById('faq-accordion');
+            if (faqAccordion) {
+                faqAccordion.innerHTML = video.faqs.map((faq, index) => {
+                    const isHidden = index >= 3 ? 'hidden video-faq-extra' : '';
+                    return `
+                        <div class="border border-slate-200 rounded-xl overflow-hidden bg-white faq-item ${isHidden}">
+                            <button class="w-full px-5 py-4 flex items-center justify-between text-left focus:outline-none hover:bg-slate-50 transition-colors" onclick="window.VideoDetail.toggleFaq(this)">
+                                <span class="font-bold text-slate-800 text-[15px] pr-4">${faq.question}</span>
+                                <i class="fas fa-chevron-down text-slate-400 transition-transform duration-300 transform"></i>
+                            </button>
+                            <div class="faq-content overflow-hidden transition-all duration-300 ease-in-out max-h-0">
+                                <div class="p-5 pt-0 text-slate-600 text-sm leading-relaxed prose prose-sm max-w-none prose-slate border-t border-slate-100 mt-2">
+                                    ${faq.answer}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                if (video.faqs.length > 3) {
+                    faqAccordion.innerHTML += `
+                        <div class="mt-4 text-center video-faq-more-container">
+                            <button class="text-brand-600 text-sm font-medium hover:text-brand-700" onclick="window.VideoDetail.showAllFaqs(this)">查看更多问答 <i class="fas fa-angle-double-down ml-1"></i></button>
+                        </div>
+                    `;
+                }
+                faqSection.classList.remove('hidden');
+                faqSection.setAttribute('data-ssr-rendered', 'true');
+            }
+        }
+
+        // Fetch and pre-render related videos
+        try {
+            let query = { _id: { $ne: video._id }, status: 'published' };
+            let relatedVideos = [];
+            const limit = 4;
+            
+            if (video.tags && video.tags.length > 0) {
+                const tagQuery = { ...query, tags: { $in: video.tags } };
+                relatedVideos = await Video.find(tagQuery).sort({ publishDate: -1 }).limit(limit);
+            }
+            
+            if (relatedVideos.length < limit) {
+                const excludeIds = [video._id, ...relatedVideos.map(v => v._id)];
+                let catQuery = { _id: { $nin: excludeIds }, status: 'published' };
+                if (video.videoCategories && video.videoCategories.length > 0) {
+                    catQuery.videoCategories = { $in: video.videoCategories };
+                } else if (video.category) {
+                    catQuery.category = video.category;
+                }
+                const moreVideos = await Video.find(catQuery).sort({ publishDate: -1 }).limit(limit - relatedVideos.length);
+                relatedVideos = relatedVideos.concat(moreVideos);
+            }
+            
+            if (relatedVideos.length < limit) {
+                const excludeIds = [video._id, ...relatedVideos.map(v => v._id)];
+                const newestVideos = await Video.find({ _id: { $nin: excludeIds }, status: 'published' })
+                                              .sort({ publishDate: -1 })
+                                              .limit(limit - relatedVideos.length);
+                relatedVideos = relatedVideos.concat(newestVideos);
+            }
+
+            const relatedContainer = document.getElementById('related-videos');
+            if (relatedContainer && relatedVideos.length > 0) {
+                relatedContainer.innerHTML = relatedVideos.map(v => `
+                  <a href="/video/${v.slug}/" class="group flex gap-3 items-start p-2 rounded-xl hover:bg-white transition-colors">
+                    <div class="relative w-24 h-16 rounded-lg overflow-hidden shrink-0 border border-slate-100">
+                      <img src="${v.thumbnail || `https://picsum.photos/seed/${v.slug}/240/160`}" alt="${v.title}" class="w-full h-full object-cover transition-transform group-hover:scale-110">
+                      <div class="absolute bottom-1 right-1 px-1 bg-black/60 text-[10px] text-white rounded">${v.duration || '00:00'}</div>
+                    </div>
+                    <div class="min-w-0">
+                      <h4 class="text-sm font-bold text-slate-900 line-clamp-2 leading-snug group-hover:text-brand-600 transition-colors">${v.title}</h4>
+                      <p class="text-[10px] text-slate-500 mt-1">${v.publishDate ? new Date(v.publishDate).toLocaleDateString('zh-CN') : '--'}</p>
+                    </div>
+                  </a>
+                `).join('');
+                relatedContainer.setAttribute('data-ssr-rendered', 'true');
+            }
+        } catch (relatedErr) {
+            console.error('SSR Related Videos Error:', relatedErr);
+        }
+
+        // Inject pre-rendered data for hydration
+        const scriptData = document.createElement('script');
+        scriptData.textContent = `window.__VIDEO_DATA__ = ${JSON.stringify(video)};`;
+        document.body.insertBefore(scriptData, document.body.firstChild);
+
+        res.send(dom.serialize());
+    } catch (e) {
+        console.error('SSR Error:', e);
+        res.status(500).sendFile(path.join(__dirname, '500.html'));
+    }
+});
+
+app.get('/video/:slug.html', (req, res) => res.redirect(301, '/video/' + req.params.slug + '/'));
+
 // Public: Get video detail by id and increment views
 app.get('/api/videos/:id', async (req, res) => {
     try {
@@ -2253,7 +3442,7 @@ app.get('/api/videos/:id', async (req, res) => {
             return res.status(404).json({ error: 'Invalid video id' });
         }
         await Video.updateOne({ _id: id }, { $inc: { views: 1 } });
-        const video = await Video.findById(id);
+        const video = await Video.findById(id).populate('speakers.authorId');
         if (!video) return res.status(404).json({ error: 'Video not found' });
         res.json(video);
     } catch (e) {
@@ -2261,16 +3450,61 @@ app.get('/api/videos/:id', async (req, res) => {
     }
 });
 
-// Public: Get video detail by slug
-app.get('/api/videos/detail/query', async (req, res) => {
+// Public: Get related videos by id (Semantic / Tags / Category based)
+app.get('/api/videos/:id/related', async (req, res) => {
     try {
-        const { slug } = req.query;
-        if (!slug) return res.status(400).json({ error: 'Slug is required' });
-        await Video.updateOne({ slug }, { $inc: { views: 1 } });
-        const video = await Video.findOne({ slug });
-        if (!video) return res.status(404).json({ error: 'Video not found' });
-        res.json(video);
+        const { id } = req.params;
+        const limit = parseInt(req.query.limit) || 4;
+        
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: 'Invalid video id' });
+        }
+        
+        const currentVideo = await Video.findById(id);
+        if (!currentVideo) return res.status(404).json({ error: 'Video not found' });
+        
+        // Match conditions for recommendations:
+        // 1. Must be published
+        // 2. Not the current video
+        let query = {
+            _id: { $ne: id },
+            status: 'published'
+        };
+        
+        // Try to match by tags first
+        let relatedVideos = [];
+        if (currentVideo.tags && currentVideo.tags.length > 0) {
+            const tagQuery = { ...query, tags: { $in: currentVideo.tags } };
+            relatedVideos = await Video.find(tagQuery).sort({ publishDate: -1 }).limit(limit);
+        }
+        
+        // If not enough videos by tags, fill with same category
+        if (relatedVideos.length < limit) {
+            const excludeIds = [id, ...relatedVideos.map(v => v._id)];
+            let catQuery = { _id: { $nin: excludeIds }, status: 'published' };
+            
+            if (currentVideo.videoCategories && currentVideo.videoCategories.length > 0) {
+                catQuery.videoCategories = { $in: currentVideo.videoCategories };
+            } else if (currentVideo.category) {
+                catQuery.category = currentVideo.category;
+            }
+            
+            const moreVideos = await Video.find(catQuery).sort({ publishDate: -1 }).limit(limit - relatedVideos.length);
+            relatedVideos = relatedVideos.concat(moreVideos);
+        }
+        
+        // If still not enough, fill with newest published videos
+        if (relatedVideos.length < limit) {
+            const excludeIds = [id, ...relatedVideos.map(v => v._id)];
+            const newestVideos = await Video.find({ _id: { $nin: excludeIds }, status: 'published' })
+                                          .sort({ publishDate: -1 })
+                                          .limit(limit - relatedVideos.length);
+            relatedVideos = relatedVideos.concat(newestVideos);
+        }
+        
+        res.json({ success: true, data: relatedVideos });
     } catch (e) {
+        console.error('[Related Videos Error]', e);
         res.status(500).json({ error: e.message });
     }
 });
@@ -2283,9 +3517,22 @@ app.post('/api/videos', authRequired, requirePerm('video:create'), async (req, r
             const existing = await Video.findOne({ slug });
             if (existing) return res.status(400).json({ error: 'URL (Slug) 已存在，请更换' });
         }
+        
+        if (req.body.content) {
+            req.body.content = xss(req.body.content);
+        }
+
+        if (req.body.faqs && Array.isArray(req.body.faqs)) {
+            req.body.faqs = req.body.faqs.map(faq => ({
+                question: faq.question,
+                answer: xss(faq.answer)
+            }));
+        }
+        
         const video = new Video(req.body);
         if (!video.slug) video.slug = 'vid-' + Date.now();
         if (!video.publishDate) video.publishDate = new Date();
+        if (video.isRecommended) video.recommendedAt = new Date();
         await video.save();
         await logOp('create', 'Video', `Created video: ${video.title}`, req.user.username);
         res.json({ success: true, data: video });
@@ -2303,7 +3550,31 @@ app.put('/api/videos/:id', authRequired, requirePerm('video:edit'), async (req, 
             const existing = await Video.findOne({ slug, _id: { $ne: req.params.id } });
             if (existing) return res.status(400).json({ error: 'URL (Slug) 已存在，请更换' });
         }
-        const updated = await Video.findByIdAndUpdate(req.params.id, { ...req.body }, { new: true });
+        
+        const existingVideo = await Video.findById(req.params.id);
+        if (!existingVideo) return res.status(404).json({ error: 'Video not found' });
+        
+        if (req.body.content) {
+            req.body.content = xss(req.body.content);
+        }
+
+        if (req.body.faqs && Array.isArray(req.body.faqs)) {
+            req.body.faqs = req.body.faqs.map(faq => ({
+                question: faq.question,
+                answer: xss(faq.answer)
+            }));
+        }
+        
+        const updateData = { ...req.body, updatedAt: new Date() };
+        
+        // Handle recommendedAt timestamp
+        if (updateData.isRecommended && !existingVideo.isRecommended) {
+            updateData.recommendedAt = new Date();
+        } else if (updateData.isRecommended === false) {
+            updateData.recommendedAt = null;
+        }
+
+        const updated = await Video.findByIdAndUpdate(req.params.id, updateData, { new: true });
         await logOp('update', 'Video', `Updated video: ${updated?.title || req.params.id}`, req.user.username);
         res.json({ success: true, data: updated });
     } catch (e) {
@@ -2321,6 +3592,10 @@ app.delete('/api/videos/:id', authRequired, requirePerm('video:delete'), async (
         res.status(500).json({ error: e.message });
     }
 });
+
+// Inject modular video routes (AI tools, category tree APIs, metadata parsing)
+require('./routes/videoRoutes')(app, authRequired, requirePerm, logOp, generateDeepseekText);
+require('./routes/videoEmbedRoutes')(app, authRequired, requirePerm, logOp);
 
 // 404 Handler
 app.use((req, res, next) => {

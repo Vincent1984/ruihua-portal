@@ -562,11 +562,10 @@ body {
 .faq-content {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.3s ease-out, opacity 0.3s ease-out, margin 0.3s ease;
-    opacity: 0;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease-out, margin 0.3s ease;
 }
 .faq-content.open {
-    max-height: 500px;
+    max-height: 1000px;
     opacity: 1;
     margin-top: 1rem;
 }
@@ -645,15 +644,17 @@ body {
     padding-left: 1rem; 
 }
 .prose h3 { 
-    margin-top: 1.5rem; 
+    margin-top: 1rem; 
     margin-bottom: 0.75rem; 
     font-weight: 600; 
     color: #334155; 
-    font-size: 1.25rem; 
+    font-size: 1.2rem; 
 }
-.sticky-sidebar { 
-    position: sticky; 
-    top: 6rem; 
+@media (min-width: 1024px) {
+    .sticky-sidebar { 
+        position: sticky; 
+        top: 6rem; 
+    }
 }
 
 /* Solutions Page Styles */
@@ -1381,3 +1382,17 @@ body {
 }
 .delay-200 { animation-delay: 0.2s; }
 .delay-300 { animation-delay: 0.3s; }
+
+/* Utilities */
+.mask-gradient {
+    mask-image: radial-gradient(circle at center, black, transparent 80%);
+    -webkit-mask-image: radial-gradient(circle at center, black, transparent 80%);
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}

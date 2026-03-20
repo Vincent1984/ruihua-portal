@@ -278,7 +278,7 @@ async function loadResearchInsights() {
           </h3>
           
           <p class="research-card-desc text-slate-500 text-sm mb-6 flex-grow">
-            ${article.summary || '暂无摘要'}
+            ${article.seoDescription || article.summary || '暂无摘要'}
           </p>
           
           <div class="flex justify-between items-center pt-4 mt-auto border-t border-slate-50">
@@ -345,9 +345,9 @@ async function loadFaqData() {
         html += `
             <div class="faq-item border-b border-slate-100 pb-8 last:border-0 last:pb-0">
                 <dt>
-                    <button class="faq-toggle-btn flex justify-between items-center w-full text-left font-bold text-xl text-slate-900 focus:outline-none group transition-colors duration-300 hover:text-brand-600" aria-expanded="false">
-                        <span class="pr-4">${faq.question}</span>
-                        <i class="fas fa-chevron-down faq-icon text-slate-400 group-hover:text-brand-600 transition-transform duration-300"></i>
+                    <button class="faq-toggle-btn flex justify-between items-center w-full text-left font-bold text-xl text-slate-900 focus:outline-none group transition-colors duration-300 hover:text-brand-600 home-faq__btn" aria-expanded="false">
+                        <span class="pr-4 home-faq__title">${faq.question}</span>
+                        <i class="fas fa-chevron-down faq-icon text-slate-400 group-hover:text-brand-600 transition-transform duration-300 home-faq__icon"></i>
                     </button>
                 </dt>
                 <dd class="faq-content overflow-hidden transition-all duration-300 ease-in-out" style="max-height: 0px; opacity: 0;">

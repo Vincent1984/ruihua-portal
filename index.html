@@ -10,6 +10,7 @@
     <script src="/js/tailwind-config.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/home-mobile.css" />
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/favicon.ico">
     <link rel="apple-touch-icon" href="/favicon.ico">
@@ -67,6 +68,7 @@
                     <a href="/" class="nav-link font-semibold text-brand-700 bg-brand-50" title="首页">首页</a>
                     <a href="/solutions/" class="nav-link" title="解决方案">解决方案</a>
                     <a href="/resources/" class="nav-link" title="行业洞察">行业洞察</a>
+                    <a href="/videos/" class="nav-link" title="视频中心">视频中心</a>
                     <a href="/#cases" class="nav-link" title="成功案例">成功案例</a>
                     <a href="/about/" class="nav-link" title="关于我们">关于我们</a>
                 </nav>
@@ -88,6 +90,7 @@
                 <a href="/" class="mobile-nav-link font-semibold text-brand-700 bg-brand-50" title="首页">首页</a>
                 <a href="/solutions/" class="mobile-nav-link" title="解决方案">解决方案</a>
                 <a href="/resources/" class="mobile-nav-link" title="行业洞察">行业洞察</a>
+                <a href="/videos/" class="mobile-nav-link" title="视频中心">视频中心</a>
                 <a href="/#cases" class="mobile-nav-link" title="成功案例">成功案例</a>
                 <a href="/about/" class="mobile-nav-link" title="关于我们">关于我们</a>
                 <button onclick="toggleSearch()" class="mobile-nav-link text-left flex items-center gap-2 text-slate-600 hover:text-brand-600">
@@ -115,41 +118,41 @@
                             <i class="fas fa-microchip"></i>
                             <span id="hero-tag">AI 原生的本土咨询机构</span> 
                         </div>
-                        <h1 class="font-extrabold text-slate-900 leading-tight tracking-tight mb-6">
-                            <span class="text-gradient block text-4xl sm:text-5xl md:text-6xl">重塑人力资本价值</span>
-                            <span class="block mt-2 text-2xl sm:text-3xl md:text-4xl text-slate-800 tracking-normal font-bold">助力企业人效提升和利润增长</span>
+                        <h1 class="font-extrabold text-slate-900 leading-tight tracking-tight mb-6 home-hero__title">
+                            <span class="text-gradient block text-4xl sm:text-5xl md:text-6xl home-hero__title-main">重塑人力资本价值</span>
+                            <span class="block mt-2 text-2xl sm:text-3xl md:text-4xl text-slate-800 tracking-normal font-bold home-hero__title-sub">助力企业人效提升和利润增长</span>
                         </h1>
                         <p class="text-slate-600 mb-8 leading-relaxed text-base max-w-2xl" id="hero-subtitle">
                             为大中型企业提供“人力资本价值经营”一体化解决方案，以创新的咨询方式高效导入原创思想和方法论，通过自主研发的 ©HCVM 数智平台落地。
                         </p>
                         
-                        <div class="flex flex-wrap items-center gap-2 mb-10">
+                        <div class="flex flex-nowrap items-center gap-1.5 sm:gap-2 mb-10 overflow-x-auto pb-2 scrollbar-hide" style="margin-right: -1rem; padding-right: 1rem;">
                             <!-- 管理咨询 -->
-                            <div class="bg-white rounded-2xl px-4 py-2 shadow-sm border border-slate-100 flex items-center gap-2 transition hover:shadow-md hover:-translate-y-0.5">
-                                <div class="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 text-base">
+                            <div class="bg-white rounded-2xl px-3 sm:px-4 py-2 shadow-sm border border-slate-100 flex items-center gap-2 transition hover:shadow-md hover:-translate-y-0.5 whitespace-nowrap shrink-0">
+                                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 text-sm sm:text-base shrink-0">
                                     <i class="fas fa-compass"></i>
                                 </div>
-                                <span class="font-bold text-slate-800 text-sm">管理咨询</span>
+                                <span class="font-bold text-slate-800 text-xs sm:text-sm">管理咨询</span>
                             </div>
                             
-                            <span class="text-slate-300 text-xl font-light px-1">+</span>
+                            <span class="text-slate-300 text-lg sm:text-xl font-light shrink-0">+</span>
                             
                             <!-- 数智平台 -->
-                            <div class="bg-white rounded-2xl px-4 py-2 shadow-sm border border-slate-100 flex items-center gap-2 transition hover:shadow-md hover:-translate-y-0.5">
-                                <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500 text-base">
+                            <div class="bg-white rounded-2xl px-3 sm:px-4 py-2 shadow-sm border border-slate-100 flex items-center gap-2 transition hover:shadow-md hover:-translate-y-0.5 whitespace-nowrap shrink-0">
+                                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500 text-sm sm:text-base shrink-0">
                                     <i class="fas fa-network-wired"></i>
                                 </div>
-                                <span class="font-bold text-slate-800 text-sm">数智平台</span>
+                                <span class="font-bold text-slate-800 text-xs sm:text-sm">数智平台</span>
                             </div>
                             
-                            <span class="text-slate-300 text-xl font-light px-1">+</span>
+                            <span class="text-slate-300 text-lg sm:text-xl font-light shrink-0">+</span>
                             
                             <!-- 陪伴式服务 -->
-                            <div class="bg-white rounded-2xl px-4 py-2 shadow-sm border border-slate-100 flex items-center gap-2 transition hover:shadow-md hover:-translate-y-0.5">
-                                <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-500 text-base">
+                            <div class="bg-white rounded-2xl px-3 sm:px-4 py-2 shadow-sm border border-slate-100 flex items-center gap-2 transition hover:shadow-md hover:-translate-y-0.5 whitespace-nowrap shrink-0">
+                                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-500 text-sm sm:text-base shrink-0">
                                     <i class="fas fa-handshake"></i>
                                 </div>
-                                <span class="font-bold text-slate-800 text-sm">陪伴式服务</span>
+                                <span class="font-bold text-slate-800 text-xs sm:text-sm">陪伴式服务</span>
                             </div>
                         </div>
 
@@ -160,19 +163,19 @@
                                 <i class="fas fa-arrow-right ml-1"></i>
                             </a>
                         </div>
-                        <div class="mt-10 pt-6 border-t border-slate-200/60">
-                            <p class="text-xs text-slate-400 mb-4">依托人瑞人才（<span class="font-medium text-slate-500">6919.HK</span>）深耕行业15年的服务底蕴</p>
-                            <div class="partner-logos flex flex-wrap items-center gap-x-6 gap-y-3">
-                                <img src="/images/geely.png" alt="吉利" class="h-7 w-auto grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition duration-300">
-                                <img src="/images/bgi.png" alt="华大" class="h-7 w-auto grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition duration-300">
-                                <img src="/images/zhaoshang.png" alt="招商" class="h-8 w-auto grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition duration-300">
-                                <img src="/images/douyin.png" alt="抖音" class="h-7 w-auto grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition duration-300">
-                                <img src="/images/xiaohongshu.png" alt="小红书" class="h-6 w-auto grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition duration-300">
-                                <img src="/images/xiaomi.png" alt="小米" class="h-8 w-auto grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition duration-300">
+                        <div class="mt-8 pt-5 border-t border-slate-200/60">
+                            <p class="text-xs text-slate-400 mb-3">依托人瑞人才（<span class="font-medium text-slate-500">6919.HK</span>）深耕行业15年的服务底蕴</p>
+                            <div class="partner-logos flex flex-nowrap items-center gap-4 sm:gap-6 overflow-x-auto pb-2 scrollbar-hide" style="margin-right: -1rem; padding-right: 1rem;">
+                                <img src="/images/geely.png" alt="吉利" class="h-6 sm:h-7 w-auto shrink-0 grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition duration-300">
+                                <img src="/images/bgi.png" alt="华大" class="h-6 sm:h-7 w-auto shrink-0 grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition duration-300">
+                                <img src="/images/zhaoshang.png" alt="招商" class="h-7 sm:h-8 w-auto shrink-0 grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition duration-300">
+                                <img src="/images/douyin.png" alt="抖音" class="h-6 sm:h-7 w-auto shrink-0 grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition duration-300">
+                                <img src="/images/xiaohongshu.png" alt="小红书" class="h-5 sm:h-6 w-auto shrink-0 grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition duration-300">
+                                <img src="/images/xiaomi.png" alt="小米" class="h-7 sm:h-8 w-auto shrink-0 grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition duration-300">
                             </div>
                         </div>
                     </div>
-                    <div class="relative flex justify-center items-center h-[420px] lg:h-[480px]">
+                    <div class="relative hidden md:flex justify-center items-center h-[420px] lg:h-[480px]">
                         <div class="hero-wheel-container animate-float"><img src="/images/hc-value-wheel.png" alt="价值环" class="hero-wheel-image" id="hero-image" /></div>
                     </div>
                 </div>
@@ -366,7 +369,7 @@
                 <div class="text-center mb-16">
                     <span class="text-brand-600 font-bold tracking-widest uppercase text-sm">Core Methodology</span>
                     <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-4 mb-4">"管理+技术"双轮驱动核心体系</h2>
-                    <p class="text-slate-600 max-w-3xl mx-auto text-base">通过管理轮与技术轮的深度咬合，实现从战略解码到价值分配的完整闭环</p>
+                    <p class="text-slate-600 max-w-3xl mx-auto text-base home-dual-engine__desc">通过管理轮与技术轮的深度咬合，实现从战略解码到价值分配的完整闭环</p>
                 </div>
                 <div class="grid lg:grid-cols-2 gap-8 items-stretch">
                     <!-- Management Wheel: Value Creation (Clean, Professional, ROI-Focused) -->
@@ -452,7 +455,7 @@
                                 </div>
                             </div>
                             
-                            <p class="text-slate-600 mb-10 text-lg leading-relaxed font-medium">
+                            <p class="text-slate-600 mb-10 text-lg leading-relaxed font-medium home-tech-wheel__desc">
                                 AI重构业务场景，打通数据孤岛，实现 <span class="text-blue-600 font-bold bg-blue-50 px-1 rounded">决策智能化</span>。
                             </p>
                             
@@ -510,26 +513,26 @@
                     </article>
                 </div>
                 <div class="mt-12 bg-gradient-to-r from-brand-50 via-white to-blue-50 rounded-2xl p-8 border border-slate-100">
-                    <div class="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
-                        <div class="flex items-center gap-4 text-left">
-                            <i class="fas fa-cogs text-4xl text-brand-600"></i>
+                    <div class="flex flex-row items-center justify-center gap-4 md:gap-16 home-drive__container">
+                        <div class="flex items-center gap-2 md:gap-4 text-left">
+                            <i class="fas fa-cogs text-2xl md:text-4xl text-brand-600"></i>
                             <div>
-                                <p class="font-bold text-slate-800 text-lg">管理驱动</p>
-                                <p class="text-sm text-slate-500">价值创造</p>
+                                <p class="font-bold text-slate-800 text-sm md:text-lg whitespace-nowrap">管理驱动</p>
+                                <p class="text-xs md:text-sm text-slate-500 whitespace-nowrap">价值创造</p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <i class="fas fa-arrows-left-right text-2xl text-slate-300"></i>
-                            <div class="w-16 h-16 bg-gradient-to-br from-brand-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
-                                <i class="fas fa-bolt text-white text-xl"></i>
+                        <div class="flex items-center gap-1 md:gap-2">
+                            <i class="fas fa-arrows-left-right text-lg md:text-2xl text-slate-300 hidden md:block"></i>
+                            <div class="w-10 h-10 md:w-16 md:h-16 bg-gradient-to-br from-brand-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg shrink-0">
+                                <i class="fas fa-bolt text-white text-base md:text-xl"></i>
                             </div>
-                            <i class="fas fa-arrows-left-right text-2xl text-slate-300"></i>
+                            <i class="fas fa-arrows-left-right text-lg md:text-2xl text-slate-300 hidden md:block"></i>
                         </div>
-                        <div class="flex items-center gap-4 text-left">
-                            <i class="fas fa-robot text-4xl text-blue-600"></i>
+                        <div class="flex items-center gap-2 md:gap-4 text-left">
+                            <i class="fas fa-robot text-2xl md:text-4xl text-blue-600"></i>
                             <div>
-                                <p class="font-bold text-slate-800 text-lg">数智驱动</p>
-                                <p class="text-sm text-slate-500">管理优化</p>
+                                <p class="font-bold text-slate-800 text-sm md:text-lg whitespace-nowrap">数智驱动</p>
+                                <p class="text-xs md:text-sm text-slate-500 whitespace-nowrap">管理优化</p>
                             </div>
                         </div>
                     </div>
@@ -826,8 +829,8 @@
 
         <section id="contact" class="py-24 bg-slate-50 relative border-t border-slate-100">
             <div class="max-w-4xl mx-auto px-4 text-center">
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-6">战略机遇稍纵即逝，您从哪里起步？</h2>
-                <p class="text-base text-slate-600 mb-10">不要让您的企业在 AI 浪潮中掉队。我们让数据告诉您：<strong class="text-slate-800">利润增长潜力在哪里？</strong></p>
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-6 home-cta__title">战略机遇稍纵即逝，您从哪里起步？</h2>
+                <p class="text-base text-slate-600 mb-10 home-cta__desc">不要让您的企业在 AI 浪潮中掉队，让数据告诉您：<br class="hidden home-cta__br"><strong class="text-slate-800 home-cta__highlight">利润增长潜力在哪里？</strong></p>
                 <div class="bg-slate-900 p-10 rounded-3xl shadow-2xl relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-full overflow-hidden opacity-30">
                         <div class="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-r from-brand-600 to-transparent rounded-full blur-[100px] animate-pulse"></div>

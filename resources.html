@@ -21,6 +21,31 @@
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         .modal-animate { animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        
+        /* 文本截断与展开动画 - 渐变遮罩方案 */
+        .summary-wrapper {
+            position: relative;
+            max-height: 44px; /* 约两行高度 */
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .summary-wrapper::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 24px;
+            background: linear-gradient(to bottom, transparent, white);
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .group:hover .summary-wrapper {
+            max-height: 300px; /* 足够展示完整摘要的高度 */
+        }
+        .group:hover .summary-wrapper::after {
+            opacity: 0;
+        }
     </style>
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/favicon.ico">
@@ -59,6 +84,7 @@
                     <a href="/" class="nav-link">首页</a>
                     <a href="/solutions/" class="nav-link">解决方案</a>
                     <a href="/resources/" class="nav-link font-semibold text-brand-700 bg-brand-50">行业洞察</a>
+                    <a href="/videos/" class="nav-link">视频中心</a>
                     <a href="/#cases" class="nav-link">成功案例</a>
                     <a href="/about/" class="nav-link">关于我们</a>
                 </div>
@@ -77,6 +103,7 @@
                 <a href="/" class="nav-link">首页</a>
                 <a href="/solutions/" class="mobile-nav-link">解决方案</a>
                 <a href="/resources/" class="mobile-nav-link font-semibold text-brand-700 bg-brand-50">行业洞察</a>
+                <a href="/videos/" class="mobile-nav-link">视频中心</a>
                 <a href="/#cases" class="mobile-nav-link">成功案例</a>
                 <a href="/about/" class="mobile-nav-link">关于我们</a>
                 <a href="/productivity/" class="bg-brand-600 text-white font-medium py-3 px-4 rounded-lg text-center mt-2">预约专家咨询</a>
@@ -245,8 +272,14 @@
         async function initCategories() {
             const tabsContainer = document.getElementById('category-tabs');
             try {
-                const res = await fetch('/api/categories');
-                const categories = await res.json();
+                // Read from injected variable if available
+                let categories = [];
+                if (window.__INITIAL_CATEGORIES__) {
+                    categories = window.__INITIAL_CATEGORIES__;
+                } else {
+                    const res = await fetch('/api/categories');
+                    categories = await res.json();
+                }
                 
                 // Populate map
                 if (Array.isArray(categories)) {
@@ -298,9 +331,15 @@
             const container = document.getElementById('resources-grid');
             
             try {
-                // 后端现在支持 category 参数筛选了
-                const res = await fetch(`/api/articles?category=${category}`);
-                const articles = await res.json();
+                let articles = [];
+                // Use SSR initial data for 'all' category on first load if available
+                if (category === 'all' && window.__INITIAL_ARTICLES__ && window.__INITIAL_ARTICLES_USED__ !== true) {
+                    articles = window.__INITIAL_ARTICLES__;
+                    window.__INITIAL_ARTICLES_USED__ = true;
+                } else {
+                    const res = await fetch(`/api/articles?category=${category}`);
+                    articles = await res.json();
+                }
 
                 container.innerHTML = ''; 
 
@@ -323,7 +362,7 @@
                         : `<span class="text-brand-600 font-semibold text-xs hover:underline flex items-center gap-1">阅读文章 <i class="fas fa-arrow-right transform group-hover:translate-x-1 transition-transform"></i></span>`;
 
                     html += `
-                    <a href="${artUrl}" title="${art.title}" class="bg-white rounded-xl overflow-hidden transition-all duration-300 group flex flex-col cursor-pointer fade-in-up relative z-0 hover:z-10 block" 
+                    <a href="${artUrl}" class="bg-white rounded-xl overflow-hidden transition-all duration-300 group flex flex-col cursor-pointer fade-in-up relative z-0 hover:z-10 block" 
                              style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-decoration: none;" 
                              onmouseover="this.style.boxShadow='0 12px 24px rgba(0,0,0,0.15)'; this.style.transform='translateY(-4px)'" 
                              onmouseout="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'; this.style.transform='translateY(0)'">
@@ -335,8 +374,10 @@
                             <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition duration-300"></div>
                         </div>
                         <div class="p-5 flex flex-col flex-grow">
-                            <h3 class="font-bold text-slate-900 mb-2 group-hover:text-brand-600 transition line-clamp-2 text-[16px] leading-snug tracking-tight">${art.title}</h3>
-                            <p class="text-slate-500 mb-4 line-clamp-3 flex-grow text-[13px] leading-relaxed">${art.summary}</p>
+                            <h3 class="font-bold text-slate-900 mb-2 group-hover:text-brand-600 transition truncate text-[16px] leading-snug tracking-tight" title="${art.title}">${art.title}</h3>
+                            <div class="summary-wrapper flex-grow mb-4">
+                                <p class="text-slate-500 text-[13px] leading-relaxed">${art.seoDescription || art.summary || ''}</p>
+                            </div>
                             <div class="mt-auto pt-3 border-t border-slate-50 flex justify-between items-center relative z-20">
                                 <span class="text-[11px] text-slate-400 font-medium">${date}</span>
                                 ${cardAction}

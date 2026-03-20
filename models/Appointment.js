@@ -18,4 +18,6 @@ const appointmentSchema = new mongoose.Schema({
 
 // Add compound index for analytics performance
 appointmentSchema.index({ utm_source: 1, createdAt: -1 });
+// Add index for sorting
+appointmentSchema.index({ createdAt: -1 });
 module.exports = mongoose.model('Appointment', appointmentSchema);

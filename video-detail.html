@@ -9,6 +9,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/css/styles.css" />
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <!-- DPlayer CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css">
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased selection:bg-brand-100 selection:text-brand-900">
   <header class="fixed w-full z-50 glass-nav transition-all duration-300">
@@ -25,6 +27,7 @@
           <a href="/" class="nav-link" title="首页">首页</a>
           <a href="/solutions/" class="nav-link" title="解决方案">解决方案</a>
           <a href="/resources/" class="nav-link" title="行业洞察">行业洞察</a>
+                    <a href="/videos/" class="nav-link" title="视频中心">视频中心</a>
           <a href="/videos.html" class="nav-link font-semibold text-brand-700 bg-brand-50" title="视频中心">视频中心</a>
           <a href="/about/" class="nav-link" title="关于我们">关于我们</a>
         </nav>
@@ -46,6 +49,7 @@
         <a href="/" class="mobile-nav-link" title="首页">首页</a>
         <a href="/solutions/" class="mobile-nav-link" title="解决方案">解决方案</a>
         <a href="/resources/" class="mobile-nav-link" title="行业洞察">行业洞察</a>
+                <a href="/videos/" class="mobile-nav-link" title="视频中心">视频中心</a>
         <a href="/videos.html" class="mobile-nav-link font-semibold text-brand-700 bg-brand-50" title="视频中心">视频中心</a>
         <a href="/about/" class="mobile-nav-link" title="关于我们">关于我们</a>
       </div>
@@ -65,9 +69,9 @@
 
       <div class="grid lg:grid-cols-3 gap-8">
         <!-- Main Content (Left) -->
-        <div class="lg:col-span-2 space-y-8">
+        <div class="lg:col-span-2 flex flex-col space-y-8">
           <!-- Video Player Section -->
-          <div class="bg-black rounded-2xl overflow-hidden shadow-2xl aspect-video relative group">
+          <div class="bg-black rounded-2xl overflow-hidden shadow-2xl aspect-video relative group flex-shrink-0">
             <div id="video-container" class="w-full h-full flex items-center justify-center">
                 <!-- Video/Embed will be injected here -->
                 <div class="animate-pulse flex flex-col items-center">
@@ -78,7 +82,7 @@
           </div>
 
           <!-- Video Info -->
-          <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-100">
+          <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-100 flex-grow">
             <div class="flex flex-wrap items-center gap-3 mb-4" id="video-tags">
               <!-- Tags injected here -->
             </div>
@@ -98,30 +102,89 @@
                 <!-- Rich text content here -->
               </div>
             </div>
-          </div>
 
-          <!-- Speaker Card -->
-          <div id="speaker-section" class="hidden bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-start gap-6">
-            <img id="speaker-avatar" src="" alt="" class="w-16 h-16 rounded-full object-cover border-2 border-slate-50 shadow-sm">
-            <div>
-              <h3 class="font-bold text-slate-900 text-lg mb-1" id="speaker-name"></h3>
-              <p class="text-brand-600 text-sm font-medium mb-3" id="speaker-title"></p>
-              <p class="text-slate-500 text-sm leading-relaxed" id="speaker-desc"></p>
+            <!-- FAQ Section -->
+            <div id="faq-section" class="mt-12 hidden">
+              <h3 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                <i class="fas fa-question-circle text-brand-600"></i> 常见问题解答
+              </h3>
+              <div class="space-y-4" id="faq-accordion">
+                <!-- FAQ items injected here -->
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Sidebar (Right) -->
-        <div class="space-y-8">
-          <!-- Lead Generation Card -->
-          <div class="bg-gradient-to-br from-brand-600 to-brand-800 rounded-2xl p-6 text-white shadow-xl shadow-brand-500/20">
-            <h3 class="text-xl font-bold mb-2">获取完整方案</h3>
-            <p class="text-brand-100 text-sm mb-6 leading-relaxed">想要了解更多关于组织效能提升的实战经验？立即预约专家咨询。</p>
-            <form id="lead-form" class="space-y-3">
-              <input type="text" placeholder="您的姓名" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 transition">
-              <input type="tel" placeholder="联系电话" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 transition">
-              <button type="submit" class="w-full bg-white text-brand-700 font-bold py-3 rounded-xl hover:bg-brand-50 transition shadow-lg">立即提交</button>
-            </form>
+        <div class="flex flex-col space-y-8">
+          <!-- Efficiency Diagnosis Ad Card -->
+          <div id="productivity-ad-banner" class="bg-gradient-to-br from-[#7c4dff] to-[#5e35b1] rounded-2xl p-6 text-white shadow-xl shadow-[#7c4dff]/20 relative overflow-hidden group cursor-pointer flex flex-col" onclick="window.location.href='/productivity/'">
+            <!-- Decorative Background Elements -->
+            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+            <div class="absolute bottom-0 left-0 -mb-4 -ml-4 w-20 h-20 bg-white opacity-10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700 delay-100"></div>
+            
+            <div class="relative z-10 flex flex-col h-full">
+              <div>
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 text-white text-xs font-semibold mb-4 backdrop-blur-sm">
+                  <i class="fas fa-bolt text-yellow-300"></i> 限时免费评估
+                </div>
+                <h3 class="text-2xl font-bold mb-2 tracking-tight"><span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-200">组织人效智能体检Agent</span></h3>
+                <p class="text-purple-100 text-sm mb-6 leading-relaxed">通过科学的诊断模型，为您精准定位组织效能痛点，量化人力资本投资回报。</p>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-3 mb-6 flex-grow">
+                <!-- R -->
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-purple-100 hover:border-purple-300 transition-colors flex flex-col justify-center">
+                  <div class="flex items-center gap-1.5 mb-1.5">
+                    <span class="text-2xl font-black text-[#8b5cf6] leading-none">R</span>
+                    <h4 class="text-[13px] font-bold text-slate-800 leading-tight">人效对标</h4>
+                  </div>
+                  <p class="text-[11px] text-slate-500 leading-snug">排查利润黑洞<br>识别低效投入</p>
+                </div>
+                <!-- A -->
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-purple-100 hover:border-purple-300 transition-colors flex flex-col justify-center">
+                  <div class="flex items-center gap-1.5 mb-1.5">
+                    <span class="text-2xl font-black text-[#8b5cf6] leading-none">A</span>
+                    <h4 class="text-[13px] font-bold text-slate-800 leading-tight">结构适配</h4>
+                  </div>
+                  <p class="text-[11px] text-slate-500 leading-snug">评估组织架构<br>支撑业务增长</p>
+                </div>
+                <!-- C -->
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-purple-100 hover:border-purple-300 transition-colors flex flex-col justify-center">
+                  <div class="flex items-center gap-1.5 mb-1.5">
+                    <span class="text-2xl font-black text-[#8b5cf6] leading-none">C</span>
+                    <h4 class="text-[13px] font-bold text-slate-800 leading-tight">人才动能</h4>
+                  </div>
+                  <p class="text-[11px] text-slate-500 leading-snug">识别核心能力<br>评估梯队健康度</p>
+                </div>
+                <!-- E -->
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-purple-100 hover:border-purple-300 transition-colors flex flex-col justify-center">
+                  <div class="flex items-center gap-1.5 mb-1.5">
+                    <span class="text-2xl font-black text-[#8b5cf6] leading-none">E</span>
+                    <h4 class="text-[13px] font-bold text-slate-800 leading-tight">组织活力</h4>
+                  </div>
+                  <p class="text-[11px] text-slate-500 leading-snug">量化员工敬业度<br>判断长效动力</p>
+                </div>
+              </div>
+
+              <div class="mt-auto pt-2">
+                <button class="w-full bg-white text-[#5e35b1] font-bold py-3.5 rounded-xl hover:bg-purple-50 transition-all shadow-lg group-hover:shadow-white/20 flex items-center justify-center gap-2">
+                  预约体验 <i class="fas fa-arrow-right text-sm group-hover:translate-x-1 transition-transform"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Speaker Card (Moved here) -->
+          <div id="speaker-section" class="hidden bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+            <div class="flex items-start gap-4">
+              <img id="speaker-avatar" src="" alt="" class="w-14 h-14 rounded-full object-cover border-2 border-slate-50 shadow-sm shrink-0">
+              <div>
+                <h4 class="font-bold text-slate-900 text-base mb-1" id="speaker-name"></h4>
+                <p class="text-brand-600 text-xs font-medium mb-2" id="speaker-title"></p>
+                <p class="text-slate-500 text-xs leading-relaxed line-clamp-3" id="speaker-desc"></p>
+              </div>
+            </div>
           </div>
 
           <!-- Related Videos -->
@@ -141,6 +204,11 @@
 
   <div id="footer-container"></div>
 
+  <!-- DPlayer Library -->
+  <script src="https://cdn.jsdelivr.net/npm/flv.js/dist/flv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js/dist/hls.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js"></script>
+  
   <script src="/js/main.js"></script>
   <script src="/js/video-detail.js"></script>
   <script type="module">

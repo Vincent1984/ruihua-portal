@@ -4,7 +4,9 @@ const articleHistorySchema = new mongoose.Schema({
   articleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Article', required: true },
   title: String,
   content: String,
-  summary: String,
+  qa: [{ question: String, answer: String, isManualEdited: { type: Boolean, default: false } }], // Q&A 问答对
+  summary: String, // GEO 摘要
+  seoDescription: String, // SEO 摘要
   coverImage: String,
   tags: [String],
   status: String,

@@ -1,0 +1,112 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+    "name": "Ruihua Portal API - FAQ & Video Editor",
+    "description": "API integration tests for the FAQ management and Video Editor rich text features.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "FAQ API",
+      "item": [
+        {
+          "name": "Get FAQ List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/faqs?status=published&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "faqs"],
+              "query": [
+                { "key": "status", "value": "published" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create FAQ",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"如何使用组织人效工具？\",\n  \"description\": \"关于工具使用的基础问题\",\n  \"answer\": \"<p>请参考<strong>官方文档</strong>进行操作，并确保账号已激活。</p>\",\n  \"order\": 1,\n  \"status\": \"published\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/faqs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "faqs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update FAQ",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"如何使用组织人效工具？\",\n  \"description\": \"更新描述\",\n  \"answer\": \"<p>请参考<a href='http://example.com'>官方文档</a></p>\",\n  \"order\": 2,\n  \"status\": \"published\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/faqs/{{faqId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "faqs", "{{faqId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete FAQ",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/faqs/{{faqId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "faqs", "{{faqId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Video API",
+      "item": [
+        {
+          "name": "Create Video with Rich Text",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"测试视频 - 富文本\",\n  \"videoUrl\": \"http://example.com/video.mp4\",\n  \"content\": \"<h2>这是标题</h2><p>这是<strong>加粗</strong>的内容，包含一段<script>alert(1)</script>会被过滤的脚本。</p>\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/videos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "videos"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

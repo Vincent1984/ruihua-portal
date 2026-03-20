@@ -1,0 +1,70 @@
+@media (max-width: 768px) {
+    /* 1. Hero Title Centering */
+    .home-hero__title {
+        text-align: center;
+    }
+}
+    /* 2. Dual Engine Description No-wrap */
+    .home-dual-engine__desc {
+        font-size: 11px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    /* 3. Tech Wheel Description No-wrap */
+    .home-tech-wheel__desc {
+        font-size: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    /* 4. FAQ Styling */
+    .home-faq__btn {
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.4;
+    }
+    .home-faq__title {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+        padding-right: 10px;
+    }
+    .home-faq__icon {
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    /* 5. CTA Title No-wrap */
+    .home-cta__title {
+        font-size: 18px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* 6. CTA Desc Split & Styling */
+    .home-cta__desc {
+        text-align: center;
+        line-height: 1.6;
+    }
+    .home-cta__br {
+        display: block !important;
+    }
+    .home-cta__highlight {
+        font-weight: bold;
+        color: #4f46e5; /* Primary brand color equivalent */
+    }
+
+    /* 7. Drive Inline (override flex-col/wrap) */
+    .home-drive__container {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        justify-content: center;
+        gap: 12px !important;
+    }
+}

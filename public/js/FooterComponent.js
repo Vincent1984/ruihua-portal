@@ -79,7 +79,7 @@ export class FooterComponent {
                 </div>
                 <div class="pt-6 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
                     <div class="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-sm text-slate-500">
-                        <p>© ${this.currentYear} 瑞华智策 Ruihua Intelligent Strategy. All rights reserved.</p>
+                        <p>© ${this.currentYear} 瑞华智策 Ruihua Consulting. All rights reserved.</p>
                         <span class="hidden md:inline text-slate-700">|</span>
                         <a href="https://beian.miit.gov.cn/" target="_blank" class="hover:text-white transition">沪ICP备12042344号-24</a>
                     </div>

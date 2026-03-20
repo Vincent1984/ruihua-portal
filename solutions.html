@@ -29,6 +29,7 @@
                     <a href="/" class="nav-link px-3 py-2 text-slate-600 hover:text-violet-700 font-medium">首页</a>
                     <a href="/solutions/" class="nav-link px-3 py-2 font-bold text-violet-700 bg-violet-50 rounded-lg">解决方案</a>
                     <a href="/resources/" class="nav-link px-3 py-2 text-slate-600 hover:text-violet-700 font-medium">行业洞察</a>
+                    <a href="/videos/" class="nav-link px-3 py-2 text-slate-600 hover:text-violet-700 font-medium">视频中心</a>
                     <a href="/#cases" class="nav-link px-3 py-2 text-slate-600 hover:text-violet-700 font-medium">成功案例</a>
                     <a href="/about/" class="nav-link px-3 py-2 text-slate-600 hover:text-violet-700 font-medium">关于我们</a>
                 </div>
@@ -148,13 +149,17 @@
     </main>
 
     <!-- Footer -->
-    <div id="footer-container"></div>
+    <footer id="footer-container" role="contentinfo"></footer>
     
-    <script src="/js/script.js"></script>
-    <script src="/js/main.js"></script>
+    <!-- Scripts -->
+    <script src="/js/utils.js"></script>
     <script type="module">
+        import { NavComponent } from '/js/NavComponent.js';
         import { FooterComponent } from '/js/FooterComponent.js';
-        new FooterComponent().render('#footer-container');
+        
+        // Initialize Components
+        new NavComponent();
+        new FooterComponent();
     </script>
 </body>
 </html>
