@@ -5,6 +5,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
+const sharp = require('sharp');
+const fs = require('fs');
+const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
@@ -12,7 +15,6 @@ const axios = require('axios');
 const crypto = require('crypto');
 const mongoSanitize = require('express-mongo-sanitize');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 
 // Import Models
 const Appointment = require('./models/Appointment');
@@ -35,6 +37,8 @@ const efficiencyQuizData = require('./config/efficiencyQuizData'); // Import Eff
 const XLSX = require('xlsx'); // Import xlsx
 const xss = require('xss');
 const { slugify } = require('transliteration');
+const { toDigitsFromSha256, clipDigits, ensureUniqueDigits } = require('./utils/numericName');
+const FileNameMap = require('./models/FileNameMap');
 const domainNormalizer = require('./middleware/domainNormalizer');
 const legacyRedirects = require('./middleware/legacyRedirects');
 
@@ -128,11 +132,68 @@ app.use('/api/', (req, res, next) => {
 
 // Stricter Rate Limiting for Login - REMOVED
 
-app.use(cors());
+const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+if (allowedOrigins.length > 0) {
+    app.use(cors({
+        origin: (origin, callback) => {
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.includes(origin)) return callback(null, true);
+            return callback(null, false);
+        },
+        credentials: true
+    }));
+} else {
+    app.use(cors());
+}
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
+function guardPagination(req, res, next) {
+    try {
+        if (req.method === 'GET' && (req.path === '/api/articles' || req.path === '/api/videos')) {
+            const q = req.query || {};
+            const p = parseInt(q.page, 10);
+            const l = parseInt(q.limit, 10);
+            q.page = Number.isFinite(p) && p > 0 ? p : 1;
+            q.limit = Number.isFinite(l) && l > 0 ? Math.min(l, 50) : 12;
+            if (q.keyword && String(q.keyword).length > 120) {
+                q.keyword = String(q.keyword).slice(0, 120);
+            }
+            req.query = q;
+        }
+    } catch {}
+    next();
+}
+app.use(guardPagination);
+
+const uploadLimiter = rateLimit({ windowMs: 10 * 60 * 1000, max: 120, standardHeaders: true, legacyHeaders: false });
+
+app.get('/img/fallback/article', (req, res) => {
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.send(`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><rect width="100%" height="100%" fill="#eef2ff"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#64748b" font-family="Arial,Helvetica,sans-serif" font-size="24">Article Image</text></svg>`);
+});
+app.get('/img/fallback/avatar', (req, res) => {
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.send(`<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240"><rect width="100%" height="100%" fill="#f1f5f9"/><circle cx="120" cy="90" r="40" fill="#cbd5e1"/><rect x="60" y="150" width="120" height="50" rx="12" fill="#cbd5e1"/></svg>`);
+});
+app.get('/img/fallback/video', (req, res) => {
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.send(`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#eef2ff"/><stop offset="1" stop-color="#e0e7ff"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><polygon points="360,225 360,165 430,195 430,255" fill="#6366f1"/><rect x="280" y="150" width="240" height="150" rx="16" fill="none" stroke="#94a3b8" stroke-width="4"/></svg>`);
+});
+
+app.get('/fallback-image/article', (req, res) => {
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.send(`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><rect width="100%" height="100%" fill="#eef2ff"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#64748b" font-family="Arial,Helvetica,sans-serif" font-size="24">Article Image</text></svg>`);
+});
+app.get('/fallback-image/avatar', (req, res) => {
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.send(`<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240"><rect width="100%" height="100%" fill="#f1f5b9"/><circle cx="120" cy="90" r="40" fill="#cbd5e1"/><rect x="60" y="150" width="120" height="50" rx="12" fill="#cbd5e1"/></svg>`);
+});
+app.get('/fallback-image/video', (req, res) => {
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.send(`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#eef2ff"/><stop offset="1" stop-color="#e0e7ff"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><polygon points="360,225 360,165 430,195 430,255" fill="#6366f1"/><rect x="280" y="150" width="240" height="150" rx="16" fill="none" stroke="#94a3b8" stroke-width="4"/></svg>`);
+});
 // Manual Mongo Sanitize to fix "Cannot set property query" error
 // The default middleware fails because req.query is sometimes a getter-only property in this environment.
 app.use((req, res, next) => {
@@ -179,7 +240,16 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(express.static(path.join(__dirname, 'public'), { index: false }));
+app.use(express.static(path.join(__dirname, 'public'), { 
+    index: false,
+    etag: true,
+    maxAge: '7d',
+    setHeaders: (res, filePath) => {
+        if (/\.(png|jpg|jpeg|gif|svg|webp)$/i.test(filePath)) {
+            res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+        }
+    }
+}));
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
 // Apply Rate Limiter AFTER static files
@@ -190,6 +260,7 @@ const rootHtmlFiles = [
     'form.html', 'form2.html',
     'efficiency-diagnostic.html',
     'video-detail.html',
+    'videos.html',
     'privacy.html',
     'solutions.html',
     'solutions-hcvm.html',
@@ -205,8 +276,9 @@ rootHtmlFiles.forEach(file => {
     }
 });
 
+app.get('/videos/', (req, res) => res.sendFile(path.join(__dirname, 'videos.html')));
+
 // Helper for SEO SSR on Article Page
-const fs = require('fs');
 const { JSDOM } = require('jsdom');
 let articleTemplateCache = null;
 
@@ -691,7 +763,7 @@ async function renderResourcesPage(req, res) {
                              onmouseout="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'; this.style.transform='translateY(0)'">
                         <div class="relative overflow-hidden aspect-[16/9]">
                             <span class="absolute top-3 left-3 bg-white/90 backdrop-blur text-slate-600 text-[10px] font-bold px-2 py-1 rounded-full z-10 uppercase shadow-sm tracking-wide">${artCategoryName}</span>
-                            <img src="${art.coverImage || 'https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'}" 
+                            img src="${art.coverImage || '/images/default-article.jpg'}"
                                  class="w-full h-full object-cover transition duration-700 group-hover:scale-105" 
                                  alt="${art.title || ''}">
                             <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition duration-300"></div>
@@ -860,7 +932,30 @@ app.get('/sitemap.xml', async (req, res) => {
 });
 
 
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads'), {
+    etag: true,
+    maxAge: '7d',
+    setHeaders: (res, filePath) => {
+        if (/\.(png|jpg|jpeg|gif|svg|webp)$/i.test(filePath)) {
+            res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+        }
+    }
+}));
+
+app.get('/images/default-article.jpg', (req, res) => {
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.send(`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><rect width="100%" height="100%" fill="#eef2ff"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#64748b" font-family="Arial,Helvetica,sans-serif" font-size="24">Article Image</text></svg>`);
+});
+
+app.get('/images/default-avatar.png', (req, res) => {
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.send(`<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240"><rect width="100%" height="100%" fill="#f1f5f9"/><circle cx="120" cy="90" r="40" fill="#cbd5e1"/><rect x="60" y="150" width="120" height="50" rx="12" fill="#cbd5e1"/></svg>`);
+});
+
+app.get('/images/default-video.jpg', (req, res) => {
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.send(`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#eef2ff"/><stop offset="1" stop-color="#e0e7ff"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><polygon points="360,225 360,165 430,195 430,255" fill="#6366f1"/><rect x="280" y="150" width="240" height="150" rx="16" fill="none" stroke="#94a3b8" stroke-width="4"/></svg>`);
+});
 
 // --- Auth Middleware ---
 function authRequired(req, res, next) {
@@ -888,23 +983,37 @@ mongoose.connect(mongoUrl)
     .catch(err => console.error('MongoDB Connection Error:', err));
 
 // Multer Config for Uploads
+function ensureDirSync(dir) {
+    try {
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+    } catch (e) {
+        console.error('EnsureDir failed:', e);
+    }
+}
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, path.join(__dirname, 'public/uploads/'))
+        const dir = path.join(__dirname, 'public/uploads/');
+        ensureDirSync(dir);
+        cb(null, dir);
     },
     filename: function (req, file, cb) {
-        // Sanitize filename to prevent path traversal or other issues
-        const cleanName = path.basename(file.originalname).replace(/[^a-zA-Z0-9.-]/g, '_');
-        cb(null, Date.now() + '_' + cleanName);
+        const base = path.basename(file.originalname).replace(/\.[^.]+$/, '');
+        const digitsRaw = toDigitsFromSha256(base + String(Date.now()));
+        const digits30 = clipDigits(digitsRaw, 30);
+        const ext = path.extname(file.originalname).toLowerCase();
+        cb(null, digits30 + ext);
     }
 });
 
 // Fix File Upload Vulnerability: Limit file size and type
 const upload = multer({ 
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // Limit to 5MB
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB for high-res covers
     fileFilter: (req, file, cb) => {
-        const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx/;
+        const allowedTypes = /jpeg|jpg|png|gif|webp|pdf|doc|docx|xls|xlsx/;
         const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
         const mimetype = allowedTypes.test(file.mimetype);
         if (mimetype && extname) {
@@ -972,7 +1081,8 @@ const requirePerm = (perm) => {
 };
 
 // --- Auth Routes ---
-app.post('/api/login', async (req, res) => {
+const loginLimiter = rateLimit({ windowMs: 10 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
+app.post('/api/login', loginLimiter, async (req, res) => {
     try {
         const { username, password } = req.body;
         const admin = await Admin.findOne({ username }).populate('roles');
@@ -2244,29 +2354,69 @@ const uploadAuthor = multer({
     }
 });
 
-app.post('/api/upload/author/:userId', authRequired, uploadAuthor.single('file'), async (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-    // Return relative path
-    const userId = req.params.userId || 'default';
-    const filePath = `/uploads/authors/${userId}/${req.file.filename}`;
-    
-    await logOp('upload', 'AuthorAvatar', `Uploaded avatar for user: ${userId}`);
-    
-    res.json({ 
-        success: true, 
-        url: filePath 
-    });
+app.post('/api/upload/author/:userId', authRequired, uploadLimiter, uploadAuthor.single('file'), async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+        const userId = req.params.userId || 'default';
+        const dir = path.join(__dirname, `public/uploads/authors/${userId}`);
+        ensureDirSync(dir);
+        const originalBase = path.basename(req.file.originalname).replace(/\.[^.]+$/, '');
+        const digitsRaw = toDigitsFromSha256(originalBase + String(Date.now()));
+        const digits30 = clipDigits(digitsRaw, 30);
+        const uniqueDigits = ensureUniqueDigits(dir, digits30);
+        const avatarAbs = path.join(dir, uniqueDigits + '2.webp');
+        await sharp(req.file.path).resize(256, 256, { fit: 'cover' }).webp({ quality: 85 }).toFile(avatarAbs);
+        try { fs.unlinkSync(req.file.path); } catch {}
+        const publicRoot = path.join(__dirname, 'public');
+        const url = avatarAbs.replace(publicRoot, '').replace(/\\/g, '/');
+        await logOp('upload', 'AuthorAvatar', `Uploaded avatar for user: ${userId}`, req.user?.username);
+        const hashHex = crypto.createHash('sha256').update(originalBase).digest('hex');
+        await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '2', directory: url.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'avatar', hashHex });
+        res.json({ success: true, url });
+    } catch (e) {
+        console.error('Author upload error:', e);
+        res.status(500).json({ error: '服务器内部错误' });
+    }
 });
 
-app.post('/api/upload', authRequired, upload.single('file'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded' });
+app.post('/api/upload', authRequired, uploadLimiter, upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+        const uploadedAbs = path.join(__dirname, 'public/uploads', req.file.filename);
+        // If image, do local processing: convert to webp + thumbnail, store in date-based directory
+        if (req.file.mimetype && req.file.mimetype.startsWith('image/')) {
+            const now = new Date();
+            const year = String(now.getFullYear());
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const baseDir = path.join(__dirname, 'public/uploads/images', year, month);
+            ensureDirSync(baseDir);
+            const originalBase = path.basename(req.file.originalname).replace(/\.[^.]+$/, '');
+            const digitsRaw = toDigitsFromSha256(originalBase + String(Date.now()));
+            const digits30 = clipDigits(digitsRaw, 30);
+            const uniqueDigits = ensureUniqueDigits(baseDir, digits30);
+            const webpAbs = path.join(baseDir, uniqueDigits + '0.webp');
+            const thumbAbs = path.join(baseDir, uniqueDigits + '1.webp');
+            await sharp(uploadedAbs).resize({ width: 1440, withoutEnlargement: true }).webp({ quality: 82 }).toFile(webpAbs);
+            await sharp(uploadedAbs).resize({ width: 480, height: 480, fit: 'inside', withoutEnlargement: true }).webp({ quality: 80 }).toFile(thumbAbs);
+            try { fs.unlinkSync(uploadedAbs); } catch {}
+            const publicRoot = path.join(__dirname, 'public');
+            const url = webpAbs.replace(publicRoot, '').replace(/\\/g, '/');
+            const thumb = thumbAbs.replace(publicRoot, '').replace(/\\/g, '/');
+            await logOp('upload', 'Image', `Image processed: ${url}`, req.user?.username);
+            const hashHex = crypto.createHash('sha256').update(originalBase).digest('hex');
+            await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '0', directory: url.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'main', hashHex });
+            await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '1', directory: thumb.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'thumb', hashHex });
+            return res.json({ success: true, url, thumb });
+        }
+        // Non-image: keep original disk path
+        await logOp('upload', 'File', `File uploaded: ${req.file.filename}`, req.user?.username);
+        return res.json({ success: true, url: '/uploads/' + req.file.filename });
+    } catch (e) {
+        console.error('Upload processing error:', e);
+        return res.status(500).json({ error: '服务器内部错误' });
     }
-    // Return relative path
-    res.json({ 
-        success: true, 
-        url: '/uploads/' + req.file.filename 
-    });
 });
 
 // --- SMS Verification Code API ---
@@ -2276,7 +2426,8 @@ function generateVerificationCode() {
 }
 
 // 发送短信验证码
-app.post('/api/send-verification-code', async (req, res) => {
+const smsLimiter = rateLimit({ windowMs: 10 * 60 * 1000, max: 3, standardHeaders: true, legacyHeaders: false });
+app.post('/api/send-verification-code', smsLimiter, async (req, res) => {
     try {
         const { phone } = req.body;
         
@@ -2308,8 +2459,9 @@ app.post('/api/send-verification-code', async (req, res) => {
         // 发送短信
         try {
             console.log(`[SMS DEBUG] Preparing to send SMS to ${phone}`);
-            console.log(`[SMS DEBUG] URL: ${process.env.SMS_API_URL}`);
-            console.log(`[SMS DEBUG] Username: ${process.env.SMS_USERNAME}`);
+            const maskedUser = (process.env.SMS_USERNAME || '').replace(/.(?=.{2})/g, '*');
+            console.log('[SMS DEBUG] Using SMS provider');
+            console.log(`[SMS DEBUG] Username: ${maskedUser}`);
             // Do not log password
             
             const smsPayload = {

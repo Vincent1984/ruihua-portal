@@ -248,7 +248,7 @@ async function loadResearchInsights() {
         day: '2-digit'
       }).replace(/\//g, '-') : '2025-01-01'; // 格式化为 YYYY-MM-DD
       
-      const cover = article.coverImage || `https://picsum.photos/seed/${article.slug || article._id}/600/400`;
+      const cover = article.coverImage || '/images/default-article.jpg';
       
       // Get category name from map or fallback to code
       let categoryName = article.category;
@@ -263,7 +263,7 @@ async function loadResearchInsights() {
       
       card.innerHTML = `
         <div class="relative w-full h-48 sm:h-56 overflow-hidden">
-          <img src="${cover}" alt="${article.title || '研究文章图片'}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+          <img src="${cover}" alt="${article.title || '研究文章图片'}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" data-fallback="/images/default-article.jpg">
           <!-- 标签悬浮在图片左上角 -->
           <div class="absolute top-4 left-4 z-20">
             <span class="category-badge" style="--cat-hue: ${hue};">
@@ -278,7 +278,7 @@ async function loadResearchInsights() {
           </h3>
           
           <p class="research-card-desc text-slate-500 text-sm mb-6 flex-grow">
-            ${article.seoDescription || article.summary || '暂无摘要'}
+            ${article.summary || '暂无摘要'}
           </p>
           
           <div class="flex justify-between items-center pt-4 mt-auto border-t border-slate-50">
@@ -345,9 +345,9 @@ async function loadFaqData() {
         html += `
             <div class="faq-item border-b border-slate-100 pb-8 last:border-0 last:pb-0">
                 <dt>
-                    <button class="faq-toggle-btn flex justify-between items-center w-full text-left font-bold text-xl text-slate-900 focus:outline-none group transition-colors duration-300 hover:text-brand-600 home-faq__btn" aria-expanded="false">
-                        <span class="pr-4 home-faq__title">${faq.question}</span>
-                        <i class="fas fa-chevron-down faq-icon text-slate-400 group-hover:text-brand-600 transition-transform duration-300 home-faq__icon"></i>
+                    <button class="faq-toggle-btn flex justify-between items-center w-full text-left font-bold text-xl text-slate-900 focus:outline-none group transition-colors duration-300 hover:text-brand-600" aria-expanded="false">
+                        <span class="pr-4">${faq.question}</span>
+                        <i class="fas fa-chevron-down faq-icon text-slate-400 group-hover:text-brand-600 transition-transform duration-300"></i>
                     </button>
                 </dt>
                 <dd class="faq-content overflow-hidden transition-all duration-300 ease-in-out" style="max-height: 0px; opacity: 0;">

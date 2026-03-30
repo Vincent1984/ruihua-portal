@@ -614,7 +614,7 @@ const vd = {
     container.innerHTML = this.state.related.map(v => `
       <a href="/video/${v.slug}/" class="group flex gap-3 items-start p-2 rounded-xl hover:bg-white transition-colors">
         <div class="relative w-24 h-16 rounded-lg overflow-hidden shrink-0 border border-slate-100">
-          <img src="${v.thumbnail || `https://picsum.photos/seed/${v.slug}/240/160`}" alt="${v.title}" class="w-full h-full object-cover transition-transform group-hover:scale-110">
+          <img src="${v.thumbnail || '/fallback-image/video'}" alt="${v.title}" class="w-full h-full object-cover transition-transform group-hover:scale-110" loading="lazy" decoding="async" data-fallback="/fallback-image/video">
           <div class="absolute bottom-1 right-1 px-1 bg-black/60 text-[10px] text-white rounded">${v.duration || '00:00'}</div>
         </div>
         <div class="min-w-0">

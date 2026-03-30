@@ -229,7 +229,7 @@ const vc = {
     banner.innerHTML = `
       <div class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div class="absolute inset-0 opacity-30">
-          <img src="${cover}" alt="${title}" class="w-full h-full object-cover blur-sm scale-110">
+          <img src="${cover}" alt="${title}" class="w-full h-full object-cover blur-sm scale-110" loading="lazy" decoding="async" data-fallback="/fallback-image/video">
         </div>
         <div class="relative z-10 max-w-7xl mx-auto px-6 py-16 lg:py-24 grid md:grid-cols-2 gap-8 items-center">
           <div>
@@ -246,7 +246,7 @@ const vc = {
           </div>
           <div class="relative group cursor-pointer" onclick="window.location.href='${href}'">
             <div class="aspect-video rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 relative">
-              <img src="${cover}" alt="${title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+              <img src="${cover}" alt="${title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" data-fallback="/fallback-image/video">
               <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/10 transition-colors">
                 <div class="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center shadow-2xl transform group-hover:scale-110 transition-transform">
                   <i class="fas fa-play text-slate-900 text-xl ml-1"></i>
@@ -267,7 +267,7 @@ const vc = {
     return `
       <article class="group bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 flex flex-col h-full cursor-pointer" onclick="window.location.href='${playLink}'">
         <div class="relative aspect-video overflow-hidden">
-          <img src="${cover}" alt="${title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+          <img src="${cover}" alt="${title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" data-fallback="/fallback-image/video">
           <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
           <div class="absolute bottom-3 right-3">
             ${duration ? `<span class="text-xs px-2 py-1 bg-black/70 text-white rounded">${duration}</span>` : ''}
@@ -306,4 +306,3 @@ const vc = {
 };
 
 document.addEventListener('DOMContentLoaded', () => vc.init());
-

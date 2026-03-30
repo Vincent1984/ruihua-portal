@@ -154,7 +154,7 @@
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 m-0">
                         <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">作者</h4>
                         <div class="flex items-center gap-4">
-                            <img src="/images/rhzclogo.png" alt="作者头像" class="w-12 h-12 rounded-full object-cover border border-slate-200" id="expert-avatar">
+                            <img src="/images/rhzclogo.png" alt="作者头像" class="w-12 h-12 rounded-full object-cover border border-slate-200 avatar" id="expert-avatar" data-fallback="/fallback-image/avatar">
                             <div>
                                 <p class="font-bold text-slate-900" id="expert-title"></p>
                                 <p class="text-xs text-slate-500" id="expert-desc"></p>
@@ -267,5 +267,6 @@
         </div>
     </div>
 
+    <script src="/js/image-loader.js"></script>
 </body>
 </html>
