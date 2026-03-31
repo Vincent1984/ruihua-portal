@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>活动报名管理 - 瑞华智策</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/admin/admin-sidebar.css">
+  <style>
+    body { background: #f4f6fb; margin: 0; }
+    .layout { display: flex; min-height: 100vh; }
+    .main-area { flex: 1; min-width: 0; }
+    .main-wrap { max-width: 1400px; margin: 20px auto; padding: 0 16px; }
+    .card { border: 0; border-radius: 12px; box-shadow: 0 8px 24px rgba(15, 23, 42, .06); }
+    .table th { white-space: nowrap; font-size: 13px; }
+    .table td { font-size: 13px; vertical-align: middle; }
+    .badge-channel { margin-right: 4px; margin-bottom: 4px; }
+    .qr-preview { width: 90px; height: 90px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; }
+    .activity-sub-nav {
+      display: inline-flex;
+      border: 1px solid #dbeafe;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #f8fbff;
+    }
+    .activity-sub-nav a {
+      display: inline-flex;
+      align-items: center;
+      height: 34px;
+      padding: 0 14px;
+      text-decoration: none;
+      color: #334155;
+      font-size: 13px;
+      border-right: 1px solid #e2e8f0;
+    }
+    .activity-sub-nav a:last-child { border-right: 0; }
+    .activity-sub-nav a.active {
+      background: #1677ff;
+      color: #fff;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar"></aside>
+  <main class="main-area">
+<div class="main-wrap">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">活动报名管理系统</h4>
+    <a href="/admin/dashboard.html" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> 返回后台</a>
+  </div>
+  <div class="mb-3">
+    <div class="activity-sub-nav">
+      <a href="/admin/template-management.html">活动管理 / 报名模板管理</a>
+      <a href="/admin/activity-management.html" class="active">活动管理 / 活动报名管理</a>
+    </div>
+  </div>
+
+  <ul class="nav nav-tabs mb-3" id="tabs">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-activity">市场活动管理</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-registration">报名明细管理</button></li>
+  </ul>
+
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="tab-activity">
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-md-2"><input id="fMonth" class="form-control form-control-sm" placeholder="月份 2026/01"></div>
+            <div class="col-md-2"><input id="fTheme" class="form-control form-control-sm" placeholder="主题"></div>
+            <div class="col-md-2"><input id="fCity" class="form-control form-control-sm" placeholder="城市"></div>
+            <div class="col-md-2"><input id="fLocation" class="form-control form-control-sm" placeholder="地点"></div>
+            <div class="col-md-2"><input id="fOrganizer" class="form-control form-control-sm" placeholder="筹办人"></div>
+            <div class="col-md-2 d-flex gap-2">
+              <button class="btn btn-primary btn-sm w-100" id="btnSearchActivity">查询</button>
+              <button class="btn btn-success btn-sm w-100" id="btnNewActivity">新增</button>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+              <button class="btn btn-outline-secondary btn-sm w-100" id="btnManageChannels">管理渠道</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>主题与摘要</th>
+                <th>活动信息</th>
+                <th>推广渠道</th>
+                <th>模板</th>
+                <th>报名人数</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="activityTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="tab-registration">
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-md-3"><input id="rKeyword" class="form-control form-control-sm" placeholder="姓名/手机/企业 模糊查询"></div>
+            <div class="col-md-3"><select id="rActivity" class="form-select form-select-sm"></select></div>
+            <div class="col-md-2"><select id="rChannel" class="form-select form-select-sm"></select></div>
+            <div class="col-md-2"><input id="rCity" class="form-control form-control-sm" placeholder="城市"></div>
+            <div class="col-md-2 d-flex gap-2">
+              <button class="btn btn-primary btn-sm w-100" id="btnSearchReg">查询</button>
+              <button class="btn btn-success btn-sm w-100" id="btnExportReg">导出Excel</button>
+            </div>
+          </div>
+          <div class="mt-2" id="channelQuickTabs"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table table-striped mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>活动主题</th><th>城市</th><th>渠道来源</th><th>姓名</th><th>手机号</th><th>企业</th><th>职位</th><th>邮箱</th><th>报名时间</th>
+              </tr>
+            </thead>
+            <tbody id="regTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</main>
+</div>
+
+<div class="modal fade" id="activityModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="activityModalTitle">新增活动</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="aId">
+        <div class="row g-2">
+          <div class="col-md-6"><label class="form-label">活动主题</label><input id="aTheme" class="form-control"></div>
+          <div class="col-md-3"><label class="form-label">活动城市</label><input id="aCity" class="form-control"></div>
+          <div class="col-md-3"><label class="form-label">活动月份</label><input id="aMonth" class="form-control" placeholder="2026/01"></div>
+          <div class="col-md-4"><label class="form-label">活动类型</label><select id="aActivityType" class="form-select"><option value="hr_forum">HR领袖活动论坛</option><option value="city_salon">城市沙龙</option><option value="closed_door">闭门研讨会</option></select></div>
+          <div class="col-md-4"><label class="form-label">活动时间</label><input id="aEventTime" class="form-control" placeholder="2026年1月8日13:00-17:30"></div>
+          <div class="col-md-4"><label class="form-label">活动地点</label><input id="aLocation" class="form-control"></div>
+          <div class="col-md-8"><label class="form-label">报名截止日期</label><input id="aDeadline" type="datetime-local" class="form-control"></div>
+          <div class="col-md-4"><label class="form-label">报名模板</label><select id="aTemplate" class="form-select"></select></div>
+          <div class="col-md-6"><label class="form-label">筹办人</label><input id="aOrganizer" class="form-control"></div>
+          <div class="col-md-6"><label class="form-label">筹办人联系方式</label><input id="aOrganizerContact" class="form-control"></div>
+          <div class="col-12"><label class="form-label">活动内容</label><textarea id="aContent" rows="5" class="form-control"></textarea></div>
+          <div class="col-12"><hr class="my-2"><label class="form-label fw-semibold">报名模块样式编辑</label></div>
+          <div class="col-md-6"><label class="form-label">顶部主视觉图片URL</label><input id="aHeroImage" class="form-control" placeholder="/uploads/... 或 https://..."></div>
+          <div class="col-md-2"><label class="form-label">背景起始色</label><input id="aBgStart" type="color" class="form-control form-control-color" value="#8b5cff"></div>
+          <div class="col-md-2"><label class="form-label">背景结束色</label><input id="aBgEnd" type="color" class="form-control form-control-color" value="#6f42ff"></div>
+          <div class="col-md-2"><label class="form-label">标题颜色</label><input id="aTitleColor" type="color" class="form-control form-control-color" value="#ffffff"></div>
+          <div class="col-md-3"><label class="form-label">毛玻璃透明度</label><input id="aPanelOpacity" type="number" class="form-control" min="0.02" max="0.6" step="0.01" value="0.06"></div>
+          <div class="col-md-3"><label class="form-label">按钮渐变起始色</label><input id="aButtonStart" type="color" class="form-control form-control-color" value="#8a54ff"></div>
+          <div class="col-md-3"><label class="form-label">按钮渐变结束色</label><input id="aButtonEnd" type="color" class="form-control form-control-color" value="#5a26ff"></div>
+          <div class="col-12"><label class="form-label">渠道配置</label><div id="aChannels" class="d-flex flex-wrap gap-3"></div></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button class="btn btn-primary" id="btnSaveActivity">保存活动</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="channelLinksModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">活动渠道一览</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle">
+            <thead><tr><th>渠道来源</th><th>二维码</th><th>渠道链接</th></tr></thead>
+            <tbody id="channelLinksBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="channelManageModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">推广渠道管理</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-2 mb-3">
+          <div class="col-md-4"><input id="channelName" class="form-control form-control-sm" placeholder="渠道名称"></div>
+          <div class="col-md-3"><input id="channelCode" class="form-control form-control-sm" placeholder="渠道编码(可选)"></div>
+          <div class="col-md-2"><input id="channelSort" class="form-control form-control-sm" type="number" placeholder="排序"></div>
+          <div class="col-md-3 d-flex gap-2">
+            <button class="btn btn-primary btn-sm w-100" id="btnSaveChannel">新增渠道</button>
+            <button class="btn btn-outline-secondary btn-sm w-100" id="btnResetChannelForm">重置</button>
+          </div>
+          <input type="hidden" id="channelId">
+        </div>
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle">
+            <thead class="table-light">
+              <tr><th>渠道名称</th><th>编码</th><th>排序</th><th>状态</th><th>操作</th></tr>
+            </thead>
+            <tbody id="channelManageBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/admin/js/unified-admin-sidebar.js"></script>
+<script src="/admin/js/activity-management.js"></script>
+</body>
+</html>

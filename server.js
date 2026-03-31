@@ -103,8 +103,6 @@ app.use(helmet({
             scriptSrcAttr: ["'unsafe-inline'"], 
             styleSrc: ["'self'", "'unsafe-inline'", "cdn.tailwindcss.com", "cdnjs.cloudflare.com", "fonts.googleapis.com", "cdn.jsdelivr.net", "cdn.quilljs.com", "cdn.bootcdn.net"],
             fontSrc: ["'self'", "cdnjs.cloudflare.com", "fonts.gstatic.com", "cdn.jsdelivr.net", "cdn.bootcdn.net"],
-            imgSrc: ["'self'", "data:", "blob:", "picsum.photos", "placehold.co", "https://hm.baidu.com"], 
-            connectSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdn.quilljs.com", "https://cdn.bootcdn.net"],
             upgradeInsecureRequests: null, // Disable auto-upgrade for localhost dev environment
         },
     },
@@ -114,12 +112,16 @@ app.use(helmet({
 // Global Rate Limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
+    max: 300, // Limit each IP to 300 requests per windowMs
     message: 'Too many requests from this IP, please try again after 15 minutes',
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
-app.use('/api/', limiter); // Apply to API routes only
+app.use('/api/', (req, res, next) => {
+    if (req.path === '/send-verification-code' || req.path === '/api/send-verification-code') return next();
+    if (req.path.startsWith('/public/activity/register/') || req.path.startsWith('/api/public/activity/register/')) return next();
+    return limiter(req, res, next);
+});
 
 // Disable caching for API routes
 app.use('/api/', (req, res, next) => {
@@ -962,9 +964,6 @@ function authRequired(req, res, next) {
     try {
         const auth = req.headers.authorization || '';
         let token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
-        if (!token && req.query.token) {
-            token = req.query.token;
-        }
         if (!token) return res.status(401).json({ error: 'Unauthorized' });
         const payload = jwt.verify(token, SECRET_KEY);
         req.user = payload;
@@ -1265,9 +1264,8 @@ app.get('/api/articles', async (req, res) => {
             query.isRecommended = true;
         }
 
-        if (status && status !== 'all') {
-            query.status = status;
-        }
+        query.status = 'published';
+        if (status === 'published') query.status = 'published';
 
         if (tag) {
             query.tags = tag;
@@ -1300,15 +1298,49 @@ app.get('/api/articles', async (req, res) => {
     }
 });
 
+app.get('/api/admin/articles', authRequired, requirePerm('article:edit'), async (req, res) => {
+    try {
+        const { keyword, category, featured, page, limit, status, tag } = req.query;
+        let query = {};
+        if (keyword) {
+            const regex = new RegExp(keyword, 'i');
+            query.$or = [{ title: regex }, { content: regex }, { summary: regex }];
+        }
+        if (category && category !== 'all') {
+            query.category = category;
+        }
+        if (featured === 'true') {
+            query.isRecommended = true;
+        }
+        if (status && status !== 'all') {
+            query.status = status;
+        }
+        if (tag) {
+            query.tags = tag;
+        }
+        let articles;
+        if (page && limit) {
+            const skip = (page - 1) * limit;
+            const total = await Article.countDocuments(query);
+            const data = await Article.find(query).sort({ publishDate: -1 }).skip(parseInt(skip)).limit(parseInt(limit));
+            return res.json({ data, pagination: { total, page: parseInt(page), pages: Math.ceil(total / limit) } });
+        }
+        articles = await Article.find(query).sort({ publishDate: -1 });
+        res.json(articles);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.get('/api/articles/detail/query', async (req, res) => {
     try {
         const { slug } = req.query;
         if (!slug) return res.status(400).json({ error: 'Slug is required' });
         
         // Increment views without triggering update hooks/timestamps issues
-        await Article.updateOne({ slug }, { $inc: { views: 1 } });
+        await Article.updateOne({ slug, status: 'published' }, { $inc: { views: 1 } });
         
-        const article = await Article.findOne({ slug });
+        const article = await Article.findOne({ slug, status: 'published' });
         if (!article) return res.status(404).json({ error: 'Article not found' });
         res.json(article);
     } catch (e) {
@@ -1325,9 +1357,22 @@ app.get('/api/articles/:id', async (req, res) => {
             return res.status(404).json({ error: 'Invalid article id' });
         }
         
-        // Increment views safely
-        await Article.updateOne({ _id: id }, { $inc: { views: 1 } });
+        await Article.updateOne({ _id: id, status: 'published' }, { $inc: { views: 1 } });
         
+        const article = await Article.findOne({ _id: id, status: 'published' });
+        if (!article) return res.status(404).json({ error: 'Article not found' });
+        res.json(article);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.get('/api/admin/articles/:id', authRequired, requirePerm('article:edit'), async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(404).json({ error: 'Invalid article id' });
+        }
         const article = await Article.findById(id);
         if (!article) return res.status(404).json({ error: 'Article not found' });
         res.json(article);
@@ -2354,10 +2399,13 @@ const uploadAuthor = multer({
     }
 });
 
-app.post('/api/upload/author/:userId', authRequired, uploadLimiter, uploadAuthor.single('file'), async (req, res) => {
+app.post('/api/upload/author/:userId', authRequired, requirePerm('article:edit'), uploadLimiter, uploadAuthor.single('file'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
         const userId = req.params.userId || 'default';
+        if (!/^[a-zA-Z0-9_-]{1,64}$/.test(userId)) {
+            return res.status(400).json({ error: 'Invalid user id' });
+        }
         const dir = path.join(__dirname, `public/uploads/authors/${userId}`);
         ensureDirSync(dir);
         const originalBase = path.basename(req.file.originalname).replace(/\.[^.]+$/, '');
@@ -2371,7 +2419,11 @@ app.post('/api/upload/author/:userId', authRequired, uploadLimiter, uploadAuthor
         const url = avatarAbs.replace(publicRoot, '').replace(/\\/g, '/');
         await logOp('upload', 'AuthorAvatar', `Uploaded avatar for user: ${userId}`, req.user?.username);
         const hashHex = crypto.createHash('sha256').update(originalBase).digest('hex');
-        await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '2', directory: url.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'avatar', hashHex });
+        try {
+            await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '2', directory: url.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'avatar', hashHex });
+        } catch (mapErr) {
+            console.error('FileNameMap avatar create failed:', mapErr.message);
+        }
         res.json({ success: true, url });
     } catch (e) {
         console.error('Author upload error:', e);
@@ -2406,8 +2458,12 @@ app.post('/api/upload', authRequired, uploadLimiter, upload.single('file'), asyn
             const thumb = thumbAbs.replace(publicRoot, '').replace(/\\/g, '/');
             await logOp('upload', 'Image', `Image processed: ${url}`, req.user?.username);
             const hashHex = crypto.createHash('sha256').update(originalBase).digest('hex');
-            await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '0', directory: url.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'main', hashHex });
-            await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '1', directory: thumb.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'thumb', hashHex });
+            try {
+                await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '0', directory: url.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'main', hashHex });
+                await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '1', directory: thumb.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'thumb', hashHex });
+            } catch (mapErr) {
+                console.error('FileNameMap image create failed:', mapErr.message);
+            }
             return res.json({ success: true, url, thumb });
         }
         // Non-image: keep original disk path
@@ -2601,7 +2657,7 @@ async function sendDingTalkNotification(appointment) {
 
 // --- Appointments API ---
 // Test DingTalk notification (temporary)
-app.post('/api/test-dingtalk', async (req, res) => {
+app.post('/api/test-dingtalk', authRequired, requirePerm('appointment:list'), async (req, res) => {
     try {
         const testAppointment = {
             name: '测试用户',
@@ -2687,7 +2743,7 @@ app.post('/api/appointments', async (req, res) => {
     }
 });
 
-app.get('/api/appointments', authRequired, async (req, res) => {
+app.get('/api/appointments', authRequired, requirePerm('appointment:list'), async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
@@ -2719,7 +2775,7 @@ app.get('/api/appointments', authRequired, async (req, res) => {
     }
 });
 
-app.put('/api/appointments/:id', authRequired, async (req, res) => {
+app.put('/api/appointments/:id', authRequired, requirePerm('appointment:edit'), async (req, res) => {
     try {
         const { status, remarks } = req.body;
         const appt = await Appointment.findByIdAndUpdate(
@@ -2734,7 +2790,7 @@ app.put('/api/appointments/:id', authRequired, async (req, res) => {
     }
 });
 
-app.delete('/api/appointments/:id', authRequired, async (req, res) => {
+app.delete('/api/appointments/:id', authRequired, requirePerm('appointment:delete'), async (req, res) => {
     try {
         await Appointment.findByIdAndDelete(req.params.id);
         await logOp('delete', 'Appointment', `Deleted appointment: ${req.params.id}`, req.user.username);
@@ -2745,7 +2801,7 @@ app.delete('/api/appointments/:id', authRequired, async (req, res) => {
 });
 
 // Export appointments (CSV)
-app.get('/api/appointments/export', authRequired, async (req, res) => {
+app.get('/api/appointments/export', authRequired, requirePerm('appointment:list'), async (req, res) => {
     try {
         const status = req.query.status;
         const sortOrder = parseInt(req.query.sort) || -1;
@@ -3320,8 +3376,8 @@ app.get('/api/videos/detail/query', async (req, res) => {
     try {
         const { slug } = req.query;
         if (!slug) return res.status(400).json({ error: 'Slug is required' });
-        await Video.updateOne({ slug }, { $inc: { views: 1 } });
-        const video = await Video.findOne({ slug }).populate('speakers.authorId');
+        await Video.updateOne({ slug, status: 'published' }, { $inc: { views: 1 } });
+        const video = await Video.findOne({ slug, status: 'published' }).populate('speakers.authorId');
         if (!video) return res.status(404).json({ error: 'Video not found' });
         res.json(video);
     } catch (e) {
@@ -3332,8 +3388,8 @@ app.get('/api/videos/detail/query', async (req, res) => {
 // Video Detail Redirects & Serving
 app.get('/video/:slug/', async (req, res) => {
     try {
-        await Video.updateOne({ slug: req.params.slug }, { $inc: { views: 1 } });
-        const video = await Video.findOne({ slug: req.params.slug }).populate('speakers.authorId');
+        await Video.updateOne({ slug: req.params.slug, status: 'published' }, { $inc: { views: 1 } });
+        const video = await Video.findOne({ slug: req.params.slug, status: 'published' }).populate('speakers.authorId');
         if (!video) return res.status(404).sendFile(path.join(__dirname, '404.html'));
 
         // SEO SSR logic for Video detail
@@ -3593,8 +3649,8 @@ app.get('/api/videos/:id', async (req, res) => {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(404).json({ error: 'Invalid video id' });
         }
-        await Video.updateOne({ _id: id }, { $inc: { views: 1 } });
-        const video = await Video.findById(id).populate('speakers.authorId');
+        await Video.updateOne({ _id: id, status: 'published' }, { $inc: { views: 1 } });
+        const video = await Video.findOne({ _id: id, status: 'published' }).populate('speakers.authorId');
         if (!video) return res.status(404).json({ error: 'Video not found' });
         res.json(video);
     } catch (e) {
@@ -3748,6 +3804,8 @@ app.delete('/api/videos/:id', authRequired, requirePerm('video:delete'), async (
 // Inject modular video routes (AI tools, category tree APIs, metadata parsing)
 require('./routes/videoRoutes')(app, authRequired, requirePerm, logOp, generateDeepseekText);
 require('./routes/videoEmbedRoutes')(app, authRequired, requirePerm, logOp);
+require('./routes/activityRoutes')(app, authRequired, requirePerm, logOp);
+require('./routes/activityTemplateRoutes')(app, authRequired, requirePerm, logOp);
 
 // 404 Handler
 app.use((req, res, next) => {

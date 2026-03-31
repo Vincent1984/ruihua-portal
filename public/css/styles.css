@@ -1396,3 +1396,299 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
+
+.hero-blob-delay-1 {
+    animation-delay: 1s;
+}
+
+.edge-scroll-pad {
+    margin-right: -1rem;
+    padding-right: 1rem;
+}
+
+.case-stripe-bg {
+    background-image: repeating-linear-gradient(45deg, #000 0, #000 1px, transparent 0, transparent 50%);
+    background-size: 10px 10px;
+}
+
+.text-brand-violet { color: #7c4dff; }
+.text-brand-blue { color: #2563eb; }
+
+.bg-brand-violet-5 { background-color: rgba(124, 77, 255, 0.05); }
+.bg-brand-violet-10 { background-color: rgba(124, 77, 255, 0.1); }
+.bg-brand-blue-5 { background-color: rgba(37, 99, 235, 0.05); }
+.bg-brand-blue-10 { background-color: rgba(37, 99, 235, 0.1); }
+
+.border-brand-violet-10 { border-color: rgba(124, 77, 255, 0.1); }
+.border-brand-violet-20 { border-color: rgba(124, 77, 255, 0.2); }
+.border-brand-blue-10 { border-color: rgba(37, 99, 235, 0.1); }
+.border-brand-blue-20 { border-color: rgba(37, 99, 235, 0.2); }
+
+.from-brand-violet-20 {
+    --tw-gradient-from: rgba(124, 77, 255, 0.2) var(--tw-gradient-from-position);
+    --tw-gradient-to: rgba(124, 77, 255, 0) var(--tw-gradient-to-position);
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.from-brand-blue-20 {
+    --tw-gradient-from: rgba(37, 99, 235, 0.2) var(--tw-gradient-from-position);
+    --tw-gradient-to: rgba(37, 99, 235, 0) var(--tw-gradient-to-position);
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.group:hover .group-hover-bg-brand-violet { background-color: #7c4dff; }
+.group:hover .group-hover-bg-brand-blue { background-color: #2563eb; }
+.group:hover .group-hover-text-white { color: #fff; }
+.group:hover .group-hover-text-brand-violet { color: #7c4dff; }
+.group:hover .group-hover-text-brand-blue { color: #2563eb; }
+
+.home-shell {
+    max-width: 80rem;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+    .home-shell {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .home-shell {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+}
+
+.hero-capability-list {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: .375rem;
+    margin-bottom: 2.5rem;
+    overflow-x: auto;
+    padding-bottom: .5rem;
+}
+
+@media (min-width: 640px) {
+    .hero-capability-list {
+        gap: .5rem;
+    }
+}
+
+.hero-capability-item {
+    background: #fff;
+    border-radius: 1rem;
+    padding: .5rem .75rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .08);
+    border: 1px solid rgb(241 245 249);
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    transition: transform .2s ease, box-shadow .2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.hero-capability-item:hover {
+    box-shadow: 0 4px 12px rgba(15, 23, 42, .12);
+    transform: translateY(-2px);
+}
+
+.hero-capability-item-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: .5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .875rem;
+    flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+    .hero-capability-item {
+        padding: .5rem 1rem;
+    }
+    .hero-capability-item-icon {
+        width: 2rem;
+        height: 2rem;
+        font-size: 1rem;
+    }
+}
+
+.hero-capability-item-icon.orange { background: #fff7ed; color: #f97316; }
+.hero-capability-item-icon.blue { background: #eff6ff; color: #3b82f6; }
+.hero-capability-item-icon.purple { background: #faf5ff; color: #a855f7; }
+
+.hero-cta-primary {
+    background: #7c3aed;
+    color: #fff;
+    padding: 1rem 2rem;
+    border-radius: .75rem;
+    font-weight: 700;
+    font-size: 1.125rem;
+    transition: all .2s ease;
+    box-shadow: 0 16px 30px rgba(124, 58, 237, .3);
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+}
+
+.hero-cta-primary:hover {
+    background: #6d28d9;
+    transform: translateY(-4px);
+}
+
+.partner-logo-track {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: .5rem;
+}
+
+@media (min-width: 640px) {
+    .partner-logo-track { gap: 1.5rem; }
+}
+
+.partner-logo-item {
+    width: auto;
+    flex-shrink: 0;
+    filter: grayscale(1);
+    opacity: .7;
+    transition: all .3s ease;
+}
+
+.partner-logo-item:hover {
+    filter: grayscale(0);
+    opacity: 1;
+}
+
+.mission-tab-btn {
+    padding: .625rem 1.5rem;
+    border-radius: .5rem;
+    font-size: .875rem;
+    font-weight: 700;
+    transition: all .3s ease;
+}
+
+.mission-tab-btn.active {
+    background: #fff;
+    color: #ea5504;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, .12);
+}
+
+.mission-tab-btn.inactive {
+    color: rgb(100 116 139);
+}
+
+.mission-tab-btn.inactive:hover {
+    color: #7c3aed;
+}
+
+.dual-wheel-card {
+    position: relative;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    border: 1px solid rgb(241 245 249);
+    overflow: hidden;
+    transition: all .3s ease;
+    z-index: 10;
+}
+
+@media (min-width: 1024px) {
+    .dual-wheel-card {
+        padding: 3rem;
+    }
+}
+
+.dual-wheel-card.management {
+    background: #fff;
+    box-shadow: 0 2px 20px rgba(0,0,0,.04);
+}
+
+.dual-wheel-card.management:hover {
+    box-shadow: 0 20px 50px rgba(0,0,0,.08);
+}
+
+.dual-wheel-card.tech {
+    background: linear-gradient(to bottom right, rgb(248 250 252), rgba(239, 246, 255, .5));
+    box-shadow: 0 2px 20px rgba(0,0,0,.04);
+}
+
+.dual-wheel-card.tech:hover {
+    box-shadow: 0 20px 50px rgba(59,130,246,.1);
+}
+
+.dual-wheel-feature-card {
+    background: #fff;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    border: 1px solid rgba(226, 232, 240, .8);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .06);
+    transition: all .3s ease;
+}
+
+.dual-wheel-feature-card:hover {
+    box-shadow: 0 8px 18px rgba(15, 23, 42, .12);
+    transform: translateY(-4px);
+}
+
+.management-feature-card:hover {
+    border-color: rgb(199 210 254);
+}
+
+.tech-feature-card:hover {
+    border-color: rgb(191 219 254);
+}
+
+.dual-wheel-feature-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: .5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .2s ease;
+}
+
+.dual-wheel-feature-icon.management {
+    background: rgb(237 233 254);
+    color: rgb(124 58 237);
+}
+
+.dual-wheel-feature-icon.tech {
+    background: rgb(239 246 255);
+    color: rgb(37 99 235);
+}
+
+.group\/card:hover .dual-wheel-feature-icon.management {
+    background: rgb(124 58 237);
+    color: #fff;
+}
+
+.group\/card:hover .dual-wheel-feature-icon.tech {
+    background: rgb(37 99 235);
+    color: #fff;
+}
+
+.dual-wheel-arrow {
+    color: rgb(203 213 225);
+    font-size: .75rem;
+    opacity: 0;
+    transform: rotate(-45deg);
+    transition: all .3s ease;
+}
+
+.group\/card:hover .dual-wheel-arrow {
+    opacity: 1;
+    transform: rotate(0deg);
+}

@@ -1,0 +1,144 @@
+.u-admin-sidebar {
+  background: #001529;
+  border-right: 0;
+  width: 250px;
+  transition: width .2s ease;
+  color: rgba(255,255,255,.85);
+}
+
+.u-admin-sidebar.collapsed {
+  width: 72px;
+}
+
+.u-sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 56px;
+  padding: 0 16px;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  color: #fff;
+}
+
+.u-sidebar-header .u-sidebar-collapse-btn {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: rgba(255,255,255,.65);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+.u-sidebar-header .u-sidebar-collapse-btn:hover {
+  color: #fff;
+  background: rgba(255,255,255,.08);
+}
+
+.u-sidebar-menu {
+  padding: 8px;
+  overflow-y: auto;
+  max-height: calc(100vh - 56px);
+}
+
+.u-nav-group + .u-nav-group {
+  margin-top: 4px;
+}
+
+.u-nav-header {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: rgba(255,255,255,.78);
+  height: 46px;
+  padding: 0 12px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.u-nav-header:hover,
+.u-nav-header.expanded {
+  color: #fff;
+  background: rgba(255,255,255,.06);
+}
+
+.u-header-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.u-header-label {
+  font-size: 14px;
+}
+
+.u-header-arrow {
+  font-size: 12px;
+  transition: transform .2s ease;
+}
+
+.u-nav-header.expanded .u-header-arrow {
+  transform: rotate(90deg);
+}
+
+.u-nav-items {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .22s ease;
+  background: rgba(0,0,0,.16);
+  border-radius: 6px;
+}
+
+.u-nav-items.expanded {
+  max-height: 540px;
+}
+
+.u-sub-menu-item {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 14px 0 44px;
+  color: rgba(255,255,255,.62);
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.u-sub-menu-item:hover {
+  background: rgba(255,255,255,.06);
+  color: #fff;
+}
+
+.u-sub-menu-item.active {
+  background: #1677ff;
+  color: #fff;
+  font-weight: 600;
+}
+
+.u-sub-menu-item.danger {
+  color: #fda4af;
+}
+
+.u-admin-sidebar.collapsed .u-header-label,
+.u-admin-sidebar.collapsed .u-header-arrow,
+.u-admin-sidebar.collapsed .u-sidebar-header span {
+  display: none;
+}
+
+.u-admin-sidebar.collapsed .u-nav-header {
+  justify-content: center;
+  padding: 0;
+}
+
+.u-admin-sidebar.collapsed .u-nav-items {
+  display: none;
+}
+
+@media (max-width: 992px) {
+  .u-admin-sidebar {
+    width: 72px;
+  }
+}

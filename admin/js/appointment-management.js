@@ -149,8 +149,23 @@ function changeAppointmentPage(delta) {
 }
 
 // Export function
-function exportAppointments() {
+async function exportAppointments() {
     const statusFilter = document.getElementById('appointmentStatusFilter')?.value || '';
     const sort = document.getElementById('appointmentSort')?.value || '-1';
-    window.location.href = `/api/appointments/export?token=${sessionStorage.getItem('token')}&status=${statusFilter}&sort=${sort}`;
+    const token = sessionStorage.getItem('token');
+    const res = await fetch(`/api/appointments/export?status=${encodeURIComponent(statusFilter)}&sort=${encodeURIComponent(sort)}`, {
+        headers: { Authorization: 'Bearer ' + token }
+    });
+    if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || '导出失败');
+        return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'appointments.csv';
+    a.click();
+    URL.revokeObjectURL(url);
 }

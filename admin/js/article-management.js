@@ -1099,12 +1099,12 @@ function searchArticles() {
 }
 
 function loadArticles(keyword = '', status = '') {
-    let url = '/api/articles?limit=100'; // Get more for admin list
+    let url = '/api/admin/articles?limit=100'; // Get more for admin list
     if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
     if (status) url += `&status=${status}`;
     
     toggleLoading(true);
-    fetch(url)
+    fetch(url, { headers: authHeaders() })
     .then(res => res.json())
     .then(data => {
         const list = Array.isArray(data) ? data : (data.data || []);
@@ -1315,7 +1315,7 @@ function openArtModal(id = null) {
         
         if (id) {
             toggleLoading(true);
-            fetch(`/api/articles/${id}`)
+            fetch(`/api/admin/articles/${id}`, { headers: authHeaders() })
                 .then(res => res.json())
                 .then(data => {
                     if (data && !data.error) {
@@ -1907,4 +1907,3 @@ window.smartFormat = smartFormat;
 window.showHistory = showHistory;
 window.onAuthorSelectChange = onAuthorSelectChange;
 if (typeof updateDescCount !== 'undefined') window.updateDescCount = updateDescCount;
-

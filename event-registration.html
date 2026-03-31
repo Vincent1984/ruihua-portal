@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>活动报名</title>
+  <style>
+    :root {
+      --bg-start: #8b5cff;
+      --bg-end: #6f42ff;
+      --title-color: #ffffff;
+      --panel-opacity: 0.06;
+      --btn-start: #8a54ff;
+      --btn-end: #5a26ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif;
+      color: #fff;
+      background: radial-gradient(1200px 600px at 50% -100px, #c9b5ff 0%, rgba(201,181,255,0) 40%), linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 100%);
+      min-height: 100vh;
+      padding: 14px;
+    }
+    .hero {
+      max-width: 420px;
+      margin: 0 auto;
+      border-radius: 20px;
+      padding: 16px;
+      background: rgba(255,255,255,var(--panel-opacity));
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.2);
+      box-shadow: 0 16px 40px rgba(33,16,86,.35);
+    }
+    .title { text-align: center; font-size: 24px; font-weight: 700; margin: 8px 0 6px; color: var(--title-color); }
+    .hero-image-wrap { margin-bottom: 10px; border-radius: 14px; overflow: hidden; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2); }
+    .hero-image { width: 100%; height: auto; display: block; max-height: 220px; object-fit: cover; }
+    .sub { opacity: .92; font-size: 14px; line-height: 1.7; margin-bottom: 12px; }
+    .field { margin-bottom: 10px; }
+    .label { font-size: 14px; margin-bottom: 6px; display:block; }
+    .input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      border-radius: 28px;
+      height: 42px;
+      padding: 0 16px;
+      color: #3f2e7e;
+      background: rgba(240,234,255,.96);
+      box-shadow: inset 0 2px 6px rgba(40,0,110,.12);
+      font-size: 14px;
+    }
+    .row { display: flex; gap: 10px; }
+    .btn-code {
+      min-width: 92px;
+      border-radius: 24px;
+      border: 0;
+      background: linear-gradient(90deg, #8c5bff, #6936ff);
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 8px 16px rgba(49,23,145,.35);
+    }
+    .btn-submit {
+      width: 180px;
+      height: 44px;
+      border: 0;
+      border-radius: 28px;
+      display: block;
+      margin: 16px auto 8px;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--btn-start), var(--btn-end));
+      box-shadow: 0 12px 24px rgba(40, 0, 110, .4);
+    }
+    .tips { margin-top: 14px; font-size: 13px; opacity: .95; line-height: 1.8; }
+    .closed { background: rgba(255,61,93,.2); border: 1px solid rgba(255,115,139,.5); border-radius: 12px; padding: 10px; margin-bottom: 10px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <div class="hero-image-wrap" id="heroImageWrap" style="display:none">
+      <img id="heroImage" class="hero-image" alt="活动主视觉" />
+    </div>
+    <div class="title" id="title">活动报名</div>
+    <div class="sub" id="meta">加载中...</div>
+    <div class="closed" id="closedTip" style="display:none">当前活动报名已截止。</div>
+    <form id="regForm">
+      <div id="dynamicFields"></div>
+      <button class="btn-submit" type="submit" id="submitBtn">立即提交</button>
+    </form>
+    <div class="tips" id="tips"></div>
+  </div>
+
+  <script>
+    const token = location.pathname.split('/').pop();
+    let activityData = null;
+    let countdown = 0;
+    let timer = null;
+
+    function setClosed(closed) {
+      document.getElementById('closedTip').style.display = closed ? 'block' : 'none';
+      ['name','phone','smsCode','company','position','email','sendCodeBtn','submitBtn'].forEach(id => document.getElementById(id).disabled = !!closed);
+      if (closed) document.getElementById('submitBtn').textContent = '报名已截止';
+    }
+
+    async function loadActivity() {
+      const res = await fetch('/api/public/activity/' + token);
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        alert(data.error || '活动加载失败');
+        return;
+      }
+      activityData = data.data;
+      const style = activityData.styleConfig || {};
+      if (style.bgStart) document.documentElement.style.setProperty('--bg-start', style.bgStart);
+      if (style.bgEnd) document.documentElement.style.setProperty('--bg-end', style.bgEnd);
+      if (style.titleColor) document.documentElement.style.setProperty('--title-color', style.titleColor);
+      if (style.panelOpacity !== undefined) document.documentElement.style.setProperty('--panel-opacity', String(style.panelOpacity));
+      if (style.buttonStart) document.documentElement.style.setProperty('--btn-start', style.buttonStart);
+      if (style.buttonEnd) document.documentElement.style.setProperty('--btn-end', style.buttonEnd);
+      const heroWrap = document.getElementById('heroImageWrap');
+      const heroImg = document.getElementById('heroImage');
+      if (style.heroImage) {
+        heroImg.src = style.heroImage;
+        heroWrap.style.display = '';
+      } else {
+        heroWrap.style.display = 'none';
+      }
+      const tpl = activityData.templateConfig || null;
+      if (tpl && tpl.uiConfig) {
+        if (tpl.uiConfig.pageTitle) document.getElementById('title').textContent = tpl.uiConfig.pageTitle;
+        if (tpl.uiConfig.activityIntro) document.getElementById('meta').innerHTML = tpl.uiConfig.activityIntro.replace(/\n/g, '<br>');
+        if (tpl.uiConfig.noticeText) document.getElementById('tips').innerHTML = tpl.uiConfig.noticeText.replace(/\n/g, '<br>');
+      }
+      renderFormByTemplate(tpl);
+      if (!document.getElementById('title').textContent.trim() || document.getElementById('title').textContent === '活动报名') {
+        document.getElementById('title').textContent = activityData.theme || '活动报名';
+      }
+      if (!document.getElementById('meta').innerHTML.trim()) {
+        document.getElementById('meta').innerHTML = `尊敬的企业领导者，欢迎参加本次活动！<br>时间：${activityData.eventTime}<br>地点：${activityData.location}`;
+      }
+      if (!document.getElementById('tips').innerHTML.trim()) {
+        document.getElementById('tips').innerHTML = `注意事项：<br>1. 报名截止日期：${new Date(activityData.registrationDeadline).toLocaleString('zh-CN')}<br>2. 参会邀请以主办方发送的《参会邀请》为准。<br>3. 报名咨询：${activityData.organizerContact || '-'}`;
+      }
+      setClosed(activityData.closed);
+    }
+
+    async function sendCode() {
+      const phoneInput = document.querySelector('[data-key="phone"]');
+      const phone = phoneInput ? phoneInput.value.trim() : '';
+      if (!/^1[3-9]\d{9}$/.test(phone)) {
+        alert('请输入有效手机号');
+        return;
+      }
+      const btn = document.getElementById('sendCodeBtn');
+      btn.disabled = true;
+      btn.textContent = '发送中...';
+      try {
+        const res = await fetch('/api/send-verification-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.error || '发送失败');
+        countdown = 60;
+        btn.textContent = countdown + '秒';
+        timer = setInterval(() => {
+          countdown--;
+          if (countdown <= 0) {
+            clearInterval(timer);
+            btn.disabled = false;
+            btn.textContent = '发送';
+            return;
+          }
+          btn.textContent = countdown + '秒';
+        }, 1000);
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = '发送';
+        alert(e.message || '发送失败');
+      }
+    }
+
+    function renderField(field) {
+      const key = field.key;
+      const label = field.label || key;
+      const required = field.required ? 'required' : '';
+      const placeholder = field.placeholder || '';
+      if (field.type === 'smsCode') {
+        return `<div class="field"><label class="label">${label}</label><div class="row"><input class="input" data-key="${key}" maxlength="6" ${required} placeholder="${placeholder}"><button type="button" class="btn-code" id="sendCodeBtn">发送</button></div></div>`;
+      }
+      if (field.type === 'textarea') {
+        return `<div class="field"><label class="label">${label}</label><textarea class="input" data-key="${key}" ${required} placeholder="${placeholder}" style="height:88px;padding-top:10px;border-radius:12px"></textarea></div>`;
+      }
+      const type = field.type === 'email' ? 'email' : 'text';
+      const max = field.validation && field.validation.maxLength ? `maxlength="${field.validation.maxLength}"` : '';
+      return `<div class="field"><label class="label">${label}</label><input class="input" data-key="${key}" type="${type}" ${required} ${max} placeholder="${placeholder}"></div>`;
+    }
+
+    function renderFormByTemplate(templateConfig) {
+      const schema = (templateConfig && templateConfig.formSchema && templateConfig.formSchema.length) ? templateConfig.formSchema : [
+        { key: 'name', label: '您的姓名', type: 'text', required: true },
+        { key: 'phone', label: '您的电话', type: 'phone', required: true },
+        { key: 'smsCode', label: '验证码', type: 'smsCode', required: true },
+        { key: 'company', label: '公司名称', type: 'text', required: true },
+        { key: 'position', label: '您的职位', type: 'text', required: false },
+        { key: 'email', label: '您的邮箱', type: 'email', required: false }
+      ];
+      document.getElementById('dynamicFields').innerHTML = schema
+        .sort((a, b) => (a.sort || 0) - (b.sort || 0))
+        .map(renderField)
+        .join('');
+      const sendBtn = document.getElementById('sendCodeBtn');
+      if (sendBtn) sendBtn.addEventListener('click', sendCode);
+    }
+
+    async function submitForm(e) {
+      e.preventDefault();
+      if (!activityData || activityData.closed) return;
+      const payload = {};
+      document.querySelectorAll('[data-key]').forEach(input => payload[input.getAttribute('data-key')] = (input.value || '').trim());
+      if (!payload.name || !/^1[3-9]\d{9}$/.test(payload.phone) || !payload.smsCode || !payload.company) {
+        alert('请完整填写并检查手机号/验证码');
+        return;
+      }
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = '提交中...';
+      try {
+        const res = await fetch('/api/public/activity/register/' + token, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ formData: payload })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.error || '提交失败');
+        alert('报名成功！后续将通过短信/邮件发放参会邀请函。');
+        document.getElementById('regForm').reset();
+      } catch (e) {
+        alert(e.message || '提交失败');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '立即提交';
+      }
+    }
+
+    document.getElementById('regForm').addEventListener('submit', submitForm);
+    loadActivity();
+  </script>
+</body>
+</html>

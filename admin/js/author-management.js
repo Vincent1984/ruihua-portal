@@ -20,7 +20,7 @@ function renderAuthorTable() {
     
     tbody.innerHTML = authors.map(author => `
         <tr>
-            <td><img src="${author.avatar || 'https://via.placeholder.com/60'}" class="rounded-circle" style="width:40px;height:40px;object-fit:cover"></td>
+            <td><img src="${author.avatar || '/fallback-image/avatar'}" class="rounded-circle" style="width:40px;height:40px;object-fit:cover"></td>
             <td>${author.name}</td>
             <td>${author.desc || '-'}</td>
             <td>${new Date(author.createdAt).toLocaleDateString()}</td>

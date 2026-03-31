@@ -735,16 +735,16 @@ function switchMissionTab(tab) {
         cardSolutions.classList.add('hidden');
         
         // Update Tab Styles
-        if (tabChallenges) tabChallenges.className = 'px-6 py-2.5 rounded-lg text-sm font-bold bg-white text-[#EA5504] shadow-sm transition-all duration-300';
-        if (tabSolutions) tabSolutions.className = 'px-6 py-2.5 rounded-lg text-sm font-bold text-slate-500 hover:text-brand-600 transition-all duration-300';
+        if (tabChallenges) tabChallenges.className = 'mission-tab-btn active';
+        if (tabSolutions) tabSolutions.className = 'mission-tab-btn inactive';
     } else {
         // Show Solutions
         cardChallenges.classList.add('hidden');
         cardSolutions.classList.remove('hidden');
         
         // Update Tab Styles
-        if (tabChallenges) tabChallenges.className = 'px-6 py-2.5 rounded-lg text-sm font-bold text-slate-500 hover:text-[#EA5504] transition-all duration-300';
-        if (tabSolutions) tabSolutions.className = 'px-6 py-2.5 rounded-lg text-sm font-bold bg-white text-brand-600 shadow-sm transition-all duration-300';
+        if (tabChallenges) tabChallenges.className = 'mission-tab-btn inactive';
+        if (tabSolutions) tabSolutions.className = 'mission-tab-btn active';
     }
 }
 

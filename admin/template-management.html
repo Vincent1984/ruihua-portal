@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>报名模板管理 - 瑞华智策</title>
+  <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="admin-theme.css">
+  <link rel="stylesheet" href="/admin/admin-sidebar.css">
+  <style>
+    .activity-sub-nav {
+      display: inline-flex;
+      border: 1px solid #dbeafe;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #f8fbff;
+    }
+    .activity-sub-nav a {
+      display: inline-flex;
+      align-items: center;
+      height: 34px;
+      padding: 0 14px;
+      text-decoration: none;
+      color: #334155;
+      font-size: 13px;
+      border-right: 1px solid #e2e8f0;
+    }
+    .activity-sub-nav a:last-child { border-right: 0; }
+    .activity-sub-nav a.active {
+      background: #1677ff;
+      color: #fff;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+<div class="admin-layout">
+  <div class="sidebar"></div>
+  <div class="main-content">
+    <div class="header">
+      <h4 class="m-0">报名模板管理</h4>
+      <button class="btn btn-primary" id="btnNewTemplate"><i class="bi bi-plus-lg"></i> 新建模板</button>
+    </div>
+    <div class="page-content">
+      <div class="mb-3">
+        <div class="activity-sub-nav">
+          <a href="/admin/template-management.html" class="active">活动管理 / 报名模板管理</a>
+          <a href="/admin/activity-management.html">活动管理 / 活动报名管理</a>
+        </div>
+      </div>
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-md-3"><input id="qKeyword" class="form-control form-control-sm" placeholder="模板名称"></div>
+            <div class="col-md-3"><select id="qType" class="form-select form-select-sm"><option value="">全部类型</option><option value="hr_forum">HR领袖活动论坛</option><option value="city_salon">城市沙龙</option><option value="closed_door">闭门研讨会</option></select></div>
+            <div class="col-md-2"><select id="qStatus" class="form-select form-select-sm"><option value="">全部状态</option><option value="enabled">启用</option><option value="disabled">禁用</option></select></div>
+            <div class="col-md-2"><button class="btn btn-outline-primary btn-sm w-100" id="btnSearchTpl">查询</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light"><tr><th>模板名称</th><th>活动类型</th><th>状态</th><th>版本</th><th>场景描述</th><th>操作</th></tr></thead>
+            <tbody id="tplBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="tplModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">模板编辑器</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <input type="hidden" id="tplId">
+        <div class="row g-2 mb-3">
+          <div class="col-md-4"><label class="form-label">模板名称</label><input id="tplName" class="form-control"></div>
+          <div class="col-md-3"><label class="form-label">活动类型</label><select id="tplType" class="form-select"><option value="hr_forum">HR领袖活动论坛</option><option value="city_salon">城市沙龙</option><option value="closed_door">闭门研讨会</option></select></div>
+          <div class="col-md-2"><label class="form-label">状态</label><select id="tplStatus" class="form-select"><option value="enabled">启用</option><option value="disabled">禁用</option></select></div>
+          <div class="col-md-3"><label class="form-label">场景描述</label><input id="tplScene" class="form-control"></div>
+        </div>
+        <div class="row g-2">
+          <div class="col-md-7">
+            <h6>表单字段（可拖拽排序）</h6>
+            <table class="table table-bordered table-sm">
+              <thead><tr><th>字段key</th><th>标题</th><th>类型</th><th>必填</th><th>规则</th><th></th></tr></thead>
+              <tbody id="fieldBody"></tbody>
+            </table>
+            <button class="btn btn-outline-secondary btn-sm" id="btnAddField">新增字段</button>
+          </div>
+          <div class="col-md-5">
+            <h6>页面与主题</h6>
+            <div class="mb-2"><label class="form-label">页面标题</label><input id="uiPageTitle" class="form-control form-control-sm"></div>
+            <div class="mb-2"><label class="form-label">活动说明</label><textarea id="uiIntro" rows="2" class="form-control form-control-sm"></textarea></div>
+            <div class="mb-2"><label class="form-label">报名须知</label><textarea id="uiNotice" rows="2" class="form-control form-control-sm"></textarea></div>
+            <div class="mb-2"><label class="form-label">背景图片</label><input id="uiBgImg" class="form-control form-control-sm"></div>
+            <div class="mb-2"><label class="form-label">LOGO</label><input id="uiLogo" class="form-control form-control-sm"></div>
+            <div class="row g-2">
+              <div class="col"><label class="form-label">背景起始色</label><input id="uiBgStart" type="color" class="form-control form-control-color" value="#8b5cff"></div>
+              <div class="col"><label class="form-label">背景结束色</label><input id="uiBgEnd" type="color" class="form-control form-control-color" value="#6f42ff"></div>
+              <div class="col"><label class="form-label">按钮起始色</label><input id="uiBtnStart" type="color" class="form-control form-control-color" value="#8a54ff"></div>
+              <div class="col"><label class="form-label">按钮结束色</label><input id="uiBtnEnd" type="color" class="form-control form-control-color" value="#5a26ff"></div>
+            </div>
+            <div class="mb-2 mt-2"><label class="form-label">成功提示</label><input id="uiSuccessMsg" class="form-control form-control-sm"></div>
+            <div class="mb-2"><label class="form-label">成功跳转</label><input id="uiSuccessRedirect" class="form-control form-control-sm"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" id="btnAutosave">实时保存草稿</button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button class="btn btn-primary" id="btnSaveTpl">保存模板</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="/admin/js/unified-admin-sidebar.js"></script>
+<script src="/admin/js/template-management.js"></script>
+</body>
+</html>

@@ -252,10 +252,23 @@ function changeAppointmentPage(delta) {
 }
 
 // 后台管理 - 导出表单数据
-function exportAppointments() {
+async function exportAppointments() {
     try {
-        // 跳转到导出接口
-        window.location.href = `/api/appointments/export`;
+        const token = sessionStorage.getItem('token');
+        const response = await fetch('/api/appointments/export', {
+            headers: { Authorization: 'Bearer ' + token }
+        });
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.error || '导出失败');
+        }
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'appointments.csv';
+        a.click();
+        URL.revokeObjectURL(url);
     } catch (error) {
         console.error('导出失败:', error);
     }

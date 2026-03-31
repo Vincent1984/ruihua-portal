@@ -5,7 +5,7 @@ const fileNameMapSchema = new mongoose.Schema({
   numericName: { type: String, required: true, index: true },
   directory: { type: String, required: true },
   ext: { type: String, required: true },
-  variant: { type: String, enum: ['main', 'thumb'], required: true },
+  variant: { type: String, enum: ['main', 'thumb', 'avatar'], required: true },
   hashHex: { type: String, required: true },
   createdAt: { type: Date, default: Date.now }
 });
