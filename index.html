@@ -460,56 +460,48 @@
                                 <!-- Card 1 -->
                                 <div class="dual-wheel-feature-card tech-feature-card group/card">
                                     <div class="flex justify-between items-start mb-3">
-                                        <div class="flex items-center gap-3">
-                                            <div class="dual-wheel-feature-icon tech">
-                                                <i class="fas fa-chart-pie text-lg"></i>
-                                            </div>
-                                            <h4 class="font-bold text-slate-900 text-sm">经营决策看板 (BI)</h4>
+                                        <div class="dual-wheel-feature-icon tech">
+                                            <i class="fas fa-chart-pie text-lg"></i>
                                         </div>
                                         <i class="fas fa-arrow-right dual-wheel-arrow"></i>
                                     </div>
+                                    <h4 class="font-bold text-slate-900 text-sm mb-1">经营决策看板 (BI)</h4>
                                     <p class="text-xs text-slate-500 leading-relaxed">实时展现人力资本ROI、利润预测</p>
                                 </div>
                                 
                                 <!-- Card 2 -->
                                 <div class="dual-wheel-feature-card tech-feature-card group/card">
                                     <div class="flex justify-between items-start mb-3">
-                                        <div class="flex items-center gap-3">
-                                            <div class="dual-wheel-feature-icon tech">
-                                                <i class="fas fa-robot text-lg"></i>
-                                            </div>
-                                            <h4 class="font-bold text-slate-900 text-sm">AI Agent 智能体</h4>
+                                        <div class="dual-wheel-feature-icon tech">
+                                            <i class="fas fa-robot text-lg"></i>
                                         </div>
                                         <i class="fas fa-arrow-right dual-wheel-arrow"></i>
                                     </div>
+                                    <h4 class="font-bold text-slate-900 text-sm mb-1">AI Agent 智能体</h4>
                                     <p class="text-xs text-slate-500 leading-relaxed">实时绩效、工时统计、技能陪练Agent</p>
                                 </div>
                                 
                                 <!-- Card 3 -->
                                 <div class="dual-wheel-feature-card tech-feature-card group/card">
                                     <div class="flex justify-between items-start mb-3">
-                                        <div class="flex items-center gap-3">
-                                            <div class="dual-wheel-feature-icon tech">
-                                                <i class="fas fa-database text-lg"></i>
-                                            </div>
-                                            <h4 class="font-bold text-slate-900 text-sm">统一数据底座</h4>
+                                        <div class="dual-wheel-feature-icon tech">
+                                            <i class="fas fa-database text-lg"></i>
                                         </div>
                                         <i class="fas fa-arrow-right dual-wheel-arrow"></i>
                                     </div>
+                                    <h4 class="font-bold text-slate-900 text-sm mb-1">统一数据底座</h4>
                                     <p class="text-xs text-slate-500 leading-relaxed">打通 ERP+CRM+HRM 异构系统</p>
                                 </div>
                                 
                                 <!-- Card 4 -->
                                 <div class="dual-wheel-feature-card tech-feature-card group/card">
                                     <div class="flex justify-between items-start mb-3">
-                                        <div class="flex items-center gap-3">
-                                            <div class="dual-wheel-feature-icon tech">
-                                                <i class="fas fa-brain text-lg"></i>
-                                            </div>
-                                            <h4 class="font-bold text-slate-900 text-sm">企业知识沉淀</h4>
+                                        <div class="dual-wheel-feature-icon tech">
+                                            <i class="fas fa-brain text-lg"></i>
                                         </div>
                                         <i class="fas fa-arrow-right dual-wheel-arrow"></i>
                                     </div>
+                                    <h4 class="font-bold text-slate-900 text-sm mb-1">企业知识沉淀</h4>
                                     <p class="text-xs text-slate-500 leading-relaxed">利用 RAG 技术构建组织大脑</p>
                                 </div>
                             </div>
@@ -794,13 +786,18 @@
                     <p class="text-slate-600 max-w-2xl mx-auto mt-4 text-base">获取最新的 AI 战略、组织效能与人力资本价值经营洞察</p>
                 </div>
                 
-                <div id="insights-container" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div id="insights-container" data-limit="3" data-page="1" data-has-more="false" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <!-- 
                         Article Module (Research Center)
                         - Content is loaded dynamically via main.js (loadResearchInsights)
                         - If API fails, the static content below is preserved/restored as fallback.
                         - Ensure static content structure matches the JS template.
                     -->
+                </div>
+                <div id="insights-actions" class="flex justify-center mt-10">
+                    <button id="insights-load-more" type="button" class="hidden px-6 py-2.5 rounded-full bg-brand-600 text-white font-semibold hover:bg-brand-700 transition-colors">
+                        加载更多
+                    </button>
                 </div>
             </div>
         </section>
@@ -822,6 +819,7 @@
                     <!-- FAQ 项目示例 - 将由 JavaScript 动态填充 -->
                     
                 </dl>
+                <div id="faq-status" class="mt-6 text-center text-sm text-slate-500"></div>
             </div>
         </section>
 

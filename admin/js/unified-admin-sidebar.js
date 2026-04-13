@@ -24,6 +24,7 @@
       icon: 'bi-database',
       items: [
         { label: '预约表单', icon: 'bi-list-check', href: '/admin/dashboard.html', section: 'appointments' },
+        { label: '调研问卷数据', icon: 'bi-clipboard-data', href: '/admin/survey.html' },
         { label: '资源下载记录', icon: 'bi-file-earmark-arrow-down', href: '/admin/whitepaper-submissions.html' },
         { label: '诊断评测数据', icon: 'bi-bar-chart-steps', href: '/admin/maturity.html' },
         { label: '经营分析报告', icon: 'bi-graph-up-arrow', href: '/admin/efficiency.html' }

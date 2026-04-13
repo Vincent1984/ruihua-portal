@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>调研问卷数据 - 瑞华智策 CMS</title>
+  
+  <link rel="stylesheet" href="/vendor/bootstrap-5.3.2.min.css">
+  <link rel="stylesheet" href="/vendor/bootstrap-icons/1.11.3/bootstrap-icons.css">
+  <link rel="stylesheet" href="/admin/admin-sidebar.css">
+  
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+  <link rel="stylesheet" href="/vendor/element-plus-2.4.4.css" />
+  <script src="https://cdn.jsdelivr.net/npm/element-plus@2.4.4/dist/index.full.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+
+  <style>
+    body { background: #f4f6fb; margin: 0; }
+    .layout { display: flex; min-height: 100vh; }
+    .main-area { flex: 1; min-width: 0; padding: 20px; }
+    .stat-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .stat-value { font-size: 28px; font-weight: bold; color: #7c4dff; margin-top: 10px; }
+    .chart-container { height: 300px; }
+    [v-cloak] { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="app" class="layout" v-cloak>
+    <aside class="sidebar"></aside>
+    
+    <div class="main-area">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0 fw-bold">调研问卷数据中心</h4>
+        <div class="d-flex gap-2">
+          <el-button type="danger" plain :disabled="!selectedIds.length" @click="batchDelete">
+            <el-icon><Delete /></el-icon> 批量删除
+          </el-button>
+          <el-button type="primary" color="#7c4dff" @click="exportData">
+            <el-icon><Download /></el-icon> 导出 Excel
+          </el-button>
+        </div>
+      </div>
+
+      <!-- Analytics Row -->
+      <div class="row g-4 mb-4">
+        <div class="col-md-3">
+          <div class="stat-card text-center">
+            <div class="text-secondary small">总提交人数</div>
+            <div class="stat-value">{{ analytics.totalSubmissions || 0 }}</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card text-center">
+            <div class="text-secondary small">平均填写时长 (秒)</div>
+            <div class="stat-value">{{ (analytics.avgDurationMs / 1000).toFixed(1) || 0 }}</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="stat-card">
+             <div class="text-secondary small mb-2 text-center">话题偏好分布</div>
+             <div id="topicChart" class="chart-container" style="height: 120px;"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row g-4 mb-4">
+        <div class="col-md-6">
+          <div class="stat-card">
+             <div class="text-secondary small mb-2 text-center">参与形式偏好</div>
+             <div id="formChart" class="chart-container"></div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="stat-card">
+             <div class="text-secondary small mb-2 text-center">来源渠道占比</div>
+             <div id="channelChart" class="chart-container"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Table -->
+      <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+          <h6 class="mb-0 fw-bold">详细数据记录</h6>
+          <div class="d-flex gap-2">
+            <el-select v-model="filter.channel" placeholder="所有渠道" clearable style="width: 150px" @change="fetchData">
+              <el-option v-for="c in analytics.channelStats" :key="c.label" :label="c.label" :value="c.label" />
+            </el-select>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <el-table :data="tableData" v-loading="loading" style="width: 100%" stripe @selection-change="handleSelectionChange">
+            <el-table-column type="selection" width="55" />
+            <el-table-column prop="createdAt" label="提交时间" width="180">
+              <template #default="scope">
+                {{ new Date(scope.row.createdAt).toLocaleString('zh-CN', {timeZone: 'Asia/Shanghai'}) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="topicInterest" label="感兴趣话题" min-width="180"></el-table-column>
+            <el-table-column prop="participationForm" label="参与形式" width="120"></el-table-column>
+            <el-table-column prop="wechatId" label="微信号" width="150"></el-table-column>
+            <el-table-column prop="channel" label="渠道" width="120">
+              <template #default="scope">
+                <el-tag size="small" type="info">{{ scope.row.channel }}</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="耗时" width="100">
+              <template #default="scope">
+                {{ scope.row.behavior && scope.row.behavior.durationMs ? Math.round(scope.row.behavior.durationMs / 1000) + '秒' : '-' }}
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="110" fixed="right">
+              <template #default="scope">
+                <el-button type="danger" link @click="deleteRow(scope.row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          
+          <div class="d-flex justify-content-end p-3">
+            <el-pagination
+              v-model:current-page="page"
+              :page-size="limit"
+              layout="total, prev, pager, next"
+              :total="total"
+              @current-change="handlePageChange"
+            />
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="/admin/js/unified-admin-sidebar.js"></script>
+  <script>
+    const { createApp, ref, reactive, onMounted, nextTick } = Vue;
+    const getAuthToken = () => {
+      const token = sessionStorage.getItem('token')
+        || localStorage.getItem('adminToken')
+        || localStorage.getItem('token')
+        || '';
+      if (token) {
+        sessionStorage.setItem('token', token);
+        localStorage.setItem('adminToken', token);
+      }
+      return token;
+    };
+
+    const app = createApp({
+      setup() {
+        const loading = ref(false);
+        const tableData = ref([]);
+        const total = ref(0);
+        const page = ref(1);
+        const limit = ref(10);
+        const filter = reactive({ channel: '' });
+        const selectedIds = ref([]);
+        
+        const analytics = reactive({
+          totalSubmissions: 0,
+          avgDurationMs: 0,
+          topicStats: [],
+          formStats: [],
+          channelStats: []
+        });
+
+        let topicChartInstance = null;
+        let formChartInstance = null;
+        let channelChartInstance = null;
+
+        const checkAuth = async () => {
+            const token = getAuthToken();
+            if (!token) {
+                window.location.href = '/admin/index.html';
+                return false;
+            }
+            try {
+                const res = await fetch('/api/auth/verify', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) {
+                    sessionStorage.removeItem('token');
+                    localStorage.removeItem('adminToken');
+                    window.location.href = '/admin/index.html';
+                    return false;
+                }
+            } catch (e) {
+                console.error(e);
+                return false;
+            }
+            return true;
+        };
+
+        const fetchAnalytics = async () => {
+          try {
+            const token = getAuthToken();
+            const res = await fetch('/api/admin/survey/analytics', {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.status === 401) {
+              sessionStorage.removeItem('token');
+              localStorage.removeItem('adminToken');
+              window.location.href = '/admin/index.html';
+              return;
+            }
+            const data = await res.json();
+            if (data.success) {
+              Object.assign(analytics, data.data);
+              renderCharts();
+            }
+          } catch (e) {
+            console.error('Failed to fetch analytics', e);
+          }
+        };
+
+        const fetchData = async () => {
+          loading.value = true;
+          try {
+            const token = getAuthToken();
+            let url = `/api/admin/survey/list?page=${page.value}&limit=${limit.value}`;
+            if (filter.channel) url += `&channel=${filter.channel}`;
+            
+            const res = await fetch(url, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.status === 401) {
+              sessionStorage.removeItem('token');
+              localStorage.removeItem('adminToken');
+              window.location.href = '/admin/index.html';
+              return;
+            }
+            const data = await res.json();
+            if (data.success) {
+              tableData.value = data.data;
+              total.value = data.total;
+              selectedIds.value = [];
+            }
+          } catch (e) {
+            console.error('Failed to fetch data', e);
+            ElementPlus.ElMessage.error('获取数据失败');
+          } finally {
+            loading.value = false;
+          }
+        };
+
+        const handlePageChange = (val) => {
+          page.value = val;
+          fetchData();
+        };
+
+        const exportData = () => {
+          const token = getAuthToken();
+          let url = '/api/admin/survey/export?';
+          if (filter.channel) url += `channel=${filter.channel}`;
+          
+          fetch(url, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+          .then(res => {
+            if (!res.ok) throw new Error('导出失败');
+            return res.blob();
+          })
+          .then(blob => {
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = downloadUrl;
+            a.download = `survey_export_${new Date().toISOString().slice(0,10)}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(downloadUrl);
+            document.body.removeChild(a);
+          })
+          .catch(err => {
+            console.error(err);
+            ElementPlus.ElMessage.error('导出失败，请重试');
+          });
+        };
+
+        const handleSelectionChange = (rows) => {
+          selectedIds.value = rows.map(row => row._id).filter(Boolean);
+        };
+
+        const deleteRow = async (row) => {
+          if (!row?._id) return;
+          try {
+            await ElementPlus.ElMessageBox.confirm(
+              '确认删除该条问卷记录？删除后不可恢复。',
+              '删除确认',
+              { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' }
+            );
+            const token = getAuthToken();
+            const res = await fetch(`/api/admin/survey/${row._id}`, {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+              throw new Error(data.error || '删除失败');
+            }
+            ElementPlus.ElMessage.success('删除成功');
+            if (tableData.value.length === 1 && page.value > 1) {
+              page.value -= 1;
+            }
+            await fetchData();
+            await fetchAnalytics();
+          } catch (e) {
+            if (e === 'cancel' || e === 'close') return;
+            console.error('deleteRow error', e);
+            ElementPlus.ElMessage.error(e.message || '删除失败');
+          }
+        };
+
+        const batchDelete = async () => {
+          if (!selectedIds.value.length) return;
+          try {
+            await ElementPlus.ElMessageBox.confirm(
+              `确认删除已选中的 ${selectedIds.value.length} 条记录？删除后不可恢复。`,
+              '批量删除确认',
+              { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' }
+            );
+            const token = getAuthToken();
+            const res = await fetch('/api/admin/survey/batch-delete', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ ids: selectedIds.value })
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+              throw new Error(data.error || '批量删除失败');
+            }
+            ElementPlus.ElMessage.success(data.message || '批量删除成功');
+            await fetchData();
+            await fetchAnalytics();
+          } catch (e) {
+            if (e === 'cancel' || e === 'close') return;
+            console.error('batchDelete error', e);
+            ElementPlus.ElMessage.error(e.message || '批量删除失败');
+          }
+        };
+
+        const renderCharts = () => {
+          // Topic Bar Chart
+          if(!topicChartInstance) topicChartInstance = echarts.init(document.getElementById('topicChart'));
+          topicChartInstance.setOption({
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+            grid: { left: '3%', right: '4%', bottom: '3%', top: '5%', containLabel: true },
+            xAxis: { type: 'value', show: false },
+            yAxis: { type: 'category', data: analytics.topicStats.map(item => item.label), axisLabel: { width: 100, overflow: 'truncate' } },
+            series: [{
+              type: 'bar',
+              data: analytics.topicStats.map(item => item.value),
+              itemStyle: { color: '#7c4dff', borderRadius: [0, 4, 4, 0] },
+              label: { show: true, position: 'right' }
+            }]
+          });
+
+          // Form Pie Chart
+          if(!formChartInstance) formChartInstance = echarts.init(document.getElementById('formChart'));
+          formChartInstance.setOption({
+            tooltip: { trigger: 'item' },
+            legend: { top: 'bottom' },
+            series: [{
+              type: 'pie',
+              radius: ['40%', '70%'],
+              itemStyle: { borderRadius: 10, borderColor: '#fff', borderWidth: 2 },
+              data: analytics.formStats.map(item => ({ name: item.label, value: item.value }))
+            }]
+          });
+
+          // Channel Pie Chart
+          if(!channelChartInstance) channelChartInstance = echarts.init(document.getElementById('channelChart'));
+          channelChartInstance.setOption({
+            tooltip: { trigger: 'item' },
+            legend: { top: 'bottom', type: 'scroll' },
+            series: [{
+              type: 'pie',
+              radius: '70%',
+              data: analytics.channelStats.map(item => ({ name: item.label, value: item.value })),
+              emphasis: {
+                itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0, 0, 0, 0.5)' }
+              }
+            }]
+          });
+        };
+
+        onMounted(async () => {
+          const authed = await checkAuth();
+          if (!authed) return;
+          await fetchAnalytics();
+          await fetchData();
+          
+          window.addEventListener('resize', () => {
+            topicChartInstance?.resize();
+            formChartInstance?.resize();
+            channelChartInstance?.resize();
+          });
+        });
+
+        return {
+          loading,
+          tableData,
+          total,
+          page,
+          limit,
+          filter,
+          analytics,
+          selectedIds,
+          handlePageChange,
+          fetchData,
+          exportData,
+          handleSelectionChange,
+          deleteRow,
+          batchDelete
+        };
+      }
+    });
+
+    app.use(ElementPlus);
+    // Register all icons
+    if (typeof ElementPlusIconsVue !== 'undefined') {
+      for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+          app.component(key, component);
+      }
+    }
+    app.mount('#app');
+  </script>
+</body>
+</html>

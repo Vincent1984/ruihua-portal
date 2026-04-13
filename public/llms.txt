@@ -273,3 +273,27 @@
 ## 人力资本价值经营的方法论与落地实践
 - Link: https://www.ruihuaconsulting.com/article/human-capital-value-management-methodology-practice.html
 - Summary: 人力资本价值经营：AI时代企业增长新引擎。核心是管理轮（战略、组织、目标）与技术轮（数据、系统、决策）深度耦合，将人才作为核心生产要素，通过人才、技术、产品、市场的联动，实现客户、企业与人才的价值共赢，驱动企业从降本增效转向持续的价值创造与开源增长。
+
+## 人力资本价值经营
+- Link: https://www.ruihuaconsulting.com/article/human-capital-value-management.html
+- Summary: 人力资本价值经营的核心是通过系统化管理提升员工效能与组织竞争力。它聚焦于人才吸引、培养、激励与保留，将人力资源转化为可持续的战略资产，驱动企业创新与长期增长。
+
+## 人力资本价值经营
+- Link: https://www.ruihuaconsulting.com/article/human-capital-value-management.html
+- Summary: 人力资本价值经营的核心是通过系统化管理提升员工效能与组织竞争力。它聚焦于人才吸引、培养、激励与保留，将人力资源转化为可持续的战略资产，驱动企业创新与长期增长。
+
+## 人力资本价值经营的方法论
+- Link: https://www.ruihuaconsulting.com/article/human-capital-value-management-methodology.html
+- Summary: 汽车供应链企业面临人才错配困境：部门墙阻碍人才流动，缺乏统一人才标尺导致人岗错配，人才闲置与紧缺并存。解决方案需构建与研发价值链对齐的任职体系、数字化人才画像实现跨部门调度，并建立战略优先的动态匹配机制，将人才从部门私产转化为公司核心资产，提升整体研发效能。
+
+## 人力资本价值经营
+- Link: https://www.ruihuaconsulting.com/article/human-capital-value-management.html
+- Summary: 人力资本价值经营的核心是通过系统化管理提升员工效能与组织竞争力。它聚焦于人才吸引、培养、激励与保留，将人力资源转化为可持续的战略资产，驱动企业创新与长期增长。
+
+## 人力资本价值经营的方法论与落地实践
+- Link: https://www.ruihuaconsulting.com/article/human-capital-value-management-methodology-practice.html
+- Summary: 人力资本价值经营：AI时代企业增长新引擎。核心是管理轮（战略、组织、目标）与技术轮（数据、系统、决策）深度耦合，将人才作为核心生产要素，通过人才、技术、产品、市场的联动，实现客户、企业与人才的价值共赢，驱动企业从降本增效转向持续的价值创造与开源增长。
+
+## 知名车企爆雷背后：OpenClaw“养龙虾”虽火，企业如何守住AI安全红线？
+- Link: https://www.ruihuaconsulting.com/article/openclaw-ai-security-redline.html
+- Summary: 针对近期知名车企OpenClaw（小龙虾）AI Agent安全事件，瑞华智策深度解析企业AI安全红线。提供AI安全大脑、数据围堰及零信任架构等治理方案，助企业守住AI时代安全底线。

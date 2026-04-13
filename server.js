@@ -39,6 +39,7 @@ const xss = require('xss');
 const { slugify } = require('transliteration');
 const { toDigitsFromSha256, clipDigits, ensureUniqueDigits } = require('./utils/numericName');
 const FileNameMap = require('./models/FileNameMap');
+const { renderInsightCard, renderFaqItem } = require('./utils/homeContentRenderer');
 const domainNormalizer = require('./middleware/domainNormalizer');
 const legacyRedirects = require('./middleware/legacyRedirects');
 
@@ -279,6 +280,9 @@ rootHtmlFiles.forEach(file => {
 });
 
 app.get('/videos/', (req, res) => res.sendFile(path.join(__dirname, 'videos.html')));
+app.get('/survey/', (req, res) => res.sendFile(path.join(__dirname, 'survey.html')));
+app.get('/survey', (req, res) => res.redirect(301, '/survey/'));
+app.get('/survey.html', (req, res) => res.redirect(301, '/survey/'));
 
 // Helper for SEO SSR on Article Page
 const { JSDOM } = require('jsdom');
@@ -835,6 +839,10 @@ const renderStaticHtmlWithFooter = async (res, filename) => {
         const html = await fs.promises.readFile(path.join(__dirname, filename), 'utf8');
         const dom = new JSDOM(html);
         const document = dom.window.document;
+
+        if (filename === 'index.html') {
+            await injectHomeDynamicContent(document, { insightsLimit: 3, faqLimit: 5 });
+        }
         
         injectFooterHTML(document);
         
@@ -844,6 +852,58 @@ const renderStaticHtmlWithFooter = async (res, filename) => {
         res.sendFile(path.join(__dirname, filename));
     }
 };
+
+async function injectHomeDynamicContent(document, options = {}) {
+    const insightsLimit = Number(options.insightsLimit || 3);
+    const faqLimit = Number(options.faqLimit || 5);
+    const insightsContainer = document.getElementById('insights-container');
+    const faqList = document.getElementById('faq-list');
+    const loadMoreBtn = document.getElementById('insights-load-more');
+    if (!insightsContainer || !faqList) return;
+
+    try {
+        const [articles, faqRows, categories, total] = await Promise.all([
+            Article.find({ status: 'published', isRecommended: true })
+                .sort({ publishDate: -1 })
+                .limit(insightsLimit)
+                .lean(),
+            Faq.find({ status: { $in: ['published', undefined] } })
+                .sort({ order: 1 })
+                .limit(faqLimit)
+                .lean(),
+            Category.find({}).lean(),
+            Article.countDocuments({ status: 'published', isRecommended: true })
+        ]);
+
+        const categoryMap = {};
+        categories.forEach((item) => {
+            if (item?.code && item?.name) categoryMap[item.code] = item.name;
+        });
+
+        insightsContainer.innerHTML = (articles || []).map((article) => renderInsightCard(article, categoryMap)).join('');
+        faqList.innerHTML = (faqRows || []).map((faq) => renderFaqItem(faq)).join('');
+
+        insightsContainer.setAttribute('data-ssr-rendered', 'true');
+        insightsContainer.setAttribute('data-page', '1');
+        insightsContainer.setAttribute('data-limit', String(insightsLimit));
+        insightsContainer.setAttribute('data-has-more', total > insightsLimit ? 'true' : 'false');
+        faqList.setAttribute('data-ssr-rendered', 'true');
+
+        if (loadMoreBtn) {
+            if (total > insightsLimit) {
+                loadMoreBtn.classList.remove('hidden');
+            } else {
+                loadMoreBtn.classList.add('hidden');
+            }
+        }
+
+        const noScriptStyle = document.createElement('noscript');
+        noScriptStyle.innerHTML = '<style>#faq-list .faq-content{max-height:none !important;opacity:1 !important;}</style>';
+        document.body.appendChild(noScriptStyle);
+    } catch (error) {
+        console.error('Inject home dynamic content failed:', error.message);
+    }
+}
 
 // 4. productivity.html -> /productivity/
 app.get('/productivity/', (req, res) => renderStaticHtmlWithFooter(res, 'productivity.html'));
@@ -1741,6 +1801,50 @@ app.get('/api/faqs', async (req, res) => {
         res.json(faqs);
     } catch (e) {
         res.status(500).json({ error: e.message });
+    }
+});
+
+app.get('/api/home/content', async (req, res) => {
+    try {
+        const page = Math.max(parseInt(req.query.page || '1', 10), 1);
+        const limit = Math.min(Math.max(parseInt(req.query.limit || '3', 10), 1), 12);
+        const faqLimit = Math.min(Math.max(parseInt(req.query.faqLimit || '5', 10), 1), 20);
+        const includeFaqs = req.query.includeFaqs !== 'false';
+        const skip = (page - 1) * limit;
+
+        const [articles, total, categories, faqs] = await Promise.all([
+            Article.find({ status: 'published', isRecommended: true })
+                .sort({ publishDate: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            Article.countDocuments({ status: 'published', isRecommended: true }),
+            Category.find({}).lean(),
+            includeFaqs
+                ? Faq.find({ status: { $in: ['published', undefined] } }).sort({ order: 1 }).limit(faqLimit).lean()
+                : Promise.resolve([])
+        ]);
+
+        const categoryMap = {};
+        categories.forEach((item) => {
+            if (item?.code && item?.name) categoryMap[item.code] = item.name;
+        });
+
+        res.json({
+            success: true,
+            data: {
+                page,
+                limit,
+                total,
+                hasMore: skip + articles.length < total,
+                articles: articles || [],
+                faqs: faqs || [],
+                categoryMap
+            }
+        });
+    } catch (e) {
+        console.error('/api/home/content failed:', e);
+        res.status(500).json({ success: false, error: 'Failed to load homepage content' });
     }
 });
 
@@ -3806,6 +3910,7 @@ require('./routes/videoRoutes')(app, authRequired, requirePerm, logOp, generateD
 require('./routes/videoEmbedRoutes')(app, authRequired, requirePerm, logOp);
 require('./routes/activityRoutes')(app, authRequired, requirePerm, logOp);
 require('./routes/activityTemplateRoutes')(app, authRequired, requirePerm, logOp);
+require('./routes/surveyRoutes')(app, authRequired, requirePerm, logOp);
 
 // 404 Handler
 app.use((req, res, next) => {

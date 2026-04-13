@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>新质组织打造系列培训服务调研 - 瑞华智策</title>
+    <link href="/vendor/font-awesome/css/all.min.css" rel="stylesheet">
+    <link href="/css/styles.css" rel="stylesheet">
+    <link href="/css/survey.css" rel="stylesheet">
+    <script defer src="https://cdn.tailwindcss.com"></script>
+    <script defer src="/js/tailwind-config.js"></script>
+</head>
+<body class="survey-page min-h-screen text-slate-800 font-sans">
+    
+    <!-- Header -->
+    <header class="glass-header shadow-sm sticky top-0 z-50">
+        <div class="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
+            <img src="/images/logo.png" alt="瑞华智策" class="h-8 md:h-10">
+            <span class="text-sm font-medium text-slate-500 hidden md:block"><i class="fas fa-headset mr-1"></i>客户调研中心</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-3xl mx-auto p-4 md:p-8 pb-24">
+        
+        <div class="bg-white rounded-3xl shadow-xl overflow-hidden mb-8 border border-slate-100">
+            <div class="bg-gradient-to-br from-[#7c4dff] to-[#5e35b1] p-8 md:p-10 text-white text-center relative overflow-hidden">
+                <!-- Decorative circles -->
+                <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                <div class="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full blur-xl -ml-8 -mb-8"></div>
+                
+                <div class="relative z-10">
+                    <h1 class="text-2xl md:text-3xl font-bold mb-3">新质组织打造系列培训服务调研</h1>
+                    <p class="text-sm md:text-base text-indigo-100 opacity-90 max-w-lg mx-auto leading-relaxed">感谢参与调研，您的建议将助力提升服务质量。</p>
+                </div>
+            </div>
+            
+            <form id="surveyForm" class="p-6 md:p-10 space-y-10">
+                
+                <!-- Question 1 -->
+                <div class="form-group" id="group-q1">
+                    <label class="block text-base md:text-lg font-bold text-slate-800 mb-4">
+                        <span class="text-[#7c4dff] mr-1">*</span>1. 您对哪个话题更感兴趣？
+                    </label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label class="block cursor-pointer relative group">
+                            <input type="radio" name="topicInterest" value="动态人效管理体系工作坊" class="radio-custom sr-only">
+                            <div class="h-full border-2 border-slate-200 rounded-2xl p-5 flex flex-col transition-all duration-300 hover:border-[#7c4dff]/40 hover:bg-slate-50">
+                                <div class="flex items-start mb-2">
+                                    <div class="radio-circle w-5 h-5 rounded-full border-2 border-slate-300 mr-3 relative transition-colors flex-shrink-0 mt-0.5"></div>
+                                    <span class="text-base font-bold text-slate-800 group-hover:text-[#7c4dff] transition-colors">动态人效管理体系</span>
+                                </div>
+                                <p class="text-sm text-slate-500 pl-8">重构人力资源管理理念，追求人效提升和利润增长。</p>
+                            </div>
+                        </label>
+                        <label class="block cursor-pointer relative group">
+                            <input type="radio" name="topicInterest" value="“人+AI”混合劳动力规划工作坊" class="radio-custom sr-only">
+                            <div class="h-full border-2 border-slate-200 rounded-2xl p-5 flex flex-col transition-all duration-300 hover:border-[#7c4dff]/40 hover:bg-slate-50">
+                                <div class="flex items-start mb-2">
+                                    <div class="radio-circle w-5 h-5 rounded-full border-2 border-slate-300 mr-3 relative transition-colors flex-shrink-0 mt-0.5"></div>
+                                    <span class="text-base font-bold text-slate-800 group-hover:text-[#7c4dff] transition-colors">“人+AI”混合劳动力</span>
+                                </div>
+                                <p class="text-sm text-slate-500 pl-8">重构人机协作模式，升级组织核心能力
+。</p>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="input-error-text error-hidden mt-3" id="error-q1"><i class="fas fa-exclamation-circle"></i> 请选择您感兴趣的话题</div>
+                </div>
+
+                <div class="h-px bg-slate-100"></div>
+
+                <!-- Question 2 -->
+                <div class="form-group" id="group-q2">
+                    <label class="block text-base md:text-lg font-bold text-slate-800 mb-4">
+                        <span class="text-[#7c4dff] mr-1">*</span>2. 您希望以何种形式参与相关课程？
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <label class="block cursor-pointer relative">
+                            <input type="radio" name="participationForm" value="企业内训" class="radio-custom sr-only">
+                            <div class="border-2 border-slate-200 rounded-2xl p-4 flex flex-col items-center text-center transition-all duration-300 hover:border-[#7c4dff]/40 hover:bg-slate-50">
+                                <div class="radio-circle w-5 h-5 rounded-full border-2 border-slate-300 mb-3 relative transition-colors"></div>
+                                <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-2 text-xl">
+                                    <i class="fa-solid fa-chalkboard-user"></i>
+                                </div>
+                                <span class="text-sm font-bold text-slate-700">企业内训</span>
+                            </div>
+                        </label>
+                        <label class="block cursor-pointer relative">
+                            <input type="radio" name="participationForm" value="线下工作坊" class="radio-custom sr-only">
+                            <div class="border-2 border-slate-200 rounded-2xl p-4 flex flex-col items-center text-center transition-all duration-300 hover:border-[#7c4dff]/40 hover:bg-slate-50">
+                                <div class="radio-circle w-5 h-5 rounded-full border-2 border-slate-300 mb-3 relative transition-colors"></div>
+                                <div class="w-12 h-12 bg-purple-50 text-purple-500 rounded-full flex items-center justify-center mb-2 text-xl">
+                                    <i class="fa-solid fa-users"></i>
+                                </div>
+                                <span class="text-sm font-bold text-slate-700">线下工作坊</span>
+                            </div>
+                        </label>
+                        <label class="block cursor-pointer relative">
+                            <input type="radio" name="participationForm" value="线上直播课" class="radio-custom sr-only">
+                            <div class="border-2 border-slate-200 rounded-2xl p-4 flex flex-col items-center text-center transition-all duration-300 hover:border-[#7c4dff]/40 hover:bg-slate-50">
+                                <div class="radio-circle w-5 h-5 rounded-full border-2 border-slate-300 mb-3 relative transition-colors"></div>
+                                <div class="w-12 h-12 bg-green-50 text-green-500 rounded-full flex items-center justify-center mb-2 text-xl">
+                                    <i class="fa-solid fa-laptop"></i>
+                                </div>
+                                <span class="text-sm font-bold text-slate-700">线上直播课</span>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="input-error-text error-hidden mt-3" id="error-q2"><i class="fas fa-exclamation-circle"></i> 请选择您希望的参与形式</div>
+                </div>
+
+                <div class="h-px bg-slate-100"></div>
+
+                <!-- Question 3 -->
+                <div class="form-group" id="group-q3">
+                    <label class="block text-base md:text-lg font-bold text-slate-800 mb-2" for="wechatId">
+                        <span class="text-[#7c4dff] mr-1">*</span>3. 联系方式
+                    </label>
+                    <p class="text-sm text-slate-500 mb-4">请留下您的微信号或手机号，以便专家与您联系发送详细资料。</p>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fab fa-weixin text-slate-400 text-lg"></i>
+                        </div>
+                        <input type="text" id="wechatId" name="wechatId" placeholder="请输入您的微信号或手机号" 
+                            class="w-full border-2 border-slate-200 rounded-2xl pl-11 pr-4 py-4 text-base focus:outline-none focus:border-[#7c4dff] focus:ring-4 focus:ring-[#7c4dff]/10 transition-all placeholder-slate-400 bg-slate-50 focus:bg-white">
+                    </div>
+                    <div class="input-error-text error-hidden mt-2" id="error-q3"><i class="fas fa-exclamation-circle"></i> 请输入有效的微信号或手机号</div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-6">
+                    <button type="submit" id="submitBtn" class="w-full bg-[#7c4dff] hover:bg-[#651fff] text-white font-bold py-4 md:py-5 rounded-2xl shadow-lg shadow-[#7c4dff]/30 transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center text-lg">
+                        <span>提交问卷</span>
+                        <i class="fas fa-paper-plane ml-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="text-center text-sm text-slate-400 pb-8 flex flex-col items-center justify-center">
+            <div class="flex items-center justify-center gap-2 mb-2">
+                <i class="fas fa-shield-alt text-slate-300"></i>
+                <span>您的信息将被严格保密加密存储</span>
+            </div>
+            <p>&copy; 瑞华智策 All rights reserved.</p>
+        </div>
+    </main>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script defer src="/js/survey-page.js"></script>
+</body>
+</html>

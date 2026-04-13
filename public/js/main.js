@@ -139,6 +139,19 @@ async function ensureCategoryMap() {
     if (!res.ok) throw new Error('Failed to fetch categories');
     const categories = await res.json();
     globalCategoryMap = {};
+const homeContentState = {
+  insights: {
+    page: 1,
+    limit: 3,
+    loading: false,
+    hasMore: false,
+    initialized: false
+  },
+  faq: {
+    loading: false,
+    initialized: false
+  }
+};
     if (Array.isArray(categories)) {
       categories.forEach(cat => {
         globalCategoryMap[cat.code] = cat.name;
@@ -172,17 +185,32 @@ function getCategoryHue(category) {
 async function loadResearchInsights() {
   console.log('开始加载研究中心内容...');
   const container = document.getElementById('insights-container');
+  const loadMoreBtn = document.getElementById('insights-load-more');
   
   if (!container) {
     return;
   }
-  
-  // Save static content for fallback
-  const staticContent = container.innerHTML;
 
-  // Ensure we have category names
-  await ensureCategoryMap();
-  
+  if (homeContentState.insights.loading) return;
+  homeContentState.insights.loading = true;
+
+  // SSR already injected initial cards: only bind pagination state.
+  if (container.getAttribute('data-ssr-rendered') === 'true' && !homeContentState.insights.initialized) {
+    homeContentState.insights.page = parseInt(container.getAttribute('data-page') || '1', 10);
+    homeContentState.insights.limit = parseInt(container.getAttribute('data-limit') || '3', 10);
+    homeContentState.insights.hasMore = container.getAttribute('data-has-more') === 'true';
+    homeContentState.insights.initialized = true;
+    if (loadMoreBtn) {
+      loadMoreBtn.classList.toggle('hidden', !homeContentState.insights.hasMore);
+      if (!loadMoreBtn.dataset.bound) {
+        loadMoreBtn.dataset.bound = 'true';
+        loadMoreBtn.addEventListener('click', () => loadMoreResearchInsights());
+      }
+    }
+    homeContentState.insights.loading = false;
+    return;
+  }
+
   container.innerHTML = `
     <div class="col-span-full flex justify-center items-center p-12">
       <div class="text-center">
@@ -191,80 +219,51 @@ async function loadResearchInsights() {
       </div>
     </div>
   `;
-  
+
   try {
-    console.log('正在请求API: /api/articles?featured=true');
-    // Set a timeout for the fetch to avoid hanging indefinitely
+    await ensureCategoryMap();
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-    const response = await fetchWithRetry('/api/articles?featured=true', { signal: controller.signal });
+    const page = 1;
+    const limit = parseInt(container.getAttribute('data-limit') || '3', 10);
+    const response = await fetchWithRetry(`/api/home/content?page=${page}&limit=${limit}&faqLimit=5`, { signal: controller.signal });
     clearTimeout(timeoutId);
-
-    console.log('文章API响应状态:', response.status);
-    
-    if (!response.ok) {
-      throw new Error(`API响应失败: ${response.status}`);
-    }
-    
-    const articles = await response.json();
-    console.log('获取到的文章数据:', articles);
-    
-    if (!Array.isArray(articles) || articles.length === 0) {
-       // If no data, revert to static content (or show empty state if no static content)
-       if (staticContent && staticContent.trim().length > 0) {
-           console.log('API返回空数组，恢复静态内容');
-           container.innerHTML = staticContent;
-       } else {
-          container.innerHTML = `
-            <div class="col-span-full flex flex-col justify-center items-center p-12">
-              <p>暂无研究文章</p>
-              <button onclick="loadResearchInsights()" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-                重试
-              </button>
-            </div>
-          `;
-       }
+    if (!response.ok) throw new Error(`API响应失败: ${response.status}`);
+    const payload = await response.json();
+    const data = payload?.data || {};
+    const articles = Array.isArray(data.articles) ? data.articles : [];
+    if (!articles.length) {
+      container.innerHTML = `<div class="col-span-full text-center p-12 text-slate-500">暂无研究文章</div>`;
+      if (loadMoreBtn) loadMoreBtn.classList.add('hidden');
       return;
     }
-    
+
+    if (data.categoryMap) {
+      globalCategoryMap = { ...globalCategoryMap, ...data.categoryMap };
+    }
     container.innerHTML = '';
-    
     articles.forEach(article => {
-      if (!article || !article._id) {
-        console.warn('跳过无效文章对象:', article);
-        return;
-      }
-      
+      if (!article || !article._id) return;
       const link = article.slug ? `/article/${article.slug}.html` : `/article.html?id=${article._id}`;
       const card = document.createElement('a');
       card.href = link;
-      // 优化后的卡片样式，完全匹配设计图
       card.className = 'bg-white rounded-2xl shadow-md border border-slate-100 overflow-hidden transition-all duration-300 hover:shadow-xl group flex flex-col h-full block cursor-pointer';
-      
       const publishDate = article.publishDate ? new Date(article.publishDate).toLocaleDateString('zh-CN', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit'
-      }).replace(/\//g, '-') : '2025-01-01'; // 格式化为 YYYY-MM-DD
-      
+      }).replace(/\//g, '-') : '2025-01-01';
       const cover = article.coverImage || '/images/default-article.jpg';
-      
-      // Get category name from map or fallback to code
       let categoryName = article.category;
       if (globalCategoryMap && globalCategoryMap[article.category]) {
         categoryName = globalCategoryMap[article.category];
       } else {
-         // Fallback for unmapped codes (e.g. if map failed)
          categoryName = (article.category || 'INSIGHT').toUpperCase();
       }
-
       const hue = getCategoryHue(article.category || categoryName);
-      
       card.innerHTML = `
         <div class="relative w-full h-48 sm:h-56 overflow-hidden">
           <img src="${cover}" alt="${article.title || '研究文章图片'}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" data-fallback="/images/default-article.jpg">
-          <!-- 标签悬浮在图片左上角 -->
           <div class="absolute top-4 left-4 z-20">
             <span class="category-badge" style="--cat-hue: ${hue};">
               ${categoryName}
@@ -290,18 +289,97 @@ async function loadResearchInsights() {
           </div>
         </div>
       `;
-      
       container.appendChild(card);
     });
-    
-    console.log('研究中心内容加载成功');
+
+    homeContentState.insights.page = data.page || 1;
+    homeContentState.insights.limit = data.limit || limit;
+    homeContentState.insights.hasMore = !!data.hasMore;
+    homeContentState.insights.initialized = true;
+
+    if (loadMoreBtn) {
+      loadMoreBtn.classList.toggle('hidden', !homeContentState.insights.hasMore);
+      if (!loadMoreBtn.dataset.bound) {
+        loadMoreBtn.dataset.bound = 'true';
+        loadMoreBtn.addEventListener('click', () => loadMoreResearchInsights());
+      }
+    }
   } catch (error) {
     console.error('加载研究文章失败:', error);
-    // 恢复静态卡片作为备用
-    if (staticContent) {
-        container.innerHTML = staticContent;
-    } else {
-        container.innerHTML = '<p class="text-center p-4">加载失败，请刷新重试</p>';
+    container.innerHTML = '<p class="text-center p-4 text-red-500">研究文章加载失败，请稍后重试</p>';
+    if (loadMoreBtn) loadMoreBtn.classList.add('hidden');
+  } finally {
+    homeContentState.insights.loading = false;
+  }
+}
+
+async function loadMoreResearchInsights() {
+  const container = document.getElementById('insights-container');
+  const loadMoreBtn = document.getElementById('insights-load-more');
+  if (!container || homeContentState.insights.loading || !homeContentState.insights.hasMore) return;
+  homeContentState.insights.loading = true;
+  if (loadMoreBtn) {
+    loadMoreBtn.disabled = true;
+    loadMoreBtn.textContent = '加载中...';
+  }
+  try {
+    const nextPage = (homeContentState.insights.page || 1) + 1;
+    const limit = homeContentState.insights.limit || 3;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const response = await fetchWithRetry(`/api/home/content?page=${nextPage}&limit=${limit}&includeFaqs=false`, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!response.ok) throw new Error(`API响应失败: ${response.status}`);
+    const payload = await response.json();
+    const data = payload?.data || {};
+    const articles = Array.isArray(data.articles) ? data.articles : [];
+    if (data.categoryMap) {
+      globalCategoryMap = { ...globalCategoryMap, ...data.categoryMap };
+    }
+    articles.forEach((article) => {
+      if (!article || !article._id) return;
+      const link = article.slug ? `/article/${article.slug}.html` : `/article.html?id=${article._id}`;
+      const publishDate = article.publishDate ? new Date(article.publishDate).toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).replace(/\//g, '-') : '2025-01-01';
+      const cover = article.coverImage || '/images/default-article.jpg';
+      const categoryName = (globalCategoryMap[article.category]) || (article.category || 'INSIGHT').toUpperCase();
+      const hue = getCategoryHue(article.category || categoryName);
+      const card = document.createElement('a');
+      card.href = link;
+      card.className = 'bg-white rounded-2xl shadow-md border border-slate-100 overflow-hidden transition-all duration-300 hover:shadow-xl group flex flex-col h-full block cursor-pointer';
+      card.innerHTML = `
+        <div class="relative w-full h-48 sm:h-56 overflow-hidden">
+          <img src="${cover}" alt="${article.title || '研究文章图片'}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" data-fallback="/images/default-article.jpg">
+          <div class="absolute top-4 left-4 z-20">
+            <span class="category-badge" style="--cat-hue: ${hue};">${categoryName}</span>
+          </div>
+        </div>
+        <div class="p-6 flex flex-col flex-grow">
+          <h3 class="research-card-title font-bold text-slate-900 mb-3 group-hover:text-brand-600 transition-colors">${article.title || '无标题'}</h3>
+          <p class="research-card-desc text-slate-500 text-sm mb-6 flex-grow">${article.summary || '暂无摘要'}</p>
+          <div class="flex justify-between items-center pt-4 mt-auto border-t border-slate-50">
+            <span class="text-slate-400 text-xs font-medium tracking-wide">${publishDate}</span>
+            <span class="inline-flex items-center text-brand-600 hover:text-brand-700 font-bold text-sm transition-colors group-hover:translate-x-1 duration-300">阅读文章<i class="fas fa-arrow-right ml-2 text-xs"></i></span>
+          </div>
+        </div>`;
+      container.appendChild(card);
+    });
+
+    homeContentState.insights.page = data.page || nextPage;
+    homeContentState.insights.hasMore = !!data.hasMore;
+    if (loadMoreBtn) {
+      loadMoreBtn.classList.toggle('hidden', !homeContentState.insights.hasMore);
+    }
+  } catch (error) {
+    console.error('加载更多研究文章失败:', error);
+  } finally {
+    homeContentState.insights.loading = false;
+    if (loadMoreBtn) {
+      loadMoreBtn.disabled = false;
+      loadMoreBtn.textContent = '加载更多';
     }
   }
 }
@@ -310,63 +388,62 @@ async function loadResearchInsights() {
 async function loadFaqData() {
   console.log('开始加载FAQ内容...');
   const container = document.getElementById('faq-list');
+  const statusEl = document.getElementById('faq-status');
   
   if (!container) {
     console.error('FAQ容器未找到');
     return;
   }
-  
-  // Save static content
-  const staticContent = container.innerHTML;
+  if (homeContentState.faq.loading) return;
+  homeContentState.faq.loading = true;
+
+  // SSR already injected FAQ; keep source and just finish quickly.
+  if (container.getAttribute('data-ssr-rendered') === 'true' && !homeContentState.faq.initialized) {
+    homeContentState.faq.initialized = true;
+    if (statusEl) statusEl.textContent = '';
+    homeContentState.faq.loading = false;
+    return;
+  }
 
   try {
-    // Set a timeout for the fetch
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-    const res = await fetch('/api/faqs?limit=5', { signal: controller.signal });
+    const res = await fetch('/api/home/content?page=1&limit=3&faqLimit=5', { signal: controller.signal });
     clearTimeout(timeoutId);
-
     if (!res.ok) throw new Error('Failed to fetch FAQs');
-    const faqs = await res.json();
-    console.log('FAQ数据:', faqs); // Debug log
-    
+    const payload = await res.json();
+    const faqs = payload?.data?.faqs || [];
     if (faqs.length === 0) {
-        // Keep static fallback if no data
-        return;
+      if (statusEl) statusEl.textContent = '暂无FAQ内容';
+      return;
     }
-
     let html = '';
-    
     faqs.forEach(faq => {
-        // Check for answer content and provide fallback
-        const answerText = faq.answer || '暂无详细回答';
-        
-        html += `
-            <div class="faq-item border-b border-slate-100 pb-8 last:border-0 last:pb-0">
-                <dt>
-                    <button class="faq-toggle-btn flex justify-between items-center w-full text-left font-bold text-xl text-slate-900 focus:outline-none group transition-colors duration-300 hover:text-brand-600" aria-expanded="false">
-                        <span class="pr-4">${faq.question}</span>
-                        <i class="fas fa-chevron-down faq-icon text-slate-400 group-hover:text-brand-600 transition-transform duration-300"></i>
-                    </button>
-                </dt>
-                <dd class="faq-content overflow-hidden transition-all duration-300 ease-in-out" style="max-height: 0px; opacity: 0;">
-                    <div class="pt-4 text-slate-600 text-sm leading-relaxed" style="color: #475569;">
-                        <p>${answerText}</p>
-                    </div>
-                </dd>
+      const answerText = faq.answer || '暂无详细回答';
+      html += `
+        <div class="faq-item border-b border-slate-100 pb-8 last:border-0 last:pb-0">
+          <dt>
+            <button class="faq-toggle-btn flex justify-between items-center w-full text-left font-bold text-xl text-slate-900 focus:outline-none group transition-colors duration-300 hover:text-brand-600" aria-expanded="false">
+              <span class="pr-4">${faq.question}</span>
+              <i class="fas fa-chevron-down faq-icon text-slate-400 group-hover:text-brand-600 transition-transform duration-300"></i>
+            </button>
+          </dt>
+          <dd class="faq-content overflow-hidden transition-all duration-300 ease-in-out" style="max-height: 0px; opacity: 0;">
+            <div class="pt-4 text-slate-600 text-sm leading-relaxed" style="color: #475569;">
+              <p>${answerText}</p>
             </div>
-        `;
+          </dd>
+        </div>
+      `;
     });
-
     container.innerHTML = html;
-    
+    homeContentState.faq.initialized = true;
+    if (statusEl) statusEl.textContent = '';
   } catch (error) {
     console.error('Error loading FAQs:', error);
-    // If we cleared content (we didn't yet), restore it.
-    // Since we only clear content AFTER successful fetch check, we are fine.
-    // But if we wanted to show loading state, we would need restoration logic.
-    // Here we just silently fail and keep static content.
+    if (statusEl) statusEl.textContent = 'FAQ加载失败，请稍后重试';
+  } finally {
+    homeContentState.faq.loading = false;
   }
 }
 
