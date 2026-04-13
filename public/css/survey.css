@@ -97,8 +97,8 @@ body {
 
 .survey-page #group-q2 > div:nth-of-type(1) {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
 }
 
 .survey-page #group-q1 label > div,
@@ -135,10 +135,25 @@ body {
     flex-direction: column;
     align-items: center;
     text-align: center;
+    padding: 12px 8px;
+    min-height: 132px;
 }
 
 .survey-page #group-q2 label > div .radio-circle {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+}
+
+.survey-page #group-q2 label > div > div:nth-child(2) {
+    width: 40px !important;
+    height: 40px !important;
+    margin-bottom: 8px !important;
+    font-size: 16px !important;
+}
+
+.survey-page #group-q2 label > div > span:last-child {
+    font-size: 14px !important;
+    line-height: 1.25;
+    white-space: nowrap;
 }
 
 .survey-page #wechatId {
@@ -179,6 +194,23 @@ body {
 
     .survey-page #group-q2 > div:nth-of-type(1) {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .survey-page #group-q2 label > div {
+        padding: 16px;
+        min-height: 0;
+    }
+
+    .survey-page #group-q2 label > div > div:nth-child(2) {
+        width: 48px !important;
+        height: 48px !important;
+        margin-bottom: 8px !important;
+        font-size: 20px !important;
+    }
+
+    .survey-page #group-q2 label > div > span:last-child {
+        font-size: 14px !important;
     }
 }
 
