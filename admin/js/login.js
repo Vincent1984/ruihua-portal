@@ -29,7 +29,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (result.success) {
                     sessionStorage.setItem('isLoggedIn', 'true');
                     if (result.token) sessionStorage.setItem('token', result.token);
-                    if (result.user) sessionStorage.setItem('user', JSON.stringify(result.user));
+                    if (result.admin) {
+                        sessionStorage.setItem('user', JSON.stringify(result.admin));
+                        localStorage.setItem('adminUser', JSON.stringify(result.admin));
+                    } else if (result.user) {
+                        sessionStorage.setItem('user', JSON.stringify(result.user));
+                        localStorage.setItem('adminUser', JSON.stringify(result.user));
+                    }
                     window.location.href = 'dashboard.html';
                 } else {
                     showError(result.message || '账号或密码错误');

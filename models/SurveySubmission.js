@@ -38,6 +38,11 @@ const surveySubmissionSchema = new mongoose.Schema({
         utm_term: String,
         utm_content: String
     },
+    utm_source: { type: String, default: '' },
+    utm_medium: { type: String, default: '' },
+    utm_campaign: { type: String, default: '' },
+    utm_term: { type: String, default: '' },
+    utm_content: { type: String, default: '' },
     behavior: behaviorSchema,
     createdAt: {
         type: Date,
@@ -51,5 +56,9 @@ const surveySubmissionSchema = new mongoose.Schema({
 
 // Create compound index for analytics and query performance
 surveySubmissionSchema.index({ channel: 1, createdAt: -1 });
+surveySubmissionSchema.index({ utm_source: 1, createdAt: -1 });
+surveySubmissionSchema.index({ utm_medium: 1, createdAt: -1 });
+surveySubmissionSchema.index({ utm_campaign: 1, createdAt: -1 });
+surveySubmissionSchema.index({ createdAt: -1, channel: 1, utm_source: 1 });
 
 module.exports = mongoose.model('SurveySubmission', surveySubmissionSchema);

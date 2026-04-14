@@ -42,6 +42,7 @@ const FileNameMap = require('./models/FileNameMap');
 const { renderInsightCard, renderFaqItem } = require('./utils/homeContentRenderer');
 const domainNormalizer = require('./middleware/domainNormalizer');
 const legacyRedirects = require('./middleware/legacyRedirects');
+const { requireAdminPagePermission, gatherPermissions } = require('./middleware/adminPageAuth');
 
 const app = express();
 app.disable('x-powered-by');
@@ -77,7 +78,7 @@ const injectFooterHTML = (document) => {
             </div>
             <div class="pt-6 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-sm text-slate-500">
-                    <p>© ${currentYear} 瑞华智策 Ruihua Intelligent Strategy. All rights reserved.</p>
+                    <p>© ${currentYear} 瑞华智策 Ruihua Consulting. All rights reserved.</p>
                     <span class="hidden md:inline text-slate-700">|</span>
                     <a href="https://beian.miit.gov.cn/" target="_blank" class="hover:text-white transition">沪ICP备12042344号-24</a>
                 </div>
@@ -253,6 +254,10 @@ app.use(express.static(path.join(__dirname, 'public'), {
         }
     }
 }));
+app.get('/admin/survey.html',
+    requireAdminPagePermission({ AdminModel: Admin, secretKey: SECRET_KEY, requiredPerm: 'appointment:list' }),
+    (req, res) => res.sendFile(path.join(__dirname, 'admin/survey.html'))
+);
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
 // Apply Rate Limiter AFTER static files
@@ -283,6 +288,8 @@ app.get('/videos/', (req, res) => res.sendFile(path.join(__dirname, 'videos.html
 app.get('/survey/', (req, res) => res.sendFile(path.join(__dirname, 'survey.html')));
 app.get('/survey', (req, res) => res.redirect(301, '/survey/'));
 app.get('/survey.html', (req, res) => res.redirect(301, '/survey/'));
+app.get('/admin/survey', (req, res) => res.redirect(301, '/admin/survey.html'));
+app.get('/admin/survey/', (req, res) => res.redirect(301, '/admin/survey.html'));
 
 // Helper for SEO SSR on Article Page
 const { JSDOM } = require('jsdom');
@@ -1024,6 +1031,7 @@ function authRequired(req, res, next) {
     try {
         const auth = req.headers.authorization || '';
         let token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
+        if (!token && req.cookies?.admin_token) token = req.cookies.admin_token;
         if (!token) return res.status(401).json({ error: 'Unauthorized' });
         const payload = jwt.verify(token, SECRET_KEY);
         req.user = payload;
@@ -1175,10 +1183,18 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         await admin.save();
 
         const token = jwt.sign({ id: admin._id, username: admin.username, roles: admin.roles }, SECRET_KEY, { expiresIn: '24h' });
+        const permissionSet = gatherPermissions(admin);
+        const permissions = Array.from(permissionSet);
+        res.cookie('admin_token', token, {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 24 * 60 * 60 * 1000
+        });
         
         await logOp('login', 'Auth', `User ${username} logged in`, username);
 
-        res.json({ success: true, token, admin: { id: admin._id, name: admin.name, roles: admin.roles } });
+        res.json({ success: true, token, admin: { id: admin._id, name: admin.name, roles: admin.roles, permissions } });
 
     } catch (e) {
         console.error('Login Error:', e);
@@ -1187,8 +1203,19 @@ app.post('/api/login', loginLimiter, async (req, res) => {
 });
 
 // Token verify
-app.get('/api/auth/verify', authRequired, (req, res) => {
-    res.json({ success: true, user: req.user });
+app.get('/api/auth/verify', authRequired, async (req, res) => {
+    const admin = await Admin.findById(req.user.id).populate('roles');
+    if (!admin || !admin.isActive) {
+        return res.status(403).json({ error: 'Account disabled or not found' });
+    }
+    const permissionSet = gatherPermissions(admin);
+    res.json({
+        success: true,
+        user: {
+            ...req.user,
+            permissions: Array.from(permissionSet)
+        }
+    });
 });
 
 // --- Dashboard Stats API (Restored) ---

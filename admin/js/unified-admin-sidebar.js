@@ -24,7 +24,7 @@
       icon: 'bi-database',
       items: [
         { label: '预约表单', icon: 'bi-list-check', href: '/admin/dashboard.html', section: 'appointments' },
-        { label: '调研问卷数据', icon: 'bi-clipboard-data', href: '/admin/survey.html' },
+        { label: '调研问卷', icon: 'bi-clipboard-data', href: '/admin/survey.html', i18nKey: 'nav.survey', perm: 'appointment:list' },
         { label: '资源下载记录', icon: 'bi-file-earmark-arrow-down', href: '/admin/whitepaper-submissions.html' },
         { label: '诊断评测数据', icon: 'bi-bar-chart-steps', href: '/admin/maturity.html' },
         { label: '经营分析报告', icon: 'bi-graph-up-arrow', href: '/admin/efficiency.html' }
@@ -71,6 +71,24 @@
     return `<a class="u-sub-menu-item${active}${danger}" href="${item.href}"${sec}>${item.label}</a>`;
   }
 
+  function getCurrentUserPermissions() {
+    try {
+      const raw = sessionStorage.getItem('user') || localStorage.getItem('adminUser') || '';
+      if (!raw) return new Set();
+      const user = JSON.parse(raw);
+      const perms = Array.isArray(user.permissions) ? user.permissions : [];
+      return new Set(perms);
+    } catch (e) {
+      return new Set();
+    }
+  }
+
+  function canSeeItem(item, permSet) {
+    if (!item.perm) return true;
+    if (permSet.has('all')) return true;
+    return permSet.has(item.perm);
+  }
+
   function hasActiveItem(items) {
     return items.some(activeMatch);
   }
@@ -80,10 +98,13 @@
   }
 
   function buildSidebarHtml() {
+    const permSet = getCurrentUserPermissions();
     const groupsHtml = NAV_GROUPS.map(group => {
       const key = groupKey(group.title);
-      const expanded = hasActiveItem(group.items);
-      const items = group.items.map(itemHtml).join('');
+      const visibleItems = group.items.filter(item => canSeeItem(item, permSet));
+      if (visibleItems.length === 0) return '';
+      const expanded = hasActiveItem(visibleItems);
+      const items = visibleItems.map(itemHtml).join('');
       return `<div class="u-nav-group" data-group-key="${key}">
         <button type="button" class="u-nav-header${expanded ? ' expanded' : ''}">
           <span class="u-header-main"><i class="bi ${group.icon || 'bi-folder'}"></i><span class="u-header-label">${group.title}</span></span>

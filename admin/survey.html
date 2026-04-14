@@ -87,6 +87,14 @@
             <el-select v-model="filter.channel" placeholder="所有渠道" clearable style="width: 150px" @change="fetchData">
               <el-option v-for="c in analytics.channelStats" :key="c.label" :label="c.label" :value="c.label" />
             </el-select>
+            <el-select v-model="filter.utm_source" placeholder="UTM Source" clearable style="width: 170px" @change="fetchData">
+              <el-option v-for="u in analytics.utmSourceStats" :key="u.label" :label="u.label" :value="u.label" />
+            </el-select>
+            <el-input v-model="filter.utm_medium" placeholder="UTM Medium" clearable style="width: 140px" @keyup.enter="fetchData" />
+            <el-input v-model="filter.utm_campaign" placeholder="UTM Campaign" clearable style="width: 170px" @keyup.enter="fetchData" />
+            <el-input v-model="filter.utm_term" placeholder="UTM Term" clearable style="width: 130px" @keyup.enter="fetchData" />
+            <el-input v-model="filter.utm_content" placeholder="UTM Content" clearable style="width: 130px" @keyup.enter="fetchData" />
+            <el-button @click="fetchData">筛选</el-button>
           </div>
         </div>
         <div class="card-body p-0">
@@ -105,6 +113,11 @@
                 <el-tag size="small" type="info">{{ scope.row.channel }}</el-tag>
               </template>
             </el-table-column>
+            <el-table-column prop="utm_source" label="UTM Source" width="140"></el-table-column>
+            <el-table-column prop="utm_medium" label="UTM Medium" width="140"></el-table-column>
+            <el-table-column prop="utm_campaign" label="UTM Campaign" min-width="180"></el-table-column>
+            <el-table-column prop="utm_term" label="UTM Term" width="140"></el-table-column>
+            <el-table-column prop="utm_content" label="UTM Content" min-width="180"></el-table-column>
             <el-table-column label="耗时" width="100">
               <template #default="scope">
                 {{ scope.row.behavior && scope.row.behavior.durationMs ? Math.round(scope.row.behavior.durationMs / 1000) + '秒' : '-' }}
@@ -154,7 +167,14 @@
         const total = ref(0);
         const page = ref(1);
         const limit = ref(10);
-        const filter = reactive({ channel: '' });
+        const filter = reactive({
+          channel: '',
+          utm_source: '',
+          utm_medium: '',
+          utm_campaign: '',
+          utm_term: '',
+          utm_content: ''
+        });
         const selectedIds = ref([]);
         
         const analytics = reactive({
@@ -179,12 +199,13 @@
                 const res = await fetch('/api/auth/verify', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (!res.ok) {
+                if (res.status === 401 || res.status === 403) {
                     sessionStorage.removeItem('token');
                     localStorage.removeItem('adminToken');
                     window.location.href = '/admin/index.html';
                     return false;
                 }
+                if (!res.ok) return false;
             } catch (e) {
                 console.error(e);
                 return false;
@@ -220,6 +241,11 @@
             const token = getAuthToken();
             let url = `/api/admin/survey/list?page=${page.value}&limit=${limit.value}`;
             if (filter.channel) url += `&channel=${filter.channel}`;
+            if (filter.utm_source) url += `&utm_source=${encodeURIComponent(filter.utm_source)}`;
+            if (filter.utm_medium) url += `&utm_medium=${encodeURIComponent(filter.utm_medium)}`;
+            if (filter.utm_campaign) url += `&utm_campaign=${encodeURIComponent(filter.utm_campaign)}`;
+            if (filter.utm_term) url += `&utm_term=${encodeURIComponent(filter.utm_term)}`;
+            if (filter.utm_content) url += `&utm_content=${encodeURIComponent(filter.utm_content)}`;
             
             const res = await fetch(url, {
               headers: { 'Authorization': `Bearer ${token}` }
@@ -253,6 +279,11 @@
           const token = getAuthToken();
           let url = '/api/admin/survey/export?';
           if (filter.channel) url += `channel=${filter.channel}`;
+          if (filter.utm_source) url += `${url.endsWith('?') ? '' : '&'}utm_source=${encodeURIComponent(filter.utm_source)}`;
+          if (filter.utm_medium) url += `${url.endsWith('?') ? '' : '&'}utm_medium=${encodeURIComponent(filter.utm_medium)}`;
+          if (filter.utm_campaign) url += `${url.endsWith('?') ? '' : '&'}utm_campaign=${encodeURIComponent(filter.utm_campaign)}`;
+          if (filter.utm_term) url += `${url.endsWith('?') ? '' : '&'}utm_term=${encodeURIComponent(filter.utm_term)}`;
+          if (filter.utm_content) url += `${url.endsWith('?') ? '' : '&'}utm_content=${encodeURIComponent(filter.utm_content)}`;
           
           fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }

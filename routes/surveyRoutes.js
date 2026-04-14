@@ -1,5 +1,3 @@
-const express = require('express');
-const router = express.Router();
 const rateLimit = require('express-rate-limit');
 const SurveySubmission = require('../models/SurveySubmission');
 const XLSX = require('xlsx');
@@ -68,6 +66,11 @@ module.exports = function(app, authRequired, requirePerm, logOp) {
                 channel: finalChannel,
                 sourceUrl: sourceUrl || req.get('Referrer'),
                 utmParams,
+                utm_source: utmParams.utm_source || '',
+                utm_medium: utmParams.utm_medium || '',
+                utm_campaign: utmParams.utm_campaign || '',
+                utm_term: utmParams.utm_term || '',
+                utm_content: utmParams.utm_content || '',
                 behavior: behaviorData
             });
 
@@ -97,6 +100,11 @@ module.exports = function(app, authRequired, requirePerm, logOp) {
             if (req.query.channel) {
                 filter.channel = req.query.channel;
             }
+            if (req.query.utm_source) filter.utm_source = req.query.utm_source;
+            if (req.query.utm_medium) filter.utm_medium = req.query.utm_medium;
+            if (req.query.utm_campaign) filter.utm_campaign = req.query.utm_campaign;
+            if (req.query.utm_term) filter.utm_term = req.query.utm_term;
+            if (req.query.utm_content) filter.utm_content = req.query.utm_content;
             if (req.query.startDate && req.query.endDate) {
                 filter.createdAt = {
                     $gte: new Date(req.query.startDate),
@@ -155,6 +163,13 @@ module.exports = function(app, authRequired, requirePerm, logOp) {
                 { $sort: { count: -1 } }
             ]);
 
+            const utmSourceStats = await SurveySubmission.aggregate([
+                { $match: filter },
+                { $group: { _id: "$utm_source", count: { $sum: 1 } } },
+                { $sort: { count: -1 } },
+                { $limit: 30 }
+            ]);
+
             // Calculate average duration
             const behaviorStats = await SurveySubmission.aggregate([
                 { $match: filter },
@@ -171,6 +186,7 @@ module.exports = function(app, authRequired, requirePerm, logOp) {
                     topicStats: topicStats.map(item => ({ label: item._id, value: item.count })),
                     formStats: formStats.map(item => ({ label: item._id, value: item.count })),
                     channelStats: channelStats.map(item => ({ label: item._id || 'organic', value: item.count })),
+                    utmSourceStats: utmSourceStats.map(item => ({ label: item._id || '(empty)', value: item.count })),
                     avgDurationMs
                 }
             });
@@ -188,6 +204,11 @@ module.exports = function(app, authRequired, requirePerm, logOp) {
             if (req.query.channel) {
                 filter.channel = req.query.channel;
             }
+            if (req.query.utm_source) filter.utm_source = req.query.utm_source;
+            if (req.query.utm_medium) filter.utm_medium = req.query.utm_medium;
+            if (req.query.utm_campaign) filter.utm_campaign = req.query.utm_campaign;
+            if (req.query.utm_term) filter.utm_term = req.query.utm_term;
+            if (req.query.utm_content) filter.utm_content = req.query.utm_content;
             if (req.query.startDate && req.query.endDate) {
                 filter.createdAt = {
                     $gte: new Date(req.query.startDate),
@@ -210,6 +231,11 @@ module.exports = function(app, authRequired, requirePerm, logOp) {
                     '参与形式': doc.participationForm,
                     '微信号': doc.wechatId, // Mongoose getter handles decryption
                     '渠道': doc.channel,
+                    'UTM Source': doc.utm_source || '',
+                    'UTM Medium': doc.utm_medium || '',
+                    'UTM Campaign': doc.utm_campaign || '',
+                    'UTM Term': doc.utm_term || '',
+                    'UTM Content': doc.utm_content || '',
                     '来源URL': doc.sourceUrl || '',
                     '填写耗时(秒)': durationSeconds,
                     'User-Agent': doc.behavior?.userAgent || '',
