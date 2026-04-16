@@ -1,4 +1,10 @@
 let authors = [];
+const esc = (v = '') => String(v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 
 // Load Authors
 async function loadAuthors() {
@@ -20,13 +26,13 @@ function renderAuthorTable() {
     
     tbody.innerHTML = authors.map(author => `
         <tr>
-            <td><img src="${author.avatar || '/fallback-image/avatar'}" class="rounded-circle" style="width:40px;height:40px;object-fit:cover"></td>
-            <td>${author.name}</td>
-            <td>${author.desc || '-'}</td>
+            <td><img src="${esc(author.avatar || '/fallback-image/avatar')}" class="rounded-circle" style="width:40px;height:40px;object-fit:cover"></td>
+            <td>${esc(author.name)}</td>
+            <td>${esc(author.desc || '-')}</td>
             <td>${new Date(author.createdAt).toLocaleDateString()}</td>
-            <td>
-                <button class="btn btn-sm btn-outline-primary me-1" onclick="editAuthor('${author._id}')"><i class="bi bi-pencil"></i></button>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteAuthor('${author._id}')"><i class="bi bi-trash"></i></button>
+            <td data-author-id="${esc(author._id)}">
+                <button class="btn btn-sm btn-outline-primary me-1" onclick="editAuthor('${esc(author._id)}')"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteAuthor('${esc(author._id)}')"><i class="bi bi-trash"></i></button>
             </td>
         </tr>
     `).join('');

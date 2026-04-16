@@ -1392,9 +1392,13 @@ async function loadArticleDetail() {
             if (document.getElementById('expert-avatar')) {
                 const avatarEl = document.getElementById('expert-avatar');
                 const avatarSrc = data.author.avatar || '/images/rhzclogo.png';
+                const authorVersion = data.author.updatedAt ? new Date(data.author.updatedAt).getTime() : '';
                 
-                // Set source with cache busting if it's an uploaded image
-                if (avatarSrc.startsWith('/uploads/')) {
+                // Apply deterministic cache busting for both local uploads and TOS/CDN links.
+                if (authorVersion) {
+                    const sep = avatarSrc.includes('?') ? '&' : '?';
+                    avatarEl.src = `${avatarSrc}${sep}v=${authorVersion}`;
+                } else if (avatarSrc.startsWith('/uploads/')) {
                     avatarEl.src = `${avatarSrc}?v=${Date.now()}`;
                 } else {
                     avatarEl.src = avatarSrc;

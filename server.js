@@ -13,6 +13,7 @@ const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const axios = require('axios');
 const crypto = require('crypto');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const mongoSanitize = require('express-mongo-sanitize');
 const helmet = require('helmet');
 
@@ -47,7 +48,92 @@ const { requireAdminPagePermission, gatherPermissions } = require('./middleware/
 const app = express();
 app.disable('x-powered-by');
 const PORT = process.env.PORT || 3000;
-const SECRET_KEY = process.env.SECRET_KEY || 'default_secret_key_if_env_missing';
+const SECRET_KEY = process.env.JWT_SECRET || process.env.SECRET_KEY;
+if (!SECRET_KEY) {
+    if (process.env.NODE_ENV === 'production') {
+        console.error('[FATAL] JWT secret is missing. Please set JWT_SECRET.');
+        process.exit(1);
+    }
+    console.warn('[WARN] JWT_SECRET is missing, using temporary dev secret.');
+}
+const RUNTIME_SECRET_KEY = SECRET_KEY || `dev-secret-${crypto.randomUUID()}`;
+function normalizeTosEndpoint(inputEndpoint) {
+    const raw = String(inputEndpoint || '').trim();
+    if (!raw) return '';
+    const hasProto = /^https?:\/\//i.test(raw);
+    const withProto = hasProto ? raw : `https://${raw}`;
+    // S3Client should use S3-compatible endpoint
+    return withProto.replace('://tos-cn-', '://tos-s3-cn-');
+}
+function resolveTosSecretAccessKey() {
+    const raw = String(process.env.TOS_SECRET_KEY || '').trim();
+    const encodedFlag = String(process.env.TOS_SECRET_KEY_BASE64 || '').toLowerCase();
+    const shouldDecode = encodedFlag === '1' || encodedFlag === 'true' || encodedFlag === 'yes';
+    if (!shouldDecode) return raw;
+    try {
+        return Buffer.from(raw, 'base64').toString('utf8').trim() || raw;
+    } catch {
+        return raw;
+    }
+}
+const useTosUpload = Boolean(
+    process.env.TOS_ACCESS_KEY &&
+    process.env.TOS_SECRET_KEY &&
+    process.env.TOS_BUCKET_NAME &&
+    process.env.TOS_PUBLIC_URL
+);
+const tosEndpoint = normalizeTosEndpoint(process.env.TOS_ENDPOINT || 'https://tos-cn-beijing.volces.com');
+const tosSecretAccessKey = resolveTosSecretAccessKey();
+const tosClient = useTosUpload
+    ? new S3Client({
+        region: process.env.TOS_REGION || 'cn-beijing',
+        endpoint: tosEndpoint,
+        credentials: {
+            accessKeyId: process.env.TOS_ACCESS_KEY,
+            secretAccessKey: tosSecretAccessKey
+        }
+    })
+    : null;
+if (useTosUpload) {
+    console.log(`[UPLOAD] TOS object storage enabled for /api/upload (endpoint: ${tosEndpoint})`);
+} else {
+    console.log('[UPLOAD] TOS object storage disabled, fallback to local public/uploads');
+}
+
+function sendInternalError(res, logLabel, err) {
+    if (logLabel) console.error(logLabel, err);
+    return res.status(500).json({ error: '服务器内部错误，请稍后重试' });
+}
+
+const articleHtmlSanitizer = new xss.FilterXSS({
+    whiteList: {
+        ...xss.whiteList,
+        h1: ['class'], h2: ['class'], h3: ['class'], h4: ['class'], h5: ['class'], h6: ['class'],
+        p: ['class', 'style'],
+        span: ['class', 'style'],
+        div: ['class', 'style'],
+        a: ['href', 'title', 'target', 'rel', 'class'],
+        img: ['src', 'alt', 'title', 'width', 'height', 'class', 'style'],
+        ul: ['class'], ol: ['class'], li: ['class'],
+        blockquote: ['class'],
+        code: ['class'], pre: ['class'],
+        table: ['class'], thead: ['class'], tbody: ['class'], tr: ['class'], th: ['class'], td: ['class'],
+        iframe: ['src', 'width', 'height', 'allow', 'allowfullscreen', 'frameborder']
+    },
+    stripIgnoreTag: true,
+    stripIgnoreTagBody: ['script']
+});
+
+function sanitizeArticlePayload(body = {}) {
+    const payload = { ...body };
+    if (typeof payload.content === 'string') {
+        payload.content = articleHtmlSanitizer.process(payload.content);
+    }
+    if (typeof payload.summary === 'string') payload.summary = xss(payload.summary);
+    if (typeof payload.seoDescription === 'string') payload.seoDescription = xss(payload.seoDescription);
+    if (typeof payload.title === 'string') payload.title = xss(payload.title);
+    return payload;
+}
 
 // Domain Normalization Middleware (Should be early)
 app.use(domainNormalizer);
@@ -147,7 +233,18 @@ if (allowedOrigins.length > 0) {
         credentials: true
     }));
 } else {
-    app.use(cors());
+    if (process.env.NODE_ENV === 'production') {
+        app.use(cors({
+            origin: (origin, callback) => {
+                // Allow same-origin browser requests and server-to-server requests without Origin header.
+                if (!origin) return callback(null, true);
+                return callback(new Error('CORS origin is not allowed'));
+            },
+            credentials: true
+        }));
+    } else {
+        app.use(cors());
+    }
 }
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -255,7 +352,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
     }
 }));
 app.get('/admin/survey.html',
-    requireAdminPagePermission({ AdminModel: Admin, secretKey: SECRET_KEY, requiredPerm: 'appointment:list' }),
+    requireAdminPagePermission({ AdminModel: Admin, secretKey: RUNTIME_SECRET_KEY, requiredPerm: 'appointment:list' }),
     (req, res) => res.sendFile(path.join(__dirname, 'admin/survey.html'))
 );
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
@@ -306,10 +403,32 @@ async function getArticleTemplate() {
     return html;
 }
 
+function getResolvedArticleAuthor(article) {
+    const snapshot = (article && article.author && typeof article.author === 'object') ? article.author : {};
+    const linkedAuthor = (article && article.authorId && typeof article.authorId === 'object' && article.authorId.name !== undefined)
+        ? article.authorId
+        : null;
+    if (!linkedAuthor) {
+        return {
+            name: snapshot.name || '瑞华智策',
+            avatar: snapshot.avatar || '/images/rhzclogo.png',
+            desc: snapshot.desc || '',
+            detail: snapshot.detail || ''
+        };
+    }
+    return {
+        name: linkedAuthor.name || snapshot.name || '瑞华智策',
+        avatar: linkedAuthor.avatar || snapshot.avatar || '/images/rhzclogo.png',
+        desc: linkedAuthor.desc || snapshot.desc || '',
+        detail: linkedAuthor.detail || snapshot.detail || ''
+    };
+}
+
 async function renderArticlePage(req, res, article) {
     try {
         let html = await getArticleTemplate();
         if (article) {
+            const resolvedAuthor = getResolvedArticleAuthor(article);
             const dom = new JSDOM(html);
             const document = dom.window.document;
 
@@ -353,7 +472,7 @@ async function renderArticlePage(req, res, article) {
                 "dateModified": article.updatedAt || article.publishDate,
                 "author": {
                     "@type": "Person",
-                    "name": (article.author && article.author.name) ? article.author.name : "瑞华智策"
+                    "name": resolvedAuthor.name || "瑞华智策"
                 },
                 "publisher": {
                     "@type": "Organization",
@@ -387,8 +506,8 @@ async function renderArticlePage(req, res, article) {
             }
 
             const authorEl = document.getElementById('article-author');
-            if (authorEl && article.author && article.author.name) {
-                authorEl.textContent = article.author.name;
+            if (authorEl) {
+                authorEl.textContent = resolvedAuthor.name || '瑞华智策';
             }
 
             const dateEl = document.getElementById('article-date');
@@ -620,15 +739,15 @@ async function renderArticlePage(req, res, article) {
                 
             // Render Author Box (Fallback to article author, or default)
             const expTitle = document.getElementById('expert-title');
-            if (expTitle) expTitle.textContent = (article.author && article.author.name) ? article.author.name : '瑞华智策专家组';
+            if (expTitle) expTitle.textContent = resolvedAuthor.name || '瑞华智策专家组';
             
             const expDesc = document.getElementById('expert-desc');
-            if (expDesc) expDesc.textContent = (article.author && article.author.desc) ? article.author.desc : '人力资本价值经营研究院';
+            if (expDesc) expDesc.textContent = resolvedAuthor.desc || '人力资本价值经营研究院';
             
             const expDetail = document.getElementById('expert-detail');
             if (expDetail) {
-                if (article.author && article.author.detail) {
-                    expDetail.textContent = article.author.detail;
+                if (resolvedAuthor.detail) {
+                    expDetail.textContent = resolvedAuthor.detail;
                 } else {
                     expDetail.textContent = '瑞华智策汇聚了来自华为、人瑞人才及全球顶尖咨询机构的实战专家。';
                 }
@@ -643,7 +762,7 @@ async function renderArticlePage(req, res, article) {
                 
                 const expAvatar = document.getElementById('expert-avatar');
                 if (expAvatar) {
-                    expAvatar.src = (article.author && article.author.avatar) ? article.author.avatar : '/images/rhzclogo.png';
+                    expAvatar.src = resolvedAuthor.avatar || '/images/rhzclogo.png';
                 }
 
             } catch (sidebarErr) {
@@ -652,7 +771,8 @@ async function renderArticlePage(req, res, article) {
 
             // Inject initial data to prevent redundant client-side fetch (Exclude raw HTML content to avoid payload bloat/SEO penalty)
             const scriptEl = document.createElement('script');
-            const safeArticleData = { ...article.toObject() };
+            const safeArticleData = article.toObject ? { ...article.toObject() } : { ...article };
+            safeArticleData.author = resolvedAuthor;
             delete safeArticleData.content; // Remove full HTML text from inline script
             scriptEl.textContent = `window.__ARTICLE_DATA__ = ${JSON.stringify(safeArticleData).replace(/</g, '\\u003c')};`;
             document.body.appendChild(scriptEl);
@@ -670,7 +790,7 @@ app.get('/article.html', async (req, res) => {
     try {
         let article = null;
         if (req.query.id && mongoose.Types.ObjectId.isValid(req.query.id)) {
-            article = await Article.findById(req.query.id);
+            article = await Article.findById(req.query.id).populate('authorId');
         }
         await renderArticlePage(req, res, article);
     } catch (e) {
@@ -763,6 +883,7 @@ async function renderResourcesPage(req, res) {
                     const date = new Date(art.publishDate).toLocaleDateString('zh-CN', {year:'numeric', month:'2-digit', day:'2-digit'}).replace(/\//g, '-');
                     const artUrl = art.slug ? `/article/${art.slug}.html` : `article.html?id=${art._id}`;
                     const artCategoryName = categoryMap[art.category] || art.category || '推荐';
+                    const coverImage = art.coverImage || '/images/default-article.jpg';
 
                     const isWp = art.category === 'whitepaper' || art.category === '白皮书';
                     const cardAction = isWp
@@ -776,9 +897,11 @@ async function renderResourcesPage(req, res) {
                              onmouseout="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'; this.style.transform='translateY(0)'">
                         <div class="relative overflow-hidden aspect-[16/9]">
                             <span class="absolute top-3 left-3 bg-white/90 backdrop-blur text-slate-600 text-[10px] font-bold px-2 py-1 rounded-full z-10 uppercase shadow-sm tracking-wide">${artCategoryName}</span>
-                            img src="${art.coverImage || '/images/default-article.jpg'}"
+                            <img src="${coverImage}"
                                  class="w-full h-full object-cover transition duration-700 group-hover:scale-105" 
-                                 alt="${art.title || ''}">
+                                 alt="${art.title || ''}"
+                                 loading="lazy" decoding="async"
+                                 onerror="this.onerror=null;this.src='/fallback-image/article'">
                             <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition duration-300"></div>
                         </div>
                         <div class="p-5 flex flex-col flex-grow">
@@ -1030,12 +1153,18 @@ app.get('/images/default-video.jpg', (req, res) => {
 function authRequired(req, res, next) {
     try {
         const auth = req.headers.authorization || '';
-        let token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
-        if (!token && req.cookies?.admin_token) token = req.cookies.admin_token;
-        if (!token) return res.status(401).json({ error: 'Unauthorized' });
-        const payload = jwt.verify(token, SECRET_KEY);
-        req.user = payload;
-        next();
+        const headerToken = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
+        const cookieToken = req.cookies?.admin_token || '';
+        const candidates = [headerToken, cookieToken].filter(Boolean).filter(t => t !== 'null' && t !== 'undefined');
+        if (candidates.length === 0) return res.status(401).json({ error: 'Unauthorized' });
+        for (const token of candidates) {
+            try {
+                const payload = jwt.verify(token, RUNTIME_SECRET_KEY);
+                req.user = payload;
+                return next();
+            } catch {}
+        }
+        return res.status(401).json({ error: 'Invalid token' });
     } catch (e) {
         return res.status(401).json({ error: 'Invalid token' });
     }
@@ -1047,7 +1176,10 @@ const mongoUrl = process.env.MONGODB_URL || 'mongodb://127.0.0.1:27017/ruihua_cm
 console.log('Using MongoDB URL:', mongoUrl);
 mongoose.connect(mongoUrl)
     .then(() => console.log('MongoDB Connected to:', mongoUrl))
-    .catch(err => console.error('MongoDB Connection Error:', err));
+    .catch(err => {
+        console.error('MongoDB Connection Error:', err);
+        process.exit(1);
+    });
 
 // Multer Config for Uploads
 function ensureDirSync(dir) {
@@ -1080,16 +1212,49 @@ const upload = multer({
     storage: storage,
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB for high-res covers
     fileFilter: (req, file, cb) => {
-        const allowedTypes = /jpeg|jpg|png|gif|webp|pdf|doc|docx|xls|xlsx/;
-        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-        const mimetype = allowedTypes.test(file.mimetype);
+        const allowedExt = /jpeg|jpg|png|gif|webp|pdf|doc|docx|xls|xlsx/;
+        const allowedMime = /image\/jpeg|image\/jpg|image\/png|image\/gif|image\/webp|application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document|application\/vnd\.ms-excel|application\/vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet/;
+        const extname = allowedExt.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedMime.test((file.mimetype || '').toLowerCase());
         if (mimetype && extname) {
             return cb(null, true);
         } else {
-            cb(new Error('Only images and documents are allowed!'));
+            cb(new Error('仅支持 jpg/jpeg/png/gif/webp/pdf/doc/docx/xls/xlsx 文件'));
         }
     }
 });
+
+function parseUploadError(err) {
+    if (!err) return null;
+    if (err.code === 'LIMIT_FILE_SIZE') {
+        return { status: 400, error: '文件大小超限：图片或附件请控制在 10MB 以内' };
+    }
+    if (err.message) {
+        return { status: 400, error: err.message };
+    }
+    return { status: 500, error: '上传失败，请稍后重试' };
+}
+
+function toTosPublicUrl(key) {
+    const base = String(process.env.TOS_PUBLIC_URL || '').replace(/\/+$/, '');
+    return `${base}/${String(key).replace(/^\/+/, '')}`;
+}
+
+async function uploadLocalFileToTos(localAbsPath, objectKey, contentType) {
+    if (!useTosUpload || !tosClient) return null;
+    if (!fs.existsSync(localAbsPath)) return null;
+    const fileBuffer = await fs.promises.readFile(localAbsPath);
+    await tosClient.send(
+        new PutObjectCommand({
+            Bucket: process.env.TOS_BUCKET_NAME,
+            Key: objectKey,
+            Body: fileBuffer,
+            ContentLength: fileBuffer.length,
+            ContentType: contentType || 'application/octet-stream'
+        })
+    );
+    return toTosPublicUrl(objectKey);
+}
 
 // Helper: Operation Logging
 async function logOp(action, module, detail, operator) {
@@ -1103,6 +1268,65 @@ async function logOp(action, module, detail, operator) {
         });
     } catch (e) {
         console.error('Logging failed:', e);
+    }
+}
+
+const tosFallbackAlertState = {
+    windowStart: 0,
+    windowCount: 0,
+    lastSentAt: 0
+};
+
+function buildSignedDingTalkWebhookUrl() {
+    const webhookUrl = process.env.DINGTALK_WEBHOOK_URL;
+    const secret = process.env.DINGTALK_SECRET;
+    if (!webhookUrl) return null;
+    if (!secret) return webhookUrl;
+    const timestamp = Date.now();
+    const stringToSign = `${timestamp}\n${secret}`;
+    const sign = crypto.createHmac('sha256', secret).update(stringToSign).digest('base64');
+    return `${webhookUrl}&timestamp=${timestamp}&sign=${encodeURIComponent(sign)}`;
+}
+
+async function notifyTosFallbackAlert(reason) {
+    try {
+        const now = Date.now();
+        const windowMs = 5 * 60 * 1000;
+        const threshold = 3;
+        const cooldownMs = 10 * 60 * 1000;
+        if (now - tosFallbackAlertState.windowStart > windowMs) {
+            tosFallbackAlertState.windowStart = now;
+            tosFallbackAlertState.windowCount = 0;
+        }
+        tosFallbackAlertState.windowCount += 1;
+        if (tosFallbackAlertState.windowCount < threshold) return;
+        if (now - tosFallbackAlertState.lastSentAt < cooldownMs) return;
+        tosFallbackAlertState.lastSentAt = now;
+
+        const finalUrl = buildSignedDingTalkWebhookUrl();
+        if (!finalUrl) {
+            console.error(`[ALERT][TOS_FALLBACK] ${reason}`);
+            return;
+        }
+        const message = {
+            msgtype: 'markdown',
+            markdown: {
+                title: 'TOS 上传回退告警',
+                text: `## TOS 上传回退告警\n\n` +
+                    `- 时间：${new Date(now).toLocaleString('zh-CN')}\n` +
+                    `- 环境：${process.env.NODE_ENV || 'unknown'}\n` +
+                    `- 桶：${process.env.TOS_BUCKET_NAME || '(empty)'}\n` +
+                    `- 原因：${reason}\n` +
+                    `\n> 5分钟内累计触发达到阈值，已触发告警，请检查 AK/SK、权限、Endpoint 与网络。`
+            }
+        };
+        await axios.post(finalUrl, message, {
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 10000
+        });
+        console.error(`[ALERT][TOS_FALLBACK] ${reason}`);
+    } catch (err) {
+        console.error('notifyTosFallbackAlert failed:', err.message);
     }
 }
 
@@ -1182,7 +1406,7 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         admin.lastLogin = new Date();
         await admin.save();
 
-        const token = jwt.sign({ id: admin._id, username: admin.username, roles: admin.roles }, SECRET_KEY, { expiresIn: '24h' });
+        const token = jwt.sign({ id: admin._id, username: admin.username, roles: admin.roles }, RUNTIME_SECRET_KEY, { expiresIn: '24h' });
         const permissionSet = gatherPermissions(admin);
         const permissions = Array.from(permissionSet);
         res.cookie('admin_token', token, {
@@ -1198,7 +1422,7 @@ app.post('/api/login', loginLimiter, async (req, res) => {
 
     } catch (e) {
         console.error('Login Error:', e);
-        res.status(500).json({ success: false, message: e.message });
+        res.status(500).json({ success: false, message: '服务器内部错误，请稍后重试' });
     }
 });
 
@@ -1282,7 +1506,7 @@ app.get('/api/dashboard/stats', authRequired, async (req, res) => {
         });
     } catch (e) {
         console.error('Stats Error:', e);
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1295,7 +1519,7 @@ app.get('/article/:slug', async (req, res) => {
             slug = slug.slice(0, -5);
         }
 
-        let article = await Article.findOne({ slug, status: 'published' });
+        let article = await Article.findOne({ slug, status: 'published' }).populate('authorId');
 
         // Check if article exists and is published (Feature Flag: ENABLE_STRICT_404, default true)
         if (process.env.ENABLE_STRICT_404 !== 'false') {
@@ -1319,7 +1543,7 @@ app.get('/article/:slug', async (req, res) => {
 app.get('/article/:slug.html', async (req, res) => {
     try {
         let slug = req.params.slug;
-        const article = await Article.findOne({ slug, status: 'published' });
+        const article = await Article.findOne({ slug, status: 'published' }).populate('authorId');
         if (!article && process.env.ENABLE_STRICT_404 !== 'false') {
             res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
             res.status(404).sendFile(path.join(__dirname, '404.html'));
@@ -1381,7 +1605,7 @@ app.get('/api/articles', async (req, res) => {
             res.json(articles);
         }
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1415,7 +1639,7 @@ app.get('/api/admin/articles', authRequired, requirePerm('article:edit'), async 
         articles = await Article.find(query).sort({ publishDate: -1 });
         res.json(articles);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1427,11 +1651,13 @@ app.get('/api/articles/detail/query', async (req, res) => {
         // Increment views without triggering update hooks/timestamps issues
         await Article.updateOne({ slug, status: 'published' }, { $inc: { views: 1 } });
         
-        const article = await Article.findOne({ slug, status: 'published' });
+        const article = await Article.findOne({ slug, status: 'published' }).populate('authorId');
         if (!article) return res.status(404).json({ error: 'Article not found' });
-        res.json(article);
+        const result = article.toObject ? article.toObject() : article;
+        result.author = getResolvedArticleAuthor(article);
+        res.json(result);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1446,11 +1672,13 @@ app.get('/api/articles/:id', async (req, res) => {
         
         await Article.updateOne({ _id: id, status: 'published' }, { $inc: { views: 1 } });
         
-        const article = await Article.findOne({ _id: id, status: 'published' });
+        const article = await Article.findOne({ _id: id, status: 'published' }).populate('authorId');
         if (!article) return res.status(404).json({ error: 'Article not found' });
-        res.json(article);
+        const result = article.toObject ? article.toObject() : article;
+        result.author = getResolvedArticleAuthor(article);
+        res.json(result);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1464,13 +1692,14 @@ app.get('/api/admin/articles/:id', authRequired, requirePerm('article:edit'), as
         if (!article) return res.status(404).json({ error: 'Article not found' });
         res.json(article);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
 app.post('/api/articles', authRequired, requirePerm('article:create'), async (req, res) => {
     try {
-        const { slug } = req.body;
+        const payload = sanitizeArticlePayload(req.body);
+        const { slug } = payload;
         // Check uniqueness
         if (slug) {
             const existing = await Article.findOne({ slug });
@@ -1479,7 +1708,7 @@ app.post('/api/articles', authRequired, requirePerm('article:create'), async (re
             }
         }
         
-        const newArticle = new Article(req.body);
+        const newArticle = new Article(payload);
         
         // Ensure publishDate and updatedAt are identical on creation
         const now = new Date();
@@ -1491,8 +1720,8 @@ app.post('/api/articles', authRequired, requirePerm('article:create'), async (re
         await newArticle.save();
         
         // Update category count
-        if (req.body.category) {
-            await Category.updateOne({ code: req.body.category }, { $inc: { articleCount: 1 } });
+        if (payload.category) {
+            await Category.updateOne({ code: payload.category }, { $inc: { articleCount: 1 } });
         }
         
         await syncLLMsTxt(newArticle); // Trigger llms.txt sync
@@ -1501,13 +1730,14 @@ app.post('/api/articles', authRequired, requirePerm('article:create'), async (re
         res.json({ success: true, data: newArticle });
     } catch (e) {
         if (e.code === 11000) return res.status(400).json({ error: 'URL (Slug) 已存在' });
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, 'Create article failed:', e);
     }
 });
 
 app.put('/api/articles/:id', authRequired, requirePerm('article:edit'), async (req, res) => {
     try {
-        const { slug } = req.body;
+        const payload = sanitizeArticlePayload(req.body);
+        const { slug } = payload;
         // Check uniqueness for update
         if (slug) {
             const existing = await Article.findOne({ slug, _id: { $ne: req.params.id } });
@@ -1536,14 +1766,14 @@ app.put('/api/articles/:id', authRequired, requirePerm('article:edit'), async (r
 
         const updatedArticle = await Article.findByIdAndUpdate(
             req.params.id, 
-            { ...req.body, updatedAt: Date.now() }, 
+            { ...payload, updatedAt: Date.now() }, 
             { new: true }
         );
         
         // Handle category count update if changed
-        if (oldArt && oldArt.category !== req.body.category) {
+        if (oldArt && oldArt.category !== payload.category) {
              if (oldArt.category) await Category.updateOne({ code: oldArt.category }, { $inc: { articleCount: -1 } });
-             if (req.body.category) await Category.updateOne({ code: req.body.category }, { $inc: { articleCount: 1 } });
+             if (payload.category) await Category.updateOne({ code: payload.category }, { $inc: { articleCount: 1 } });
         }
 
         await logOp('update', 'Article', `Updated article: ${updatedArticle.title}`, req.user.username);
@@ -1553,7 +1783,7 @@ app.put('/api/articles/:id', authRequired, requirePerm('article:edit'), async (r
         res.json({ success: true, data: updatedArticle });
     } catch (e) {
         if (e.code === 11000) return res.status(400).json({ error: 'URL (Slug) 已存在' });
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, 'Update article failed:', e);
     }
 });
 
@@ -1565,7 +1795,7 @@ app.get('/api/articles/:id/history', authRequired, requirePerm('article:edit'), 
             .limit(20);
         res.json(history);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1577,7 +1807,7 @@ app.get('/api/authors', async (req, res) => {
         const authors = await Author.find().sort({ createdAt: -1 });
         res.json(authors);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1588,17 +1818,30 @@ app.post('/api/authors', authRequired, requirePerm('article:create'), async (req
         await logOp('create', 'Author', `Created author: ${author.name}`, req.user.username);
         res.json({ success: true, data: author });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
 app.put('/api/authors/:id', authRequired, requirePerm('article:edit'), async (req, res) => {
     try {
         const author = await Author.findByIdAndUpdate(req.params.id, { ...req.body, updatedAt: Date.now() }, { new: true });
+        if (!author) return res.status(404).json({ error: 'Author not found' });
+        // Sync snapshot fields in existing articles to avoid stale author display in caches/lists.
+        await Article.updateMany(
+            { authorId: author._id },
+            {
+                $set: {
+                    'author.name': author.name || '',
+                    'author.avatar': author.avatar || '',
+                    'author.desc': author.desc || '',
+                    'author.detail': author.detail || ''
+                }
+            }
+        );
         await logOp('update', 'Author', `Updated author: ${author.name}`, req.user.username);
         res.json({ success: true, data: author });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1608,7 +1851,7 @@ app.delete('/api/authors/:id', authRequired, requirePerm('article:delete'), asyn
         await logOp('delete', 'Author', `Deleted author: ${req.params.id}`, req.user.username);
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1662,7 +1905,7 @@ app.get('/api/articles/history/:historyId', authRequired, requirePerm('article:e
         if (!record) return res.status(404).json({ error: 'History record not found' });
         res.json(record);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1701,7 +1944,7 @@ app.post('/api/articles/:id/restore/:historyId', authRequired, requirePerm('arti
         await logOp('update', 'Article', `Restored article ${req.params.id} to version ${history.version}`, req.user.username);
         res.json({ success: true, data: restored });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1715,7 +1958,7 @@ app.post('/api/articles/:id/like', async (req, res) => {
         if (!article) return res.status(404).json({ error: 'Article not found' });
         res.json({ success: true, likes: article.likes });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1728,7 +1971,7 @@ app.delete('/api/articles/:id', authRequired, requirePerm('article:delete'), asy
         await logOp('delete', 'Article', `Deleted article: ${req.params.id}`, req.user.username);
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1752,7 +1995,7 @@ app.post('/api/articles/batch-delete', authRequired, requirePerm('article:delete
         await logOp('delete', 'Article', `Batch deleted ${ids.length} articles`, req.user.username);
         res.json({ success: true, count: ids.length });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1768,7 +2011,7 @@ app.post('/api/articles/batch-status', authRequired, requirePerm('article:edit')
         await logOp('update', 'Article', `Batch updated status to ${status} for ${ids.length} articles`, req.user.username);
         res.json({ success: true, count: ids.length });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1778,7 +2021,7 @@ app.get('/api/categories', async (req, res) => {
         const categories = await Category.find().sort({ order: 1 });
         res.json(categories);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1789,7 +2032,7 @@ app.post('/api/categories', authRequired, requirePerm('article:create'), async (
         await logOp('create', 'Category', `Created category: ${newCat.name}`, req.user.username);
         res.json({ success: true, data: newCat });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1798,7 +2041,7 @@ app.put('/api/categories/:id', authRequired, requirePerm('article:edit'), async 
         const cat = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true });
         res.json({ success: true, data: cat });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1808,7 +2051,7 @@ app.delete('/api/categories/:id', authRequired, requirePerm('article:delete'), a
         // Note: Should we handle articles in this category? For now, just leave them.
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1827,7 +2070,7 @@ app.get('/api/faqs', async (req, res) => {
         const faqs = await faqsQuery;
         res.json(faqs);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1881,7 +2124,7 @@ app.get('/api/faqs/:id', async (req, res) => {
         if (!faq) return res.status(404).json({ error: 'FAQ not found' });
         res.json(faq);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1899,7 +2142,7 @@ app.post('/api/faqs', authRequired, requirePerm('faq:create'), async (req, res) 
         await logOp('create', 'FAQ', `Created FAQ: ${newFaq.question}`, req.user.username);
         res.json({ success: true, data: newFaq });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1915,7 +2158,7 @@ app.put('/api/faqs/:id', authRequired, requirePerm('faq:edit'), async (req, res)
         await logOp('update', 'FAQ', `Updated FAQ: ${faq.question}`, req.user.username);
         res.json({ success: true, data: faq });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1925,7 +2168,7 @@ app.delete('/api/faqs/:id', authRequired, requirePerm('faq:delete'), async (req,
         await logOp('delete', 'FAQ', `Deleted FAQ: ${req.params.id}`, req.user.username);
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1954,7 +2197,7 @@ app.post('/api/maturity-submission', async (req, res) => {
         res.json({ success: true, id: submission._id });
     } catch (e) {
         console.error('Diagnostic Submission Error:', e);
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -1970,7 +2213,7 @@ app.get('/api/admins', authRequired, requirePerm('all'), async (req, res) => {
         const admins = await Admin.find().populate('roles');
         res.json(admins);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -2003,7 +2246,7 @@ app.post('/api/admins', authRequired, requirePerm('all'), async (req, res) => {
         res.json({ success: true });
     } catch (e) {
         if (e.code === 11000) return res.status(400).json({ error: '用户名已存在' });
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -2032,7 +2275,7 @@ app.put('/api/admins/:id', authRequired, requirePerm('all'), async (req, res) =>
         await logOp('update', 'Admin', `Updated user: ${username || req.params.id}`, req.user.username);
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -2042,7 +2285,7 @@ app.delete('/api/admins/:id', authRequired, requirePerm('all'), async (req, res)
         await logOp('delete', 'Admin', `Deleted user: ${req.params.id}`, req.user.username);
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -2052,7 +2295,7 @@ app.get('/api/roles', authRequired, requirePerm('all'), async (req, res) => {
         const roles = await Role.find();
         res.json(roles);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -2104,7 +2347,7 @@ app.post('/api/roles', authRequired, requirePerm('all'), async (req, res) => {
         await logOp('create', 'Role', `Created role: ${name}`, req.user.username);
         res.json({ success: true, data: newRole });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -2128,7 +2371,7 @@ app.put('/api/roles/:id', authRequired, requirePerm('all'), async (req, res) => 
         const role = await Role.findByIdAndUpdate(req.params.id, { name, code, permissions, description }, { new: true });
         res.json({ success: true, data: role });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -2138,7 +2381,7 @@ app.delete('/api/roles/:id', authRequired, requirePerm('all'), async (req, res) 
         await logOp('delete', 'Role', `Deleted role: ${req.params.id}`, req.user.username);
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -2148,7 +2391,7 @@ app.get('/api/banner', async (req, res) => {
         const setting = await Setting.findOne({ key: 'banner' });
         res.json(setting ? setting.value : {});
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -2161,7 +2404,7 @@ app.put('/api/banner', authRequired, requirePerm('banner:manage'), async (req, r
         );
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -2170,7 +2413,7 @@ app.get('/api/sidebar/modules', async (req, res) => {
         const setting = await Setting.findOne({ key: 'sidebar_modules' });
         res.json({ success: true, data: setting ? setting.value : [] });
     } catch (e) {
-        res.status(500).json({ success: false, error: e.message });
+        res.status(500).json({ success: false, error: '服务器内部错误，请稍后重试' });
     }
 });
 
@@ -2199,7 +2442,7 @@ app.post('/api/sidebar/modules', authRequired, requirePerm('sidebar:manage'), as
         
         res.json({ success: true, data: newModule });
     } catch (e) {
-        res.status(500).json({ success: false, error: e.message });
+        res.status(500).json({ success: false, error: '服务器内部错误，请稍后重试' });
     }
 });
 
@@ -2221,7 +2464,7 @@ app.put('/api/sidebar/modules/:id', authRequired, requirePerm('sidebar:manage'),
         
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ success: false, error: e.message });
+        res.status(500).json({ success: false, error: '服务器内部错误，请稍后重试' });
     }
 });
 
@@ -2240,7 +2483,7 @@ app.delete('/api/sidebar/modules/:id', authRequired, requirePerm('sidebar:manage
         
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ success: false, error: e.message });
+        res.status(500).json({ success: false, error: '服务器内部错误，请稍后重试' });
     }
 });
 
@@ -2370,7 +2613,7 @@ app.post('/api/tools/slug', authRequired, async (req, res) => {
         
         res.json({ slug: uniqueSlug });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -2387,7 +2630,7 @@ app.post('/api/tools/tags', authRequired, async (req, res) => {
         
         res.json({ tags });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -2410,7 +2653,7 @@ app.post('/api/tools/summary', authRequired, async (req, res) => {
         
         res.json({ summary });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -2438,7 +2681,7 @@ Do not output any markdown formatting or other text.`;
         // Important: Frontend expects { qa: [...] }
         res.json({ qa: qaList });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -2494,7 +2737,7 @@ Return ONLY valid JSON.`;
         
         res.json(result);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -2530,80 +2773,171 @@ const uploadAuthor = multer({
     }
 });
 
-app.post('/api/upload/author/:userId', authRequired, requirePerm('article:edit'), uploadLimiter, uploadAuthor.single('file'), async (req, res) => {
-    try {
-        if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-        const userId = req.params.userId || 'default';
-        if (!/^[a-zA-Z0-9_-]{1,64}$/.test(userId)) {
-            return res.status(400).json({ error: 'Invalid user id' });
-        }
-        const dir = path.join(__dirname, `public/uploads/authors/${userId}`);
-        ensureDirSync(dir);
-        const originalBase = path.basename(req.file.originalname).replace(/\.[^.]+$/, '');
-        const digitsRaw = toDigitsFromSha256(originalBase + String(Date.now()));
-        const digits30 = clipDigits(digitsRaw, 30);
-        const uniqueDigits = ensureUniqueDigits(dir, digits30);
-        const avatarAbs = path.join(dir, uniqueDigits + '2.webp');
-        await sharp(req.file.path).resize(256, 256, { fit: 'cover' }).webp({ quality: 85 }).toFile(avatarAbs);
-        try { fs.unlinkSync(req.file.path); } catch {}
-        const publicRoot = path.join(__dirname, 'public');
-        const url = avatarAbs.replace(publicRoot, '').replace(/\\/g, '/');
-        await logOp('upload', 'AuthorAvatar', `Uploaded avatar for user: ${userId}`, req.user?.username);
-        const hashHex = crypto.createHash('sha256').update(originalBase).digest('hex');
-        try {
-            await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '2', directory: url.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'avatar', hashHex });
-        } catch (mapErr) {
-            console.error('FileNameMap avatar create failed:', mapErr.message);
-        }
-        res.json({ success: true, url });
-    } catch (e) {
-        console.error('Author upload error:', e);
-        res.status(500).json({ error: '服务器内部错误' });
+function parseAuthorUploadError(err) {
+    if (!err) return null;
+    if (err.code === 'LIMIT_FILE_SIZE') {
+        return { status: 400, error: '作者头像大小超限：请控制在 2MB 以内' };
     }
-});
+    if (err.message) return { status: 400, error: err.message };
+    return { status: 500, error: '作者头像上传失败，请稍后重试' };
+}
 
-app.post('/api/upload', authRequired, uploadLimiter, upload.single('file'), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'No file uploaded' });
+app.post('/api/upload/author/:userId', authRequired, requirePerm('article:edit'), uploadLimiter, (req, res) => {
+    uploadAuthor.single('file')(req, res, async (uploadErr) => {
+        if (uploadErr) {
+            const parsed = parseAuthorUploadError(uploadErr);
+            console.error('Author upload middleware error:', uploadErr);
+            await logOp('upload_failed', 'AuthorAvatar', `Author upload middleware failed: ${parsed.error}`, req.user?.username);
+            return res.status(parsed.status).json({ success: false, error: parsed.error });
         }
-        const uploadedAbs = path.join(__dirname, 'public/uploads', req.file.filename);
-        // If image, do local processing: convert to webp + thumbnail, store in date-based directory
-        if (req.file.mimetype && req.file.mimetype.startsWith('image/')) {
-            const now = new Date();
-            const year = String(now.getFullYear());
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const baseDir = path.join(__dirname, 'public/uploads/images', year, month);
-            ensureDirSync(baseDir);
+        try {
+            if (!req.file) return res.status(400).json({ success: false, error: 'No file uploaded' });
+            const userId = req.params.userId || 'default';
+            if (!/^[a-zA-Z0-9_-]{1,64}$/.test(userId)) {
+                return res.status(400).json({ success: false, error: 'Invalid user id' });
+            }
+            const dir = path.join(__dirname, `public/uploads/authors/${userId}`);
+            ensureDirSync(dir);
             const originalBase = path.basename(req.file.originalname).replace(/\.[^.]+$/, '');
             const digitsRaw = toDigitsFromSha256(originalBase + String(Date.now()));
             const digits30 = clipDigits(digitsRaw, 30);
-            const uniqueDigits = ensureUniqueDigits(baseDir, digits30);
-            const webpAbs = path.join(baseDir, uniqueDigits + '0.webp');
-            const thumbAbs = path.join(baseDir, uniqueDigits + '1.webp');
-            await sharp(uploadedAbs).resize({ width: 1440, withoutEnlargement: true }).webp({ quality: 82 }).toFile(webpAbs);
-            await sharp(uploadedAbs).resize({ width: 480, height: 480, fit: 'inside', withoutEnlargement: true }).webp({ quality: 80 }).toFile(thumbAbs);
-            try { fs.unlinkSync(uploadedAbs); } catch {}
+            const uniqueDigits = ensureUniqueDigits(dir, digits30);
+            const avatarAbs = path.join(dir, uniqueDigits + '2.webp');
+            await sharp(req.file.path).resize(256, 256, { fit: 'cover' }).webp({ quality: 85 }).toFile(avatarAbs);
+            try { fs.unlinkSync(req.file.path); } catch {}
             const publicRoot = path.join(__dirname, 'public');
-            const url = webpAbs.replace(publicRoot, '').replace(/\\/g, '/');
-            const thumb = thumbAbs.replace(publicRoot, '').replace(/\\/g, '/');
-            await logOp('upload', 'Image', `Image processed: ${url}`, req.user?.username);
+            const url = avatarAbs.replace(publicRoot, '').replace(/\\/g, '/');
+            let finalUrl = url;
+            if (useTosUpload) {
+                try {
+                    const objectKey = url.replace(/^\/+/, '');
+                    finalUrl = await uploadLocalFileToTos(avatarAbs, objectKey, 'image/webp') || url;
+                    try { fs.unlinkSync(avatarAbs); } catch {}
+                } catch (tosErr) {
+                    console.error('TOS author avatar upload failed, fallback to local:', tosErr);
+                    await logOp('upload_warn', 'AuthorAvatar', `TOS failed, fallback local: ${tosErr.message}`, req.user?.username);
+                    notifyTosFallbackAlert(`Author avatar fallback: ${tosErr.message}`);
+                    finalUrl = url;
+                }
+            }
+            await logOp('upload', 'AuthorAvatar', `Uploaded avatar for user: ${userId}`, req.user?.username);
             const hashHex = crypto.createHash('sha256').update(originalBase).digest('hex');
             try {
-                await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '0', directory: url.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'main', hashHex });
-                await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '1', directory: thumb.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'thumb', hashHex });
+                await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '2', directory: url.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'avatar', hashHex });
             } catch (mapErr) {
-                console.error('FileNameMap image create failed:', mapErr.message);
+                console.error('FileNameMap avatar create failed:', mapErr.message);
             }
-            return res.json({ success: true, url, thumb });
+            return res.json({ success: true, url: finalUrl });
+        } catch (e) {
+            console.error('Author upload error:', e);
+            await logOp('upload_failed', 'AuthorAvatar', `Author upload processing failed: ${e.message}`, req.user?.username);
+            return res.status(500).json({ success: false, error: '服务器内部错误' });
         }
-        // Non-image: keep original disk path
-        await logOp('upload', 'File', `File uploaded: ${req.file.filename}`, req.user?.username);
-        return res.json({ success: true, url: '/uploads/' + req.file.filename });
-    } catch (e) {
-        console.error('Upload processing error:', e);
-        return res.status(500).json({ error: '服务器内部错误' });
-    }
+    });
+});
+
+app.post('/api/upload', authRequired, uploadLimiter, (req, res) => {
+    upload.single('file')(req, res, async (uploadErr) => {
+        if (uploadErr) {
+            const parsed = parseUploadError(uploadErr);
+            console.error('Upload middleware error:', uploadErr);
+            await logOp('upload_failed', 'Image', `Upload middleware failed: ${parsed.error}`, req.user?.username);
+            return res.status(parsed.status).json({ success: false, error: parsed.error });
+        }
+
+        try {
+            if (!req.file) {
+                return res.status(400).json({ success: false, error: '未检测到上传文件' });
+            }
+            const uploadedAbs = path.join(__dirname, 'public/uploads', req.file.filename);
+            // If image, do local processing: convert to webp + thumbnail, store in date-based directory
+            if (req.file.mimetype && req.file.mimetype.startsWith('image/')) {
+                const now = new Date();
+                const year = String(now.getFullYear());
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const baseDir = path.join(__dirname, 'public/uploads/images', year, month);
+                ensureDirSync(baseDir);
+                const originalBase = path.basename(req.file.originalname).replace(/\.[^.]+$/, '');
+                const digitsRaw = toDigitsFromSha256(originalBase + String(Date.now()));
+                const digits30 = clipDigits(digitsRaw, 30);
+                const uniqueDigits = ensureUniqueDigits(baseDir, digits30);
+                const webpAbs = path.join(baseDir, uniqueDigits + '0.webp');
+                const thumbAbs = path.join(baseDir, uniqueDigits + '1.webp');
+                try {
+                    await sharp(uploadedAbs).resize({ width: 1440, withoutEnlargement: true }).webp({ quality: 82 }).toFile(webpAbs);
+                    await sharp(uploadedAbs).resize({ width: 480, height: 480, fit: 'inside', withoutEnlargement: true }).webp({ quality: 80 }).toFile(thumbAbs);
+                    try { fs.unlinkSync(uploadedAbs); } catch {}
+                    const publicRoot = path.join(__dirname, 'public');
+                    const url = webpAbs.replace(publicRoot, '').replace(/\\/g, '/');
+                    const thumb = thumbAbs.replace(publicRoot, '').replace(/\\/g, '/');
+                    let finalUrl = url;
+                    let finalThumb = thumb;
+                    if (useTosUpload) {
+                        try {
+                            const objectKey = url.replace(/^\/+/, '');
+                            const thumbKey = thumb.replace(/^\/+/, '');
+                            finalUrl = await uploadLocalFileToTos(webpAbs, objectKey, 'image/webp') || url;
+                            finalThumb = await uploadLocalFileToTos(thumbAbs, thumbKey, 'image/webp') || thumb;
+                            try { fs.unlinkSync(webpAbs); } catch {}
+                            try { fs.unlinkSync(thumbAbs); } catch {}
+                        } catch (tosErr) {
+                            console.error('TOS upload failed, fallback to local image path:', tosErr);
+                            await logOp('upload_warn', 'Image', `TOS failed, fallback local: ${tosErr.message}`, req.user?.username);
+                            notifyTosFallbackAlert(`Image upload fallback: ${tosErr.message}`);
+                            finalUrl = url;
+                            finalThumb = thumb;
+                        }
+                    }
+                    await logOp('upload', 'Image', `Image processed: ${url}`, req.user?.username);
+                    const hashHex = crypto.createHash('sha256').update(originalBase).digest('hex');
+                    try {
+                        await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '0', directory: url.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'main', hashHex });
+                        await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '1', directory: thumb.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'thumb', hashHex });
+                    } catch (mapErr) {
+                        console.error('FileNameMap image create failed:', mapErr.message);
+                    }
+                    return res.json({ success: true, url: finalUrl || url, thumb: finalThumb || thumb });
+                } catch (sharpErr) {
+                    console.error('Sharp process error, fallback to original:', sharpErr);
+                    await logOp('upload_warn', 'Image', `Sharp failed, fallback original: ${req.file.filename}`, req.user?.username);
+                    const localUrl = '/uploads/' + req.file.filename;
+                    if (useTosUpload) {
+                        try {
+                            const uploadedKey = localUrl.replace(/^\/+/, '');
+                            const tosUrl = await uploadLocalFileToTos(uploadedAbs, uploadedKey, req.file.mimetype || 'application/octet-stream');
+                            try { fs.unlinkSync(uploadedAbs); } catch {}
+                            return res.json({ success: true, url: tosUrl || localUrl });
+                        } catch (tosErr) {
+                            console.error('TOS upload failed in sharp fallback, use local path:', tosErr);
+                            notifyTosFallbackAlert(`Sharp fallback upload: ${tosErr.message}`);
+                            return res.json({ success: true, url: localUrl });
+                        }
+                    }
+                    return res.json({ success: true, url: localUrl });
+                }
+            }
+            // Non-image: keep original disk path
+            await logOp('upload', 'File', `File uploaded: ${req.file.filename}`, req.user?.username);
+            const localUrl = '/uploads/' + req.file.filename;
+            if (useTosUpload) {
+                try {
+                    const fileKey = localUrl.replace(/^\/+/, '');
+                    const tosUrl = await uploadLocalFileToTos(uploadedAbs, fileKey, req.file.mimetype || 'application/octet-stream');
+                    try { fs.unlinkSync(uploadedAbs); } catch {}
+                    return res.json({ success: true, url: tosUrl || localUrl });
+                } catch (tosErr) {
+                    console.error('TOS upload failed for non-image, use local path:', tosErr);
+                    notifyTosFallbackAlert(`File upload fallback: ${tosErr.message}`);
+                    return res.json({ success: true, url: localUrl });
+                }
+            }
+            return res.json({ success: true, url: localUrl });
+        } catch (e) {
+            console.error('Upload processing error:', e);
+            await logOp('upload_failed', 'Image', `Upload processing failed: ${e.message}`, req.user?.username);
+            return res.status(500).json({ success: false, error: '上传处理失败，请稍后重试' });
+        }
+    });
 });
 
 // --- SMS Verification Code API ---
@@ -2732,21 +3066,10 @@ async function verifyCode(phone, code) {
 // 钉钉通知函数
 async function sendDingTalkNotification(appointment) {
     try {
-        const webhookUrl = process.env.DINGTALK_WEBHOOK_URL;
-        const secret = process.env.DINGTALK_SECRET;
-        
-        if (!webhookUrl) {
+        const finalUrl = buildSignedDingTalkWebhookUrl();
+        if (!finalUrl) {
             console.log('DingTalk webhook URL not configured');
             return;
-        }
-        
-        // 生成签名（如果有密钥）
-        let finalUrl = webhookUrl;
-        if (secret) {
-            const timestamp = Date.now();
-            const stringToSign = `${timestamp}\n${secret}`;
-            const sign = crypto.createHmac('sha256', secret).update(stringToSign).digest('base64');
-            finalUrl = `${webhookUrl}&timestamp=${timestamp}&sign=${encodeURIComponent(sign)}`;
         }
         
         // 构建消息内容
@@ -2902,7 +3225,7 @@ app.get('/api/appointments', authRequired, requirePerm('appointment:list'), asyn
             }
         });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -2917,7 +3240,7 @@ app.put('/api/appointments/:id', authRequired, requirePerm('appointment:edit'), 
         await logOp('update', 'Appointment', `Updated status to ${status} for: ${appt.name}`, req.user.username);
         res.json({ success: true, data: appt });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -2927,7 +3250,7 @@ app.delete('/api/appointments/:id', authRequired, requirePerm('appointment:delet
         await logOp('delete', 'Appointment', `Deleted appointment: ${req.params.id}`, req.user.username);
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -2974,7 +3297,7 @@ app.get('/api/appointments/export', authRequired, requirePerm('appointment:list'
         res.send(Buffer.concat([bom, Buffer.from(csv, 'utf-8')]));
         
     } catch (e) {
-        res.status(500).send(e.message);
+        return res.status(500).send('Internal Server Error');
     }
 });
 
@@ -3008,7 +3331,7 @@ app.post('/api/maturity/submit', async (req, res) => {
         res.json({ success: true });
     } catch (e) {
         console.error('Maturity Submit Error:', e);
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -3031,7 +3354,7 @@ app.get('/api/maturity/list', authRequired, requirePerm('appointment:list'), asy
             }
         });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -3107,7 +3430,7 @@ app.get('/api/maturity/export', authRequired, requirePerm('appointment:list'), a
 
     } catch (e) {
         console.error('Export Error:', e);
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -3117,7 +3440,7 @@ app.delete('/api/maturity/:id', authRequired, requirePerm('appointment:delete'),
         await logOp('delete', 'Maturity', `Deleted submission: ${req.params.id}`, req.user.username);
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -3205,7 +3528,7 @@ app.get('/api/whitepaper/list', authRequired, requirePerm('appointment:list'), a
             }
         });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -3249,7 +3572,7 @@ app.get('/api/whitepaper/export', authRequired, requirePerm('appointment:list'),
         const bom = Buffer.from('\xEF\xBB\xBF', 'binary');
         res.send(Buffer.concat([bom, Buffer.from(csv, 'utf-8')]));
     } catch (e) {
-        res.status(500).send(e.message);
+        return res.status(500).send('Internal Server Error');
     }
 });
 
@@ -3448,7 +3771,7 @@ app.delete('/api/efficiency-diagnosis/:id', authRequired, requirePerm('appointme
         await logOp('delete', 'Efficiency', `Deleted submission: ${req.params.id}`, req.user.username);
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -3498,7 +3821,7 @@ app.get('/api/videos', async (req, res) => {
         const list = await Video.find(query).sort(sort);
         res.json(list);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -3512,7 +3835,7 @@ app.get('/api/videos/detail/query', async (req, res) => {
         if (!video) return res.status(404).json({ error: 'Video not found' });
         res.json(video);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -3785,7 +4108,7 @@ app.get('/api/videos/:id', async (req, res) => {
         if (!video) return res.status(404).json({ error: 'Video not found' });
         res.json(video);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -3844,7 +4167,7 @@ app.get('/api/videos/:id/related', async (req, res) => {
         res.json({ success: true, data: relatedVideos });
     } catch (e) {
         console.error('[Related Videos Error]', e);
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -3877,7 +4200,7 @@ app.post('/api/videos', authRequired, requirePerm('video:create'), async (req, r
         res.json({ success: true, data: video });
     } catch (e) {
         if (e.code === 11000) return res.status(400).json({ error: 'URL (Slug) 已存在' });
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -3917,7 +4240,7 @@ app.put('/api/videos/:id', authRequired, requirePerm('video:edit'), async (req, 
         await logOp('update', 'Video', `Updated video: ${updated?.title || req.params.id}`, req.user.username);
         res.json({ success: true, data: updated });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 
@@ -3928,7 +4251,7 @@ app.delete('/api/videos/:id', authRequired, requirePerm('video:delete'), async (
         await logOp('delete', 'Video', `Deleted video: ${req.params.id}`, req.user.username);
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return sendInternalError(res, null, e);
     }
 });
 

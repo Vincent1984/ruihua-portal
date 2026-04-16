@@ -3,12 +3,14 @@ kind: Kustomization
 
 resources:
 - configmap.yaml
+- app-secret.yaml
+- tos-secret.yaml
 - mongodb-deployment.yaml
 - app-deployment.yaml
 
 images:
 - name: ruihuawebsite
-  newTag: latest
+  newTag: v1.0.0
 
 commonLabels:
   project: ruihuawebsite

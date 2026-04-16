@@ -170,9 +170,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             server: '/api/upload',
                             fieldName: 'file',
                             headers: {
-                                Authorization: 'Bearer ' + sessionStorage.getItem('token')
+                                Authorization: authHeaders().Authorization
                             },
-                            maxFileSize: 2 * 1024 * 1024, // 2MB
+                            maxFileSize: 10 * 1024 * 1024, // Align with backend limit (10MB)
                             maxNumberOfFiles: 10,
                             allowedFileTypes: ['image/*'],
                             customInsert(res, insertFn) {
@@ -182,9 +182,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                     showToast(res.error || '图片上传失败', 'error');
                                 }
                             },
+                            onFailed(file, res) {
+                                const msg = res?.error || '上传失败，请检查文件格式/大小';
+                                showToast(`${file.name}：${msg}`, 'error');
+                            },
                             onError(file, err, res) {
                                 console.error('Upload Error:', err, res);
-                                showToast(`${file.name} 上传出错`, 'error');
+                                const msg = res?.error || err?.message || '上传出错，请稍后重试';
+                                showToast(`${file.name}：${msg}`, 'error');
                             }
                         }
                     },

@@ -371,7 +371,8 @@
                             <img src="${art.coverImage || '/images/default-article.jpg'}"
                                  class="w-full h-full object-cover transition duration-700 group-hover:scale-105"
                                  alt="${art.title}"
-                                 loading="lazy" decoding="async" data-fallback="/fallback-image/article">
+                                 loading="lazy" decoding="async" data-fallback="/fallback-image/article"
+                                 onerror="this.onerror=null;this.src='/fallback-image/article'">
                             <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition duration-300"></div>
                         </div>
                         <div class="p-5 flex flex-col flex-grow">

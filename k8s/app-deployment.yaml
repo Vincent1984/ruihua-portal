@@ -31,7 +31,7 @@ spec:
         fsGroup: 1001
       containers:
       - name: ruihuawebsite-app
-        image: ruihua-imagerepo-cn-shanghai.cr.volces.com/ruihua/ruihuawebsite:latest
+        image: ruihua-imagerepo-cn-shanghai.cr.volces.com/ruihua/ruihuawebsite:v1.0.0
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
@@ -40,6 +40,10 @@ spec:
         envFrom:
         - configMapRef:
             name: ruihuawebsite-config
+        - secretRef:
+            name: ruihuawebsite-app-secret
+        - secretRef:
+            name: ruihuawebsite-tos-secret
 
         resources:
           requests:

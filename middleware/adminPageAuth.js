@@ -25,18 +25,26 @@ function sendDenied(req, res, statusCode, message) {
 
 function getToken(req) {
     const auth = req.headers.authorization || '';
-    if (auth.startsWith('Bearer ')) return auth.slice(7);
-    if (req.cookies && req.cookies.admin_token) return req.cookies.admin_token;
-    return null;
+    const headerToken = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
+    const cookieToken = (req.cookies && req.cookies.admin_token) ? String(req.cookies.admin_token).trim() : '';
+    const candidates = [headerToken, cookieToken].filter(Boolean).filter(t => t !== 'null' && t !== 'undefined');
+    return candidates.length ? candidates : null;
 }
 
 function requireAdminPagePermission({ AdminModel, secretKey, requiredPerm }) {
     return async function adminPagePermission(req, res, next) {
         try {
-            const token = getToken(req);
-            if (!token) return sendDenied(req, res, 401, 'Unauthorized');
+            const tokens = getToken(req);
+            if (!tokens) return sendDenied(req, res, 401, 'Unauthorized');
 
-            const payload = jwt.verify(token, secretKey);
+            let payload = null;
+            for (const token of tokens) {
+                try {
+                    payload = jwt.verify(token, secretKey);
+                    break;
+                } catch {}
+            }
+            if (!payload) return sendDenied(req, res, 401, 'Invalid token');
             const admin = await AdminModel.findById(payload.id).populate('roles');
             if (!admin || !admin.isActive) return sendDenied(req, res, 403, 'Account disabled or not found');
 
