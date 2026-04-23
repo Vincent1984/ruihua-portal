@@ -16,6 +16,7 @@ module.exports = function(app, authRequired, requirePerm, logOp) {
         try {
             const {
                 topicInterest,
+                open_topic,
                 participationForm,
                 wechatId,
                 channel,
@@ -60,8 +61,9 @@ module.exports = function(app, authRequired, requirePerm, logOp) {
             const finalChannel = channel || utmParams.utm_source || 'organic';
 
             const submission = new SurveySubmission({
-                topicInterest,
-                participationForm,
+                    topicInterest,
+                    open_topic,
+                    participationForm,
                 wechatId,
                 channel: finalChannel,
                 sourceUrl: sourceUrl || req.get('Referrer'),
@@ -228,6 +230,7 @@ module.exports = function(app, authRequired, requirePerm, logOp) {
                 return {
                     '提交时间': new Date(doc.createdAt).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }),
                     '感兴趣话题': doc.topicInterest,
+                    '开放话题': doc.open_topic || '',
                     '参与形式': doc.participationForm,
                     '微信号': doc.wechatId, // Mongoose getter handles decryption
                     '渠道': doc.channel,

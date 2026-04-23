@@ -14,6 +14,11 @@ const surveySubmissionSchema = new mongoose.Schema({
         type: String,
         required: [true, '请选择您感兴趣的话题']
     },
+    open_topic: {
+        type: String,
+        default: null,
+        maxlength: 500
+    },
     participationForm: {
         type: String,
         required: [true, '请选择参与形式']

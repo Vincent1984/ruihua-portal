@@ -106,6 +106,12 @@
               </template>
             </el-table-column>
             <el-table-column prop="topicInterest" label="感兴趣话题" min-width="180"></el-table-column>
+            <el-table-column prop="open_topic" label="开放话题" min-width="150">
+              <template #default="scope">
+                <span v-if="scope.row.open_topic" :title="scope.row.open_topic" style="display:inline-block; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ scope.row.open_topic }}</span>
+                <span v-else class="text-secondary">-</span>
+              </template>
+            </el-table-column>
             <el-table-column prop="participationForm" label="参与形式" width="120"></el-table-column>
             <el-table-column prop="wechatId" label="微信号" width="150"></el-table-column>
             <el-table-column prop="channel" label="渠道" width="120">

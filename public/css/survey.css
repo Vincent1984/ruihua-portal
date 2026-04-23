@@ -111,6 +111,14 @@ body {
     box-sizing: border-box;
 }
 
+.survey-page-scrollbar-hidden {
+    scrollbar-width: none; /* Firefox */
+}
+
+.survey-page-scrollbar-hidden::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+}
+
 .survey-page #group-q1 .radio-circle,
 .survey-page #group-q2 .radio-circle {
     width: 20px;

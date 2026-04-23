@@ -138,6 +138,12 @@ function sanitizeArticlePayload(body = {}) {
 // Domain Normalization Middleware (Should be early)
 app.use(domainNormalizer);
 app.use(legacyRedirects);
+app.use((req, res, next) => {
+    if (req.path === '/ai-strategic-special' || req.path === '/ai-strategic-special/' || req.path === '/ai-strategic-special.html') {
+        return res.sendFile(path.join(__dirname, 'ai-strategic-special.html'));
+    }
+    next();
+});
 
 // Reusable Footer Injection for SSR pages
 const injectFooterHTML = (document) => {
@@ -370,7 +376,9 @@ const rootHtmlFiles = [
     'solutions.html',
     'solutions-hcvm.html',
     'solutions-ohcvm.html',
-    'about.html'
+    'about.html',
+    'ai-strategic.html',
+    'ai-strategic-special.html'
 ];
 
 rootHtmlFiles.forEach(file => {
@@ -1048,6 +1056,11 @@ app.get('/diagnostic.html', (req, res) => res.redirect(301, '/diagnostic/'));
 // 6. videos.html -> /videos/
 app.get('/videos/', (req, res) => renderStaticHtmlWithFooter(res, 'videos.html'));
 app.get('/videos.html', (req, res) => res.redirect(301, '/videos/'));
+
+// 7. ai-strategic-special.html -> /ai-strategic-special/
+app.get('/ai-strategic-special/', (req, res) => res.sendFile(path.join(__dirname, 'ai-strategic-special.html')));
+app.get('/ai-strategic-special', (req, res) => res.redirect(301, '/ai-strategic-special/'));
+app.get('/ai-strategic-special.html', (req, res) => res.redirect(301, '/ai-strategic-special/'));
 
 
 // Handle /index.html redirection to root

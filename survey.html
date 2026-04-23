@@ -62,7 +62,33 @@
                                 <p class="text-sm text-slate-500 pl-8">科学评估人机协同的边界，合理规划人力和AI投入。</p>
                             </div>
                         </label>
+                        <label class="block cursor-pointer relative group md:col-span-2">
+                            <input type="radio" name="topicInterest" value="从共识到行动：AI变革管理高层工作坊" class="radio-custom sr-only">
+                            <div class="h-full border-2 border-slate-200 rounded-2xl p-5 flex flex-col transition-all duration-300 hover:border-[#7c4dff]/40 hover:bg-slate-50">
+                                <div class="flex items-start mb-2">
+                                    <div class="radio-circle w-5 h-5 rounded-full border-2 border-slate-300 mr-3 relative transition-colors flex-shrink-0 mt-0.5"></div>
+                                    <span class="text-base font-bold text-slate-800 group-hover:text-[#7c4dff] transition-colors whitespace-nowrap overflow-x-auto survey-page-scrollbar-hidden">从共识到行动：AI变革管理高层工作坊</span>
+                                </div>
+                                <p class="text-sm text-slate-500 pl-8">系统掌握AI化变革管理的方法论，推动组织转型。</p>
+                            </div>
+                        </label>
                     </div>
+                    
+                    <!-- 开放话题区域 -->
+                    <div class="mt-4 relative z-10">
+                        <label class="flex items-center cursor-pointer group w-fit">
+                            <input type="checkbox" id="hasOpenTopic" class="w-5 h-5 text-[#7c4dff] border-slate-300 rounded focus:ring-[#7c4dff] transition-colors cursor-pointer relative z-20">
+                            <span class="ml-3 text-base font-bold text-slate-800 group-hover:text-[#7c4dff] transition-colors">其他感兴趣的话题（请填写）</span>
+                        </label>
+                        <div id="openTopicContainer" class="mt-3 hidden transition-all duration-300 relative z-20">
+                            <textarea id="openTopicInput" name="openTopic" rows="3" maxlength="500" placeholder="请输入您感兴趣的其他话题..." class="w-full border-2 border-slate-200 rounded-2xl p-4 text-base focus:outline-none focus:border-[#7c4dff] focus:ring-4 focus:ring-[#7c4dff]/10 transition-all placeholder-slate-400 bg-slate-50 focus:bg-white resize-none relative z-30"></textarea>
+                            <div class="flex justify-end mt-1">
+                                <span id="openTopicCount" class="text-xs text-slate-400">0 / 500</span>
+                            </div>
+                            <div class="input-error-text error-hidden mt-1" id="error-openTopic"><i class="fas fa-exclamation-circle"></i> 请填写开放话题内容</div>
+                        </div>
+                    </div>
+
                     <div class="input-error-text error-hidden mt-3" id="error-q1"><i class="fas fa-exclamation-circle"></i> 请选择您感兴趣的话题</div>
                 </div>
 
