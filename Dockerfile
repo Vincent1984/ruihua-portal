@@ -1,5 +1,5 @@
 # 使用官方 Node.js 运行时作为基础镜像
-FROM node:18-alpine
+FROM node:20-alpine
 
 # 设置工作目录
 WORKDIR /app
@@ -21,9 +21,14 @@ RUN addgroup -g 1001 -S nodejs && \
 # 复制 package.json 和 package-lock.json
 COPY package*.json ./
 
-# 安装项目依赖
-RUN npm ci --only=production && \
-    npm cache clean --force
+# 安装项目依赖（包括 sharp 的构建依赖）
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    && npm install --only=production && \
+    npm cache clean --force && \
+    apk del python3 make g++
 
 # 复制配置文件
 COPY config/ ./config/
@@ -31,6 +36,9 @@ COPY config/ ./config/
 # 复制应用代码
 COPY server.js ./
 COPY models/ ./models/
+COPY utils/ ./utils/
+COPY routes/ ./routes/
+COPY middleware/ ./middleware/
 
 # 复制静态资源和HTML文件
 COPY public/ ./public/
