@@ -14,11 +14,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('surveyForm');
     const submitBtn = document.getElementById('submitBtn');
 
+<<<<<<< HEAD
     const openTopicCheckbox = document.getElementById('hasOpenTopic');
+=======
+    // Handle open topic checkbox toggle
+    const hasOpenTopicCheckbox = document.getElementById('hasOpenTopic');
+>>>>>>> 6bd1d82573153adf80f6c686e6dfdce0417afd50
     const openTopicContainer = document.getElementById('openTopicContainer');
     const openTopicInput = document.getElementById('openTopicInput');
     const openTopicCount = document.getElementById('openTopicCount');
 
+<<<<<<< HEAD
     if (openTopicCheckbox) {
         openTopicCheckbox.addEventListener('change', function() {
             if (this.checked) {
@@ -41,6 +47,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('error-openTopic').classList.add('error-hidden');
             }
         });
+=======
+    if (hasOpenTopicCheckbox && openTopicContainer) {
+        hasOpenTopicCheckbox.addEventListener('change', () => {
+            if (hasOpenTopicCheckbox.checked) {
+                openTopicContainer.classList.remove('hidden');
+                openTopicInput.focus();
+            } else {
+                openTopicContainer.classList.add('hidden');
+                openTopicInput.value = '';
+                openTopicCount.textContent = '0 / 500';
+            }
+        });
+
+        // Character counter for textarea
+        if (openTopicInput) {
+            openTopicInput.addEventListener('input', () => {
+                const count = openTopicInput.value.length;
+                openTopicCount.textContent = `${count} / 500`;
+            });
+        }
+>>>>>>> 6bd1d82573153adf80f6c686e6dfdce0417afd50
     }
 
     // Clear error states on input
@@ -69,11 +96,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const topicInterest = formData.get('topicInterest');
         const participationForm = formData.get('participationForm');
         const wechatId = formData.get('wechatId')?.trim();
+<<<<<<< HEAD
         
         let openTopic = null;
         if (openTopicCheckbox && openTopicCheckbox.checked) {
             openTopic = openTopicInput.value.trim();
         }
+=======
+        const hasOpenTopic = hasOpenTopicCheckbox?.checked;
+        const openTopic = openTopicInput?.value?.trim();
+>>>>>>> 6bd1d82573153adf80f6c686e6dfdce0417afd50
 
         let hasError = false;
 
@@ -96,6 +128,14 @@ document.addEventListener('DOMContentLoaded', () => {
             wxInput.classList.add('input-error');
             document.getElementById('error-q3').classList.remove('error-hidden');
             hasError = true;
+        }
+
+        // Validate open topic if checkbox is checked
+        if (hasOpenTopic && !openTopic) {
+            document.getElementById('error-openTopic').classList.remove('error-hidden');
+            hasError = true;
+        } else if (!hasOpenTopic) {
+            document.getElementById('error-openTopic').classList.add('error-hidden');
         }
 
         if (hasError) {
@@ -125,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     open_topic: openTopic,
                     participationForm,
                     wechatId,
+                    openTopic: hasOpenTopic ? openTopic : null,
                     channel,
                     sourceUrl: window.location.href,
                     utm_source,
