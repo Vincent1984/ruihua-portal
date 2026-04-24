@@ -14,6 +14,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('surveyForm');
     const submitBtn = document.getElementById('submitBtn');
 
+    // Handle open topic checkbox toggle
+    const hasOpenTopicCheckbox = document.getElementById('hasOpenTopic');
+    const openTopicContainer = document.getElementById('openTopicContainer');
+    const openTopicInput = document.getElementById('openTopicInput');
+    const openTopicCount = document.getElementById('openTopicCount');
+
+    if (hasOpenTopicCheckbox && openTopicContainer) {
+        hasOpenTopicCheckbox.addEventListener('change', () => {
+            if (hasOpenTopicCheckbox.checked) {
+                openTopicContainer.classList.remove('hidden');
+                openTopicInput.focus();
+            } else {
+                openTopicContainer.classList.add('hidden');
+                openTopicInput.value = '';
+                openTopicCount.textContent = '0 / 500';
+            }
+        });
+
+        // Character counter for textarea
+        if (openTopicInput) {
+            openTopicInput.addEventListener('input', () => {
+                const count = openTopicInput.value.length;
+                openTopicCount.textContent = `${count} / 500`;
+            });
+        }
+    }
+
     // Clear error states on input
     const inputs = form.querySelectorAll('input');
     inputs.forEach((input) => {
@@ -40,6 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const topicInterest = formData.get('topicInterest');
         const participationForm = formData.get('participationForm');
         const wechatId = formData.get('wechatId')?.trim();
+        const hasOpenTopic = hasOpenTopicCheckbox?.checked;
+        const openTopic = openTopicInput?.value?.trim();
 
         let hasError = false;
 
@@ -56,6 +85,14 @@ document.addEventListener('DOMContentLoaded', () => {
             wxInput.classList.add('input-error');
             document.getElementById('error-q3').classList.remove('error-hidden');
             hasError = true;
+        }
+
+        // Validate open topic if checkbox is checked
+        if (hasOpenTopic && !openTopic) {
+            document.getElementById('error-openTopic').classList.remove('error-hidden');
+            hasError = true;
+        } else if (!hasOpenTopic) {
+            document.getElementById('error-openTopic').classList.add('error-hidden');
         }
 
         if (hasError) {
@@ -84,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     topicInterest,
                     participationForm,
                     wechatId,
+                    openTopic: hasOpenTopic ? openTopic : null,
                     channel,
                     sourceUrl: window.location.href,
                     utm_source,
