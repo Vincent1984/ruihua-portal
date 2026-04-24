@@ -14,6 +14,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('surveyForm');
     const submitBtn = document.getElementById('submitBtn');
 
+    const openTopicCheckbox = document.getElementById('hasOpenTopic');
+    const openTopicContainer = document.getElementById('openTopicContainer');
+    const openTopicInput = document.getElementById('openTopicInput');
+    const openTopicCount = document.getElementById('openTopicCount');
+
+    if (openTopicCheckbox) {
+        openTopicCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                openTopicContainer.classList.remove('hidden');
+            } else {
+                openTopicContainer.classList.add('hidden');
+                openTopicInput.value = '';
+                openTopicInput.classList.remove('input-error');
+                document.getElementById('error-openTopic').classList.add('error-hidden');
+                openTopicCount.textContent = '0 / 500';
+            }
+        });
+    }
+
+    if (openTopicInput) {
+        openTopicInput.addEventListener('input', function() {
+            openTopicCount.textContent = `${this.value.length} / 500`;
+            if (this.value.trim().length > 0) {
+                this.classList.remove('input-error');
+                document.getElementById('error-openTopic').classList.add('error-hidden');
+            }
+        });
+    }
+
     // Clear error states on input
     const inputs = form.querySelectorAll('input');
     inputs.forEach((input) => {
@@ -40,11 +69,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const topicInterest = formData.get('topicInterest');
         const participationForm = formData.get('participationForm');
         const wechatId = formData.get('wechatId')?.trim();
+        
+        let openTopic = null;
+        if (openTopicCheckbox && openTopicCheckbox.checked) {
+            openTopic = openTopicInput.value.trim();
+        }
 
         let hasError = false;
 
         if (!topicInterest) {
             document.getElementById('error-q1').classList.remove('error-hidden');
+            hasError = true;
+        }
+        
+        if (openTopicCheckbox && openTopicCheckbox.checked && !openTopic) {
+            openTopicInput.classList.add('input-error');
+            document.getElementById('error-openTopic').classList.remove('error-hidden');
             hasError = true;
         }
         if (!participationForm) {
@@ -82,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({
                     topicInterest,
+                    open_topic: openTopic,
                     participationForm,
                     wechatId,
                     channel,
