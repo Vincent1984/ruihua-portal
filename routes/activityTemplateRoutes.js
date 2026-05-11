@@ -80,7 +80,29 @@ module.exports = function registerActivityTemplateRoutes(app, authRequired, requ
     if (!old) return res.status(404).json({ success: false, error: '模板不存在' });
     const oldVersion = old.version || 1;
     old.versions.push({ version: oldVersion, snapshot: buildSnapshot(old), operator: req.user?.username || '' });
-    Object.assign(old, req.body || {});
+    
+    const body = req.body || {};
+    
+    // Safely update nested uiConfig properties
+    if (body.uiConfig) {
+      // Deep merge the existing uiConfig with the new one
+      const currentUiConfig = old.uiConfig ? old.uiConfig.toObject ? old.uiConfig.toObject() : old.uiConfig : {};
+      
+      // Handle nested 'seo' and 'colors' properly without losing old keys
+      const mergedUiConfig = { ...currentUiConfig, ...body.uiConfig };
+      if (body.uiConfig.seo) {
+        mergedUiConfig.seo = { ...(currentUiConfig.seo || {}), ...body.uiConfig.seo };
+      }
+      if (body.uiConfig.colors) {
+        mergedUiConfig.colors = { ...(currentUiConfig.colors || {}), ...body.uiConfig.colors };
+      }
+      
+      old.uiConfig = mergedUiConfig;
+      old.markModified('uiConfig');
+      delete body.uiConfig;
+    }
+    
+    Object.assign(old, body);
     old.version = oldVersion + 1;
     old.updatedBy = req.user?.username || '';
     await old.save();

@@ -7,6 +7,7 @@ let templates = [];
 let activityModal;
 let channelLinksModal;
 let channelManageModal;
+let regEditModal;
 
 function esc(s) { return String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
 
@@ -315,7 +316,50 @@ async function loadRegistrations() {
     <td>${esc(r.position || '')}</td>
     <td>${esc(r.email || '')}</td>
     <td>${r.registerTime ? new Date(r.registerTime).toLocaleString('zh-CN') : ''}</td>
+    <td>
+      <button class="btn btn-sm btn-outline-primary me-1" onclick="openRegEdit('${r._id}', '${esc(r.name)}', '${esc(r.phone)}', '${esc(r.company)}', '${esc(r.position || '')}', '${esc(r.email || '')}')">编辑</button>
+      <button class="btn btn-sm btn-outline-danger" onclick="deleteRegistration('${r._id}')">删除</button>
+    </td>
   </tr>`).join('');
+}
+
+function openRegEdit(id, name, phone, company, position, email) {
+  document.getElementById('regEditId').value = id;
+  document.getElementById('regEditName').value = name;
+  document.getElementById('regEditPhone').value = phone;
+  document.getElementById('regEditCompany').value = company;
+  document.getElementById('regEditPosition').value = position;
+  document.getElementById('regEditEmail').value = email;
+  regEditModal.show();
+}
+
+async function saveRegEdit() {
+  const id = document.getElementById('regEditId').value;
+  const name = document.getElementById('regEditName').value.trim();
+  const phone = document.getElementById('regEditPhone').value.trim();
+  const company = document.getElementById('regEditCompany').value.trim();
+  const position = document.getElementById('regEditPosition').value.trim();
+  const email = document.getElementById('regEditEmail').value.trim();
+
+  if (!name || !phone || !company) return alert('姓名、电话、公司名称不能为空');
+
+  const res = await fetch('/api/activity/registrations/' + id, {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: JSON.stringify({ name, phone, company, position, email })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.success) return alert(data.error || '保存失败');
+  regEditModal.hide();
+  await loadRegistrations();
+}
+
+async function deleteRegistration(id) {
+  if (!confirm('确定要删除这条报名记录吗？此操作不可恢复。')) return;
+  const res = await fetch('/api/activity/registrations/' + id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.success) return alert(data.error || '删除失败');
+  await loadRegistrations();
 }
 
 async function exportRegistrations() {
@@ -347,6 +391,31 @@ document.addEventListener('DOMContentLoaded', async () => {
   activityModal = new bootstrap.Modal(document.getElementById('activityModal'));
   channelLinksModal = new bootstrap.Modal(document.getElementById('channelLinksModal'));
   channelManageModal = new bootstrap.Modal(document.getElementById('channelManageModal'));
+  regEditModal = new bootstrap.Modal(document.getElementById('regEditModal'));
+
+  // Handle aHeroImageFile upload
+  const aHeroFile = document.getElementById('aHeroImageFile');
+  if (aHeroFile) {
+    aHeroFile.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const formData = new FormData();
+      formData.append('file', file);
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: formData });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('aHeroImage').value = data.url;
+        } else {
+          alert(data.error || '上传失败');
+        }
+      } catch (err) {
+        alert('上传异常');
+      }
+      e.target.value = '';
+    });
+  }
+
   try {
     await initBaseData();
     if (!channels.length) {
@@ -369,6 +438,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   document.getElementById('btnSaveChannel').addEventListener('click', saveChannel);
   document.getElementById('btnResetChannelForm').addEventListener('click', resetChannelForm);
+  document.getElementById('btnSaveRegEdit').addEventListener('click', saveRegEdit);
 });
 
 window.quickChannel = quickChannel;
@@ -378,3 +448,5 @@ window.copyText = copyText;
 window.editChannel = editChannel;
 window.editChannelFromBtn = editChannelFromBtn;
 window.deleteChannel = deleteChannel;
+window.openRegEdit = openRegEdit;
+window.deleteRegistration = deleteRegistration;

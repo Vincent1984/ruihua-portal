@@ -249,6 +249,7 @@ module.exports = function registerActivityRoutes(app, authRequired, requirePerm,
     res.json({ success: true, data: activity });
   });
 
+
   app.put('/api/activity/:id', authRequired, requirePerm('appointment:edit'), async (req, res) => {
     const payload = normalizeActivityPayload(req.body || {});
     const errMsg = await validateActivityPayload(payload, true);
@@ -359,6 +360,33 @@ module.exports = function registerActivityRoutes(app, authRequired, requirePerm,
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.send(buffer);
   });
+
+  // Ensure /api/activity/registrations/:id comes BEFORE /api/activity/:id routes
+  app.put('/api/activity/registrations/:id', authRequired, requirePerm('appointment:edit'), async (req, res) => {
+    try {
+      const { name, phone, company, position, email } = req.body;
+      if (!name || !phone || !company) return res.status(400).json({ success: false, error: '必填字段缺失' });
+      const r = await Registration.findByIdAndUpdate(req.params.id, { name, phone, company, position, email }, { new: true });
+      if (!r) return res.status(404).json({ success: false, error: '记录不存在' });
+      await logOp('update', 'Registration', `Updated registration: ${name} (${phone})`, req.user.username);
+      res.json({ success: true, data: r });
+    } catch (e) {
+      res.status(500).json({ success: false, error: '修改失败' });
+    }
+  });
+
+  app.delete('/api/activity/registrations/:id', authRequired, requirePerm('appointment:edit'), async (req, res) => {
+    try {
+      const r = await Registration.findByIdAndDelete(req.params.id);
+      if (!r) return res.status(404).json({ success: false, error: '记录不存在' });
+      await logOp('delete', 'Registration', `Deleted registration: ${r.name} (${r.phone})`, req.user.username);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ success: false, error: '删除失败' });
+    }
+  });
+
+
 
   app.get('/api/public/activity/:token', async (req, res) => {
     const activity = await Activity.findOne({ 'channelConfigs.token': req.params.token, status: 'published' })

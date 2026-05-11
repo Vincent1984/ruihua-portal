@@ -378,7 +378,8 @@ const rootHtmlFiles = [
     'solutions-ohcvm.html',
     'about.html',
     'ai-strategic.html',
-    'ai-strategic-special.html'
+    'ai-strategic-special.html',
+    'nurture.html'
 ];
 
 rootHtmlFiles.forEach(file => {
@@ -2953,6 +2954,55 @@ app.post('/api/upload', authRequired, uploadLimiter, (req, res) => {
     });
 });
 
+app.post('/api/upload/fetch-url', authRequired, async (req, res) => {
+    try {
+        const { url } = req.body;
+        if (!url) {
+            return res.status(400).json({ error: 'No URL provided' });
+        }
+
+        const fetch = (await import('node-fetch')).default;
+        const response = await fetch(url);
+        if (!response.ok) {
+            return res.status(400).json({ error: 'Failed to fetch image from URL' });
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.startsWith('image/')) {
+            return res.status(400).json({ error: 'URL does not point to a valid image' });
+        }
+
+        let ext = '';
+        if (contentType === 'image/jpeg') ext = '.jpg';
+        else if (contentType === 'image/png') ext = '.png';
+        else if (contentType === 'image/gif') ext = '.gif';
+        else if (contentType === 'image/webp') ext = '.webp';
+        else ext = '.jpg';
+
+        const filename = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`;
+        const dir = path.join(__dirname, 'public', 'uploads');
+        ensureDirSync(dir);
+        
+        const filepath = path.join(dir, filename);
+        const dest = fs.createWriteStream(filepath);
+        response.body.pipe(dest);
+
+        await new Promise((resolve, reject) => {
+            dest.on('finish', resolve);
+            dest.on('error', reject);
+        });
+
+        const localUrl = `/uploads/${filename}`;
+        
+        // If TOS is enabled, we could also upload it to TOS, but for now we just return the local URL 
+        // to keep it simple and fulfill the requirement.
+        res.json({ success: true, url: localUrl });
+    } catch (e) {
+        console.error('Fetch URL error:', e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // --- SMS Verification Code API ---
 // 生成6位随机验证码
 function generateVerificationCode() {
@@ -2960,24 +3010,76 @@ function generateVerificationCode() {
 }
 
 // 发送短信验证码
-const smsLimiter = rateLimit({ windowMs: 10 * 60 * 1000, max: 3, standardHeaders: true, legacyHeaders: false });
+const smsLimiter = rateLimit({ 
+    windowMs: 10 * 60 * 1000, 
+    max: 5, // Allow 5 per 10 mins globally per IP
+    standardHeaders: true, 
+    legacyHeaders: false,
+    message: { error: '请求过于频繁，请稍后再试' }
+});
+
+const https = require('https');
+const http = require('http');
+
+async function sendSmsWithRetry(url, payload, retries = 1, timeout = 5000) {
+    let lastError;
+    // Force IPv4 to prevent Node.js DNS resolution delays (common 30s timeout issue)
+    const httpAgent = new http.Agent({ family: 4 });
+    const httpsAgent = new https.Agent({ family: 4 });
+
+    for (let i = 0; i <= retries; i++) {
+        try {
+            const startTime = Date.now();
+            const response = await axios.post(url, payload, {
+                headers: { 'Content-Type': 'application/json; charset=utf-8' },
+                timeout: timeout,
+                httpAgent,
+                httpsAgent
+            });
+            const duration = Date.now() - startTime;
+            console.log(`[SMS DEBUG] Attempt ${i + 1}: SMS API responded in ${duration}ms`);
+            return response;
+        } catch (error) {
+            lastError = error;
+            console.error(`[SMS ERROR] Attempt ${i + 1} failed: ${error.message}`);
+            if (i < retries) {
+                // Exponential backoff
+                await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, i)));
+            }
+        }
+    }
+    throw lastError;
+}
+
 app.post('/api/send-verification-code', smsLimiter, async (req, res) => {
     try {
-        const { phone } = req.body;
+        const { phone, scene } = req.body;
         
         // 验证手机号格式
         if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
             return res.status(400).json({ error: '请输入有效的11位手机号码' });
         }
         
-        // 检查是否在3分钟内已发送过验证码
+        // 防刷策略：单号码每日上限 (例如 10次/天)
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+        const dailyCount = await VerificationCode.countDocuments({
+            phone: phone,
+            createdAt: { $gte: startOfDay }
+        });
+        
+        if (dailyCount >= 10) {
+            return res.status(429).json({ error: '该手机号今日验证码发送次数已达上限' });
+        }
+
+        // 检查是否在1分钟内已发送过验证码 (防并发/连点机制)
         const existingCode = await VerificationCode.findOne({
             phone: phone,
-            createdAt: { $gt: new Date(Date.now() - 3 * 60 * 1000) }
+            createdAt: { $gt: new Date(Date.now() - 60 * 1000) }
         });
         
         if (existingCode) {
-            const remainingTime = Math.ceil((existingCode.createdAt.getTime() + 3 * 60 * 1000 - Date.now()) / 1000);
+            const remainingTime = Math.ceil((existingCode.createdAt.getTime() + 60 * 1000 - Date.now()) / 1000);
             return res.status(429).json({ 
                 error: '验证码发送过于频繁，请稍后再试',
                 remainingTime: remainingTime
@@ -2987,16 +3089,39 @@ app.post('/api/send-verification-code', smsLimiter, async (req, res) => {
         // 生成验证码
         const code = generateVerificationCode();
         
-        // 准备短信内容
-        const smsContent = `【瑞华智策】验证码为：${code} 你正在预约组织人效体检，需要进行验证码校验（3分钟内有效），请勿向任何人提供此验证码。`;
+        // Check mock mode
+        const isMockMode = process.env.SMS_MOCK_MODE === 'true';
+        if (isMockMode) {
+            console.log(`[SMS MOCK] Phone: ${phone}, Code: ${code}`);
+            const verificationCode = new VerificationCode({
+                phone: phone,
+                code: code
+            });
+            await verificationCode.save();
+            return res.json({
+                success: true,
+                message: '验证码已发送（模拟模式）',
+                expiresIn: 180,
+                mockCode: code
+            });
+        }
         
-        // 发送短信
+        // 准备短信内容
+        let smsContent = `【瑞华智策】验证码为：${code} 你正在预约组织人效体检，需要进行验证码校验（3分钟内有效），请勿向任何人提供此验证码。`;
+        if (scene === 'activity') {
+            smsContent = `【瑞华智策】验证码为：${code}，用于活动信息校验（3分钟内有效），请勿向任何人提供此验证码。`;
+        }
+        
+        // 异步保存验证码到数据库以减少阻塞时间
+        const dbSavePromise = new VerificationCode({
+            phone: phone,
+            code: code
+        }).save();
+        
+        // 发送短信，带有重试和超时监控
         try {
-            console.log(`[SMS DEBUG] Preparing to send SMS to ${phone}`);
             const maskedUser = (process.env.SMS_USERNAME || '').replace(/.(?=.{2})/g, '*');
-            console.log('[SMS DEBUG] Using SMS provider');
-            console.log(`[SMS DEBUG] Username: ${maskedUser}`);
-            // Do not log password
+            console.log(`[SMS DEBUG] Preparing to send SMS to ${phone}, User: ${maskedUser}`);
             
             const smsPayload = {
                 loginname: process.env.SMS_USERNAME,
@@ -3005,12 +3130,8 @@ app.post('/api/send-verification-code', smsLimiter, async (req, res) => {
                 content: smsContent
             };
             
-            const smsResponse = await axios.post(process.env.SMS_API_URL, smsPayload, {
-                headers: {
-                    'Content-Type': 'application/json; charset=utf-8'
-                },
-                timeout: 10000
-            });
+            // 限制最大重试 1 次，首次超时 5 秒，确保总体在 10s 内返回响应
+            const smsResponse = await sendSmsWithRetry(process.env.SMS_API_URL, smsPayload, 1, 5000);
             
             console.log('[SMS DEBUG] SMS API Response Status:', smsResponse.status);
             console.log('[SMS DEBUG] SMS API Response Data:', JSON.stringify(smsResponse.data));
@@ -3020,15 +3141,9 @@ app.post('/api/send-verification-code', smsLimiter, async (req, res) => {
                 return res.status(500).json({ error: '短信发送失败：' + (smsResponse.data.pno || '未知错误') });
             }
             
-            console.log('[SMS DEBUG] SMS sent successfully. Saving to DB...');
+            console.log('[SMS DEBUG] SMS sent successfully.');
 
-            // 保存验证码到数据库
-            const verificationCode = new VerificationCode({
-                phone: phone,
-                code: code
-            });
-            
-            await verificationCode.save();
+            await dbSavePromise; // 确保数据库保存成功
             console.log('[SMS DEBUG] Verification code saved to DB.');
             
             res.json({ 
@@ -3042,7 +3157,7 @@ app.post('/api/send-verification-code', smsLimiter, async (req, res) => {
             if (smsError.response) {
                 console.error('[SMS ERROR] Response Data:', smsError.response.data);
             }
-            return res.status(500).json({ error: '短信发送失败，请稍后重试' });
+            return res.status(500).json({ error: '短信通道拥堵或超时，请稍后重试' });
         }
         
     } catch (error) {

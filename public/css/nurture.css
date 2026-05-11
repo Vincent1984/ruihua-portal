@@ -1,0 +1,88 @@
+/* ==========================================================================
+   Nurture Page Custom CSS (Feishu VI Light Theme)
+   Colors: Primary #3370ff, Secondary #f2f3f5, Accent #00d4aa
+   Interactions: 60fps CSS3 only
+   ========================================================================== */
+
+/* 导航栏链接 hover 下划线动画与颜色渐变 */
+.nav-link {
+    position: relative;
+    color: #1f2329; /* 飞书默认深色文本 */
+    transition: color 0.3s ease-in-out;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -4px;
+    left: 50%;
+    background-color: #3370ff;
+    transition: all 0.3s ease-in-out;
+    transform: translateX(-50%);
+}
+
+.nav-link:hover {
+    color: #3370ff;
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+/* 功能卡片 hover 上浮8px并显示投影加深 */
+.feature-card {
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 2px 8px rgba(31, 35, 41, 0.05); /* 初始浅色投影 */
+    will-change: transform, box-shadow; /* 强制硬件加速以达到 60fps */
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(31, 35, 41, 0.15); /* 加深投影 */
+}
+
+/* 按钮 hover 背景色透明度降低15%并伴随0.3s过渡动画 */
+/* 
+   飞书主色 #3370ff。
+   降低15%透明度，可以使用 rgba 或者 css color-mix。
+   为了最大兼容性，我们在 hover 时改变背景色为一个稍浅的蓝色 (相当于透明度降低叠加在白色底上的效果)，
+   或者直接使用 rgba。
+*/
+.btn-primary {
+    background-color: #3370ff;
+    color: #ffffff;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    will-change: background-color;
+}
+
+.btn-primary:hover {
+    /* 降低约 15% 不透明度的视觉效果（接近 #5185ff） */
+    background-color: rgba(51, 112, 255, 0.85);
+}
+
+.btn-accent {
+    background-color: #00d4aa;
+    color: #ffffff;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    will-change: background-color;
+}
+
+.btn-accent:hover {
+    /* 降低约 15% 不透明度的视觉效果 */
+    background-color: rgba(0, 212, 170, 0.85);
+}
+
+/* 表格 Hover 效果适配浅色主题 */
+.table-row-hover {
+    transition: background-color 0.2s ease;
+}
+.table-row-hover:hover {
+    background-color: #f2f3f5;
+}
+
+/* Timeline 适配 */
+.timeline-dot {
+    box-shadow: 0 0 0 4px rgba(51, 112, 255, 0.15);
+}

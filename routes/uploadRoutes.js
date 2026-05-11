@@ -88,4 +88,52 @@ module.exports = function(app, authRequired, logOp) {
             res.status(500).json({ error: e.message });
         }
     });
+
+    // Fetch image from URL and save locally
+    app.post('/api/upload/fetch-url', authRequired, async (req, res) => {
+        try {
+            const { url } = req.body;
+            if (!url) {
+                return res.status(400).json({ error: 'No URL provided' });
+            }
+
+            const fetch = (await import('node-fetch')).default;
+            const response = await fetch(url);
+            if (!response.ok) {
+                return res.status(400).json({ error: 'Failed to fetch image from URL' });
+            }
+
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.startsWith('image/')) {
+                return res.status(400).json({ error: 'URL does not point to a valid image' });
+            }
+
+            let ext = '';
+            if (contentType === 'image/jpeg') ext = '.jpg';
+            else if (contentType === 'image/png') ext = '.png';
+            else if (contentType === 'image/gif') ext = '.gif';
+            else if (contentType === 'image/webp') ext = '.webp';
+            else ext = '.jpg'; // fallback
+
+            const filename = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`;
+            const dir = path.join(__dirname, '..', 'public', 'uploads');
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir, { recursive: true });
+            }
+            const filepath = path.join(dir, filename);
+            const dest = fs.createWriteStream(filepath);
+            response.body.pipe(dest);
+
+            await new Promise((resolve, reject) => {
+                dest.on('finish', resolve);
+                dest.on('error', reject);
+            });
+
+            const localUrl = `/uploads/${filename}`;
+            res.json({ success: true, url: localUrl });
+        } catch (e) {
+            console.error('Fetch URL error:', e);
+            res.status(500).json({ error: e.message });
+        }
+    });
 };

@@ -40,12 +40,21 @@ const activityTemplateSchema = new mongoose.Schema({
     },
     panelOpacity: { type: Number, default: 0.06 },
     backgroundImage: { type: String, default: '' },
+    heroImage: { type: String, default: '' },
     logoImage: { type: String, default: '' },
     pageTitle: { type: String, default: '' },
+    seo: {
+      title: { type: String, default: '' },
+      description: { type: String, default: '' },
+      keywords: { type: String, default: '' }
+    },
     activityIntro: { type: String, default: '' },
     noticeText: { type: String, default: '' },
     successRedirect: { type: String, default: '' },
-    successMessage: { type: String, default: '报名成功！后续将通过短信/邮件发放参会邀请函。' }
+    successMessage: { type: String, default: '报名成功！后续将通过短信/邮件发放参会邀请函。' },
+    wechatId: { type: String, default: '' },
+    wechatGuide: { type: String, default: '添加工作人员微信，获取更多活动详情' },
+    wechatQrCode: { type: String, default: '' }
   },
   usageStats: {
     viewed: { type: Number, default: 0 },

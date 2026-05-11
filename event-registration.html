@@ -2,96 +2,438 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>活动报名</title>
+  <meta name="description" content="" id="metaDescription" />
+  <meta name="keywords" content="" id="metaKeywords" />
   <style>
     :root {
       --bg-start: #8b5cff;
       --bg-end: #6f42ff;
       --title-color: #ffffff;
-      --panel-opacity: 0.06;
       --btn-start: #8a54ff;
       --btn-end: #5a26ff;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif;
-      color: #fff;
-      background: radial-gradient(1200px 600px at 50% -100px, #c9b5ff 0%, rgba(201,181,255,0) 40%), linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      color: #333;
+      background: #FFFFFF;
       min-height: 100vh;
-      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0;
     }
-    .hero {
-      max-width: 420px;
-      margin: 0 auto;
-      border-radius: 20px;
-      padding: 16px;
-      background: rgba(255,255,255,var(--panel-opacity));
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,.2);
-      box-shadow: 0 16px 40px rgba(33,16,86,.35);
-    }
-    .title { text-align: center; font-size: 24px; font-weight: 700; margin: 8px 0 6px; color: var(--title-color); }
-    .hero-image-wrap { margin-bottom: 10px; border-radius: 14px; overflow: hidden; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2); }
-    .hero-image { width: 100%; height: auto; display: block; max-height: 220px; object-fit: cover; }
-    .sub { opacity: .92; font-size: 14px; line-height: 1.7; margin-bottom: 12px; }
-    .field { margin-bottom: 10px; }
-    .label { font-size: 14px; margin-bottom: 6px; display:block; }
-    .input {
+    .container {
       width: 100%;
-      border: 0;
-      outline: 0;
-      border-radius: 28px;
-      height: 42px;
-      padding: 0 16px;
-      color: #3f2e7e;
-      background: rgba(240,234,255,.96);
-      box-shadow: inset 0 2px 6px rgba(40,0,110,.12);
-      font-size: 14px;
+      max-width: 480px;
+      position: relative;
+      padding-bottom: 40px;
+      background: #FFFFFF;
     }
-    .row { display: flex; gap: 10px; }
-    .btn-code {
-      min-width: 92px;
-      border-radius: 24px;
-      border: 0;
-      background: linear-gradient(90deg, #8c5bff, #6936ff);
+    .main-content {
+      position: relative;
+      z-index: 2;
+      padding: 24px 20px;
+      background: linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 100%);
       color: #fff;
-      font-weight: 600;
-      box-shadow: 0 8px 16px rgba(49,23,145,.35);
+    }
+    .hero-image-wrap {
+      width: 100%;
+      display: none;
+      margin-bottom: 0;
+      line-height: 0;
+    }
+    .hero-image {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
+    }
+    .activity-intro {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+      opacity: 0.95;
+    }
+    .field-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .field-label {
+      width: 80px;
+      font-size: 14px;
+      flex-shrink: 0;
+      text-align: left;
+    }
+    .field-input-wrap {
+      flex: 1;
+      position: relative;
+      display: flex;
+    }
+    .input-base {
+      width: 100%;
+      height: 42px;
+      border-radius: 25px;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      padding: 0 20px;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #333;
+      outline: none;
+      transition: all 0.3s ease;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .input-base:hover, .input-base:focus {
+      border-color: #7c4dff;
+      background: #ffffff;
+      box-shadow: 0 0 0 2px rgba(124, 77, 255, 0.2);
+    }
+    .input-base::placeholder {
+      color: #999;
+    }
+    .btn-code {
+      position: absolute;
+      right: 4px;
+      top: 4px;
+      bottom: 4px;
+      border-radius: 20px;
+      border: none;
+      background: linear-gradient(90deg, #9b6cff, #7f4aff);
+      color: #fff;
+      padding: 0 16px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: opacity 0.3s, transform 0.1s;
+    }
+    .btn-code:hover {
+      opacity: 0.9;
+    }
+    .btn-code:active {
+      transform: scale(0.98);
     }
     .btn-submit {
-      width: 180px;
+      width: 100%;
+      max-width: 240px;
       height: 44px;
-      border: 0;
-      border-radius: 28px;
+      margin: 32px auto 24px;
       display: block;
-      margin: 16px auto 8px;
-      color: #fff;
-      font-size: 20px;
-      font-weight: 700;
+      border: none;
+      border-radius: 22px;
       background: linear-gradient(90deg, var(--btn-start), var(--btn-end));
-      box-shadow: 0 12px 24px rgba(40, 0, 110, .4);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
     }
-    .tips { margin-top: 14px; font-size: 13px; opacity: .95; line-height: 1.8; }
-    .closed { background: rgba(255,61,93,.2); border: 1px solid rgba(255,115,139,.5); border-radius: 12px; padding: 10px; margin-bottom: 10px; font-size: 13px; }
+    .btn-submit:hover {
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+      transform: translateY(-2px);
+    }
+    .btn-submit:disabled {
+      background: #999;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+    .u-shape-border {
+      position: relative;
+      margin: 0 4px;
+      padding: 0 28px 24px;
+      border-radius: 0 0 20px 20px;
+      background: transparent;
+    }
+    /* 使用 ::before 绘制粗细渐变的 U 型光影边框 */
+    .u-shape-border::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 0 0 20px 20px;
+      padding: 0 2px 4px 2px; /* 控制边框粗细过渡：顶部 0，左右 2px，底部最宽 4px */
+      /* 线性渐变背景作为边框的颜色 */
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 40%, rgba(255, 255, 255, 0.9) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    /* 使用 ::after 增加底部的 3D 立体发光阴影效果 */
+    .u-shape-border::after {
+      content: '';
+      position: absolute;
+      left: 2px;
+      right: 2px;
+      bottom: -2px;
+      height: 20px;
+      border-radius: 0 0 20px 20px;
+      background: transparent;
+      box-shadow: 0 8px 16px rgba(255, 255, 255, 0.15), inset 0 -4px 10px rgba(255, 255, 255, 0.2);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .notice-area {
+      font-size: 13px;
+      line-height: 1.8;
+      color: #fff;
+      padding: 16px 4px 0;
+      margin-top: 24px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.3);
+    }
+    .notice-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .notice-header .icon {
+      transition: transform 0.3s;
+      font-size: 12px;
+    }
+    .notice-header.collapsed .icon {
+      transform: rotate(-90deg);
+    }
+    .notice-content {
+      overflow: hidden;
+      max-height: 1000px;
+      transition: max-height 0.3s ease;
+      opacity: 0.9;
+    }
+    .notice-content.collapsed {
+      max-height: 0;
+    }
+    .notice-content a {
+      color: #fff;
+      text-decoration: underline;
+    }
+    .logo-area {
+      text-align: center;
+      margin-top: 24px;
+    }
+    .logo-area img {
+      max-width: 120px;
+      opacity: 0.8;
+    }
+    .closed {
+      background: rgba(255,61,93,.2); 
+      border: 1px solid rgba(255,115,139,.5); 
+      border-radius: 12px; 
+      padding: 10px; 
+      margin-bottom: 20px; 
+      font-size: 13px;
+      text-align: center;
+    }
+
+    /* 成功反馈弹窗样式 */
+    .success-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .success-overlay.show {
+      opacity: 1;
+    }
+    .success-modal {
+      background: #fff;
+      width: 100%;
+      max-width: 320px;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      transform: scale(0.95);
+      transition: transform 0.3s ease;
+      text-align: center;
+    }
+    .success-overlay.show .success-modal {
+      transform: scale(1);
+    }
+    .success-header {
+      background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+      padding: 40px 20px 30px;
+      color: #fff;
+      position: relative;
+    }
+    .success-icon-wrap {
+      width: 60px;
+      height: 60px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .success-icon-wrap svg {
+      width: 32px;
+      height: 32px;
+      fill: #fff;
+    }
+    .success-title {
+      margin: 0 0 8px;
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .success-msg {
+      margin: 0;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .success-wechat-box {
+      padding: 24px;
+      background: #fff;
+      display: none;
+    }
+    .wechat-guide {
+      font-size: 14px;
+      color: #666;
+      margin: 0 0 16px;
+    }
+    .wechat-qr {
+      width: 140px;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #eee;
+      margin: 0 auto 12px;
+      display: none;
+    }
+    .wechat-id-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 8px 12px;
+      max-width: 220px;
+      margin: 0 auto;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .wechat-id-wrap:hover {
+      background: #e9ecef;
+    }
+    .wechat-id-wrap svg {
+      width: 20px;
+      height: 20px;
+      fill: #07c160;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+    .wechat-id {
+      font-size: 15px;
+      font-weight: 600;
+      color: #333;
+      margin-right: 8px;
+    }
+    .copy-icon {
+      font-size: 12px;
+      color: #6c757d;
+      display: flex;
+      align-items: center;
+    }
+    .copy-icon svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+      margin: 0;
+    }
+    .success-footer {
+      padding: 16px;
+      background: #fff;
+      border-top: 1px solid #f0f0f0;
+    }
+    .btn-success-close {
+      width: 100%;
+      height: 44px;
+      border: none;
+      border-radius: 22px;
+      background: linear-gradient(90deg, var(--btn-start), var(--btn-end));
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <div class="hero">
-    <div class="hero-image-wrap" id="heroImageWrap" style="display:none">
+  <div class="container">
+    <div class="hero-image-wrap" id="heroImageWrap">
       <img id="heroImage" class="hero-image" alt="活动主视觉" />
     </div>
-    <div class="title" id="title">活动报名</div>
-    <div class="sub" id="meta">加载中...</div>
-    <div class="closed" id="closedTip" style="display:none">当前活动报名已截止。</div>
-    <form id="regForm">
-      <div id="dynamicFields"></div>
-      <button class="btn-submit" type="submit" id="submitBtn">立即提交</button>
-    </form>
-    <div class="tips" id="tips"></div>
+
+    <div class="main-content">
+      <div class="u-shape-border">
+        
+        <div class="closed" id="closedTip" style="display:none">当前活动报名已截止。</div>
+        
+        <div class="activity-intro" id="meta">加载中...</div>
+
+        <form id="regForm">
+          <div id="dynamicFields"></div>
+          <button class="btn-submit" type="submit" id="submitBtn">立即提交</button>
+        </form>
+
+        <div class="notice-area" id="noticeArea" style="display:none;">
+          <div class="notice-header" id="noticeHeader">
+            <span>活动注意事项</span>
+            <span class="icon">▼</span>
+          </div>
+          <div class="notice-content" id="noticeContent">
+            <div id="tips"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="logo-area" id="logoWrap" style="display:none">
+      <img id="logoImage" src="" alt="LOGO">
+    </div>
   </div>
 
+  <div class="success-overlay" id="successOverlay">
+    <div class="success-modal">
+      <div class="success-header">
+        <div class="success-icon-wrap">
+          <svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+        </div>
+        <h3 class="success-title">报名成功</h3>
+        <p class="success-msg" id="successMsgText">报名成功！后续将通过短信/邮件发放参会邀请函。</p>
+      </div>
+      <div class="success-wechat-box" id="successWechatBox">
+        <p class="wechat-guide" id="successWechatGuide">添加工作人员微信，获取更多活动详情</p>
+        <img class="wechat-qr" id="successWechatQr" src="" alt="微信二维码">
+        <div class="wechat-id-wrap" id="successWechatIdWrap">
+          <svg viewBox="0 0 1024 1024"><path d="M682.667 341.333c-15.36 0-29.867 1.707-44.373 4.267-27.307-108.373-128.853-189.44-249.173-189.44-143.787 0-261.12 101.547-261.12 227.413 0 71.68 37.547 136.533 98.133 179.2l-25.6 78.507 88.747-44.373c32.427 10.24 67.413 15.36 103.253 15.36 14.507 0 28.16-0.853 41.813-3.413-5.973-22.187-8.533-46.08-8.533-70.827 0-117.76 112.64-213.333 256.853-213.333zM250.88 335.36c-17.92 0-32.427-14.507-32.427-32.427s14.507-32.427 32.427-32.427 32.427 14.507 32.427 32.427-14.507 32.427-32.427 32.427z m256 0c-17.92 0-32.427-14.507-32.427-32.427s14.507-32.427 32.427-32.427 32.427 14.507 32.427 32.427-14.507 32.427-32.427 32.427z m389.12 219.307c0-101.547-98.133-184.32-218.453-184.32s-218.453 82.773-218.453 184.32c0 101.547 98.133 184.32 218.453 184.32 29.867 0 58.027-5.12 85.333-13.653l73.387 36.693-21.333-64.853c49.493-35.84 81.067-86.187 81.067-142.507z m-279.04-17.067c-13.653 0-24.747-11.093-24.747-24.747s11.093-24.747 24.747-24.747 24.747 11.093 24.747 24.747-11.093 24.747-24.747 24.747z m153.6 0c-13.653 0-24.747-11.093-24.747-24.747s11.093-24.747 24.747-24.747 24.747 11.093 24.747 24.747-11.093 24.747-24.747 24.747z"/></svg>
+          <span class="wechat-id" id="successWechatIdText"></span>
+          <span class="copy-icon" id="copyWechatBtn">
+            <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+          </span>
+        </div>
+      </div>
+      <div class="success-footer">
+        <button class="btn-success-close" id="btnSuccessClose">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
   <script>
     const token = location.pathname.split('/').pop();
     let activityData = null;
@@ -100,7 +442,8 @@
 
     function setClosed(closed) {
       document.getElementById('closedTip').style.display = closed ? 'block' : 'none';
-      ['name','phone','smsCode','company','position','email','sendCodeBtn','submitBtn'].forEach(id => document.getElementById(id).disabled = !!closed);
+      const inputs = document.querySelectorAll('input, button');
+      inputs.forEach(el => el.disabled = !!closed);
       if (closed) document.getElementById('submitBtn').textContent = '报名已截止';
     }
 
@@ -113,36 +456,68 @@
       }
       activityData = data.data;
       const style = activityData.styleConfig || {};
+      
       if (style.bgStart) document.documentElement.style.setProperty('--bg-start', style.bgStart);
       if (style.bgEnd) document.documentElement.style.setProperty('--bg-end', style.bgEnd);
-      if (style.titleColor) document.documentElement.style.setProperty('--title-color', style.titleColor);
-      if (style.panelOpacity !== undefined) document.documentElement.style.setProperty('--panel-opacity', String(style.panelOpacity));
       if (style.buttonStart) document.documentElement.style.setProperty('--btn-start', style.buttonStart);
       if (style.buttonEnd) document.documentElement.style.setProperty('--btn-end', style.buttonEnd);
+      
+      const tpl = activityData.templateConfig || null;
+      const uiCfg = tpl ? tpl.uiConfig : {};
+
+      // 1. TDK Injection
+      const pageTitle = uiCfg.pageTitle || activityData.theme || '活动报名';
+      document.title = pageTitle;
+      
+      if (uiCfg.seo) {
+        if (uiCfg.seo.description) document.getElementById('metaDescription').content = uiCfg.seo.description;
+        if (uiCfg.seo.keywords) document.getElementById('metaKeywords').content = uiCfg.seo.keywords;
+      }
+
+      // 2. Hero Image
+      const heroUrl = uiCfg.heroImage || style.heroImage;
       const heroWrap = document.getElementById('heroImageWrap');
-      const heroImg = document.getElementById('heroImage');
-      if (style.heroImage) {
-        heroImg.src = style.heroImage;
-        heroWrap.style.display = '';
+      if (heroUrl) {
+        document.getElementById('heroImage').src = heroUrl;
+        heroWrap.style.display = 'block';
+        document.querySelector('.main-content').style.marginTop = '0';
       } else {
         heroWrap.style.display = 'none';
+        document.querySelector('.main-content').style.marginTop = '0';
       }
-      const tpl = activityData.templateConfig || null;
-      if (tpl && tpl.uiConfig) {
-        if (tpl.uiConfig.pageTitle) document.getElementById('title').textContent = tpl.uiConfig.pageTitle;
-        if (tpl.uiConfig.activityIntro) document.getElementById('meta').innerHTML = tpl.uiConfig.activityIntro.replace(/\n/g, '<br>');
-        if (tpl.uiConfig.noticeText) document.getElementById('tips').innerHTML = tpl.uiConfig.noticeText.replace(/\n/g, '<br>');
+
+      // 3. Logo
+      const logoUrl = uiCfg.logoImage;
+      if (logoUrl) {
+        document.getElementById('logoImage').src = logoUrl;
+        document.getElementById('logoWrap').style.display = 'block';
       }
-      renderFormByTemplate(tpl);
-      if (!document.getElementById('title').textContent.trim() || document.getElementById('title').textContent === '活动报名') {
-        document.getElementById('title').textContent = activityData.theme || '活动报名';
-      }
-      if (!document.getElementById('meta').innerHTML.trim()) {
+
+      // 4. Texts
+      if (uiCfg.activityIntro) {
+        document.getElementById('meta').innerHTML = uiCfg.activityIntro.replace(/\\n/g, '<br>');
+      } else {
         document.getElementById('meta').innerHTML = `尊敬的企业领导者，欢迎参加本次活动！<br>时间：${activityData.eventTime}<br>地点：${activityData.location}`;
       }
-      if (!document.getElementById('tips').innerHTML.trim()) {
-        document.getElementById('tips').innerHTML = `注意事项：<br>1. 报名截止日期：${new Date(activityData.registrationDeadline).toLocaleString('zh-CN')}<br>2. 参会邀请以主办方发送的《参会邀请》为准。<br>3. 报名咨询：${activityData.organizerContact || '-'}`;
+
+      if (uiCfg.noticeText) {
+        // Sanitize rich text from CMS before rendering to prevent XSS
+        const cleanNotice = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(uiCfg.noticeText) : uiCfg.noticeText;
+        document.getElementById('tips').innerHTML = cleanNotice;
+      } else {
+        document.getElementById('tips').innerHTML = `1. 报名截止日期：${new Date(activityData.registrationDeadline).toLocaleString('zh-CN')}<br>2. 参会邀请以主办方发送的《参会邀请》为准。<br>3. 报名咨询：${activityData.organizerContact || '-'}`;
       }
+      document.getElementById('noticeArea').style.display = 'block';
+
+      // Notice collapse logic
+      const noticeHeader = document.getElementById('noticeHeader');
+      const noticeContent = document.getElementById('noticeContent');
+      noticeHeader.addEventListener('click', () => {
+        noticeHeader.classList.toggle('collapsed');
+        noticeContent.classList.toggle('collapsed');
+      });
+
+      renderFormByTemplate(tpl);
       setClosed(activityData.closed);
     }
 
@@ -160,7 +535,7 @@
         const res = await fetch('/api/send-verification-code', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone })
+          body: JSON.stringify({ phone, scene: 'activity' })
         });
         const data = await res.json();
         if (!res.ok || !data.success) throw new Error(data.error || '发送失败');
@@ -187,16 +562,36 @@
       const key = field.key;
       const label = field.label || key;
       const required = field.required ? 'required' : '';
-      const placeholder = field.placeholder || '';
+      const placeholder = field.placeholder || `请输入${label}`;
+      
       if (field.type === 'smsCode') {
-        return `<div class="field"><label class="label">${label}</label><div class="row"><input class="input" data-key="${key}" maxlength="6" ${required} placeholder="${placeholder}"><button type="button" class="btn-code" id="sendCodeBtn">发送</button></div></div>`;
+        return `<div class="field-row">
+          <div class="field-label">${label}</div>
+          <div class="field-input-wrap">
+            <input class="input-base" data-key="${key}" maxlength="6" ${required} placeholder="${placeholder}">
+            <button type="button" class="btn-code" id="sendCodeBtn">发送</button>
+          </div>
+        </div>`;
       }
+      
       if (field.type === 'textarea') {
-        return `<div class="field"><label class="label">${label}</label><textarea class="input" data-key="${key}" ${required} placeholder="${placeholder}" style="height:88px;padding-top:10px;border-radius:12px"></textarea></div>`;
+        return `<div class="field-row" style="align-items: flex-start;">
+          <div class="field-label" style="margin-top: 10px;">${label}</div>
+          <div class="field-input-wrap">
+            <textarea class="input-base" data-key="${key}" ${required} placeholder="${placeholder}" style="height:80px; padding-top:10px; resize:none;"></textarea>
+          </div>
+        </div>`;
       }
+      
       const type = field.type === 'email' ? 'email' : 'text';
       const max = field.validation && field.validation.maxLength ? `maxlength="${field.validation.maxLength}"` : '';
-      return `<div class="field"><label class="label">${label}</label><input class="input" data-key="${key}" type="${type}" ${required} ${max} placeholder="${placeholder}"></div>`;
+      
+      return `<div class="field-row">
+        <div class="field-label">${label}</div>
+        <div class="field-input-wrap">
+          <input class="input-base" data-key="${key}" type="${type}" ${required} ${max} placeholder="${placeholder}">
+        </div>
+      </div>`;
     }
 
     function renderFormByTemplate(templateConfig) {
@@ -221,10 +616,12 @@
       if (!activityData || activityData.closed) return;
       const payload = {};
       document.querySelectorAll('[data-key]').forEach(input => payload[input.getAttribute('data-key')] = (input.value || '').trim());
+      
       if (!payload.name || !/^1[3-9]\d{9}$/.test(payload.phone) || !payload.smsCode || !payload.company) {
         alert('请完整填写并检查手机号/验证码');
         return;
       }
+      
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
       btn.textContent = '提交中...';
@@ -236,13 +633,82 @@
         });
         const data = await res.json();
         if (!res.ok || !data.success) throw new Error(data.error || '提交失败');
-        alert('报名成功！后续将通过短信/邮件发放参会邀请函。');
-        document.getElementById('regForm').reset();
+        
+        // Show success modal
+        const uiCfg = (activityData.templateConfig && activityData.templateConfig.uiConfig) || {};
+        const msg = uiCfg.successMessage || '报名成功！后续将通过短信/邮件发放参会邀请函。';
+        const wechatId = uiCfg.wechatId;
+        const wechatGuide = uiCfg.wechatGuide || '添加工作人员微信，获取更多活动详情';
+        const wechatQrCode = uiCfg.wechatQrCode;
+        const redirectUrl = uiCfg.successRedirect;
+        
+        document.getElementById('successMsgText').textContent = msg;
+        
+        const wechatBox = document.getElementById('successWechatBox');
+        if (wechatId || wechatQrCode) {
+          wechatBox.style.display = 'block';
+          document.getElementById('successWechatGuide').textContent = wechatGuide;
+          
+          if (wechatQrCode) {
+            document.getElementById('successWechatQr').src = wechatQrCode;
+            document.getElementById('successWechatQr').style.display = 'block';
+          } else {
+            document.getElementById('successWechatQr').style.display = 'none';
+          }
+          
+          if (wechatId) {
+            document.getElementById('successWechatIdText').textContent = wechatId;
+            document.getElementById('successWechatIdWrap').style.display = 'flex';
+          } else {
+            document.getElementById('successWechatIdWrap').style.display = 'none';
+          }
+        } else {
+          wechatBox.style.display = 'none';
+        }
+        
+        const overlay = document.getElementById('successOverlay');
+        overlay.style.display = 'flex';
+        // Trigger reflow for transition
+        void overlay.offsetWidth;
+        overlay.classList.add('show');
+        
+        // Setup copy functionality
+        const wechatWrap = document.getElementById('successWechatIdWrap');
+        if (wechatWrap) {
+          wechatWrap.onclick = () => {
+            const wechatIdText = document.getElementById('successWechatIdText').textContent;
+            if (!wechatIdText) return;
+            navigator.clipboard.writeText(wechatIdText).then(() => {
+              const originalText = document.getElementById('successWechatGuide').textContent;
+              document.getElementById('successWechatGuide').textContent = '复制成功！请在微信中添加';
+              document.getElementById('successWechatGuide').style.color = '#07c160';
+              setTimeout(() => {
+                document.getElementById('successWechatGuide').textContent = originalText;
+                document.getElementById('successWechatGuide').style.color = '';
+              }, 2000);
+            });
+          };
+        }
+
+        document.getElementById('btnSuccessClose').onclick = () => {
+          overlay.classList.remove('show');
+          setTimeout(() => {
+            overlay.style.display = 'none';
+            if (redirectUrl) {
+              window.location.href = redirectUrl;
+            } else {
+              document.getElementById('regForm').reset();
+            }
+          }, 300);
+        };
+        
       } catch (e) {
         alert(e.message || '提交失败');
       } finally {
-        btn.disabled = false;
-        btn.textContent = '立即提交';
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '立即提交';
+        }
       }
     }
 
