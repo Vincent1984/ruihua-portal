@@ -47,6 +47,7 @@ const { requireAdminPagePermission, gatherPermissions } = require('./middleware/
 
 const app = express();
 app.disable('x-powered-by');
+app.set('trust proxy', 1); // Trust the first proxy (Kubernetes ingress/load balancer)
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.JWT_SECRET || process.env.SECRET_KEY;
 if (!SECRET_KEY) {
