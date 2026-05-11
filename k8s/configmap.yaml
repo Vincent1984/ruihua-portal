@@ -13,9 +13,13 @@ data:
   # 应用配置
   NODE_ENV: "production"
   PORT: "3000"
+  JWT_SECRET: "ruihua_secure_key_2026_!@#"
+  CORS_ALLOWED_ORIGINS: "https://ruihuaconsulting.com,https://www.ruihuaconsulting.com,https://portal.ruihuaconsulting.com"
   
   # 非敏感短信配置
   SMS_API_URL: "https://rcs.uninets.com.cn/uninetsOutInterface/domesticSmsSend"
+  SMS_USERNAME: "rrxt"
+  SMS_PASSWORD: "Renrui123"
 
   # TOS 对象存储配置（非敏感项）
   TOS_ENDPOINT: "https://tos-cn-shanghai.volces.com"
