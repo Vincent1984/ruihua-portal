@@ -4,7 +4,6 @@ kind: Kustomization
 resources:
 - configmap.yaml
 - app-secret.yaml
-- tos-secret.yaml
 - mongodb-deployment.yaml
 - app-deployment.yaml
 
