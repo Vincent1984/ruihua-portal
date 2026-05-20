@@ -279,7 +279,10 @@ module.exports = function registerActivityRoutes(app, authRequired, requirePerm,
     if (!activity) return res.status(404).json({ success: false, error: '活动不存在' });
     const channels = await Channel.find({ _id: { $in: activity.channels } });
     const channelMap = new Map(channels.map(c => [String(c._id), c]));
-    const site = process.env.SITE_URL || 'http://localhost:3000';
+    const site = process.env.SITE_URL;
+    if (!site) {
+      return res.status(500).json({ success: false, error: '系统配置错误：未设置 SITE_URL 环境变量' });
+    }
 
     const links = [];
     for (const cfg of activity.channelConfigs || []) {

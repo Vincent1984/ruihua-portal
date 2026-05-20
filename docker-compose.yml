@@ -10,6 +10,7 @@ services:
       - mongodb
     environment:
       - NODE_ENV=production
+      - SITE_URL=https://www.ruihuaconsulting.com
       - DB_HOST=mongodb
       - DB_PORT=27017
       - DB_NAME=ruihua_cms

@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业AI落地咨询式培训课程 - 瑞华智策</title>
+    <meta name="description" content="瑞华智策企业AI落地相关的咨询式培训。包含AI变革管理高层工作坊、打造AI驱动的动态人效管理体系工作坊、基于“人+AI”的混合劳动力规划工作坊等核心课程。">
+    <meta name="keywords" content="瑞华智策, 人力资本价值经营, AI变革管理, 动态人效, 混合劳动力规划, 培训课程">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c4dff', // Primary brand color
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/training.css">
+    <link rel="canonical" href="https://www.ruihuaconsulting.com/training">
+    
+    <!-- 百度统计 -->
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?3302f271fa7fe8d2ddc6176b39359827";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased selection:bg-brand-200 selection:text-brand-900">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300 bg-white/90 backdrop-blur-md border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-4 md:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center gap-2">
+                    <a href="/" class="flex items-center gap-2">
+                        <img src="/images/logo.png" alt="瑞华智策 Logo" class="h-8 w-auto" />
+                    </a>
+                    <span class="hidden sm:inline-block text-slate-300 mx-2">|</span>
+                    <span class="hidden sm:inline-block text-sm text-slate-500">人力资本价值经营一体化解决方案</span>
+                </div>
+                <div class="hidden lg:flex space-x-2">
+                    <a href="/" class="nav-link px-3 py-2 text-slate-600 hover:text-brand-700 font-medium">首页</a>
+                    <div class="relative group inline-block">
+    <a href="/solutions/" class="nav-link px-3 py-2 text-slate-600 hover:text-brand-700 font-medium flex items-center gap-1">
+        解决方案
+        <i class="fas fa-chevron-down text-[10px] transition-transform duration-300 group-hover:rotate-180"></i>
+    </a>
+    <div class="absolute left-1/2 -translate-x-1/2 top-full pt-4 w-[24rem] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl shadow-brand-500/10 border border-slate-100 overflow-hidden p-3 relative">
+            <!-- Decorative background -->
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-brand-50 to-white rounded-bl-full -z-10 opacity-60"></div>
+            
+            <a href="/solutions-hcvm/" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all">
+                <div class="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center shrink-0 group-hover/item:bg-brand-600 group-hover/item:text-white transition-colors shadow-sm">
+                    <i class="fas fa-chess-knight text-lg"></i>
+                </div>
+                <div>
+                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-brand-700 mb-0.5">人力资本价值经营</div>
+                    <div class="text-[11px] text-slate-500">HCVM体系 (自有员工)</div>
+                </div>
+            </a>
+            
+            <a href="/solutions-ohcvm/" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all mt-1">
+                <div class="w-10 h-10 rounded-xl bg-[#00f0ff]/10 text-[#00a0ff] flex items-center justify-center shrink-0 group-hover/item:bg-[#00a0ff] group-hover/item:text-white transition-colors shadow-sm">
+                    <i class="fas fa-network-wired text-lg"></i>
+                </div>
+                <div>
+                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-[#00a0ff] mb-0.5">全场景一体化用工</div>
+                    <div class="text-[11px] text-slate-500">OHCVM体系 (外包员工)</div>
+                </div>
+            </a>
+            
+            <div class="h-px w-full bg-gradient-to-r from-transparent via-slate-100 to-transparent my-2"></div>
+            
+            <a href="/training" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all">
+                <div class="w-10 h-10 rounded-xl bg-fuchsia-100 text-fuchsia-600 flex items-center justify-center shrink-0 group-hover/item:bg-fuchsia-600 group-hover/item:text-white transition-colors shadow-sm">
+                    <i class="fas fa-chalkboard-teacher text-lg"></i>
+                </div>
+                <div>
+                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-fuchsia-600 mb-0.5">企业AI落地咨询式培训</div>
+                    <div class="text-[11px] text-slate-500">高管工作坊与共创蓝图</div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+                    <a href="/resources/" class="nav-link px-3 py-2 text-slate-600 hover:text-brand-700 font-medium">行业洞察</a>
+                    <a href="/nqoc" class="nav-link px-3 py-2 text-slate-600 hover:text-brand-700 font-medium">新质组织研究<span class="inline-flex items-center justify-center px-1.5 py-[1px] ml-1.5 text-[9px] font-black tracking-wider text-white uppercase bg-gradient-to-r from-[#ff6a00] to-[#ee0979] rounded-tl-md rounded-tr-md rounded-br-md rounded-bl-sm shadow-sm -translate-y-1 relative">HOT<span class="absolute top-0 right-0 w-1.5 h-1.5 bg-white rounded-full opacity-30 animate-ping"></span></span></a>
+                    <a href="/training" class="nav-link px-3 py-2 font-bold text-brand-700 bg-brand-50 rounded-lg">培训课程</a>
+                    <a href="/about/" class="nav-link px-3 py-2 text-slate-600 hover:text-brand-700 font-medium">关于我们</a>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="#apply-form" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-full font-medium transition shadow-lg shadow-brand-500/20 hover:-translate-y-0.5 text-sm">
+                        预约咨询
+                    </a>
+                </div>
+                <div class="lg:hidden flex items-center">
+                    <button id="mobileMenuBtn" class="text-slate-600 hover:text-brand-700 focus:outline-none p-2">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="fixed inset-0 z-[60] bg-white hidden flex-col">
+        <div class="flex justify-between items-center p-4 border-b border-slate-100">
+            <img src="/images/logo.png" alt="瑞华智策 Logo" class="h-8 w-auto" />
+            <button id="closeMobileMenuBtn" class="text-slate-600 hover:text-brand-700 p-2">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+        </div>
+        <div class="flex flex-col p-6 space-y-4 text-lg">
+            <a href="/" class="text-slate-600 hover:text-brand-700 font-medium pb-2 border-b border-slate-50">首页</a>
+            <div class="relative group inline-block">
+    <a href="/solutions/" class="text-slate-600 hover:text-brand-700 font-medium pb-2 border-b border-slate-50 flex items-center gap-1">
+        解决方案
+        <i class="fas fa-chevron-down text-[10px] transition-transform duration-300 group-hover:rotate-180"></i>
+    </a>
+    <div class="absolute left-1/2 -translate-x-1/2 top-full pt-4 w-[24rem] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl shadow-brand-500/10 border border-slate-100 overflow-hidden p-3 relative">
+            <!-- Decorative background -->
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-brand-50 to-white rounded-bl-full -z-10 opacity-60"></div>
+            
+            <a href="/solutions-hcvm/" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all">
+                <div class="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center shrink-0 group-hover/item:bg-brand-600 group-hover/item:text-white transition-colors shadow-sm">
+                    <i class="fas fa-chess-knight text-lg"></i>
+                </div>
+                <div>
+                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-brand-700 mb-0.5">人力资本价值经营</div>
+                    <div class="text-[11px] text-slate-500">HCVM体系 (自有员工)</div>
+                </div>
+            </a>
+            
+            <a href="/solutions-ohcvm/" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all mt-1">
+                <div class="w-10 h-10 rounded-xl bg-[#00f0ff]/10 text-[#00a0ff] flex items-center justify-center shrink-0 group-hover/item:bg-[#00a0ff] group-hover/item:text-white transition-colors shadow-sm">
+                    <i class="fas fa-network-wired text-lg"></i>
+                </div>
+                <div>
+                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-[#00a0ff] mb-0.5">全场景一体化用工</div>
+                    <div class="text-[11px] text-slate-500">OHCVM体系 (外包员工)</div>
+                </div>
+            </a>
+            
+            <div class="h-px w-full bg-gradient-to-r from-transparent via-slate-100 to-transparent my-2"></div>
+            
+            <a href="/training" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all">
+                <div class="w-10 h-10 rounded-xl bg-fuchsia-100 text-fuchsia-600 flex items-center justify-center shrink-0 group-hover/item:bg-fuchsia-600 group-hover/item:text-white transition-colors shadow-sm">
+                    <i class="fas fa-chalkboard-teacher text-lg"></i>
+                </div>
+                <div>
+                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-fuchsia-600 mb-0.5">企业AI落地咨询式培训</div>
+                    <div class="text-[11px] text-slate-500">高管工作坊与共创蓝图</div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+            <a href="/resources/" class="text-slate-600 hover:text-brand-700 font-medium pb-2 border-b border-slate-50">行业洞察</a>
+            <a href="/nqoc" class="text-slate-600 hover:text-brand-700 font-medium pb-2 border-b border-slate-50">新质组织研究</a>
+            <a href="/training" class="text-brand-700 font-bold pb-2 border-b border-slate-50">培训课程</a>
+            <a href="/about/" class="text-slate-600 hover:text-brand-700 font-medium pb-2 border-b border-slate-50">关于我们</a>
+            <a href="#apply-form" class="text-center bg-brand-600 text-white py-3 rounded-lg font-medium mt-4">预约咨询</a>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <header class="training-hero pt-24 md:pt-32 pb-20 md:pb-28 lg:pt-40 lg:pb-36 relative text-white overflow-hidden">
+        <!-- Abstract Shapes -->
+        <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-500/20 rounded-full mix-blend-screen filter blur-[100px] transform translate-x-1/3 -translate-y-1/3"></div>
+        <div class="absolute bottom-0 left-0 w-[30rem] h-[30rem] bg-[#00f0ff]/10 rounded-full mix-blend-screen filter blur-[80px] transform -translate-x-1/4 translate-y-1/4"></div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <div class="max-w-4xl mx-auto flex flex-col items-center">
+                <div class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-sm font-bold mb-8 animate-fade-in-up text-brand-100 shadow-inner">
+                    <span class="relative flex h-3 w-3">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00f0ff] opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-3 w-3 bg-[#00f0ff]"></span>
+                    </span>
+                    RESULT-DRIVEN TRAINING SERVICES
+                </div>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black mb-6 tracking-tight leading-tight animate-fade-in-up" style="animation-delay: 0.1s;">
+                    赋能AI时代组织进化<br/>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 via-white to-[#00f0ff]">企业级咨询式培训</span>
+                </h1>
+                <p class="text-lg md:text-xl text-brand-100/80 font-light mb-10 leading-relaxed animate-fade-in-up max-w-2xl mx-auto" style="animation-delay: 0.2s;">
+                    打破传统单向输出，通过“诊断+共创+辅导”的咨询式闭环，帮助核心团队跨越认知鸿沟，掌握实战方法论，确保企业AI转型与人效提升战略真正落地。
+                </p>
+                <div class="flex justify-center items-center gap-4 animate-fade-in-up" style="animation-delay: 0.3s;">
+                    <a href="#apply-form" class="bg-white text-brand-700 hover:bg-brand-50 font-bold py-4 px-8 rounded-full transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] hover:-translate-y-1 flex items-center gap-2">
+                        获取完整课程大纲 <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                
+                <!-- Trust Indicators -->
+                <div class="mt-16 flex flex-wrap justify-center items-center gap-8 text-brand-200/60 text-sm font-medium animate-fade-in-up" style="animation-delay: 0.4s;">
+                    <div class="flex items-center gap-2"><i class="fas fa-check-circle text-[#00f0ff]"></i> 课前深度诊断</div>
+                    <div class="flex items-center gap-2"><i class="fas fa-check-circle text-[#00f0ff]"></i> 实战场景共创</div>
+                    <div class="flex items-center gap-2"><i class="fas fa-check-circle text-[#00f0ff]"></i> 课后落地辅导</div>
+                </div>
+            </div>
+        </div>
+</header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-4 md:px-8 py-16 -mt-10 relative z-20">
+        
+        
+        <!-- Workshop 01 -->
+        <div class="relative bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden mb-16 group" id="workshops">
+            <div class="bg-gradient-to-r from-slate-900 via-brand-900 to-slate-900 p-8 md:p-10 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-brand-500/20 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                    <div>
+                        <div class="text-brand-300 font-bold tracking-wider text-sm mb-2 flex items-center gap-2">
+                            <span class="w-8 h-px bg-brand-300"></span> 核心工作坊 01
+                        </div>
+                        <h3 class="text-2xl md:text-3xl font-black text-white tracking-tight">《从共识到行动：AI变革管理高层工作坊》</h3>
+                    </div>
+                    <a href="#apply-form" onclick="document.querySelector('select[name=courseOption]').value='从共识到行动：AI变革管理高层工作坊'" class="shrink-0 bg-brand-500 hover:bg-brand-400 text-white font-bold py-3 px-6 rounded-full transition-all shadow-lg hover:shadow-brand-500/50 flex items-center gap-2">
+                        获取大纲与报价 <i class="fas fa-arrow-right text-sm"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="flex flex-col md:flex-row gap-0">
+                <div class="md:w-3/5 p-8 md:p-10 space-y-8 bg-white">
+                    <div>
+                        <h4 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <i class="fas fa-bullseye text-brand-500"></i> 课程背景
+                        </h4>
+                        <p class="text-slate-600 leading-relaxed text-sm">
+                            从对AI拥抱到狂热，再到“迷茫、焦虑、失望”，企业的AI落地进程充满挑战。本课程从认知对齐、心智建设到组织升级、机制保障，提供系统的AI转型变革框架，帮助企业高层跨越AI落地的深坑。
+                        </p>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-chart-line text-brand-500"></i> 工作坊收益
+                        </h4>
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-brand-200 transition-colors">
+                                <div class="font-bold text-brand-700 mb-2 text-sm"><i class="fas fa-brain mr-1"></i> 心智跨越</div>
+                                <div class="text-xs text-slate-500 leading-relaxed">跨越“不会用AI的焦虑”到“AI是最佳杠杆”的心智门槛。</div>
+                            </div>
+                            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-brand-200 transition-colors">
+                                <div class="font-bold text-brand-700 mb-2 text-sm"><i class="fas fa-map-marked-alt mr-1"></i> 共识行动</div>
+                                <div class="text-xs text-slate-500 leading-relaxed">输出“痛点-场景-应用-行动”的AI落地共识地图。</div>
+                            </div>
+                            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-brand-200 transition-colors sm:col-span-2">
+                                <div class="font-bold text-brand-700 mb-2 text-sm"><i class="fas fa-sitemap mr-1"></i> 组织保障</div>
+                                <div class="text-xs text-slate-500 leading-relaxed">构建支撑AI落地的“角色-流程-机制-文化”的敏捷变革体系。</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:w-2/5 p-8 md:p-10 bg-slate-50 border-l border-slate-100 flex flex-col justify-center gap-8">
+                    <div class="flex gap-4 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-white text-brand-600 flex items-center justify-center text-xl shrink-0 shadow-sm border border-slate-100">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-slate-800 mb-1 text-sm">目标受众</h5>
+                            <p class="text-xs text-slate-500 leading-relaxed">CEO/总裁、业务线负责人、HR/OD等核心管理团队</p>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full h-px bg-slate-200/60"></div>
+                    
+                    <div class="flex gap-4 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-white text-brand-600 flex items-center justify-center text-xl shrink-0 shadow-sm border border-slate-100">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-slate-800 mb-1 text-sm">培训时长</h5>
+                            <p class="text-xs text-slate-500 leading-relaxed">1 - 2 天 (线下实战共创)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full h-px bg-slate-200/60"></div>
+                    
+                    <div class="flex gap-4 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center text-xl shrink-0 shadow-md shadow-brand-500/30">
+                            <i class="fas fa-gem"></i>
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-brand-700 mb-1 text-sm">核心交付物</h5>
+                            <p class="text-sm font-bold text-slate-800">AI落地共识地图 <span class="text-brand-400 mx-1">+</span> 变革行动框架</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-100/50 py-4 px-8 md:px-10 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
+                <div class="font-bold text-slate-700 text-sm flex items-center gap-2">
+                    <i class="fas fa-list-ul text-brand-500"></i> 工作坊核心模块大纲
+                </div>
+                <div class="text-xs font-medium text-slate-500 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-sm">
+                    交付模式：授课60% + 案例拆解20% + 互动演练20%
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 p-8 md:px-10 bg-white">
+                <div class="bg-slate-50 rounded-2xl p-5 text-center border border-slate-100 hover:border-brand-300 hover:shadow-md transition-all group/card">
+                    <div class="text-3xl font-black text-slate-200 group-hover/card:text-brand-200 transition-colors mb-2">01</div>
+                    <h5 class="font-bold text-slate-700 text-xs">现状与挑战共识</h5>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-5 text-center border border-slate-100 hover:border-brand-300 hover:shadow-md transition-all group/card">
+                    <div class="text-3xl font-black text-slate-200 group-hover/card:text-brand-200 transition-colors mb-2">02</div>
+                    <h5 class="font-bold text-slate-700 text-xs">AI能力重新定义</h5>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-5 text-center border border-slate-100 hover:border-brand-300 hover:shadow-md transition-all group/card">
+                    <div class="text-3xl font-black text-slate-200 group-hover/card:text-brand-200 transition-colors mb-2">03</div>
+                    <h5 class="font-bold text-slate-700 text-xs">行业场景与应用</h5>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-5 text-center border border-slate-100 hover:border-brand-300 hover:shadow-md transition-all group/card">
+                    <div class="text-3xl font-black text-slate-200 group-hover/card:text-brand-200 transition-colors mb-2">04</div>
+                    <h5 class="font-bold text-slate-700 text-xs">AI落地“阻力墙”</h5>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-5 text-center border border-slate-100 hover:border-brand-300 hover:shadow-md transition-all group/card">
+                    <div class="text-3xl font-black text-slate-200 group-hover/card:text-brand-200 transition-colors mb-2">05</div>
+                    <h5 class="font-bold text-slate-700 text-xs">变革框架构建</h5>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-5 text-center border border-slate-100 hover:border-brand-300 hover:shadow-md transition-all group/card">
+                    <div class="text-3xl font-black text-slate-200 group-hover/card:text-brand-200 transition-colors mb-2">06</div>
+                    <h5 class="font-bold text-slate-700 text-xs">心智模型升级</h5>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-5 text-center border border-slate-100 hover:border-brand-300 hover:shadow-md transition-all group/card">
+                    <div class="text-3xl font-black text-slate-200 group-hover/card:text-brand-200 transition-colors mb-2">07</div>
+                    <h5 class="font-bold text-slate-700 text-xs">能力图谱与人才识别</h5>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-5 text-center border border-slate-100 hover:border-brand-300 hover:shadow-md transition-all group/card">
+                    <div class="text-3xl font-black text-slate-200 group-hover/card:text-brand-200 transition-colors mb-2">08</div>
+                    <h5 class="font-bold text-slate-700 text-xs">数据与安全合规</h5>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-5 text-center border border-slate-100 hover:border-brand-300 hover:shadow-md transition-all group/card">
+                    <div class="text-3xl font-black text-slate-200 group-hover/card:text-brand-200 transition-colors mb-2">09</div>
+                    <h5 class="font-bold text-slate-700 text-xs">绩效指标与激励</h5>
+                </div>
+                <div class="bg-brand-50 rounded-2xl p-5 text-center border border-brand-200 hover:shadow-md transition-all shadow-sm">
+                    <div class="text-3xl font-black text-brand-500 mb-2">10</div>
+                    <h5 class="font-bold text-brand-800 text-xs">行动计划共创</h5>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workshop 02 -->
+        <div class="relative bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden mb-16 group">
+            <div class="bg-gradient-to-r from-slate-900 via-brand-900 to-slate-900 p-8 md:p-10 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-brand-500/20 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                    <div>
+                        <div class="text-brand-300 font-bold tracking-wider text-sm mb-2 flex items-center gap-2">
+                            <span class="w-8 h-px bg-brand-300"></span> 核心工作坊 02
+                        </div>
+                        <h3 class="text-2xl md:text-3xl font-black text-white tracking-tight">《打造AI驱动的动态人效管理体系工作坊》</h3>
+                    </div>
+                    <a href="#apply-form" onclick="document.querySelector('select[name=courseOption]').value='打造AI驱动的动态人效管理体系工作坊'" class="shrink-0 bg-brand-500 hover:bg-brand-400 text-white font-bold py-3 px-6 rounded-full transition-all shadow-lg hover:shadow-brand-500/50 flex items-center gap-2">
+                        获取大纲与报价 <i class="fas fa-arrow-right text-sm"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="flex flex-col md:flex-row gap-0">
+                <div class="md:w-3/5 p-8 md:p-10 space-y-8 bg-white">
+                    <div>
+                        <h4 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <i class="fas fa-chart-line text-brand-500"></i> 课程背景
+                        </h4>
+                        <p class="text-slate-600 leading-relaxed text-sm">
+                            在AI技术普及的今天，传统的、静态的人效管理体系已无法满足企业快速迭代的需求。企业需要构建能够实时感知业务变化、智能调配人才资源、动态优化组织效能的新一代管理体系。
+                        </p>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-layer-group text-brand-500"></i> 工作坊收益
+                        </h4>
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-brand-200 transition-colors">
+                                <div class="font-bold text-brand-700 mb-2 text-sm"><i class="fas fa-sync-alt mr-1"></i> 思维转变</div>
+                                <div class="text-xs text-slate-500 leading-relaxed">打破静态人效思维，建立“业务-人才-效能”动态联动的全局观。</div>
+                            </div>
+                            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-brand-200 transition-colors">
+                                <div class="font-bold text-brand-700 mb-2 text-sm"><i class="fas fa-cubes mr-1"></i> 体系构建</div>
+                                <div class="text-xs text-slate-500 leading-relaxed">掌握构建AI驱动的动态人效管理体系的方法论与工具。</div>
+                            </div>
+                            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-brand-200 transition-colors sm:col-span-2">
+                                <div class="font-bold text-brand-700 mb-2 text-sm"><i class="fas fa-route mr-1"></i> 落地路径</div>
+                                <div class="text-xs text-slate-500 leading-relaxed">输出符合企业自身特点的动态人效管理体系建设蓝图。</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:w-2/5 p-8 md:p-10 bg-slate-50 border-l border-slate-100 flex flex-col justify-center gap-8">
+                    <div class="flex gap-4 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-white text-brand-600 flex items-center justify-center text-xl shrink-0 shadow-sm border border-slate-100">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-slate-800 mb-1 text-sm">目标受众</h5>
+                            <p class="text-xs text-slate-500 leading-relaxed">业务线负责人、HR高管、财务高管等核心管理团队</p>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full h-px bg-slate-200/60"></div>
+                    
+                    <div class="flex gap-4 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-white text-brand-600 flex items-center justify-center text-xl shrink-0 shadow-sm border border-slate-100">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-slate-800 mb-1 text-sm">培训时长</h5>
+                            <p class="text-xs text-slate-500 leading-relaxed">2 天 (线下共创)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full h-px bg-slate-200/60"></div>
+                    
+                    <div class="flex gap-4 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center text-xl shrink-0 shadow-md shadow-brand-500/30">
+                            <i class="fas fa-gem"></i>
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-brand-700 mb-1 text-sm">核心交付物</h5>
+                            <p class="text-sm font-bold text-slate-800">人效诊断报告 <span class="text-brand-400 mx-1">+</span> 建设路线图</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-100/50 py-4 px-8 md:px-10 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
+                <div class="font-bold text-slate-700 text-sm flex items-center gap-2">
+                    <i class="fas fa-list-ul text-brand-500"></i> 工作坊核心模块大纲
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 p-8 md:px-10 bg-white">
+                <div class="bg-slate-50 rounded-2xl p-6 text-center border border-slate-100 hover:border-brand-300 hover:shadow-md transition-all group/card">
+                    <div class="w-14 h-14 mx-auto bg-white text-brand-500 rounded-full flex items-center justify-center text-2xl mb-4 shadow-sm group-hover/card:bg-brand-500 group-hover/card:text-white transition-colors"><i class="fas fa-search-dollar"></i></div>
+                    <h5 class="font-bold text-slate-700 text-xs">人效现状诊断</h5>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-6 text-center border border-slate-100 hover:border-brand-300 hover:shadow-md transition-all group/card">
+                    <div class="w-14 h-14 mx-auto bg-white text-brand-500 rounded-full flex items-center justify-center text-2xl mb-4 shadow-sm group-hover/card:bg-brand-500 group-hover/card:text-white transition-colors"><i class="fas fa-project-diagram"></i></div>
+                    <h5 class="font-bold text-slate-700 text-xs">业务模型与价值链</h5>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-6 text-center border border-slate-100 hover:border-brand-300 hover:shadow-md transition-all group/card">
+                    <div class="w-14 h-14 mx-auto bg-white text-brand-500 rounded-full flex items-center justify-center text-2xl mb-4 shadow-sm group-hover/card:bg-brand-500 group-hover/card:text-white transition-colors"><i class="fas fa-sync-alt"></i></div>
+                    <h5 class="font-bold text-slate-700 text-xs">动态人效指标设计</h5>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-6 text-center border border-slate-100 hover:border-brand-300 hover:shadow-md transition-all group/card">
+                    <div class="w-14 h-14 mx-auto bg-white text-brand-500 rounded-full flex items-center justify-center text-2xl mb-4 shadow-sm group-hover/card:bg-brand-500 group-hover/card:text-white transition-colors"><i class="fas fa-robot"></i></div>
+                    <h5 class="font-bold text-slate-700 text-xs">AI赋能人效管理</h5>
+                </div>
+                <div class="bg-brand-50 rounded-2xl p-6 text-center border border-brand-200 hover:shadow-md transition-all shadow-sm">
+                    <div class="w-14 h-14 mx-auto bg-brand-600 text-white rounded-full flex items-center justify-center text-2xl mb-4 shadow-md shadow-brand-500/30"><i class="fas fa-map-signs"></i></div>
+                    <h5 class="font-bold text-brand-800 text-xs">建设路线图共创</h5>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workshop 03 -->
+        <div class="relative bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden mb-16 group">
+            <div class="bg-gradient-to-r from-slate-900 via-brand-900 to-slate-900 p-8 md:p-10 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-brand-500/20 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                    <div>
+                        <div class="text-brand-300 font-bold tracking-wider text-sm mb-2 flex items-center gap-2">
+                            <span class="w-8 h-px bg-brand-300"></span> 核心工作坊 03
+                        </div>
+                        <h3 class="text-2xl md:text-3xl font-black text-white tracking-tight">《基于“人+AI”的混合劳动力规划工作坊》</h3>
+                    </div>
+                    <a href="#apply-form" onclick="document.querySelector('select[name=courseOption]').value='基于人+AI的混合劳动力规划工作坊'" class="shrink-0 bg-brand-500 hover:bg-brand-400 text-white font-bold py-3 px-6 rounded-full transition-all shadow-lg hover:shadow-brand-500/50 flex items-center gap-2">
+                        获取大纲与报价 <i class="fas fa-arrow-right text-sm"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="flex flex-col md:flex-row gap-0">
+                <div class="md:w-3/5 p-8 md:p-10 space-y-8 bg-white">
+                    <div>
+                        <h4 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <i class="fas fa-network-wired text-brand-500"></i> 课程背景
+                        </h4>
+                        <p class="text-slate-600 leading-relaxed text-sm">
+                            随着AI数字员工的崛起，传统的“全职员工为主”的劳动力结构正在被打破。企业需要重新思考组织边界，规划由“全职员工+外包员工+零工+AI数字员工”构成的多元混合劳动力生态，以实现降本增效与敏捷响应。
+                        </p>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-lightbulb text-brand-500"></i> 工作坊收益
+                        </h4>
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-brand-200 transition-colors">
+                                <div class="font-bold text-brand-700 mb-2 text-sm"><i class="fas fa-eye mr-1"></i> 认知破局</div>
+                                <div class="text-xs text-slate-500 leading-relaxed">深刻理解AI时代劳动力生态的演变趋势与战略价值。</div>
+                            </div>
+                            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-brand-200 transition-colors">
+                                <div class="font-bold text-brand-700 mb-2 text-sm"><i class="fas fa-cubes mr-1"></i> 架构重塑</div>
+                                <div class="text-xs text-slate-500 leading-relaxed">掌握混合劳动力规划的方法论，重塑企业的人才供应链架构。</div>
+                            </div>
+                            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-brand-200 transition-colors sm:col-span-2">
+                                <div class="font-bold text-brand-700 mb-2 text-sm"><i class="fas fa-rocket mr-1"></i> 落地应用</div>
+                                <div class="text-xs text-slate-500 leading-relaxed">输出针对特定业务场景的混合劳动力配置方案。</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:w-2/5 p-8 md:p-10 bg-slate-50 border-l border-slate-100 flex flex-col justify-center gap-8">
+                    <div class="flex gap-4 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-white text-brand-600 flex items-center justify-center text-xl shrink-0 shadow-sm border border-slate-100">
+                            <i class="fas fa-user-friends"></i>
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-slate-800 mb-1 text-sm">目标受众</h5>
+                            <p class="text-xs text-slate-500 leading-relaxed">CHO、HRVP、OD专家、招聘总监等HR高管</p>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full h-px bg-slate-200/60"></div>
+                    
+                    <div class="flex gap-4 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-white text-brand-600 flex items-center justify-center text-xl shrink-0 shadow-sm border border-slate-100">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-slate-800 mb-1 text-sm">培训时长</h5>
+                            <p class="text-xs text-slate-500 leading-relaxed">1.5天共创 + 0.5天业务实战</p>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full h-px bg-slate-200/60"></div>
+                    
+                    <div class="flex gap-4 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center text-xl shrink-0 shadow-md shadow-brand-500/30">
+                            <i class="fas fa-gem"></i>
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-brand-700 mb-1 text-sm">核心交付物</h5>
+                            <p class="text-sm font-bold text-slate-800">人才供应链蓝图 <span class="text-brand-400 mx-1">+</span> 配置方案</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-100/50 py-4 px-8 md:px-10 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
+                <div class="font-bold text-slate-700 text-sm flex items-center gap-2">
+                    <i class="fas fa-list-ul text-brand-500"></i> 工作坊核心模块大纲
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 p-8 md:px-10 bg-white">
+                <div class="bg-slate-50 rounded-2xl p-5 border border-slate-100 hover:border-brand-300 hover:shadow-md transition-all group/card">
+                    <h5 class="font-bold text-brand-600 mb-3 text-sm flex items-center gap-2"><i class="fas fa-cogs"></i> 模块一</h5>
+                    <p class="text-xs text-slate-600 leading-relaxed">组织边界与劳动力重构：探讨全职、外包、零工与数字员工的协同。</p>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-5 border border-slate-100 hover:border-brand-300 hover:shadow-md transition-all group/card">
+                    <h5 class="font-bold text-brand-600 mb-3 text-sm flex items-center gap-2"><i class="fas fa-layer-group"></i> 模块二</h5>
+                    <p class="text-xs text-slate-600 leading-relaxed">混合劳动力配置模型：掌握不同劳动力类型的适用场景。</p>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-5 border border-slate-100 hover:border-brand-300 hover:shadow-md transition-all group/card">
+                    <h5 class="font-bold text-brand-600 mb-3 text-sm flex items-center gap-2"><i class="fas fa-bolt"></i> 模块三</h5>
+                    <p class="text-xs text-slate-600 leading-relaxed">核心岗位“人+AI”拆解：重新定义岗位的价值产出与能力要求。</p>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-5 border border-slate-100 hover:border-brand-300 hover:shadow-md transition-all group/card">
+                    <h5 class="font-bold text-brand-600 mb-3 text-sm flex items-center gap-2"><i class="fas fa-shield-alt"></i> 模块四</h5>
+                    <p class="text-xs text-slate-600 leading-relaxed">多元合规与风险管理：构建安全稳健的多元用工管理机制。</p>
+                </div>
+                <div class="bg-brand-50 rounded-2xl p-5 border border-brand-200 shadow-sm transition-all group/card">
+                    <h5 class="font-bold text-brand-800 mb-3 text-sm flex items-center gap-2"><i class="fas fa-chart-pie"></i> 模块五</h5>
+                    <p class="text-xs text-brand-700 leading-relaxed font-medium">场景实战与蓝图设计：现场实操设计方案并输出落地蓝图。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other Topics -->
+        <div class="mb-24">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-black text-slate-800 inline-block relative pb-4">
+                    其他定制课题
+                    <span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1.5 bg-brand-500 rounded-full"></span>
+                </h3>
+                <p class="text-slate-500 mt-4 text-lg max-w-2xl mx-auto">提供企业定制化培训，覆盖AI管理、组织发展与人力资源专业能力提升</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-brand-300 hover:-translate-y-1 transition-all flex items-start gap-4 group">
+                    <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0 group-hover:bg-brand-600 group-hover:text-white transition-colors shadow-sm"><i class="fas fa-check"></i></div>
+                    <div class="font-bold text-slate-700 pt-2 group-hover:text-brand-700 transition-colors text-sm">企业AI战略蓝图共创与落地路径规划</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-brand-300 hover:-translate-y-1 transition-all flex items-start gap-4 group">
+                    <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0 group-hover:bg-brand-600 group-hover:text-white transition-colors shadow-sm"><i class="fas fa-check"></i></div>
+                    <div class="font-bold text-slate-700 pt-2 group-hover:text-brand-700 transition-colors text-sm">从战略到执行：业务导向的组织发展(OD)实战</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-brand-300 hover:-translate-y-1 transition-all flex items-start gap-4 group">
+                    <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0 group-hover:bg-brand-600 group-hover:text-white transition-colors shadow-sm"><i class="fas fa-check"></i></div>
+                    <div class="font-bold text-slate-700 pt-2 group-hover:text-brand-700 transition-colors text-sm">Design Thinking：基于设计思维的HR服务创新</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-brand-300 hover:-translate-y-1 transition-all flex items-start gap-4 group">
+                    <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0 group-hover:bg-brand-600 group-hover:text-white transition-colors shadow-sm"><i class="fas fa-check"></i></div>
+                    <div class="font-bold text-slate-700 pt-2 group-hover:text-brand-700 transition-colors text-sm">AI赋能的绩效管理与OKR实战演练</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-brand-300 hover:-translate-y-1 transition-all flex items-start gap-4 group">
+                    <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0 group-hover:bg-brand-600 group-hover:text-white transition-colors shadow-sm"><i class="fas fa-check"></i></div>
+                    <div class="font-bold text-slate-700 pt-2 group-hover:text-brand-700 transition-colors text-sm">业务视角的HRBP转型与价值进阶</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-brand-300 hover:-translate-y-1 transition-all flex items-start gap-4 group">
+                    <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0 group-hover:bg-brand-600 group-hover:text-white transition-colors shadow-sm"><i class="fas fa-check"></i></div>
+                    <div class="font-bold text-slate-700 pt-2 group-hover:text-brand-700 transition-colors text-sm">高潜人才识别与敏捷领导力发展</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-brand-300 hover:-translate-y-1 transition-all flex items-start gap-4 group">
+                    <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0 group-hover:bg-brand-600 group-hover:text-white transition-colors shadow-sm"><i class="fas fa-check"></i></div>
+                    <div class="font-bold text-slate-700 pt-2 group-hover:text-brand-700 transition-colors text-sm">AI时代的企业文化重塑与价值观落地</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-brand-300 hover:-translate-y-1 transition-all flex items-start gap-4 group">
+                    <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0 group-hover:bg-brand-600 group-hover:text-white transition-colors shadow-sm"><i class="fas fa-check"></i></div>
+                    <div class="font-bold text-slate-700 pt-2 group-hover:text-brand-700 transition-colors text-sm">基于数据驱动的人才梯队建设与盘点</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-brand-300 hover:-translate-y-1 transition-all flex items-start gap-4 group">
+                    <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0 group-hover:bg-brand-600 group-hover:text-white transition-colors shadow-sm"><i class="fas fa-check"></i></div>
+                    <div class="font-bold text-slate-700 pt-2 group-hover:text-brand-700 transition-colors text-sm">数字化学习型组织的构建与运营实践</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="mb-24 bg-gradient-to-br from-slate-900 via-[#1a1b2e] to-slate-900 rounded-[2.5rem] p-10 md:p-16 text-white relative overflow-hidden shadow-2xl border border-white/10 group">
+            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-600 rounded-full mix-blend-screen filter blur-[120px] opacity-20 group-hover:opacity-40 transition-opacity duration-700 pointer-events-none transform translate-x-1/4 -translate-y-1/4"></div>
+            <div class="absolute bottom-0 left-0 w-[30rem] h-[30rem] bg-[#00f0ff] rounded-full mix-blend-screen filter blur-[100px] opacity-10 group-hover:opacity-20 transition-opacity duration-700 pointer-events-none transform -translate-x-1/4 translate-y-1/4"></div>
+            
+            <div class="text-center mb-16 relative z-10">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-bold mb-6 text-brand-200 tracking-wider">
+                    OUR ADVANTAGES
+                </div>
+                <h2 class="text-3xl md:text-4xl font-black mb-6 tracking-tight">瑞华智策咨询式培训的特色</h2>
+                <p class="text-slate-300 text-lg max-w-2xl mx-auto">“管理咨询 + 数智化建设 + 陪伴式服务” 三位一体，全方位助力企业进化</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-6 relative z-10">
+                <div class="bg-white/5 backdrop-blur-md border border-white/10 p-8 rounded-3xl hover:bg-white/10 hover:border-white/20 transition-all hover:-translate-y-2 group/feature shadow-lg">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-2xl mb-8 shadow-lg shadow-brand-500/30 group-hover/feature:scale-110 transition-transform">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-4 text-white">培训前：咨询式诊断</h4>
+                    <ul class="space-y-3 text-slate-300 text-sm leading-relaxed">
+                        <li class="flex gap-3"><i class="fas fa-check-circle text-brand-400 mt-1 shrink-0"></i> <span>通过深度访谈、问卷调查等定量定性方式，精准诊断企业痛点与业务挑战。</span></li>
+                        <li class="flex gap-3"><i class="fas fa-check-circle text-brand-400 mt-1 shrink-0"></i> <span>结合行业标杆与最佳实践，评估企业所处阶段，量身定制培训目标与课程大纲，确保直击核心问题。</span></li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white/5 backdrop-blur-md border border-white/10 p-8 rounded-3xl hover:bg-white/10 hover:border-white/20 transition-all hover:-translate-y-2 group/feature shadow-lg">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00f0ff] to-[#0080ff] flex items-center justify-center text-2xl mb-8 shadow-lg shadow-cyan-500/30 group-hover/feature:scale-110 transition-transform">
+                        <i class="fas fa-hammer"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-4 text-white">培训中：实战产出交付</h4>
+                    <ul class="space-y-3 text-slate-300 text-sm leading-relaxed">
+                        <li class="flex gap-3"><i class="fas fa-check-circle text-[#00f0ff] mt-1 shrink-0"></i> <span>打破传统“讲师单向输出”模式，引入行动学习法、世界咖啡、角色扮演等互动形式。</span></li>
+                        <li class="flex gap-3"><i class="fas fa-check-circle text-[#00f0ff] mt-1 shrink-0"></i> <span>引导学员运用工具方法，现场拆解企业真实案例，共创解决方案，实现从“知识输入”到“成果产出”的转化。</span></li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white/5 backdrop-blur-md border border-white/10 p-8 rounded-3xl hover:bg-white/10 hover:border-white/20 transition-all hover:-translate-y-2 group/feature shadow-lg">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center text-2xl mb-8 shadow-lg shadow-fuchsia-500/30 group-hover/feature:scale-110 transition-transform">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-4 text-white">培训后：落地陪伴辅导</h4>
+                    <ul class="space-y-3 text-slate-300 text-sm leading-relaxed">
+                        <li class="flex gap-3"><i class="fas fa-check-circle text-fuchsia-400 mt-1 shrink-0"></i> <span>培训结束并非终点，提供1-3个月的落地辅导与跟踪机制，定期复盘行动计划执行情况。</span></li>
+                        <li class="flex gap-3"><i class="fas fa-check-circle text-fuchsia-400 mt-1 shrink-0"></i> <span>提供专业解答与调整建议，打通“知-行-果”的闭环，确保培训效果转化为真实的业务价值。</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lecturers -->
+        <div class="mb-24">
+            <div class="text-center mb-16">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-50 border border-brand-100 text-xs font-bold mb-6 text-brand-600 tracking-wider">
+                    EXPERT TEAM
+                </div>
+                <h3 class="text-3xl md:text-4xl font-black text-slate-800 tracking-tight">
+                    瑞华智策专家讲师团队
+                </h3>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Expert 1 -->
+                <div class="bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-brand-500/10 hover:-translate-y-2 transition-all group overflow-hidden flex flex-col">
+                    <div class="h-32 bg-gradient-to-br from-slate-100 to-slate-50 relative">
+                        <div class="absolute -bottom-16 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white">
+                            <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/zhuanjia/andi.png" onerror="this.src='/images/default-avatar.png'" class="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-500" alt="高燕">
+                        </div>
+                    </div>
+                    <div class="pt-20 pb-8 px-8 text-center flex-1 flex flex-col">
+                        <h4 class="text-xl font-bold text-slate-800 mb-1">高燕</h4>
+                        <p class="text-sm font-bold text-brand-600 mb-4">瑞华智策 副总裁<br>新质组织研究中心主任</p>
+                        <div class="w-12 h-1 bg-brand-100 mx-auto mb-4 rounded-full group-hover:bg-brand-500 transition-colors"></div>
+                        <p class="text-xs text-slate-500 leading-relaxed text-left flex-1">《价值驱动增长》作者，资深战略营销业务增长专家，AI原生组织深度实践者。曾任某高科技企业CEO，兼具B2B与B2C领域实践经验，曾为软件、家电、建材、高科技、企服等多行业的近百家企业提供过战略、组织、营销增长咨询和培训服务。</p>
+                    </div>
+                </div>
+                
+                <!-- Expert 2 -->
+                <div class="bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-brand-500/10 hover:-translate-y-2 transition-all group overflow-hidden flex flex-col">
+                    <div class="h-32 bg-gradient-to-br from-slate-100 to-slate-50 relative">
+                        <div class="absolute -bottom-16 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white">
+                            <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/zhuanjia/anderson.png" onerror="this.src='/images/default-avatar.png'" class="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-500" alt="李丰华">
+                        </div>
+                    </div>
+                    <div class="pt-20 pb-8 px-8 text-center flex-1 flex flex-col">
+                        <h4 class="text-xl font-bold text-slate-800 mb-1">李丰华</h4>
+                        <p class="text-sm font-bold text-brand-600 mb-4">瑞华智策 副总裁<br>组织与人才变革专家</p>
+                        <div class="w-12 h-1 bg-brand-100 mx-auto mb-4 rounded-full group-hover:bg-brand-500 transition-colors"></div>
+                        <p class="text-xs text-slate-500 leading-relaxed text-left flex-1">干部与领导力顾问，HR AI与数字化转型专家，IPD集成产品开发顾问。为华为、海信、吉利、平安、中远、广汽、中广核、中国电信等数十家企业提供包括业务战略与变革、HR全栈管理咨询、流程设计与系统落地等咨询；熟悉世界一流HR管理思想与最佳实践。</p>
+                    </div>
+                </div>
+            <!-- Expert 3 -->
+                <div class="bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-brand-500/10 hover:-translate-y-2 transition-all group overflow-hidden flex flex-col">
+                    <div class="h-32 bg-gradient-to-br from-slate-100 to-slate-50 relative">
+                        <div class="absolute -bottom-16 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white">
+                            <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/zhuanjia/vincent.png" onerror="this.src='/images/default-avatar.png'" class="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-500" alt="杨星宇">
+                        </div>
+                    </div>
+                    <div class="pt-20 pb-8 px-8 text-center flex-1 flex flex-col">
+                        <h4 class="text-xl font-bold text-slate-800 mb-1">杨星宇</h4>
+                        <p class="text-sm font-bold text-brand-600 mb-4">瑞华智策 CTO<br>资深数智化战略与架构专家</p>
+                        <div class="w-12 h-1 bg-brand-100 mx-auto mb-4 rounded-full group-hover:bg-brand-500 transition-colors"></div>
+                        <p class="text-xs text-slate-500 leading-relaxed text-left flex-1">TOGAF认证企业架构师，原埃森哲解决方案架构师与企业架构师，原IBM企业架构师。具备甲方战略规划与乙方落地交付复合视角，曾任首席架构师、CDO、CTO及CIO等岗位，为众多企业提供数字化咨询与解决方案并推动成功落地。</p>
+                    </div>
+                </div>
+                
+                <!-- Expert 4 -->
+                <div class="bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-brand-500/10 hover:-translate-y-2 transition-all group overflow-hidden flex flex-col">
+                    <div class="h-32 bg-gradient-to-br from-slate-100 to-slate-50 relative">
+                        <div class="absolute -bottom-16 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white">
+                            <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/zhuanjia/terry.png" onerror="this.src='/images/default-avatar.png'" class="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-500" alt="欧阳晖">
+                        </div>
+                    </div>
+                    <div class="pt-20 pb-8 px-8 text-center flex-1 flex flex-col">
+                        <h4 class="text-xl font-bold text-slate-800 mb-1">欧阳晖</h4>
+                        <p class="text-sm font-bold text-brand-600 mb-4">瑞华智策 资深咨询顾问<br>资深HR管理专家</p>
+                        <div class="w-12 h-1 bg-brand-100 mx-auto mb-4 rounded-full group-hover:bg-brand-500 transition-colors"></div>
+                        <p class="text-xs text-slate-500 leading-relaxed text-left flex-1">海外HR管理与实践专家，原央企、头部民企HR管理经验。丰富的甲方HR管理与咨询经验，构建了从战略顶层设计到微观机制落地的全栈专业能力；擅长将复杂的商业挑战转化为组织和人力资源解决方案，为众多企业提供海外HR体系建构的服务。</p>
+                    </div>
+                </div>
+                
+                <!-- Expert 5 -->
+                <div class="bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-brand-500/10 hover:-translate-y-2 transition-all group overflow-hidden flex flex-col">
+                    <div class="h-32 bg-gradient-to-br from-slate-100 to-slate-50 relative">
+                        <div class="absolute -bottom-16 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white">
+                            <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/zhuanjia/helen.png" onerror="this.src='/images/default-avatar.png'" class="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-500" alt="汤争艳">
+                        </div>
+                    </div>
+                    <div class="pt-20 pb-8 px-8 text-center flex-1 flex flex-col">
+                        <h4 class="text-xl font-bold text-slate-800 mb-1">汤争艳</h4>
+                        <p class="text-sm font-bold text-brand-600 mb-4">瑞华智策 资深咨询顾问<br>应用心理学博士 高级经济师</p>
+                        <div class="w-12 h-1 bg-brand-100 mx-auto mb-4 rounded-full group-hover:bg-brand-500 transition-colors"></div>
+                        <p class="text-xs text-slate-500 leading-relaxed text-left flex-1">原人瑞人才研究院院长，外包业务总经理。曾任多家大型集团人力资源管理岗位，历任人端业务、运营、研究院负责人；为主导字节跳动、阿里巴巴、京东、小米、蔚来汽车、货拉拉等大型企业的用工管理研究及实践；深谙人力资源底层逻辑。</p>
+                    </div>
+                </div>
+                
+                <!-- Expert 6 -->
+                <div class="bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-brand-500/10 hover:-translate-y-2 transition-all group overflow-hidden flex flex-col">
+                    <div class="h-32 bg-gradient-to-br from-slate-100 to-slate-50 relative">
+                        <div class="absolute -bottom-16 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white">
+                            <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/zhuanjia/cris.png" onerror="this.src='/images/default-avatar.png'" class="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-500" alt="王玉博">
+                        </div>
+                    </div>
+                    <div class="pt-20 pb-8 px-8 text-center flex-1 flex flex-col">
+                        <h4 class="text-xl font-bold text-slate-800 mb-1">王玉博</h4>
+                        <p class="text-sm font-bold text-brand-600 mb-4">瑞华智策 高级咨询顾问<br>中国人民大学博士后</p>
+                        <div class="w-12 h-1 bg-brand-100 mx-auto mb-4 rounded-full group-hover:bg-brand-500 transition-colors"></div>
+                        <p class="text-xs text-slate-500 leading-relaxed text-left flex-1">中国人力资源开发研究会研究员。参加过国家自科、国家社科、教育部等多项企业人才研究重点课题，核心研究方向为组织韧性、战略型领导力、薪酬绩效、多元用工模式等；作为咨询顾问参与多项管理咨询和数字化项目，曾发表多篇学术论文。</p>
+                    </div>
+                </div>
+                
+                </div>
+        </div>
+
+        <!-- CTA Form --><!-- CTA Form -->
+        <div id="apply-form" class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+            <div class="grid md:grid-cols-5 h-full">
+                <div class="md:col-span-2 bg-gradient-to-br from-brand-600 to-indigo-900 text-white p-6 md:p-10 flex flex-col justify-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full mix-blend-overlay filter blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+                    <h3 class="text-3xl font-bold mb-4 relative z-10">预约课程咨询与定制方案</h3>
+                    <p class="text-brand-100 mb-8 relative z-10 text-sm leading-relaxed">
+                        留下您的联系方式，我们的课程顾问将在1个工作日内与您取得联系，为您提供详细的课程大纲与定制化内训方案。
+                    </p>
+                    <ul class="space-y-4 relative z-10">
+                        <li class="flex items-center gap-3"><i class="fas fa-check-circle text-[#00f0ff]"></i> 专属顾问1对1沟通</li>
+                        <li class="flex items-center gap-3"><i class="fas fa-check-circle text-[#00f0ff]"></i> 获取完整版课程大纲</li>
+                        <li class="flex items-center gap-3"><i class="fas fa-check-circle text-[#00f0ff]"></i> 免费企业现状初诊</li>
+                    </ul>
+                </div>
+                
+                <div class="md:col-span-3 p-6 md:p-10 lg:p-6 md:p-12">
+                    <form id="trainingForm" class="space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">姓名 <span class="text-red-500">*</span></label>
+                                <input type="text" name="name" required class="form-input-custom" placeholder="请输入您的姓名">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">公司名称 <span class="text-red-500">*</span></label>
+                                <input type="text" name="company" required class="form-input-custom" placeholder="请输入您的公司名称">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">手机号码 <span class="text-red-500">*</span></label>
+                            <input type="tel" name="phone" id="phone" required class="form-input-custom" placeholder="请输入11位手机号码" pattern="^1[3-9]\d{9}$">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">短信验证码 <span class="text-red-500">*</span></label>
+                            <div class="flex gap-3">
+                                <input type="text" name="verifyCode" required class="form-input-custom" placeholder="输入验证码" maxlength="6">
+                                <button type="button" id="getVerifyCodeBtn" class="verify-btn">获取验证码</button>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">意向课程/工作坊 <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <select name="courseOption" required class="form-input-custom appearance-none bg-white">
+                                    <option value="" disabled selected>请选择您感兴趣的内容...</option>
+                                    <option value="从共识到行动：AI变革管理高层工作坊">《从共识到行动：AI变革管理高层工作坊》</option>
+                                    <option value="打造AI驱动的动态人效管理体系工作坊">《打造AI驱动的动态人效管理体系工作坊》</option>
+                                    <option value="基于人+AI的混合劳动力规划工作坊">《基于“人+AI”的混合劳动力规划工作坊》</option>
+                                    <option value="其他定制化课题">其他定制化课题</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                                    <i class="fas fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-4">
+                            <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 px-4 rounded-xl transition shadow-lg shadow-brand-500/30 hover:-translate-y-0.5 flex justify-center items-center">
+                                提交预约申请
+                            </button>
+                        </div>
+                        <p class="text-xs text-center text-slate-400 mt-4">提交即表示您同意我们的<a href="/privacy/" class="text-brand-500 hover:underline">隐私政策</a></p>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+    </main>
+
+    <!-- Footer -->
+    <footer id="footer-container" role="contentinfo"></footer>
+    
+    <script src="/js/training.js"></script>
+</body>
+</html>

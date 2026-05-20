@@ -1,0 +1,122 @@
+const mongoose = require('mongoose');
+
+const nqocSurveySubmissionSchema = new mongoose.Schema({
+    // 第一部分 企业基本信息
+    orgName: { type: String, required: true },
+    industry: { type: String, required: true },
+    industry_other: { type: String, default: '' },
+    orgNature: { type: String, required: true },
+    orgNature_other: { type: String, default: '' },
+    employeeCount: { type: String, required: true },
+    revenue: { type: String, required: true },
+    establishedYears: { type: String, required: true },
+    listingStatus: { type: String, required: true },
+    aiDeptStatus: { type: String, required: true },
+    
+    // 第二部分：填答人信息
+    respondentTitle: { type: String, required: true },
+    respondentTitle_other: { type: String, default: '' },
+    respondentTenure: { type: String, required: true },
+    respondentName: { type: String, default: '' },
+    respondentContact: { type: String, default: '' },
+    smsCode: { type: String, default: '' },
+
+    // 第三部分 新质组织成熟度评估
+    // 维度一 核心价值观
+    v1_1_1: { type: Number, required: true },
+    v1_1_2: { type: Number, required: true },
+    v1_2_1: { type: Number, required: true },
+    v1_2_2: { type: Number, required: true },
+    v1_3_1: { type: Number, required: true },
+    v1_3_2: { type: Number, required: true },
+    v1_3_3: { type: Number, required: true },
+    v1_4_1: { type: Number, required: true },
+    v1_4_2: { type: Number, required: true },
+    v1_5_1: { type: Number, required: true },
+    v1_5_2: { type: Number, required: true },
+
+    // 维度二 商业模式
+    b2_1_1: { type: Number, required: true },
+    b2_1_2: { type: Number, required: true },
+    b2_2_1: { type: Number, required: true },
+    b2_2_2: { type: Number, required: true },
+    b2_2_3: { type: Number, required: true },
+    b2_3_1: { type: Number, required: true },
+    b2_3_2: { type: Number, required: true },
+    b2_4_1: { type: Number, required: true },
+    b2_4_2: { type: Number, required: true },
+    b2_5_1: { type: Number, required: true },
+    b2_5_2: { type: Number, required: true },
+    b2_6_1: { type: Number, required: true },
+    b2_6_2: { type: Number, required: true },
+    b2_7_1: { type: Number, required: true },
+    b_o1: [{ type: String }],
+    b_o1_other: { type: String, default: '' },
+
+    // 维度三 生产方式
+    p3_1_1: { type: Number, required: true },
+    p3_1_2: { type: Number, required: true },
+    p3_2_1: { type: Number, required: true },
+    p3_2_2: { type: Number, required: true },
+    p3_3_1: { type: Number, required: true },
+    p3_3_2: { type: Number, required: true },
+    p3_4_1: { type: Number, required: true },
+    p3_4_2: { type: Number, required: true },
+    p3_5_1: { type: Number, required: true },
+    p3_5_2: { type: Number, required: true },
+    p3_6_1: { type: Number, required: true },
+    p3_6_2: { type: Number, required: true },
+    p3_7_1: { type: Number, required: true },
+    p_o1: [{ type: String }],
+    p_o1_other: { type: String, default: '' },
+
+    // 维度四 管理范式
+    m4_1_1: { type: Number, required: true },
+    m4_1_2: { type: Number, required: true },
+    m4_2_1: { type: Number, required: true },
+    m4_2_2: { type: Number, required: true },
+    m4_3_1: { type: Number, required: true },
+    m4_3_2: { type: Number, required: true },
+    m4_4_1: { type: Number, required: true },
+    m4_4_2: { type: Number, required: true },
+    m4_5_1: { type: Number, required: true },
+    m4_5_2: { type: Number, required: true },
+    m4_5_3: { type: Number, required: true },
+    m4_5_4: { type: Number, required: true },
+    m4_6_1: { type: Number, required: true },
+    m4_6_2: { type: Number, required: true },
+    m4_6_3: { type: Number, required: true },
+    m4_7_1: { type: Number, required: true },
+    m_o1: [{ type: String }],
+    m_o1_other: { type: String, default: '' },
+
+    // 维度五 生态协同
+    e5_1_1: { type: Number, required: true },
+    e5_1_2: { type: Number, required: true },
+    e5_2_1: { type: Number, required: true },
+    e5_2_2: { type: Number, required: true },
+    e5_3_1: { type: Number, required: true },
+    e5_3_2: { type: Number, required: true },
+    e5_4_1: { type: Number, required: true },
+    e5_4_2: { type: Number, required: true },
+    e5_5_1: { type: Number, required: true },
+    e5_5_2: { type: Number, required: true },
+    e5_6_1: { type: Number, required: true },
+    e_o1: [{ type: String }],
+    e_o1_other: { type: String, default: '' },
+
+    // 第四部分 总体评价与综合反馈
+    s1: { type: Number, required: true },
+    s2: [{ type: String }],
+    s3: [{ type: String }],
+    s4: [{ type: String }],
+    s5: [{ type: String }],
+    s6: [{ type: String }],
+    s7: { type: String, required: true },
+
+    // 元数据
+    channel: { type: String, default: 'organic' },
+    createdAt: { type: Date, default: Date.now }
+});
+
+module.exports = mongoose.model('NqocSurveySubmission', nqocSurveySubmissionSchema);

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>培训申请管理 - CMS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="/admin/admin-theme.css">
+  <link rel="stylesheet" href="/admin/admin-sidebar.css">
+  <style>
+    .status-pending { color: #f59e0b; background-color: #fef3c7; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+    .status-contacted { color: #3b82f6; background-color: #eff6ff; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+    .status-completed { color: #10b981; background-color: #d1fae5; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+    .status-rejected { color: #ef4444; background-color: #fee2e2; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+    .course-badge { background-color: #f3f4f6; color: #4b5563; padding: 4px 8px; border-radius: 4px; font-size: 13px; border: 1px solid #e5e7eb; }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <div id="unified-sidebar-container"></div>
+    <div class="main-content">
+      <div class="header d-flex justify-content-between align-items-center mb-4">
+        <h4 class="m-0"><i class="bi bi-mortarboard me-2"></i>课程咨询管理</h4>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary btn-sm" onclick="fetchApplications()"><i class="bi bi-arrow-clockwise me-1"></i>刷新</button>
+        </div>
+      </div>
+    <div class="u-content-wrapper">
+      <div class="card u-card border-0 shadow-sm mb-4">
+        <div class="card-body">
+          <form id="searchForm" class="row g-3 align-items-end">
+            <div class="col-md-3">
+              <label class="form-label text-muted small">关键字搜索</label>
+              <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="姓名 / 手机 / 公司">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label text-muted small">状态过滤</label>
+              <select class="form-select form-select-sm" id="statusFilter">
+                <option value="">全部状态</option>
+                <option value="pending">待处理</option>
+                <option value="contacted">已联系</option>
+                <option value="completed">已完成</option>
+                <option value="rejected">无效/拒绝</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search me-1"></i>搜索</button>
+              <button type="button" class="btn btn-light btn-sm ms-2" onclick="resetSearch()"><i class="bi bi-x-circle me-1"></i>重置</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="card u-card border-0 shadow-sm">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 u-table">
+              <thead class="table-light">
+                <tr>
+                  <th>姓名</th>
+                  <th>手机号码</th>
+                  <th>公司名称</th>
+                  <th>意向课程</th>
+                  <th>渠道来源</th>
+                  <th>状态</th>
+                  <th>提交时间</th>
+                  <th class="text-end">操作</th>
+                </tr>
+              </thead>
+              <tbody id="appTableBody">
+                <tr><td colspan="8" class="text-center py-4 text-muted">加载中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer bg-white border-top-0 py-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted" id="pageInfo">共 0 条记录</small>
+            <nav><ul class="pagination pagination-sm mb-0" id="pagination"></ul></nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">申请处理</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editId">
+          <div class="mb-3"><label class="form-label text-muted small">申请人</label><div class="fw-bold" id="detailName"></div></div>
+          <div class="mb-3"><label class="form-label text-muted small">联系电话</label><div id="detailPhone"></div></div>
+          <div class="mb-3"><label class="form-label text-muted small">公司名称</label><div id="detailCompany"></div></div>
+          <div class="mb-3"><label class="form-label text-muted small">意向课程</label><div id="detailCourse" class="course-badge d-inline-block"></div></div>
+          <div class="mb-3"><label class="form-label text-muted small">来源渠道</label><div id="detailSource" class="badge bg-light text-dark border"></div></div>
+          <hr class="my-4">
+          <div class="mb-3">
+            <label class="form-label">处理状态</label>
+            <select class="form-select" id="editStatus">
+              <option value="pending">待处理</option>
+              <option value="contacted">已联系</option>
+              <option value="completed">已完成</option>
+              <option value="rejected">无效/拒绝</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">处理备注</label>
+            <textarea class="form-control" id="editRemarks" rows="3" placeholder="添加沟通记录或备注信息..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" onclick="saveStatus()">保存更改</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/admin/js/utils.js"></script>
+  <script src="/admin/js/unified-admin-sidebar.js"></script>
+  <script>
+    let currentPage = 1;
+    let currentApplications = [];
+    const detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
+    const statusMap = {
+      'pending': { label: '待处理', class: 'status-pending' },
+      'contacted': { label: '已联系', class: 'status-contacted' },
+      'completed': { label: '已完成', class: 'status-completed' },
+      'rejected': { label: '无效/拒绝', class: 'status-rejected' }
+    };
+
+    document.getElementById('searchForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      currentPage = 1;
+      fetchApplications();
+    });
+
+    function resetSearch() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('statusFilter').value = '';
+      currentPage = 1;
+      fetchApplications();
+    }
+
+    async function fetchApplications(page = currentPage) {
+      currentPage = page;
+      const search = document.getElementById('searchInput').value;
+      const status = document.getElementById('statusFilter').value;
+      try {
+        const response = await fetch(`/api/admin/training-applications?page=${page}&limit=10&search=${encodeURIComponent(search)}&status=${status}`, {
+          headers: authHeaders()
+        });
+        const res = await response.json();
+        if (res.success) {
+          currentApplications = res.data;
+          renderTable(res.data);
+          renderPagination(res.page, res.totalPages, res.total);
+        } else {
+          alert('获取数据失败: ' + res.message);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('请求失败，请检查网络');
+      }
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('appTableBody');
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-5 text-muted">暂无数据</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map(item => {
+        const status = statusMap[item.status] || statusMap['pending'];
+        const date = new Date(item.createdAt).toLocaleString('zh-CN', { hour12: false });
+        const source = item.source || '自然流量';
+        return `<tr>
+          <td><div class="fw-bold text-dark">${item.name || '-'}</div></td>
+          <td><div class="text-muted"><i class="bi bi-telephone me-1"></i>${item.phone || '-'}</div></td>
+          <td><span class="text-secondary">${item.company || '-'}</span></td>
+          <td><span class="course-badge">${item.courseOption || '-'}</span></td>
+          <td><span class="badge bg-light text-dark border">${source}</span></td>
+          <td><span class="${status.class}">${status.label}</span></td>
+          <td><span class="small text-muted">${date}</span></td>
+          <td class="text-end"><button class="btn btn-sm btn-light text-primary" onclick="openDetail('${item._id}')">处理</button></td>
+        </tr>`;
+      }).join('');
+    }
+
+    function renderPagination(page, totalPages, total) {
+      document.getElementById('pageInfo').textContent = `共 ${total} 条记录，第 ${page}/${totalPages || 1} 页`;
+      const ul = document.getElementById('pagination');
+      let html = `<li class="page-item ${page <= 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="fetchApplications(${page - 1}); return false;">上一页</a></li>`;
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) {
+          html += `<li class="page-item ${i === page ? 'active' : ''}"><a class="page-link" href="#" onclick="fetchApplications(${i}); return false;">${i}</a></li>`;
+        } else if (i === page - 3 || i === page + 3) {
+          html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+      }
+      html += `<li class="page-item ${page >= totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="fetchApplications(${page + 1}); return false;">下一页</a></li>`;
+      ul.innerHTML = html;
+    }
+
+    function openDetail(id) {
+      const item = currentApplications.find(app => app._id === id);
+      if (!item) return;
+      document.getElementById('editId').value = item._id;
+      document.getElementById('detailName').textContent = item.name || '-';
+      document.getElementById('detailPhone').textContent = item.phone || '-';
+      document.getElementById('detailCompany').textContent = item.company || '-';
+      document.getElementById('detailCourse').textContent = item.courseOption || '-';
+      document.getElementById('detailSource').textContent = item.source || '自然流量';
+      document.getElementById('editStatus').value = item.status;
+      document.getElementById('editRemarks').value = item.remarks || '';
+      detailModal.show();
+    }
+
+    async function saveStatus() {
+      const id = document.getElementById('editId').value;
+      const status = document.getElementById('editStatus').value;
+      const remarks = document.getElementById('editRemarks').value;
+      try {
+        const response = await fetch(`/api/admin/training-applications/${id}/status`, {
+          method: 'PUT',
+          headers: authHeaders(),
+          body: JSON.stringify({ status, remarks })
+        });
+        const res = await response.json();
+        if (res.success) {
+          detailModal.hide();
+          fetchApplications();
+        } else {
+          alert('保存失败: ' + res.message);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('保存请求失败');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchApplications);
+  </script>
+</body>
+</html>

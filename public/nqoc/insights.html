@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新质观点 - 中国新质组织研究中心</title>
+    <meta name="keywords" content="新质组织观点, 组织管理前沿, AI时代管理, 组织效能提升">
+    <meta name="description" content="探索新质组织的前沿观点与专家洞察。汇聚顶级管理学者与企业实战专家的深度思考，为您揭示AI驱动下的组织重构与人力资本价值经营之道。">
+    <link rel="canonical" href="https://www.ruihuaconsulting.com/nqoc/insights">
+    <!-- Tailwind CSS CDN for Development/Standalone use -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            500: '#8b5cf6',
+                            600: '#7c3aed'
+                        },
+                        cyber: {
+                            cyan: '#00f0ff',
+                            purple: '#b026ff'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Main Styles -->
+    <link rel="stylesheet" href="/css/styles.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom NQOC Styles -->
+    <link rel="stylesheet" href="/nqoc/css/style.css">
+<script> 
+ var _hmt = _hmt || []; 
+ (function() { 
+   var hm = document.createElement("script"); 
+   hm.src = "https://hm.baidu.com/hm.js?3302f271fa7fe8d2ddc6176b39359827"; 
+   var s = document.getElementsByTagName("script")[0]; 
+   s.parentNode.insertBefore(hm, s); 
+ })(); 
+ </script>
+</head>
+<body class="antialiased bg-[#07090f] text-white min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="nqoc-nav py-4 fixed w-full z-50 bg-[#080b14]/90 backdrop-blur-md border-b border-white/5">
+        <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <div class="flex items-center">
+                <a href="/nqoc" class="flex items-center">
+                    <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/nqoc-logo.png" alt="中国新质组织研究中心" loading="lazy" class="nqoc-logo">
+                </a>
+            </div>
+            <div class="hidden md:flex items-center space-x-6 text-sm font-medium flex-1 justify-end">
+                <div class="flex space-x-6 top-nav-links">
+                    <a href="/nqoc" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">首页</a>
+                    <a href="/nqoc/survey" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">参与调研</a>
+                    <a href="/nqoc/awards" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">评选申报</a>
+                    <a href="/nqoc/cases" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">案例分享</a>
+                    <a href="/nqoc/insights" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition text-[#7c4dff] font-bold border-b-2 border-[#00f0ff] pb-1 active">新质观点</a>
+                    <a href="/nqoc/events" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">研讨活动</a>
+                    <a href="/nqoc/whitepaper" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">研究成果</a>
+                    <a href="/nqoc/about" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">关于我们</a>
+                </div>
+                <a href="/nqoc/survey" class="btn-primary ml-6 !py-2 !px-4 !text-sm whitespace-nowrap">参与调研</a>
+            </div>
+            <div class="md:hidden flex items-center">
+                <a href="/nqoc/survey" class="btn-primary mr-4 !py-1.5 !px-3 !text-xs whitespace-nowrap">参与调研</a>
+                <button class="text-white" id="mobile-menu-btn" onclick="toggleNqocMobileMenu()"><i class="fas fa-bars text-xl"></i></button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Mobile Menu -->
+    <nav id="nqocMobileMenu" class="hidden md:hidden fixed top-[70px] left-0 w-full bg-[#0a0a1a] border-b border-white/10 px-4 py-6 z-50 shadow-2xl">
+        <div class="flex flex-col space-y-4 text-center">
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc">首页</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/survey">参与调研</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/awards">评选申报</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/cases">案例分享</a>
+            <a class="text-[#7c4dff] font-bold text-lg" href="/nqoc/insights">新质观点</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/events">研讨活动</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/whitepaper">研究成果</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/about">关于我们</a>
+        </div>
+    </nav>
+
+    <script>
+    function toggleNqocMobileMenu() {
+        const menu = document.getElementById('nqocMobileMenu');
+        if (menu.classList.contains('hidden')) {
+            menu.classList.remove('hidden');
+        } else {
+            menu.classList.add('hidden');
+        }
+    }
+    </script>
+
+
+    <!-- Main Content -->
+    <main class="flex-grow flex items-center justify-center relative overflow-hidden">
+        <!-- Abstract Decoration -->
+        <div class="absolute left-0 top-1/4 w-96 h-96 bg-[var(--nqoc-brand)] rounded-full blur-[150px] opacity-10"></div>
+        <div class="absolute right-0 bottom-1/4 w-96 h-96 bg-[var(--nqoc-accent-cyan)] rounded-full blur-[150px] opacity-20"></div>
+        
+        <div class="text-center z-10 p-5 md:p-8 glass-panel border border-[rgba(124,77,255,0.3)] rounded-2xl max-w-2xl w-full mx-4">
+            <i class="fas fa-lightbulb text-5xl md:text-6xl text-[var(--nqoc-brand-light)] mb-6 animate-bounce"></i>
+            <h1 class="text-3xl md:text-4xl font-bold text-white mb-4">新质观点</h1>
+            <p class="text-xl text-slate-300 mb-8">敬请期待...</p>
+            <p class="text-slate-500 mb-8">智库专家前沿洞察与深度专栏文章即将上线，带您把握 AI 时代的组织进化脉搏！</p>
+            <a href="/nqoc" class="btn-primary inline-flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> 返回首页
+            </a>
+        </div>
+    </main>
+
+    <script src="/nqoc/js/main.js"></script>
+<!-- Footer -->
+    <footer class="py-8 border-t border-[rgba(255,255,255,0.05)] text-center text-sm text-slate-500">
+<p>© 2026 瑞华智策 - 中国新质组织研究中心. All rights reserved.</p>
+<p class="mt-2"><a href="https://beian.miit.gov.cn/" target="_blank" class="hover:text-white transition-colors">沪ICP备12042344号-24</a></p>
+</footer>
+</body>
+</html>

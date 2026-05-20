@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关于新质组织研究中心</title>
+    <meta name="keywords" content="新质组织研究中心, 组织发展智库, 产学研生态">
+    <meta name="description" content="人瑞人才与瑞华智策联合北京大学光华管理学院、中国经营报发起成立“中国新质组织研究中心”，旨在携手产学研各界专家，共同探索AI时代的新型组织形态。">
+    <link rel="canonical" href="https://www.ruihuaconsulting.com/nqoc/about">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            500: '#8b5cf6',
+                            600: '#7c3aed'
+                        },
+                        cyber: {
+                            cyan: '#00f0ff',
+                            purple: '#b026ff'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/nqoc/css/style.css">
+<script> 
+ var _hmt = _hmt || []; 
+ (function() { 
+   var hm = document.createElement("script"); 
+   hm.src = "https://hm.baidu.com/hm.js?3302f271fa7fe8d2ddc6176b39359827"; 
+   var s = document.getElementsByTagName("script")[0]; 
+   s.parentNode.insertBefore(hm, s); 
+ })(); 
+ </script>
+</head>
+<body class="antialiased bg-[#080b14] text-white min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="nqoc-nav py-4 fixed w-full z-50 bg-[#080b14]/90 backdrop-blur-md border-b border-white/5">
+        <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <div class="flex items-center">
+                <a href="/nqoc" class="flex items-center">
+                    <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/nqoc-logo.png" alt="中国新质组织研究中心" loading="lazy" class="nqoc-logo">
+                </a>
+            </div>
+            <div class="hidden md:flex items-center space-x-6 text-sm font-medium flex-1 justify-end">
+                <div class="flex space-x-6 top-nav-links">
+                    <a href="/nqoc" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">首页</a>
+                    <a href="/nqoc/survey" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">参与调研</a>
+                    <a href="/nqoc/awards" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">评选申报</a>
+                    <a href="/nqoc/cases" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">案例分享</a>
+                    <a href="/nqoc/insights" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">新质观点</a>
+                    <a href="/nqoc/events" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">研讨活动</a>
+                    <a href="/nqoc/whitepaper" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">研究成果</a>
+                    <a href="/nqoc/about" class="top-nav-link text-[#7c4dff] font-bold border-b-2 border-[#00f0ff] pb-1 transition active">关于我们</a>
+                </div>
+                <a href="/nqoc/survey" class="btn-primary ml-6 !py-2 !px-4 !text-sm whitespace-nowrap">参与调研</a>
+            </div>
+        
+            
+        
+            <div class="md:hidden flex items-center">
+                <a class="btn-primary mr-4 !py-1.5 !px-3 !text-xs whitespace-nowrap" href="/nqoc/survey">参与调研</a>
+                <button class="text-white" id="mobile-menu-btn" onclick="toggleNqocMobileMenu()"><i class="fas fa-bars text-xl"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <nav id="nqocMobileMenu" class="hidden md:hidden absolute top-[70px] left-0 w-full bg-[#0a0a1a] border-b border-white/10 px-4 py-6 z-50 shadow-2xl">
+        <div class="flex flex-col space-y-4 text-center">
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/index.html">首页</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/survey.html">参与调研</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/awards.html">评选申报</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/cases.html">案例分享</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/insights.html">新质观点</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/events.html">研讨活动</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/whitepaper.html">研究成果</a>
+            <a class="text-[#7c4dff] font-bold text-lg" href="/nqoc/about.html">关于我们</a>
+        </div>
+    </nav>
+
+    <script>
+    function toggleNqocMobileMenu() {
+        const menu = document.getElementById('nqocMobileMenu');
+        if (menu.classList.contains('hidden')) {
+            menu.classList.remove('hidden');
+        } else {
+            menu.classList.add('hidden');
+        }
+    }
+    </script>
+
+    
+
+    
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-24 pb-16 relative overflow-hidden">
+
+        <!-- About Center Banner Background (Hex Mesh & Deep Space Theme) -->
+        <div class="absolute top-0 left-0 w-full min-h-[600px] pointer-events-none z-0 bg-[#07090f]">
+            <!-- Hex Mesh Background -->
+            <div class="absolute inset-0 bg-hex-mesh opacity-50"></div>
+            
+            <!-- Central Glow -->
+            <div class="absolute top-[20%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[radial-gradient(circle,_rgba(176,38,255,0.15)_0%,_transparent_70%)] rounded-full z-0"></div>
+
+            <!-- Bottom fade to blend with next section -->
+            <div class="absolute bottom-0 left-0 w-full h-[200px] bg-gradient-to-t from-[#080b14] via-[#080b14]/80 to-transparent z-10"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            
+            <!-- Hero Section (Left Aligned Text + Right Abstract Visual) -->
+            <div class="mb-20 animate-on-scroll relative min-h-[450px] flex flex-col justify-center">
+
+                <div class="flex flex-col md:flex-row items-center justify-between gap-12 relative z-10 py-12">
+                    <!-- Left Content -->
+                    <div class="flex-1 text-center md:text-left">
+                        <!-- Logos -->
+                        <div class="flex items-center justify-center md:justify-start mb-10">
+                            <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/logo/3-logo.png" alt="主办方Logo" class="h-10 md:h-12 object-contain filter drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">
+                        </div>
+                        
+                        <!-- Titles -->
+                        <h1 class="text-4xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 leading-[1.2] mb-6 tracking-wide drop-shadow-sm">
+                            中国新质组织研究中心<br>
+                            <span class="text-xs sm:text-sm md:text-2xl font-light text-[var(--nqoc-brand-light)] mt-4 block whitespace-nowrap md:whitespace-normal">洞察 AI 时代组织发展趋势，赋能中国企业组织进化。</span>
+                        </h1>
+                        
+                        <!-- Subtitle / Vision -->
+                        <div class="relative inline-flex flex-col mb-10 group mx-auto md:mx-0 text-left">
+                            <div class="flex items-center gap-4 pl-4 border-l-4 border-[var(--nqoc-brand)] bg-gradient-to-r from-[var(--nqoc-brand)]/10 to-transparent py-2 pr-6 rounded-r-lg">
+                                <h2 class="text-base md:text-lg text-white font-bold tracking-widest whitespace-nowrap">
+                                    愿景：成为中国最具影响力的组织发展智库
+                                </h2>
+                            </div>
+                        </div>
+
+                        <!-- Directions -->
+                        <div class="flex flex-col items-start gap-3 text-white mt-2">
+                            <p class="text-xs text-slate-500 font-bold tracking-widest uppercase">CORE RESEARCH</p>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1.5 rounded bg-white/5 border border-white/10 text-xs text-slate-300">AI组织</span>
+                                <span class="px-3 py-1.5 rounded bg-white/5 border border-white/10 text-xs text-slate-300">人效经营</span>
+                                <span class="px-3 py-1.5 rounded bg-white/5 border border-white/10 text-xs text-slate-300">组织重构</span>
+                                <span class="px-3 py-1.5 rounded bg-white/5 border border-white/10 text-xs text-slate-300">人才战略</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Abstract Graphic (Replaces Image) -->
+                    <div class="hidden lg:flex w-[40%] justify-center items-center relative h-64">
+                        <div class="relative w-full h-full flex justify-center items-center">
+                            <!-- Abstract rings -->
+                            <div class="absolute w-48 h-48 border border-white/10 rounded-full animate-[spin_10s_linear_infinite]"></div>
+                            <div class="absolute w-56 h-56 border-t border-l border-[var(--nqoc-brand)]/30 rounded-full animate-[spin_15s_linear_infinite_reverse]"></div>
+                            <div class="absolute w-64 h-64 border-b border-r border-[var(--nqoc-accent-cyan)]/30 rounded-full animate-[spin_20s_linear_infinite]"></div>
+                            <!-- Center Icon -->
+                            <div class="w-20 h-20 bg-gradient-to-br from-[var(--nqoc-brand)] to-[var(--nqoc-accent-purple)] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(176,38,255,0.4)] animate-pulse">
+                                <i class="fas fa-brain text-4xl text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Organizers Bar -->
+                <div class="relative z-10 w-full border-t border-white/10 pt-6 pb-2 flex flex-col xl:flex-row justify-between items-center text-sm text-slate-300 gap-6 mt-8">
+                    <div class="whitespace-nowrap">
+                        <span class="font-bold text-white mr-3">发起单位:</span>人瑞人才&瑞华智策 · 新质组织研究中心
+                    </div>
+                    <div class="whitespace-nowrap">
+                        <span class="font-bold text-white mr-3">联合主办:</span>中国经营报
+                    </div>
+                    <div class="whitespace-nowrap">
+                        <span class="font-bold text-white mr-3">学术支持:</span>北京大学光华管理学院
+                    </div>
+                </div>
+            </div>
+
+            <!-- 02 About Center -->
+            <div class="mb-24 animate-on-scroll relative">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white heading-decorative">关于研究中心</h2>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Background -->
+                    <div class="glass-panel p-8 group border border-white/5 hover:border-[var(--nqoc-brand)]/30 transition-colors">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-12 h-12 rounded-full bg-[var(--nqoc-brand)]/20 flex items-center justify-center">
+                                <i class="fas fa-history text-[var(--nqoc-brand)] text-xl"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-white">成立背景</h3>
+                        </div>
+                        <div class="text-slate-300 leading-relaxed space-y-4">
+                            <p>在人机共智的新质生产力时代，企业如何全面拥抱AI，持续优化人力资本投入回报，已成为关乎未来生存与发展的关键课题。技术不应替代人，增长不该透支环境。</p>
+                            <p>针对战略与组织不匹配、数智转型难、人力经营低效等痛点，人瑞人才与瑞华智策联合北京大学光华管理学院、中国经营报发起成立“中国新质组织研究中心”，旨在携手产学研各界专家，共同探索AI时代的新型组织形态。</p>
+                        </div>
+                    </div>
+
+                    <!-- Mission -->
+                    <div class="glass-panel p-8 group border border-white/5 hover:border-[var(--nqoc-accent-cyan)]/30 transition-colors">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-12 h-12 rounded-full bg-[var(--nqoc-accent-cyan)]/20 flex items-center justify-center">
+                                <i class="fas fa-bullseye text-[var(--nqoc-accent-cyan)] text-xl"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-white">核心使命</h3>
+                        </div>
+                        <div class="text-slate-300 leading-relaxed space-y-4">
+                            <p>群力群策构建理论体系与评估标准，打造案例库与实践指南，打通“学术—实践—传播”闭环，为企业提供AI时代的组织变革方法论。</p>
+                            <ul class="list-none space-y-3 mt-4">
+                                <li class="flex items-start gap-3">
+                                    <i class="fas fa-check-circle text-[var(--nqoc-accent-cyan)] mt-1"></i>
+                                    <span><strong>研究与赋能：</strong> 提供前沿理论与实战模型，助力组织转型。</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <i class="fas fa-check-circle text-[var(--nqoc-accent-cyan)] mt-1"></i>
+                                    <span><strong>生态与共生：</strong> 连接学术界与产业界，打造智库生态网络。</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <i class="fas fa-check-circle text-[var(--nqoc-accent-cyan)] mt-1"></i>
+                                    <span><strong>人本与科技：</strong> 倡导技术服务于人，实现商业与社会的和谐共赢。</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 03 Core Research Directions -->
+            <div class="mb-24 animate-on-scroll">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white heading-decorative">核心研究方向</h2>
+                    <p class="text-slate-400 mt-6 text-lg">聚焦AI时代的组织重构与效能跃升</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    <div class="glass-panel p-6 group hover:-translate-y-2 transition-transform">
+                        <div class="w-12 h-12 rounded-lg bg-[var(--nqoc-brand)]/20 flex items-center justify-center mb-4">
+                            <i class="fas fa-network-wired text-[var(--nqoc-brand)] text-xl"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2">1. AI组织</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed">探讨AI技术如何深刻改变组织架构、决策模式与运营机制，构建适应智能化时代的敏捷组织生态。</p>
+                    </div>
+                    
+                    <div class="glass-panel p-6 group hover:-translate-y-2 transition-transform">
+                        <div class="w-12 h-12 rounded-lg bg-[var(--nqoc-accent-cyan)]/20 flex items-center justify-center mb-4">
+                            <i class="fas fa-chart-bar text-[var(--nqoc-accent-cyan)] text-xl"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2">2. 人效经营</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed">研究以数据为驱动的人效评价指标与提升策略，实现人力资本向商业价值的高效转化。</p>
+                    </div>
+
+                    <div class="glass-panel p-6 group hover:-translate-y-2 transition-transform">
+                        <div class="w-12 h-12 rounded-lg bg-[var(--nqoc-accent-purple)]/20 flex items-center justify-center mb-4">
+                            <i class="fas fa-cubes text-[var(--nqoc-accent-purple)] text-xl"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2">3. 组织重构</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed">打破传统科层制边界，探索无边界协同、液态化团队及生态型组织架构的创新实践。</p>
+                    </div>
+
+                    <div class="glass-panel p-6 group hover:-translate-y-2 transition-transform">
+                        <div class="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center mb-4">
+                            <i class="fas fa-users-cog text-blue-400 text-xl"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2">4. 人才战略</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed">定义新质生产力时代的人才画像，研究数字化人才的获取、培养、激励与留存机制。</p>
+                    </div>
+
+                    <div class="glass-panel p-6 group hover:-translate-y-2 transition-transform">
+                        <div class="w-12 h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center mb-4">
+                            <i class="fas fa-robot text-emerald-400 text-xl"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2">5. Agent协同</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed">深度解析AI智能体（Agent）在工作流中的角色演变，构建人机协同的最佳实践与伦理规范。</p>
+                    </div>
+
+                    <div class="glass-panel p-6 group hover:-translate-y-2 transition-transform">
+                        <div class="w-12 h-12 rounded-lg bg-amber-500/20 flex items-center justify-center mb-4">
+                            <i class="fas fa-briefcase text-amber-400 text-xl"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2">6. 未来工作</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed">前瞻性研究工作模式的演变，包括混合办公、灵活用工以及职场体验的全面升级。</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 04 Methodology -->
+            <div class="mb-24 animate-on-scroll relative">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white heading-decorative">方法论体系</h2>
+                    <p class="text-slate-400 mt-6 text-lg">基于严谨学术与前沿实践的科学研究框架</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
+                    <!-- Framework 1 -->
+                    <div class="glass-panel p-6 text-center group border border-white/5 hover:border-[var(--nqoc-brand)]/50 transition-colors relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-b from-[var(--nqoc-brand)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="w-16 h-16 mx-auto rounded-full bg-white/5 flex items-center justify-center mb-4 relative z-10">
+                            <i class="fas fa-project-diagram text-2xl text-[var(--nqoc-brand)]"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2 relative z-10">研究模型</h4>
+                        <p class="text-xs text-slate-400 relative z-10">五维驱动新质组织演进</p>
+                    </div>
+
+                    <!-- Framework 2 -->
+                    <div class="glass-panel p-6 text-center group border border-white/5 hover:border-[var(--nqoc-accent-cyan)]/50 transition-colors relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-b from-[var(--nqoc-accent-cyan)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="w-16 h-16 mx-auto rounded-full bg-white/5 flex items-center justify-center mb-4 relative z-10">
+                            <i class="fas fa-layer-group text-2xl text-[var(--nqoc-accent-cyan)]"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2 relative z-10">成熟度模型</h4>
+                        <p class="text-xs text-slate-400 relative z-10">量化评估企业组织现状</p>
+                    </div>
+
+                    <!-- Framework 3 -->
+                    <div class="glass-panel p-6 text-center group border border-white/5 hover:border-[var(--nqoc-accent-purple)]/50 transition-colors relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-b from-[var(--nqoc-accent-purple)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="w-16 h-16 mx-auto rounded-full bg-white/5 flex items-center justify-center mb-4 relative z-10">
+                            <i class="fas fa-sitemap text-2xl text-[var(--nqoc-accent-purple)]"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2 relative z-10">组织框架</h4>
+                        <p class="text-xs text-slate-400 relative z-10">构建敏捷人机协同机制</p>
+                    </div>
+
+                    <!-- Framework 4 -->
+                    <div class="glass-panel p-6 text-center group border border-white/5 hover:border-blue-500/50 transition-colors relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-b from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="w-16 h-16 mx-auto rounded-full bg-white/5 flex items-center justify-center mb-4 relative z-10">
+                            <i class="fas fa-search-plus text-2xl text-blue-400"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2 relative z-10">案例研究</h4>
+                        <p class="text-xs text-slate-400 relative z-10">深度剖析标杆企业实践</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 05 Think Tank Experts -->
+            <div class="mb-24 animate-on-scroll">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white heading-decorative">智库专家</h2>
+                    <p class="text-slate-400 mt-6 text-lg">汇聚顶尖学者与行业领袖的智慧</p>
+                    <p class="text-sm text-[var(--nqoc-brand-light)] mt-2 tracking-widest font-semibold">（持续更新中）</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                    <div class="glass-panel p-6 flex flex-col group border border-white/5 hover:border-[var(--nqoc-brand)]/50 transition-colors">
+                        <div class="w-full h-64 rounded-xl overflow-hidden mb-6 border border-white/10 relative">
+                            <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-zhangjianguo.png" alt="张建国" rel="nofollow" loading="lazy" class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#080b14] via-transparent to-transparent opacity-80"></div>
+                            <div class="absolute bottom-4 left-4">
+                                <h3 class="text-2xl font-bold text-white">张建国</h3>
+                            </div>
+                        </div>
+                        <p class="text-[var(--nqoc-brand-light)] font-medium text-sm mb-4 min-h-[40px] line-clamp-2">人瑞人才创始人/瑞华智策CEO</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">人力资本价值经营</span><span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">AI时代的系统性组织重构</span>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6 flex flex-col group border border-white/5 hover:border-[var(--nqoc-brand)]/50 transition-colors">
+                        <div class="w-full h-64 rounded-xl overflow-hidden mb-6 border border-white/10 relative">
+                            <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-pengjianfeng.png" alt="彭剑锋" rel="nofollow" loading="lazy" class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#080b14] via-transparent to-transparent opacity-80"></div>
+                            <div class="absolute bottom-4 left-4">
+                                <h3 class="text-2xl font-bold text-white">彭剑锋</h3>
+                            </div>
+                        </div>
+                        <p class="text-[var(--nqoc-brand-light)] font-medium text-sm mb-4 min-h-[40px] line-clamp-2">中国人民大学教授/华夏基石创始人</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">人力资源管理</span><span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">企业战略管理</span><span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">企业文化建设</span><span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">组织变革</span>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6 flex flex-col group border border-white/5 hover:border-[var(--nqoc-brand)]/50 transition-colors">
+                        <div class="w-full h-64 rounded-xl overflow-hidden mb-6 border border-white/10 relative">
+                            <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-nv.png" alt="周文霞" rel="nofollow" loading="lazy" class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#080b14] via-transparent to-transparent opacity-80"></div>
+                            <div class="absolute bottom-4 left-4">
+                                <h3 class="text-2xl font-bold text-white">周文霞</h3>
+                            </div>
+                        </div>
+                        <p class="text-[var(--nqoc-brand-light)] font-medium text-sm mb-4 min-h-[40px] line-clamp-2">中国人民大学劳人院教授/北京市人才战略发展研究院副院长</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">组织行为</span><span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">职业生涯管理</span><span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">人力资源管理</span><span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">人才激励</span>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6 flex flex-col group border border-white/5 hover:border-[var(--nqoc-brand)]/50 transition-colors">
+                        <div class="w-full h-64 rounded-xl overflow-hidden mb-6 border border-white/10 relative">
+                            <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-nan.png" alt="王辉" rel="nofollow" loading="lazy" class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#080b14] via-transparent to-transparent opacity-80"></div>
+                            <div class="absolute bottom-4 left-4">
+                                <h3 class="text-2xl font-bold text-white">王辉</h3>
+                            </div>
+                        </div>
+                        <p class="text-[var(--nqoc-brand-light)] font-medium text-sm mb-4 min-h-[40px] line-clamp-2">北京大学光华管理学院书记/博雅特聘教授</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">中国情境领导行为</span><span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">人力资源管理</span><span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">组织支持感</span>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6 flex flex-col group border border-white/5 hover:border-[var(--nqoc-brand)]/50 transition-colors">
+                        <div class="w-full h-64 rounded-xl overflow-hidden mb-6 border border-white/10 relative">
+                            <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-nan.png" alt="张闫龙" rel="nofollow" loading="lazy" class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#080b14] via-transparent to-transparent opacity-80"></div>
+                            <div class="absolute bottom-4 left-4">
+                                <h3 class="text-2xl font-bold text-white">张闫龙</h3>
+                            </div>
+                        </div>
+                        <p class="text-[var(--nqoc-brand-light)] font-medium text-sm mb-4 min-h-[40px] line-clamp-2">北京大学光华管理学院副院长/教授</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">AI时代的组织变革</span>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6 flex flex-col group border border-white/5 hover:border-[var(--nqoc-brand)]/50 transition-colors">
+                        <div class="w-full h-64 rounded-xl overflow-hidden mb-6 border border-white/10 relative">
+                            <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-jiangkaifeng.png" alt="姜铠丰" rel="nofollow" loading="lazy" class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#080b14] via-transparent to-transparent opacity-80"></div>
+                            <div class="absolute bottom-4 left-4">
+                                <h3 class="text-2xl font-bold text-white">姜铠丰</h3>
+                            </div>
+                        </div>
+                        <p class="text-[var(--nqoc-brand-light)] font-medium text-sm mb-4 min-h-[40px] line-clamp-2">北大光华管理学院/组织与战略管理系教授</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">战略人力资源管理</span>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6 flex flex-col group border border-white/5 hover:border-[var(--nqoc-brand)]/50 transition-colors">
+                        <div class="w-full h-64 rounded-xl overflow-hidden mb-6 border border-white/10 relative">
+                            <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-nv.png" alt="胡佳" rel="nofollow" loading="lazy" class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#080b14] via-transparent to-transparent opacity-80"></div>
+                            <div class="absolute bottom-4 left-4">
+                                <h3 class="text-2xl font-bold text-white">胡佳</h3>
+                            </div>
+                        </div>
+                        <p class="text-[var(--nqoc-brand-light)] font-medium text-sm mb-4 min-h-[40px] line-clamp-2">清华大学经济与管理学院和苏世民书院双聘教授</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">亲社会领导力</span><span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">团队效能</span><span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">数字技术与领导</span><span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">女性管理者</span>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6 flex flex-col group border border-white/5 hover:border-[var(--nqoc-brand)]/50 transition-colors">
+                        <div class="w-full h-64 rounded-xl overflow-hidden mb-6 border border-white/10 relative">
+                            <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-zhangyongli.png" alt="张永力" rel="nofollow" loading="lazy" class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#080b14] via-transparent to-transparent opacity-80"></div>
+                            <div class="absolute bottom-4 left-4">
+                                <h3 class="text-2xl font-bold text-white">张永力</h3>
+                            </div>
+                        </div>
+                        <p class="text-[var(--nqoc-brand-light)] font-medium text-sm mb-4 min-h-[40px] line-clamp-2">中央财经大学副教授、英赛孚工业智能CEO兼首席数据科学家</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">工业大数据</span><span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">智能制造领域的AI落地</span>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6 flex flex-col group border border-white/5 hover:border-[var(--nqoc-brand)]/50 transition-colors">
+                        <div class="w-full h-64 rounded-xl overflow-hidden mb-6 border border-white/10 relative">
+                            <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-wangtaiwen.png" alt="王太文" rel="nofollow" loading="lazy" class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#080b14] via-transparent to-transparent opacity-80"></div>
+                            <div class="absolute bottom-4 left-4">
+                                <h3 class="text-2xl font-bold text-white">王太文</h3>
+                            </div>
+                        </div>
+                        <p class="text-[var(--nqoc-brand-light)] font-medium text-sm mb-4 min-h-[40px] line-clamp-2">华为大学特级教授/高级管理顾问/清华大学高级访问学者</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">战略解码</span><span class="inline-block bg-[var(--nqoc-brand)]/10 text-[var(--nqoc-brand-light)] border border-[var(--nqoc-brand)]/30 text-xs px-2.5 py-1 rounded-full">组织变革</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <!-- CTA Section -->
+            <!-- 07 Premium Events -->
+            <div class="mb-24 animate-on-scroll">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white heading-decorative">思想共创</h2>
+                    <p class="text-slate-400 mt-6 text-lg">构建高规格的思想碰撞与生态连接平台</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
+                    <!-- Event 1 -->
+                    <div class="glass-panel p-6 flex flex-col items-center text-center group border border-white/5 hover:border-[var(--nqoc-brand)]/50 transition-colors">
+                        <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-user-tie text-2xl text-[var(--nqoc-brand)]"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2">私董会</h4>
+                        <p class="text-xs text-slate-400">面向CXO级别的高端闭门智囊会议，共创核心课题。</p>
+                    </div>
+
+                    <!-- Event 2 -->
+                    <div class="glass-panel p-6 flex flex-col items-center text-center group border border-white/5 hover:border-[var(--nqoc-accent-cyan)]/50 transition-colors">
+                        <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-door-closed text-2xl text-[var(--nqoc-accent-cyan)]"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2">闭门会</h4>
+                        <p class="text-xs text-slate-400">定向邀请行业专家的深度学术与实战研讨沙龙。</p>
+                    </div>
+
+                    <!-- Event 3 -->
+                    <div class="glass-panel p-6 flex flex-col items-center text-center group border border-white/5 hover:border-[var(--nqoc-accent-purple)]/50 transition-colors">
+                        <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-building text-2xl text-[var(--nqoc-accent-purple)]"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2">企业参访</h4>
+                        <p class="text-xs text-slate-400">走进标杆企业，实地考察新质组织的落地生根。</p>
+                    </div>
+
+                    <!-- Event 4 -->
+                    <div class="glass-panel p-6 flex flex-col items-center text-center group border border-white/5 hover:border-blue-500/50 transition-colors">
+                        <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-globe text-2xl text-blue-400"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2">年度峰会</h4>
+                        <p class="text-xs text-slate-400">发布年度重磅研究成果，千人规模的行业盛典。</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 06 Research Outcomes -->
+            <div class="mb-24 animate-on-scroll relative">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white heading-decorative">研究成果</h2>
+                    <p class="text-slate-400 mt-6 text-lg">持续输出高质量的组织进化指南</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+                    <!-- Outcome 1 -->
+                    <div class="glass-panel p-6 group hover:border-[var(--nqoc-brand)]/50 transition-colors">
+                        <div class="h-40 bg-white/5 rounded-lg mb-4 flex items-center justify-center overflow-hidden relative">
+                            <i class="fas fa-book text-4xl text-white/20 absolute"></i>
+                            <div class="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-[var(--nqoc-brand)]/40 to-transparent"></div>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2">年度研究报告</h4>
+                        <p class="text-xs text-slate-400 mb-4 line-clamp-2">《2026 中国企业新质组织成熟度研究报告》，全面阐述AI时代的组织进化路径。</p>
+                        <a href="/nqoc/whitepaper" class="text-[var(--nqoc-brand)] text-sm font-bold hover:text-white transition-colors">查看详情 <i class="fas fa-angle-right ml-1"></i></a>
+                    </div>
+
+                    <!-- Outcome 2 -->
+                    <div class="glass-panel p-6 group hover:border-[var(--nqoc-accent-cyan)]/50 transition-colors">
+                        <div class="h-40 bg-white/5 rounded-lg mb-4 flex items-center justify-center overflow-hidden relative">
+                            <i class="fas fa-file-alt text-4xl text-white/20 absolute"></i>
+                            <div class="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-[var(--nqoc-accent-cyan)]/40 to-transparent"></div>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2">行业报告</h4>
+                        <p class="text-xs text-slate-400 mb-4 line-clamp-2">聚焦特定行业（如制造、科技、零售）的垂直领域组织效能报告。</p>
+                        <a href="/nqoc/insights.html" class="text-[var(--nqoc-accent-cyan)] text-sm font-bold hover:text-white transition-colors">查看详情 <i class="fas fa-angle-right ml-1"></i></a>
+                    </div>
+
+                    <!-- Outcome 3 -->
+                    <div class="glass-panel p-6 group hover:border-[var(--nqoc-accent-purple)]/50 transition-colors">
+                        <div class="h-40 bg-white/5 rounded-lg mb-4 flex items-center justify-center overflow-hidden relative">
+                            <i class="fas fa-building text-4xl text-white/20 absolute"></i>
+                            <div class="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-[var(--nqoc-accent-purple)]/40 to-transparent"></div>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2">企业案例</h4>
+                        <p class="text-xs text-slate-400 mb-4 line-clamp-2">深度剖析标杆企业的组织重构实践与人机协同落地经验。</p>
+                        <a href="/nqoc/cases.html" class="text-[var(--nqoc-accent-purple)] text-sm font-bold hover:text-white transition-colors">查看详情 <i class="fas fa-angle-right ml-1"></i></a>
+                    </div>
+
+                    <!-- Outcome 4 -->
+                    <div class="glass-panel p-6 group hover:border-blue-500/50 transition-colors">
+                        <div class="h-40 bg-white/5 rounded-lg mb-4 flex items-center justify-center overflow-hidden relative">
+                            <i class="fas fa-comments text-4xl text-white/20 absolute"></i>
+                            <div class="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-blue-500/40 to-transparent"></div>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2">研究论坛</h4>
+                        <p class="text-xs text-slate-400 mb-4 line-clamp-2">定期举办的研究成果发布会与学术产业圆桌交流实录。</p>
+                        <a href="/nqoc/events.html" class="text-blue-400 text-sm font-bold hover:text-white transition-colors">查看详情 <i class="fas fa-angle-right ml-1"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 08 Ecosystem -->
+            <div class="mb-24 animate-on-scroll relative">
+                <!-- Background decoration -->
+                <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width=%2220%22%20height=%2220%22%20viewBox=%220%200%2020%2020%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Ccircle%20cx=%222%22%20cy=%222%22%20r=%221%22%20fill=%22rgba(255,255,255,0.05)%22/%3E%3C/svg%3E')] z-0 pointer-events-none opacity-50"></div>
+                
+                <div class="text-center mb-16 relative z-10">
+                    <h2 class="text-2xl md:text-4xl font-bold text-white tracking-tight mb-4 heading-decorative">合作机构</h2>
+                    <p class="text-[var(--nqoc-brand-light)] text-base md:text-lg max-w-2xl mx-auto font-medium tracking-wide">产学研权威阵容，打造“新质组织”研究的优质生态</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto relative z-10">
+                    
+                    <!-- Card 1 -->
+                    <div class="glass-panel p-6 sm:p-8 rounded-2xl flex flex-col sm:flex-row gap-5 sm:gap-6 items-start group hover:-translate-y-2 transition-transform duration-300 border border-white/5 hover:border-[var(--nqoc-brand)]/50 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-[var(--nqoc-brand)]/10 rounded-full blur-[40px] group-hover:bg-[var(--nqoc-brand)]/20 transition-colors"></div>
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[var(--nqoc-brand)]/20 flex items-center justify-center shrink-0 border border-[var(--nqoc-brand)]/30 group-hover:bg-[var(--nqoc-brand)] transition-colors duration-300 relative z-10">
+                            <i class="fas fa-user-tie text-xl sm:text-2xl text-[var(--nqoc-brand-light)] group-hover:text-white transition-colors"></i>
+                        </div>
+                        <div class="relative z-10 flex-1">
+                            <h3 class="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3">发起方</h3>
+                            <div class="text-base sm:text-lg text-white/90 font-medium mb-4 leading-relaxed">
+                                人瑞人才 (HK.06919)<br>
+                                瑞华智策【新质组织研究中心】
+                            </div>
+                            <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                                依托在人力资本价值经营、组织效能提升及企业AI化转型领域的深厚专业积淀。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="glass-panel p-6 sm:p-8 rounded-2xl flex flex-col sm:flex-row gap-5 sm:gap-6 items-start group hover:-translate-y-2 transition-transform duration-300 border border-white/5 hover:border-[var(--nqoc-brand)]/50 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-[var(--nqoc-brand)]/10 rounded-full blur-[40px] group-hover:bg-[var(--nqoc-brand)]/20 transition-colors"></div>
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[var(--nqoc-brand)]/20 flex items-center justify-center shrink-0 border border-[var(--nqoc-brand)]/30 group-hover:bg-[var(--nqoc-brand)] transition-colors duration-300 relative z-10">
+                            <i class="fas fa-copy text-xl sm:text-2xl text-[var(--nqoc-brand-light)] group-hover:text-white transition-colors"></i>
+                        </div>
+                        <div class="relative z-10 flex-1 flex flex-col h-full">
+                            <div>
+                                <h3 class="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3">联合主办</h3>
+                                <div class="text-base sm:text-lg text-white/90 font-medium mb-4 leading-relaxed">
+                                    《中国经营报》
+                                </div>
+                            </div>
+                            <div class="mt-auto pt-4">
+                                <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                                    国内权威财经媒体，提供强大的主流传播平台与公信力背书，助力项目影响力辐射。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="glass-panel p-6 sm:p-8 rounded-2xl flex flex-col sm:flex-row gap-5 sm:gap-6 items-start group hover:-translate-y-2 transition-transform duration-300 border border-white/5 hover:border-[var(--nqoc-brand)]/50 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-[var(--nqoc-brand)]/10 rounded-full blur-[40px] group-hover:bg-[var(--nqoc-brand)]/20 transition-colors"></div>
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[var(--nqoc-brand)]/20 flex items-center justify-center shrink-0 border border-[var(--nqoc-brand)]/30 group-hover:bg-[var(--nqoc-brand)] transition-colors duration-300 relative z-10">
+                            <i class="fas fa-graduation-cap text-xl sm:text-2xl text-[var(--nqoc-brand-light)] group-hover:text-white transition-colors"></i>
+                        </div>
+                        <div class="relative z-10 flex-1 flex flex-col h-full">
+                            <div>
+                                <h3 class="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3">学术合作</h3>
+                                <div class="text-base sm:text-lg text-white/90 font-medium mb-4 leading-relaxed">
+                                    北京大学光华管理学院【组织与战略管理系】
+                                </div>
+                            </div>
+                            <div class="mt-auto pt-4">
+                                <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                                    汇聚管理学顶尖学者资源，为项目提供坚实的学术研究支撑与前沿的理论框架指导。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 4 -->
+                    <div class="glass-panel p-6 sm:p-8 rounded-2xl flex flex-col sm:flex-row gap-5 sm:gap-6 items-start group hover:-translate-y-2 transition-transform duration-300 border border-white/5 hover:border-[var(--nqoc-brand)]/50 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-[var(--nqoc-brand)]/10 rounded-full blur-[40px] group-hover:bg-[var(--nqoc-brand)]/20 transition-colors"></div>
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[var(--nqoc-brand)]/20 flex items-center justify-center shrink-0 border border-[var(--nqoc-brand)]/30 group-hover:bg-[var(--nqoc-brand)] transition-colors duration-300 relative z-10">
+                            <i class="fas fa-broadcast-tower text-xl sm:text-2xl text-[var(--nqoc-brand-light)] group-hover:text-white transition-colors"></i>
+                        </div>
+                        <div class="relative z-10 flex-1">
+                            <h3 class="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3">支持媒体矩阵</h3>
+                            <div class="text-xs sm:text-sm text-white/80 font-medium mb-4 leading-relaxed space-y-1.5">
+                                <div class="flex"><span class="text-[var(--nqoc-brand-light)] w-10 shrink-0">专业:</span><span>智享会、第一资源、HRflag、MeetHR</span></div>
+                                <div class="flex"><span class="text-[var(--nqoc-brand-light)] w-10 shrink-0">财经:</span><span>第一财经、投资中国、东方财富、智通财经</span></div>
+                                <div class="flex"><span class="text-[var(--nqoc-brand-light)] w-10 shrink-0">网络:</span><span>新华网、中新网、中国网、腾讯网等</span></div>
+                                <div class="text-[10px] sm:text-xs text-slate-500 pt-1">......持续更新中</div>
+                            </div>
+                            <p class="text-slate-400 text-xs sm:text-sm leading-relaxed pt-3 border-t border-white/10 mt-3">
+                                覆盖全渠道传播网络，确保研究成果的最大化传播，让更多企业受益。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 09 Contact Us -->
+            <div class="mb-24 animate-on-scroll relative">
+                <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-full bg-gradient-to-r from-[var(--nqoc-brand)]/10 to-[var(--nqoc-accent-cyan)]/10 blur-[100px] -z-10 rounded-full"></div>
+
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white heading-decorative">联系我们</h2>
+                    <p class="text-slate-400 mt-6 text-lg">期待与您携手，共创组织发展新未来</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                    <!-- Business -->
+                    <div class="glass-panel p-8 text-center group border border-white/5 hover:border-[var(--nqoc-brand)]/50 transition-colors">
+                        <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-handshake text-2xl text-[var(--nqoc-brand)]"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-white mb-4">商务合作</h4>
+                        <p class="text-sm text-slate-400 mb-6">咨询服务、定制研究报告、联合课题发布等业务合作。</p>
+                        <a href="mailto:ruihuazhice@renruihr.com" class="text-[var(--nqoc-brand-light)] hover:text-white transition-colors">ruihuazhice@renruihr.com</a>
+                    </div>
+
+                    <!-- Enterprise -->
+                    <div class="glass-panel p-8 text-center group border border-white/5 hover:border-[var(--nqoc-accent-cyan)]/50 transition-colors">
+                        <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-building text-2xl text-[var(--nqoc-accent-cyan)]"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-white mb-4">企业参与</h4>
+                        <p class="text-sm text-slate-400 mb-6">申请加入研究案例库、参与企业评选、思想共创。</p>
+                        <a href="mailto:ruihuazhice@renruihr.com" class="text-[var(--nqoc-accent-cyan)] hover:text-white transition-colors">ruihuazhice@renruihr.com</a>
+                    </div>
+
+                    <!-- Media -->
+                    <div class="glass-panel p-8 text-center group border border-white/5 hover:border-[var(--nqoc-accent-purple)]/50 transition-colors">
+                        <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-bullhorn text-2xl text-[var(--nqoc-accent-purple)]"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-white mb-4">媒体合作</h4>
+                        <p class="text-sm text-slate-400 mb-6">研究成果发布、论坛活动报道、专家采访等媒体对接。</p>
+                        <a href="mailto:ruihuazhice@renruihr.com" class="text-[var(--nqoc-accent-purple)] hover:text-white transition-colors">ruihuazhice@renruihr.com</a>
+                    </div>
+                </div>
+            </div>
+    <!-- Footer -->
+    <footer class="py-8 border-t border-[rgba(255,255,255,0.05)] text-center text-sm text-slate-500">
+<p>© 2026 瑞华智策 - 中国新质组织研究中心. All rights reserved.</p>
+<p class="mt-2"><a href="https://beian.miit.gov.cn/" target="_blank" class="hover:text-white transition-colors">沪ICP备12042344号-24</a></p>
+</footer>
+
+    <!-- Side Navigation (PC Only) -->
+    <div class="nqoc-side-nav hidden md:block">
+        <ul class="flex flex-col py-4">
+            <li>
+                <a href="#hero" class="side-nav-link" title="返回顶部">
+                    <div class="side-nav-icon"><i class="fas fa-arrow-up"></i></div>
+                    <span class="side-nav-text">返回顶部</span>
+                </a>
+            </li>
+            <li>
+                <a href="#submit" class="side-nav-link" title="申报入口">
+                    <div class="side-nav-icon"><i class="fas fa-edit"></i></div>
+                    <span class="side-nav-text">申报入口</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/nqoc/js/main.js"></script>
+</body>
+</html>

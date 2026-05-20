@@ -46,6 +46,10 @@ const legacyRedirects = require('./middleware/legacyRedirects');
 const { requireAdminPagePermission, gatherPermissions } = require('./middleware/adminPageAuth');
 
 const app = express();
+app.use((req, res, next) => {
+    console.log(`[DEBUG GLOBAL] ${req.method} ${req.url}`);
+    next();
+});
 app.disable('x-powered-by');
 app.set('trust proxy', 1); // Trust the first proxy (Kubernetes ingress/load balancer)
 const PORT = process.env.PORT || 3000;
@@ -348,19 +352,52 @@ app.use((req, res, next) => {
     next();
 });
 
+// Redirect .html files and trailing slashes for NQOC
+app.use((req, res, next) => {
+    if (req.path.startsWith('/nqoc')) {
+        // Redirect /nqoc/index.html -> /nqoc
+        if (req.path === '/nqoc/index.html') {
+            return res.redirect(301, '/nqoc');
+        }
+        // Redirect /nqoc/xxx.html -> /nqoc/xxx
+        if (req.path.endsWith('.html') && req.path !== '/nqoc/index.html') {
+            return res.redirect(301, req.path.slice(0, -5));
+        }
+        // Redirect /nqoc/xxx/ -> /nqoc/xxx
+        if (req.path !== '/nqoc' && req.path.endsWith('/')) {
+            return res.redirect(301, req.path.slice(0, -1));
+        }
+    }
+    next();
+});
+
 app.use(express.static(path.join(__dirname, 'public'), { 
     index: false,
+    redirect: false,
     etag: true,
-    maxAge: '7d',
     setHeaders: (res, filePath) => {
-        if (/\.(png|jpg|jpeg|gif|svg|webp)$/i.test(filePath)) {
+        if (/\.html$/i.test(filePath)) {
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+        } else if (/\.(png|jpg|jpeg|gif|svg|webp)$/i.test(filePath)) {
             res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+        } else {
+            res.setHeader('Cache-Control', 'public, max-age=604800'); // 7 days for other assets
         }
     }
 }));
 app.get('/admin/survey.html',
     requireAdminPagePermission({ AdminModel: Admin, secretKey: RUNTIME_SECRET_KEY, requiredPerm: 'appointment:list' }),
     (req, res) => res.sendFile(path.join(__dirname, 'admin/survey.html'))
+);
+app.get('/admin/training-applications.html',
+    requireAdminPagePermission({ AdminModel: Admin, secretKey: RUNTIME_SECRET_KEY, requiredPerm: 'appointment:list' }),
+    (req, res) => res.sendFile(path.join(__dirname, 'admin/training-applications.html'))
+);
+app.get('/admin/nqoc-debate.html',
+    requireAdminPagePermission({ AdminModel: Admin, secretKey: RUNTIME_SECRET_KEY, requiredPerm: 'appointment:list' }),
+    (req, res) => res.sendFile(path.join(__dirname, 'admin/nqoc-debate.html'))
 );
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
@@ -395,8 +432,18 @@ app.get('/videos/', (req, res) => res.sendFile(path.join(__dirname, 'videos.html
 app.get('/survey/', (req, res) => res.sendFile(path.join(__dirname, 'survey.html')));
 app.get('/survey', (req, res) => res.redirect(301, '/survey/'));
 app.get('/survey.html', (req, res) => res.redirect(301, '/survey/'));
-app.get('/admin/survey', (req, res) => res.redirect(301, '/admin/survey.html'));
-app.get('/admin/survey/', (req, res) => res.redirect(301, '/admin/survey.html'));
+
+// NQOC Routes
+app.get('/nqoc', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/nqoc/index.html'));
+});
+
+const nqocPages = ['survey', 'awards', 'cases', 'insights', 'events', 'whitepaper', 'about', 'debate-vote', 'flyer'];
+nqocPages.forEach(page => {
+    app.get(`/nqoc/${page}`, (req, res) => {
+        res.sendFile(path.join(__dirname, `public/nqoc/${page}.html`));
+    });
+});
 
 // Helper for SEO SSR on Article Page
 const { JSDOM } = require('jsdom');
@@ -849,6 +896,12 @@ app.get('/about.html', (req, res) => res.redirect(301, '/about/'));
 app.get('/solutions/', (req, res) => res.sendFile(path.join(__dirname, 'solutions.html')));
 app.get('/solutions.html', (req, res) => res.redirect(301, '/solutions/'));
 
+// 3. training.html -> /training
+app.get('/training', (req, res) => res.sendFile(path.join(__dirname, 'training.html')));
+app.get('/training.html', (req, res) => res.redirect(301, '/training'));
+app.get('/training/', (req, res) => res.redirect(301, '/training'));
+app.get('/raining.html', (req, res) => res.redirect(301, '/training'));
+
 // Helper for SEO SSR on Resources Page
 let resourcesTemplateCache = null;
 
@@ -1170,7 +1223,8 @@ function authRequired(req, res, next) {
         const auth = req.headers.authorization || '';
         const headerToken = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
         const cookieToken = req.cookies?.admin_token || '';
-        const candidates = [headerToken, cookieToken].filter(Boolean).filter(t => t !== 'null' && t !== 'undefined');
+        const queryToken = req.query.token || '';
+        const candidates = [headerToken, cookieToken, queryToken].filter(Boolean).filter(t => t !== 'null' && t !== 'undefined');
         if (candidates.length === 0) return res.status(401).json({ error: 'Unauthorized' });
         for (const token of candidates) {
             try {
@@ -2503,6 +2557,948 @@ app.delete('/api/sidebar/modules/:id', authRequired, requirePerm('sidebar:manage
 });
 
 
+// NQOC Models
+const NqocAwardApplication = require('./models/NqocAwardApplication');
+const NqocDebateConfig = require('./models/NqocDebateConfig');
+const NqocSurveyChannel = require('./models/NqocSurveyChannel');
+const NqocSurveySubmission = require('./models/NqocSurveySubmission');
+const TrainingApplication = require('./models/TrainingApplication');
+const NqocExpertApplication = require('./models/NqocExpertApplication');
+
+
+// File Upload configuration for public NQOC
+const nqocStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = path.join(__dirname, 'public', 'uploads', 'nqoc');
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname);
+        cb(null, `award-${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`);
+    }
+});
+const nqocUpload = multer({ 
+    storage: nqocStorage,
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+});
+
+// ==========================================
+// Training Applications API
+// ==========================================
+
+// Client: Submit Training Application
+app.post('/api/training/apply', async (req, res) => {
+    try {
+        const { name, phone, company, courseOption, verifyCode, source } = req.body;
+
+        if (!name || !phone || !company || !courseOption || !verifyCode) {
+            return res.status(400).json({ success: false, message: '请填写所有必填字段并输入验证码' });
+        }
+
+        // SMS Verification check
+        const smsRecord = await VerificationCode.findOne({ phone: phone }).sort({ createdAt: -1 });
+        if (!smsRecord) {
+            return res.status(400).json({ success: false, message: '请先获取验证码' });
+        }
+
+        // Check if code matches and is not expired (3 minutes TTL)
+        const isExpired = Date.now() - smsRecord.createdAt.getTime() > 3 * 60 * 1000;
+        if (smsRecord.code !== verifyCode || isExpired) {
+            return res.status(400).json({ success: false, message: '验证码不正确或已过期' });
+        }
+
+        const newApp = new TrainingApplication({
+            name,
+            phone,
+            company,
+            courseOption,
+            source: source || '自然流量'
+        });
+
+        await newApp.save();
+        res.json({ success: true, message: '申请提交成功！我们的专家顾问将尽快与您联系。' });
+    } catch (error) {
+        console.error('Error submitting training application:', error);
+        res.status(500).json({ success: false, message: '服务器错误，请稍后重试' });
+    }
+});
+
+// Admin: Get Training Applications
+app.get('/api/admin/training-applications', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const search = req.query.search || '';
+        const status = req.query.status || '';
+
+        const query = {};
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { phone: { $regex: search, $options: 'i' } },
+                { company: { $regex: search, $options: 'i' } }
+            ];
+        }
+        if (status) {
+            query.status = status;
+        }
+
+        const applications = await TrainingApplication.find(query)
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        const total = await TrainingApplication.countDocuments(query);
+
+        res.json({
+            success: true,
+            data: applications,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
+    } catch (error) {
+        console.error('Error fetching training applications:', error);
+        res.status(500).json({ success: false, message: '获取数据失败' });
+    }
+});
+
+// Admin: Update Training Application Status
+app.put('/api/admin/training-applications/:id/status', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const { status, remarks } = req.body;
+        const application = await TrainingApplication.findById(req.params.id);
+        
+        if (!application) {
+            return res.status(404).json({ success: false, message: '记录不存在' });
+        }
+
+        if (status) application.status = status;
+        if (remarks !== undefined) application.remarks = remarks;
+
+        await application.save();
+        res.json({ success: true, message: '更新成功' });
+    } catch (error) {
+        console.error('Error updating training application:', error);
+        res.status(500).json({ success: false, message: '更新失败' });
+    }
+});
+
+
+// --- NQOC Award Application API ---
+app.post('/api/nqoc/awards/apply', nqocUpload.single('file'), async (req, res) => {
+    try {
+        const { orgName, contactName, phone, awardCategory, channel } = req.body;
+        
+        if (!orgName || !contactName || !phone || !awardCategory) {
+            return res.status(400).json({ success: false, error: '请填写所有必填字段' });
+        }
+
+        let fileUrl = '';
+        if (req.file) {
+            fileUrl = `/uploads/nqoc/${req.file.filename}`;
+        }
+
+        const newApplication = new NqocAwardApplication({
+            orgName,
+            contactName,
+            phone,
+            awardCategory,
+            fileUrl,
+            channel: channel || 'organic'
+        });
+
+        await newApplication.save();
+        res.json({ success: true, message: '申报提交成功' });
+    } catch (e) {
+        console.error('NQOC Award Submit Error:', e);
+        res.status(500).json({ success: false, error: '服务器内部错误，请稍后重试' });
+    }
+});
+
+// Admin API for NQOC Awards
+app.get('/api/admin/nqoc/awards', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const { page = 1, limit = 20, keyword, channel, startDate, endDate } = req.query;
+        let query = {};
+        
+        if (keyword) {
+            query.$or = [
+                { orgName: { $regex: keyword, $options: 'i' } },
+                { contactName: { $regex: keyword, $options: 'i' } },
+                { phone: { $regex: keyword, $options: 'i' } }
+            ];
+        }
+        if (channel) {
+            query.channel = channel;
+        }
+        if (startDate && endDate) {
+            query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
+        }
+
+        const applications = await NqocAwardApplication.find(query)
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit));
+            
+        const total = await NqocAwardApplication.countDocuments(query);
+        
+        res.json({
+            success: true,
+            data: applications,
+            total,
+            page: parseInt(page),
+            totalPages: Math.ceil(total / limit)
+        });
+    } catch (e) {
+        console.error('Fetch NQOC Awards Error:', e);
+        res.status(500).json({ success: false, error: '服务器内部错误: ' + e.message });
+    }
+});
+
+app.delete('/api/admin/nqoc/awards/:id', authRequired, requirePerm('appointment:delete'), async (req, res) => {
+    try {
+        const deleted = await NqocAwardApplication.findByIdAndDelete(req.params.id);
+        if (!deleted) return res.status(404).json({ success: false, error: '记录不存在' });
+        res.json({ success: true });
+    } catch (e) {
+        console.error('Delete NQOC Award Error:', e);
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+// Update NQOC Award Display Status & Details
+app.put('/api/admin/nqoc/awards/:id/display', authRequired, requirePerm('appointment:edit'), async (req, res) => {
+    try {
+        const { showOnFrontend, description, voteCount, status } = req.body;
+        const updateData = {};
+        if (showOnFrontend !== undefined) updateData.showOnFrontend = showOnFrontend;
+        if (description !== undefined) updateData.description = description;
+        if (voteCount !== undefined) updateData.voteCount = voteCount;
+        if (status !== undefined) updateData.status = status;
+
+        const application = await NqocAwardApplication.findByIdAndUpdate(req.params.id, updateData, { new: true });
+        if (!application) return res.status(404).json({ success: false, error: '记录不存在' });
+        res.json({ success: true, data: application });
+    } catch (e) {
+        console.error('Update NQOC Award Display Error:', e);
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+// Get Shortlisted Awards for Frontend
+app.get('/api/nqoc/awards/shortlisted', async (req, res) => {
+    try {
+        const shortlisted = await NqocAwardApplication.find({ showOnFrontend: true })
+            .select('orgName awardCategory description voteCount')
+            .sort({ voteCount: -1, createdAt: -1 });
+        res.json({ success: true, data: shortlisted });
+    } catch (e) {
+        console.error('Get Shortlisted Awards Error:', e);
+        res.status(500).json({ success: false, error: '获取入围企业失败' });
+    }
+});
+
+// --- NQOC Whitepaper Request API ---
+const NqocWhitepaperRequest = require('./models/NqocWhitepaperRequest');
+
+app.post('/api/nqoc/whitepaper/apply', async (req, res) => {
+    try {
+        const { name, phone, email, company, position, smsCode } = req.body;
+        
+        if (!name || !phone || !email || !company || !position || !smsCode) {
+            return res.status(400).json({ success: false, error: '请填写所有必填项并输入验证码' });
+        }
+        
+        if (!/^1[3-9]\d{9}$/.test(phone)) {
+            return res.status(400).json({ success: false, error: '手机号格式不正确' });
+        }
+
+        const hit = await VerificationCode.findOne({
+            phone,
+            code: smsCode,
+            used: false,
+            createdAt: { $gt: new Date(Date.now() - 3 * 60 * 1000) }
+        }).sort({ createdAt: -1 });
+
+        if (!hit) {
+            return res.status(400).json({ success: false, error: '验证码错误或已过期' });
+        }
+        hit.used = true;
+        await hit.save();
+
+        const newRequest = new NqocWhitepaperRequest({
+            name, phone, email, company, position
+        });
+
+        await newRequest.save();
+        res.json({ success: true, message: '提交成功' });
+    } catch (e) {
+        console.error('Whitepaper request error:', e);
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+// Admin API for NQOC Whitepaper Requests
+app.get('/api/admin/nqoc/whitepaper', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const { page = 1, limit = 20, keyword } = req.query;
+        let query = {};
+
+        if (keyword) {
+            query.$or = [
+                { name: new RegExp(keyword, 'i') },
+                { phone: new RegExp(keyword, 'i') },
+                { company: new RegExp(keyword, 'i') }
+            ];
+        }
+
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const [total, list] = await Promise.all([
+            NqocWhitepaperRequest.countDocuments(query),
+            NqocWhitepaperRequest.find(query).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit))
+        ]);
+
+        res.json({
+            success: true,
+            data: { list, total, page: parseInt(page), totalPages: Math.ceil(total / parseInt(limit)) }
+        });
+    } catch (e) {
+        console.error('Fetch whitepaper requests error:', e);
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+app.delete('/api/admin/nqoc/whitepaper/:id', authRequired, requirePerm('appointment:delete'), async (req, res) => {
+    try {
+        const deleted = await NqocWhitepaperRequest.findByIdAndDelete(req.params.id);
+        if (!deleted) return res.status(404).json({ success: false, error: '记录不存在' });
+        res.json({ success: true });
+    } catch (e) {
+        console.error('Delete whitepaper request error:', e);
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+app.get('/api/admin/nqoc/whitepaper/export', async (req, res) => {
+    try {
+        const token = req.query.token;
+        if (!token) return res.status(401).send('未授权访问');
+        
+        let decoded;
+        try {
+            decoded = jwt.verify(token, JWT_SECRET);
+        } catch (err) {
+            return res.status(401).send('Token无效');
+        }
+
+        const { keyword } = req.query;
+        let query = {};
+        if (keyword) {
+            query.$or = [
+                { name: new RegExp(keyword, 'i') },
+                { phone: new RegExp(keyword, 'i') },
+                { company: new RegExp(keyword, 'i') }
+            ];
+        }
+
+        const list = await NqocWhitepaperRequest.find(query).sort({ createdAt: -1 });
+
+        let csvContent = '\uFEFF'; // BOM
+        csvContent += '姓名,手机号,邮箱,公司名称,职位,提交时间\n';
+
+        list.forEach(item => {
+            const dateStr = item.createdAt ? new Date(item.createdAt).toLocaleString('zh-CN') : '';
+            csvContent += `"${item.name}","${item.phone}","${item.email}","${item.company}","${item.position}","${dateStr}"\n`;
+        });
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', 'attachment; filename="nqoc_whitepaper_requests.csv"');
+        res.send(csvContent);
+    } catch (e) {
+        console.error('Export NQOC Whitepaper Requests Error:', e);
+        res.status(500).send('导出失败');
+    }
+});
+
+// CSV Export for NQOC Awards
+// Use JWT authentication via query string since it's accessed via window.open
+app.get('/api/admin/nqoc/awards/export', async (req, res) => {
+    try {
+        // Authenticate via token in query
+        const token = req.query.token;
+        if (!token) return res.status(401).send('未授权访问');
+        
+        let decoded;
+        try {
+            decoded = jwt.verify(token, JWT_SECRET);
+        } catch (err) {
+            return res.status(401).send('Token无效');
+        }
+
+        const { keyword, channel, startDate, endDate } = req.query;
+        let query = {};
+        
+        if (keyword) {
+            query.$or = [
+                { orgName: { $regex: keyword, $options: 'i' } },
+                { contactName: { $regex: keyword, $options: 'i' } },
+                { phone: { $regex: keyword, $options: 'i' } }
+            ];
+        }
+        if (channel) {
+            query.channel = channel;
+        }
+        if (startDate && endDate) {
+            query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
+        }
+
+        const applications = await NqocAwardApplication.find(query).sort({ createdAt: -1 });
+
+        const getAwardName = (val) => {
+            const map = { '1': '年度优秀新质组织', '2': 'AI组织创新奖', '3': '动态人效实践奖', '4': '组织变革先锋奖' };
+            return map[val] || val;
+        };
+
+        const BOM = '\uFEFF';
+        let csv = BOM + '企业名称,联系人,手机号,申报奖项,来源渠道,提交时间,附件地址\n';
+        
+        applications.forEach(app => {
+            const org = `"${(app.orgName || '').replace(/"/g, '""')}"`;
+            const name = `"${(app.contactName || '').replace(/"/g, '""')}"`;
+            const phone = `"${(app.phone || '').replace(/"/g, '""')}"`;
+            const award = `"${getAwardName(app.awardCategory)}"`;
+            const ch = `"${(app.channel || 'organic').replace(/"/g, '""')}"`;
+            const time = `"${app.createdAt.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}"`;
+            const fileUrl = `"${app.fileUrl ? (process.env.SITE_URL || 'https://www.ruihuaconsulting.com') + app.fileUrl : ''}"`;
+            
+            csv += `${org},${name},${phone},${award},${ch},${time},${fileUrl}\n`;
+        });
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename=nqoc-awards-${Date.now()}.csv`);
+        res.send(csv);
+
+    } catch (e) {
+        console.error('Export NQOC Awards Error:', e);
+        res.status(500).send('服务器内部错误');
+    }
+});
+
+// --- NQOC Survey API ---
+
+// Public: Submit Survey
+app.post('/api/nqoc/survey/submit', async (req, res) => {
+    try {
+        const payload = req.body;
+        
+        if (!payload.orgName || !payload.industry || !payload.respondentTitle || !payload.s7) {
+            return res.status(400).json({ success: false, error: '缺少必填字段' });
+        }
+        
+        if (payload.respondentContact) {
+            if (!payload.smsCode) {
+                return res.status(400).json({ success: false, error: '请输入短信验证码' });
+            }
+            const verifyResult = await verifyCode(payload.respondentContact, payload.smsCode);
+            if (!verifyResult.valid) {
+                return res.status(400).json({ success: false, error: verifyResult.message || '验证码无效或已过期' });
+            }
+        }
+
+        const submission = new NqocSurveySubmission(payload);
+        await submission.save();
+
+        res.json({ success: true, message: '提交成功' });
+    } catch (e) {
+        console.error('NQOC Survey Submit Error:', e);
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+// Admin: Channels CRUD
+app.get('/api/admin/nqoc/survey/channels', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const channels = await NqocSurveyChannel.find().sort({ createdAt: -1 });
+        res.json({ success: true, data: channels });
+    } catch (e) {
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+app.post('/api/admin/nqoc/survey/channels', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const { name, code, description } = req.body;
+        if (!name || !code) return res.status(400).json({ success: false, error: '渠道名称和代码为必填' });
+        
+        const exists = await NqocSurveyChannel.findOne({ code });
+        if (exists) return res.status(400).json({ success: false, error: '渠道代码已存在' });
+
+        const channel = new NqocSurveyChannel({ name, code, description });
+        await channel.save();
+        res.json({ success: true, data: channel });
+    } catch (e) {
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+app.put('/api/admin/nqoc/survey/channels/:id', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const { name, code, description } = req.body;
+        const exists = await NqocSurveyChannel.findOne({ code, _id: { $ne: req.params.id } });
+        if (exists) return res.status(400).json({ success: false, error: '渠道代码已存在' });
+
+        const channel = await NqocSurveyChannel.findByIdAndUpdate(req.params.id, { name, code, description }, { new: true });
+        if (!channel) return res.status(404).json({ success: false, error: '渠道不存在' });
+        res.json({ success: true, data: channel });
+    } catch (e) {
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+app.delete('/api/admin/nqoc/survey/channels/:id', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        await NqocSurveyChannel.findByIdAndDelete(req.params.id);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+// Admin: Survey Submissions List
+app.get('/api/admin/nqoc/survey/submissions', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const { page = 1, limit = 20, keyword, channel, startDate, endDate } = req.query;
+        let query = {};
+        
+        if (keyword) {
+            query.$or = [
+                { orgName: { $regex: keyword, $options: 'i' } },
+                { respondentName: { $regex: keyword, $options: 'i' } },
+                { respondentContact: { $regex: keyword, $options: 'i' } }
+            ];
+        }
+        if (channel) query.channel = channel;
+        if (startDate && endDate) {
+            query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
+        }
+
+        const submissions = await NqocSurveySubmission.find(query)
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit));
+            
+        const total = await NqocSurveySubmission.countDocuments(query);
+        
+        res.json({
+            success: true,
+            data: submissions,
+            total,
+            page: parseInt(page),
+            totalPages: Math.ceil(total / limit)
+        });
+    } catch (e) {
+        console.error('Fetch NQOC Survey Submissions Error:', e);
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+app.delete('/api/admin/nqoc/survey/submissions/:id', authRequired, requirePerm('appointment:delete'), async (req, res) => {
+    try {
+        const deleted = await NqocSurveySubmission.findByIdAndDelete(req.params.id);
+        if (!deleted) return res.status(404).json({ success: false, error: '记录不存在' });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+// Admin: Survey Stats
+app.get('/api/admin/nqoc/survey/stats', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const total = await NqocSurveySubmission.countDocuments();
+        const submissions = await NqocSurveySubmission.find();
+        
+        // Calculate average scores for radar chart
+        let scores = { v1: 0, b2: 0, p3: 0, m4: 0, e5: 0 };
+        let stageCount = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+        let painPointsCount = {};
+
+        if (total > 0) {
+            submissions.forEach(sub => {
+                // Sum averages
+                const v1_avg = (sub.v1_1_1 + sub.v1_1_2 + sub.v1_2_1 + sub.v1_2_2 + sub.v1_3_1 + sub.v1_3_2 + sub.v1_3_3 + sub.v1_4_1 + sub.v1_4_2 + sub.v1_5_1 + sub.v1_5_2) / 11;
+                const b2_avg = (sub.b2_1_1 + sub.b2_1_2 + sub.b2_2_1 + sub.b2_2_2 + sub.b2_3_1 + sub.b2_3_2 + sub.b2_4_1 + sub.b2_4_2 + sub.b2_5_1 + sub.b2_5_2) / 10;
+                const p3_avg = (sub.p3_1_1 + sub.p3_1_2 + sub.p3_2_1 + sub.p3_2_2 + sub.p3_3_1 + sub.p3_3_2 + sub.p3_4_1 + sub.p3_4_2 + sub.p3_5_1 + sub.p3_5_2 + sub.p3_6_1 + sub.p3_6_2) / 12;
+                const m4_avg = (sub.m4_1_1 + sub.m4_1_2 + sub.m4_2_1 + sub.m4_2_2 + sub.m4_3_1 + sub.m4_3_2 + sub.m4_4_1 + sub.m4_4_2 + sub.m4_5_1 + sub.m4_5_2 + sub.m4_6_1 + sub.m4_6_2) / 12;
+                const e5_avg = (sub.e5_1_1 + sub.e5_1_2 + sub.e5_2_1 + sub.e5_2_2 + sub.e5_3_1 + sub.e5_3_2 + sub.e5_4_1 + sub.e5_4_2 + sub.e5_5_1 + sub.e5_5_2) / 10;
+                
+                scores.v1 += v1_avg;
+                scores.b2 += b2_avg;
+                scores.p3 += p3_avg;
+                scores.m4 += m4_avg;
+                scores.e5 += e5_avg;
+
+                // Stage distribution
+                if (sub.s1) {
+                    stageCount[sub.s1] = (stageCount[sub.s1] || 0) + 1;
+                }
+
+                // Pain points distribution
+                if (sub.s2 && Array.isArray(sub.s2)) {
+                    sub.s2.forEach(point => {
+                        painPointsCount[point] = (painPointsCount[point] || 0) + 1;
+                    });
+                }
+            });
+
+            scores.v1 /= total;
+            scores.b2 /= total;
+            scores.p3 /= total;
+            scores.m4 /= total;
+            scores.e5 /= total;
+        }
+
+        res.json({
+            success: true,
+            data: {
+                total,
+                scores,
+                stageCount,
+                painPointsCount
+            }
+        });
+    } catch (error) {
+        console.error('Survey stats error:', error);
+        res.status(500).json({ success: false, message: '获取数据失败' });
+    }
+});
+
+// Admin: Export Survey Submissions
+app.get('/api/admin/nqoc/survey/submissions/export', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const { keyword, channel, startDate, endDate } = req.query;
+        let query = {};
+        if (keyword) {
+            query.$or = [
+                { orgName: { $regex: keyword, $options: 'i' } },
+                { respondentName: { $regex: keyword, $options: 'i' } },
+                { respondentContact: { $regex: keyword, $options: 'i' } }
+            ];
+        }
+        if (channel) query.channel = channel;
+        if (startDate && endDate) query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
+
+        const NqocSurveySubmission = require('./models/NqocSurveySubmission');
+        const TrainingApplication = require('./models/TrainingApplication');
+        const submissions = await NqocSurveySubmission.find(query).sort({ createdAt: -1 });
+        const BOM = '\uFEFF';
+        
+        const headers = [
+            '提交时间', '来源渠道', 
+            '企业名称', '所属行业', '所属行业(其他)', '企业性质', '企业性质(其他)', '员工总人数', '上一财年营业收入', '企业成立年限', '上市状态', 'AI部门/岗位状态',
+            '填答人职务', '填答人职务(其他)', '任职年限', '填答人姓名', '联系方式(手机号)',
+            'V1.1.1', 'V1.1.2', 'V1.2.1', 'V1.2.2', 'V1.3.1', 'V1.3.2', 'V1.3.3', 'V1.4.1', 'V1.4.2', 'V1.5.1', 'V1.5.2',
+            'B2.1.1', 'B2.1.2', 'B2.2.1', 'B2.2.2', 'B2.2.3', 'B2.3.1', 'B2.3.2', 'B2.4.1', 'B2.4.2', 'B2.5.1', 'B2.5.2', 'B2.6.1', 'B2.6.2', 'B2.7.1', 'B-O1', 'B-O1(其他)',
+            'P3.1.1', 'P3.1.2', 'P3.2.1', 'P3.2.2', 'P3.3.1', 'P3.3.2', 'P3.4.1', 'P3.4.2', 'P3.5.1', 'P3.5.2', 'P3.6.1', 'P3.6.2', 'P3.7.1', 'P-O1', 'P-O1(其他)',
+            'M4.1.1', 'M4.1.2', 'M4.2.1', 'M4.2.2', 'M4.3.1', 'M4.3.2', 'M4.4.1', 'M4.4.2', 'M4.5.1', 'M4.5.2', 'M4.5.3', 'M4.5.4', 'M4.6.1', 'M4.6.2', 'M4.6.3', 'M4.7.1', 'M-O1', 'M-O1(其他)',
+            'E5.1.1', 'E5.1.2', 'E5.2.1', 'E5.2.2', 'E5.3.1', 'E5.3.2', 'E5.4.1', 'E5.4.2', 'E5.5.1', 'E5.5.2', 'E5.6.1', 'E-O1', 'E-O1(其他)',
+            'S1总体评价', 'S2最强维度', 'S3最弱维度', 'S4最显著进展', 'S5最大挑战', 'S6需补强能力', 'S7深度访谈'
+        ];
+
+        let csv = BOM + headers.join(',') + '\n';
+        
+        const escapeCsv = (val) => {
+            if (val === null || val === undefined) return '""';
+            if (Array.isArray(val)) val = val.join(' | ');
+            return `"${String(val).replace(/"/g, '""')}"`;
+        };
+
+        submissions.forEach(sub => {
+            const row = [
+                sub.createdAt.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }),
+                sub.channel || 'organic',
+                sub.orgName, sub.industry, sub.industry_other, sub.orgNature, sub.orgNature_other, sub.employeeCount, sub.revenue, 
+                sub.establishedYears, sub.listingStatus, sub.aiDeptStatus,
+                sub.respondentTitle, sub.respondentTitle_other, sub.respondentTenure, sub.respondentName, sub.respondentContact,
+                
+                sub.v1_1_1, sub.v1_1_2, sub.v1_2_1, sub.v1_2_2, sub.v1_3_1, sub.v1_3_2, sub.v1_3_3, sub.v1_4_1, sub.v1_4_2, sub.v1_5_1, sub.v1_5_2,
+                sub.b2_1_1, sub.b2_1_2, sub.b2_2_1, sub.b2_2_2, sub.b2_2_3, sub.b2_3_1, sub.b2_3_2, sub.b2_4_1, sub.b2_4_2, sub.b2_5_1, sub.b2_5_2, sub.b2_6_1, sub.b2_6_2, sub.b2_7_1, sub.b_o1, sub.b_o1_other,
+                sub.p3_1_1, sub.p3_1_2, sub.p3_2_1, sub.p3_2_2, sub.p3_3_1, sub.p3_3_2, sub.p3_4_1, sub.p3_4_2, sub.p3_5_1, sub.p3_5_2, sub.p3_6_1, sub.p3_6_2, sub.p3_7_1, sub.p_o1, sub.p_o1_other,
+                sub.m4_1_1, sub.m4_1_2, sub.m4_2_1, sub.m4_2_2, sub.m4_3_1, sub.m4_3_2, sub.m4_4_1, sub.m4_4_2, sub.m4_5_1, sub.m4_5_2, sub.m4_5_3, sub.m4_5_4, sub.m4_6_1, sub.m4_6_2, sub.m4_6_3, sub.m4_7_1, sub.m_o1, sub.m_o1_other,
+                sub.e5_1_1, sub.e5_1_2, sub.e5_2_1, sub.e5_2_2, sub.e5_3_1, sub.e5_3_2, sub.e5_4_1, sub.e5_4_2, sub.e5_5_1, sub.e5_5_2, sub.e5_6_1, sub.e_o1, sub.e_o1_other,
+                sub.s1, sub.s2, sub.s3, sub.s4, sub.s5, sub.s6, sub.s7
+            ].map(escapeCsv);
+            
+            csv += row.join(',') + '\n';
+        });
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename=nqoc-survey-detailed-${Date.now()}.csv`);
+        res.send(csv);
+    } catch (e) {
+        console.error('Export NQOC Survey Error:', e);
+        res.status(500).send('服务器内部错误');
+    }
+});
+
+// --- NQOC Debate Voting API ---
+
+// Helper to get or create debate config
+async function getDebateConfig() {
+    let config = await NqocDebateConfig.findOne();
+    if (!config) {
+        config = await NqocDebateConfig.create({});
+    }
+    return config;
+}
+
+// Public: Get debate config and current votes
+app.get('/api/nqoc/debate/votes', async (req, res) => {
+    try {
+        const config = await getDebateConfig();
+        res.json({
+            success: true,
+            data: {
+                1: { pro: config.topic1_proVotes, con: config.topic1_conVotes, status: config.topic1_status || (config.topic1_isOpen ? 'in_progress' : 'ended') },
+                2: { pro: config.topic2_proVotes, con: config.topic2_conVotes, status: config.topic2_status || (config.topic2_isOpen ? 'in_progress' : 'ended') },
+                maxVotes: config.maxVotesPerDevice
+            }
+        });
+    } catch (e) {
+        console.error('Fetch Debate Config Error:', e);
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+// Public: Submit a vote
+app.post('/api/nqoc/debate/vote', express.json(), async (req, res) => {
+    try {
+        const { topicId, side } = req.body;
+        const config = await getDebateConfig();
+        
+        if (topicId == 1) {
+            const status = config.topic1_status || (config.topic1_isOpen ? 'in_progress' : 'ended');
+            if (status === 'not_started') return res.status(400).json({ success: false, error: '该话题投票尚未开始' });
+            if (status === 'ended') return res.status(400).json({ success: false, error: '该话题投票已结束' });
+            if (side === 'pro') config.topic1_proVotes++;
+            else if (side === 'con') config.topic1_conVotes++;
+        } else if (topicId == 2) {
+            const status = config.topic2_status || (config.topic2_isOpen ? 'in_progress' : 'ended');
+            if (status === 'not_started') return res.status(400).json({ success: false, error: '该话题投票尚未开始' });
+            if (status === 'ended') return res.status(400).json({ success: false, error: '该话题投票已结束' });
+            if (side === 'pro') config.topic2_proVotes++;
+            else if (side === 'con') config.topic2_conVotes++;
+        } else {
+            return res.status(400).json({ success: false, error: '无效的话题' });
+        }
+        
+        await config.save();
+        res.json({ success: true, data: { topicId, side } });
+    } catch (e) {
+        console.error('Submit Vote Error:', e);
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+// Admin: Get debate config
+app.get('/api/admin/nqoc/debate/config', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const config = await getDebateConfig();
+        res.json({ success: true, data: config });
+    } catch (e) {
+        console.error('Fetch Debate Config Error (Admin):', e);
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+// Admin: Update debate config
+app.post('/api/admin/nqoc/debate/config', authRequired, requirePerm('appointment:list'), express.json(), async (req, res) => {
+    try {
+        const config = await getDebateConfig();
+        Object.assign(config, req.body);
+        await config.save();
+        res.json({ success: true, data: config });
+    } catch (e) {
+        console.error('Update Debate Config Error:', e);
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+
+// ==========================================
+// NQOC Expert Application APIs
+// ==========================================
+
+// Public API to submit expert application
+app.post('/api/nqoc/experts/apply', express.json(), async (req, res) => {
+    console.log("HIT /api/nqoc/experts/apply");
+    try {
+        const { name, phone, smsCode, description } = req.body;
+        
+        if (!name || !phone || !description || !smsCode) {
+            return res.status(400).json({ success: false, message: '请填写所有必填项及验证码' });
+        }
+        
+        // 验证短信验证码
+        const verifyResult = await verifyCode(phone, smsCode);
+        if (!verifyResult.valid) {
+            return res.status(400).json({ success: false, message: verifyResult.message || '验证码无效或已过期' });
+        }
+
+        const newApplication = new NqocExpertApplication({
+            name,
+            phone,
+            description,
+            status: 'pending'
+        });
+        
+        await newApplication.save();
+        res.json({ success: true, message: '申请提交成功' });
+    } catch (error) {
+        console.error('Submit expert application error:', error);
+        res.status(500).json({ success: false, message: '服务器错误，请稍后重试' });
+    }
+});
+
+// Admin API to get applications list
+app.get('/api/admin/nqoc/experts', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        
+        let query = {};
+        if (req.query.search) {
+            query = {
+                $or: [
+                    { name: { $regex: req.query.search, $options: 'i' } },
+                    { phone: { $regex: req.query.search, $options: 'i' } }
+                ]
+            };
+        }
+        
+        if (req.query.status) {
+            query.status = req.query.status;
+        }
+
+        if (req.query.startDate || req.query.endDate) {
+            query.createdAt = {};
+            if (req.query.startDate) query.createdAt.$gte = new Date(req.query.startDate);
+            if (req.query.endDate) {
+                let endDate = new Date(req.query.endDate);
+                endDate.setDate(endDate.getDate() + 1);
+                query.createdAt.$lt = endDate;
+            }
+        }
+
+        const applications = await NqocExpertApplication.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+            
+        const total = await NqocExpertApplication.countDocuments(query);
+        
+        res.json({
+            success: true,
+            data: applications,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        console.error('Get expert applications error:', error);
+        res.status(500).json({ success: false, message: '获取数据失败' });
+    }
+});
+
+// Admin API to update application status
+app.put('/api/admin/nqoc/experts/:id/status', authRequired, requirePerm('appointment:list'), express.json(), async (req, res) => {
+    try {
+        const { status } = req.body;
+        const application = await NqocExpertApplication.findByIdAndUpdate(
+            req.params.id,
+            { status },
+            { new: true }
+        );
+        
+        if (!application) {
+            return res.status(404).json({ success: false, message: '记录不存在' });
+        }
+        
+        res.json({ success: true, data: application });
+    } catch (error) {
+        console.error('Update expert application status error:', error);
+        res.status(500).json({ success: false, message: '更新状态失败' });
+    }
+});
+
+// Admin API to delete application
+app.delete('/api/admin/nqoc/experts/:id', authRequired, requirePerm('appointment:delete'), async (req, res) => {
+    try {
+        const deleted = await NqocExpertApplication.findByIdAndDelete(req.params.id);
+        if (!deleted) {
+            return res.status(404).json({ success: false, message: '记录不存在' });
+        }
+        res.json({ success: true, message: '删除成功' });
+    } catch (error) {
+        console.error('Delete expert application error:', error);
+        res.status(500).json({ success: false, message: '删除失败' });
+    }
+});
+
+// Admin API to export expert applications
+app.get('/api/admin/nqoc/experts/export', async (req, res) => {
+    try {
+        const applications = await NqocExpertApplication.find().sort({ createdAt: -1 });
+        
+        const ExcelJS = require('exceljs');
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('智库专家申请');
+        
+        worksheet.columns = [
+            { header: '提交时间', key: 'createdAt', width: 20 },
+            { header: '姓名', key: 'name', width: 15 },
+            { header: '手机号', key: 'phone', width: 15 },
+            { header: '专家描述', key: 'description', width: 50 },
+            { header: '状态', key: 'status', width: 15 }
+        ];
+        
+        const statusMap = {
+            'pending': '待处理',
+            'contacted': '已联系',
+            'rejected': '已拒绝',
+            'approved': '已通过'
+        };
+        
+        applications.forEach(app => {
+            worksheet.addRow({
+                createdAt: new Date(app.createdAt).toLocaleString('zh-CN'),
+                name: app.name,
+                phone: app.phone,
+                description: app.description,
+                status: statusMap[app.status] || app.status
+            });
+        });
+        
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=expert-applications.xlsx');
+        
+        await workbook.xlsx.write(res);
+        res.end();
+    } catch (error) {
+        console.error('Export expert applications error:', error);
+        res.status(500).send('导出失败');
+    }
+});
+
+
 // --- Deepseek API ---
 // Fix for UNABLE_TO_GET_ISSUER_CERT_LOCALLY in dev environment
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -3108,9 +4104,13 @@ app.post('/api/send-verification-code', smsLimiter, async (req, res) => {
         }
         
         // 准备短信内容
-        let smsContent = `【瑞华智策】验证码为：${code} 你正在预约组织人效体检，需要进行验证码校验（3分钟内有效），请勿向任何人提供此验证码。`;
+        let smsContent = `【瑞华智策】验证码为：${code} 你正在预约新质组织白皮书，需要进行验证码校验（3分钟内有效），请勿向任何人提供此验证码。`;
         if (scene === 'activity') {
             smsContent = `【瑞华智策】验证码为：${code}，用于活动信息校验（3分钟内有效），请勿向任何人提供此验证码。`;
+        } else if (scene === 'survey') {
+            smsContent = `【瑞华智策】验证码为：${code} 你正在参与新质组织调研，需要进行验证码校验（3分钟内有效），请勿向任何人提供此验证码。`;
+        } else if (scene === 'training') {
+            smsContent = `【瑞华智策】验证码为：${code} 你正在提交课程咨询，需要进行验证码校验（3分钟内有效），请勿向任何人提供此验证码。`;
         }
         
         // 异步保存验证码到数据库以减少阻塞时间

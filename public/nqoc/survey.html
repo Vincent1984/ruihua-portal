@@ -1,0 +1,2232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025-2026中国企业新质组织成熟度调研问卷</title>
+    <meta name="keywords" content="新质组织成熟度调研, 组织能力诊断, 企业管理问卷">
+    <meta name="description" content="参与2025-2026中国企业新质组织成熟度调研，获取免费的定制化组织能力诊断报告，明确企业在5大维度上的发展阶段与进阶路径。">
+    <link rel="canonical" href="https://www.ruihuaconsulting.com/nqoc/survey">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            500: '#8b5cf6',
+                            600: '#7c3aed'
+                        },
+                        cyber: {
+                            cyan: '#00f0ff',
+                            purple: '#b026ff'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/nqoc/css/style.css">
+
+    <style>
+        /* Base radio/checkbox styles */
+        .radio-group label, .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            padding: 0.875rem 1rem;
+            border-radius: 0.75rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease-in-out;
+            color: #f1f5f9;
+        }
+        .radio-group label:hover, .checkbox-group label:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(124, 77, 255, 0.3);
+        }
+        .radio-group input[type="radio"], .checkbox-group input[type="checkbox"] {
+            accent-color: #7c4dff;
+            width: 1.25rem;
+            height: 1.25rem;
+            margin: 0;
+            cursor: pointer;
+        }
+        
+        /* Feishu-style Responsive Likert Scale */
+        @media (max-width: 768px) {
+            .likert-scale {
+                display: flex;
+                flex-direction: column;
+                gap: 0.625rem;
+                padding: 0;
+                background: transparent;
+                margin-top: 1rem;
+            }
+            .likert-item {
+                display: flex;
+                flex-direction: row-reverse;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+                padding: 1rem 1.25rem;
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 0.75rem;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            .likert-item:active {
+                background: rgba(255, 255, 255, 0.08);
+            }
+            .likert-item span {
+                font-size: 0.95rem;
+                color: #e2e8f0;
+                font-weight: 500;
+            }
+            .likert-item input[type="radio"] {
+                width: 1.25rem;
+                height: 1.25rem;
+                accent-color: #7c4dff;
+            }
+        }
+        @media (min-width: 769px) {
+            .likert-scale {
+                display: flex;
+                justify-content: space-between;
+                background: rgba(255, 255, 255, 0.02);
+                padding: 1.5rem;
+                border-radius: 1rem;
+                margin-top: 1rem;
+            }
+            .likert-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 0.75rem;
+                cursor: pointer;
+                padding: 0.75rem;
+                border-radius: 0.5rem;
+                transition: background 0.2s;
+            }
+            .likert-item:hover {
+                background: rgba(255, 255, 255, 0.05);
+            }
+            .likert-item span {
+                font-size: 0.85rem;
+                color: #94a3b8;
+            }
+        }
+        
+        .form-section {
+            margin-bottom: 2.5rem;
+        }
+    
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<script> 
+ var _hmt = _hmt || []; 
+ (function() { 
+   var hm = document.createElement("script"); 
+   hm.src = "https://hm.baidu.com/hm.js?3302f271fa7fe8d2ddc6176b39359827"; 
+   var s = document.getElementsByTagName("script")[0]; 
+   s.parentNode.insertBefore(hm, s); 
+ })(); 
+ </script>
+</head>
+<body class="antialiased bg-[#07090f] text-white min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="nqoc-nav py-4 fixed w-full z-50 bg-[#080b14]/90 backdrop-blur-md border-b border-white/5">
+        <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <div class="flex items-center">
+                <a href="/nqoc" class="flex items-center">
+                    <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/nqoc-logo.png" alt="中国新质组织研究中心" loading="lazy" class="nqoc-logo">
+                </a>
+            </div>
+            <div class="hidden md:flex items-center space-x-6 text-sm font-medium flex-1 justify-end">
+                <div class="flex space-x-6 top-nav-links">
+                    <a href="/nqoc" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">首页</a>
+                    <a href="/nqoc/survey" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition text-[#7c4dff] font-bold border-b-2 border-[#00f0ff] pb-1 active">参与调研</a>
+                    <a href="/nqoc/awards" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">评选申报</a>
+                    <a href="/nqoc/cases" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">案例分享</a>
+                    <a href="/nqoc/insights" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">新质观点</a>
+                    <a href="/nqoc/events" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">研讨活动</a>
+                    <a href="/nqoc/whitepaper" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">研究成果</a>
+                    <a href="/nqoc/about" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">关于我们</a>
+                </div>
+                <a href="/nqoc/survey" class="btn-primary ml-6 !py-2 !px-4 !text-sm whitespace-nowrap">参与调研</a>
+            </div>
+            <div class="md:hidden flex items-center">
+                <a href="/nqoc/survey" class="btn-primary mr-4 !py-1.5 !px-3 !text-xs whitespace-nowrap">参与调研</a>
+                <button class="text-white" id="mobile-menu-btn" onclick="toggleNqocMobileMenu()"><i class="fas fa-bars text-xl"></i></button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Mobile Menu -->
+    <nav id="nqocMobileMenu" class="hidden md:hidden fixed top-[70px] left-0 w-full bg-[#0a0a1a] border-b border-white/10 px-4 py-6 z-50 shadow-2xl">
+        <div class="flex flex-col space-y-4 text-center">
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc">首页</a>
+            <a class="text-[#7c4dff] font-bold text-lg" href="/nqoc/survey">参与调研</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/awards">评选申报</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/cases">案例分享</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/insights">新质观点</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/events">研讨活动</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/whitepaper">研究成果</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/about">关于我们</a>
+        </div>
+    </nav>
+
+    <script>
+    function toggleNqocMobileMenu() {
+        const menu = document.getElementById('nqocMobileMenu');
+        if (menu.classList.contains('hidden')) {
+            menu.classList.remove('hidden');
+        } else {
+            menu.classList.add('hidden');
+        }
+    }
+    </script>
+
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-24 pb-16 relative overflow-hidden">
+        <!-- Abstract Decorations -->
+        <div class="absolute left-0 top-0 w-full h-full pointer-events-none opacity-20">
+            <div class="absolute top-40 left-[-10%] w-[40rem] h-[40rem] bg-[var(--nqoc-brand)] rounded-full blur-[200px]"></div>
+            <div class="absolute bottom-20 right-[-10%] w-[30rem] h-[30rem] bg-[var(--nqoc-accent-cyan)] rounded-full blur-[150px]"></div>
+        </div>
+
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            
+            <!-- 01 Banner -->
+            <div class="text-center mb-16 animate-on-scroll mt-10 hide-in-immersive">
+                <div class="inline-block mb-4 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[var(--nqoc-accent-cyan)] text-sm font-medium tracking-wider uppercase">
+                    CHINA NEW QUALITY ORGANIZATION RESEARCH
+                </div>
+                <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white leading-tight mb-6 tracking-tight">
+                    <span class="block mb-2">2025-2026中国企业新质组织</span>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00f0ff] to-[#b026ff]">成熟度调研问卷</span>
+                </h1>
+                <p class="text-base md:text-lg text-slate-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+                    本研究由瑞华智策·新质组织研究中心（NQOC）发起，联合北京大学光华管理学院、中国经营报等权威机构共同开展，旨在系统化评估中国企业在 AI 时代向“新质组织”演进的成熟度。
+                </p>
+                <div class="flex items-start md:items-center gap-3 text-sm text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 py-3 px-6 rounded-2xl md:rounded-full text-left md:text-center mt-4">
+                    <i class="fas fa-shield-alt mt-0.5 md:mt-0"></i>
+                    <span class="leading-relaxed">数据严格保密承诺：所有调研数据仅用于学术研究与总体趋势分析，绝不向第三方泄露企业敏感信息。</span>
+                </div>
+            </div>
+
+            <!-- 02 Instructions -->
+            <div class="glass-panel p-5 md:p-8 rounded-3xl mb-16 animate-on-scroll border border-white/10 hide-in-immersive">
+                <h3 class="text-2xl font-bold text-center text-white mb-8 flex items-center justify-center gap-4">
+                    <span class="w-8 h-px bg-[var(--nqoc-brand)]"></span>
+                    填写说明
+                    <span class="w-8 h-px bg-[var(--nqoc-brand)]"></span>
+                </h3>
+                <div class="space-y-4 text-slate-300 max-w-3xl mx-auto text-left leading-relaxed">
+                    <p>• 本问卷预计填写时间约 <strong>12–15 分钟</strong>；</p>
+                    <p>• 建议由企业 <strong>CHRO/HRVP</strong> 牵头填写，必要时邀请 CEO、CTO/CIO/CDO 或战略负责人共同确认；</p>
+                    <p>• 请基于贵企业当前真实情况作答，<strong>无标准答案</strong>；</p>
+                    <p>• 所有数据<strong>严格保密</strong>，仅用于汇总分析与行业研究，绝不披露任何企业身份信息。</p>
+                </div>
+                
+                <!-- Collapsible Likert Scale Explanation -->
+                <div class="mt-8 max-w-3xl mx-auto">
+                    <details class="group bg-white/5 border border-white/10 rounded-xl overflow-hidden transition-all duration-300">
+                        <summary class="flex items-center justify-between cursor-pointer p-4 select-none hover:bg-white/5 transition-colors">
+                            <span class="font-bold text-white flex items-center gap-2">
+                                <i class="fas fa-info-circle text-[var(--nqoc-accent-cyan)]"></i>
+                                五点量表解读（点击展开）
+                            </span>
+                            <span class="text-white group-open:rotate-180 transition-transform duration-300">
+                                <i class="fas fa-chevron-down"></i>
+                            </span>
+                        </summary>
+                        <div class="p-4 border-t border-white/10 bg-black/20">
+                            <p class="text-sm text-slate-300 mb-4">本问卷主体题项采用 1-5 级李克特量表。请根据贵企业的真实情况选择最贴近的分值，各分值对应的成熟度阶段如下表：</p>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-left text-slate-300 border-collapse">
+                                    <thead>
+                                        <tr class="bg-white/5 border-b border-white/10">
+                                            <th class="p-3 font-bold text-white whitespace-nowrap">分值</th>
+                                            <th class="p-3 font-bold text-white whitespace-nowrap">符合程度</th>
+                                            <th class="p-3 font-bold text-white whitespace-nowrap">成熟度阶段</th>
+                                            <th class="p-3 font-bold text-white min-w-[200px]">典型特征</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-white/5">
+                                        <tr class="hover:bg-white/5 transition-colors">
+                                            <td class="p-3 font-bold text-center">1</td>
+                                            <td class="p-3">完全不符合</td>
+                                            <td class="p-3">萌芽期（初）</td>
+                                            <td class="p-3">尚未启动相关实践，或仅处于认知阶段</td>
+                                        </tr>
+                                        <tr class="hover:bg-white/5 transition-colors">
+                                            <td class="p-3 font-bold text-center">2</td>
+                                            <td class="p-3">较不符合</td>
+                                            <td class="p-3">萌芽期</td>
+                                            <td class="p-3">已有零散尝试或局部试验，未形成体系</td>
+                                        </tr>
+                                        <tr class="hover:bg-white/5 transition-colors">
+                                            <td class="p-3 font-bold text-center">3</td>
+                                            <td class="p-3">部分符合</td>
+                                            <td class="p-3">成长期</td>
+                                            <td class="p-3">已在试点推进，初步形成局部能力，效果初显</td>
+                                        </tr>
+                                        <tr class="hover:bg-white/5 transition-colors">
+                                            <td class="p-3 font-bold text-center">4</td>
+                                            <td class="p-3">较为符合</td>
+                                            <td class="p-3">成长期—成熟期</td>
+                                            <td class="p-3">已规模化落地，覆盖核心业务/职能，绩效可观测</td>
+                                        </tr>
+                                        <tr class="hover:bg-white/5 transition-colors">
+                                            <td class="p-3 font-bold text-center">5</td>
+                                            <td class="p-3">完全符合</td>
+                                            <td class="p-3">成熟期</td>
+                                            <td class="p-3">已形成系统化能力与最佳实践，可对外输出与赋能</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <!-- 03 Benefits -->
+            <div class="mb-16 animate-on-scroll hide-in-immersive">
+                <h3 class="text-2xl font-bold text-center text-white mb-8 flex items-center justify-center gap-4">
+                    <span class="w-8 h-px bg-[var(--nqoc-brand)]"></span>
+                    完成调研，您将获得
+                    <span class="w-8 h-px bg-[var(--nqoc-brand)]"></span>
+                </h3>
+                <div class="flex flex-col md:grid md:grid-cols-3 gap-4 md:gap-6">
+                    <div class="glass-panel p-6 rounded-2xl text-center group hover:-translate-y-2 transition-transform duration-300 flex-1">
+                        <div class="w-16 h-16 mx-auto bg-white/5 rounded-full flex items-center justify-center mb-4 group-hover:bg-[var(--nqoc-brand)]/20 transition-colors">
+                            <i class="fas fa-chart-pie text-2xl text-[var(--nqoc-brand-light)]"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2">《2025-2026 中国企业新质组织成熟度研究报告》</h4>
+                        <p class="text-sm text-slate-400">系统诊断企业五维组织能力现状</p>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl text-center group hover:-translate-y-2 transition-transform duration-300 flex-1">
+                        <div class="w-16 h-16 mx-auto bg-white/5 rounded-full flex items-center justify-center mb-4 group-hover:bg-[var(--nqoc-accent-cyan)]/20 transition-colors">
+                            <i class="fas fa-user-tie text-2xl text-[var(--nqoc-accent-cyan)]"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2">《企业新质组织成熟度个性化诊断简报》</h4>
+                        <p class="text-sm text-slate-400">顶级专家为您提供针对性改善建议</p>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl text-center group hover:-translate-y-2 transition-transform duration-300 flex-1">
+                        <div class="w-16 h-16 mx-auto bg-white/5 rounded-full flex items-center justify-center mb-4 group-hover:bg-amber-400/20 transition-colors">
+                            <i class="fas fa-ticket-alt text-2xl text-amber-400"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2">闭门活动优先资格</h4>
+                        <p class="text-sm text-slate-400">优先受邀参与新质组织研究峰会</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 04 Questionnaire Form -->
+            <div id="survey-form-container" class="glass-panel p-5 md:p-8 md:p-12 rounded-3xl animate-on-scroll relative overflow-hidden border border-[var(--nqoc-brand)]/30">
+                <!-- Decorative top line -->
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--nqoc-brand)] via-[var(--nqoc-accent-cyan)] to-[var(--nqoc-accent-purple)]"></div>
+                
+                
+                
+                
+                <!-- Progress Bar -->
+                <div class="mb-12 max-w-3xl mx-auto relative pt-4">
+                    <!-- Track Background -->
+                    <div class="absolute top-[2.5rem] left-[12.5%] w-[75%] h-1.5 bg-white/5 rounded-full z-0"></div>
+                    <!-- Track Active -->
+                    <div id="progress-line" class="absolute top-[2.5rem] left-[12.5%] w-[0%] h-1.5 bg-gradient-to-r from-[var(--nqoc-accent-cyan)] to-[var(--nqoc-brand)] rounded-full transition-all duration-500 ease-out z-0 shadow-[0_0_10px_rgba(0,240,255,0.5)]"></div>
+                    
+                    <div class="flex justify-between items-start relative z-10">
+                        <div class="flex flex-col items-center step-indicator active gap-4 w-1/4 text-center" id="step1-indicator">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--nqoc-brand-light)] to-[var(--nqoc-brand)] text-white font-bold flex items-center justify-center shadow-[0_0_20px_rgba(124,77,255,0.5)] transform rotate-45 transition-all duration-300 border-4 border-[#07090f]">
+                                <span class="transform -rotate-45 text-lg">1</span>
+                            </div>
+                            <span class="text-xs md:text-sm font-bold text-[var(--nqoc-brand-light)] tracking-widest transition-all duration-300">企业信息</span>
+                        </div>
+                        <div class="flex flex-col items-center step-indicator gap-4 w-1/4 text-center" id="step2-indicator">
+                            <div class="w-12 h-12 rounded-2xl bg-[#111424] border-2 border-white/10 text-slate-500 font-bold flex items-center justify-center transition-all duration-300 transform rotate-45 border-4 border-[#07090f]">
+                                <span class="transform -rotate-45 text-lg">2</span>
+                            </div>
+                            <span class="text-xs md:text-sm font-medium text-slate-500 transition-all duration-300 tracking-widest">填答人信息</span>
+                        </div>
+                        <div class="flex flex-col items-center step-indicator gap-4 w-1/4 text-center" id="step3-indicator">
+                            <div class="w-12 h-12 rounded-2xl bg-[#111424] border-2 border-white/10 text-slate-500 font-bold flex items-center justify-center transition-all duration-300 transform rotate-45 border-4 border-[#07090f]">
+                                <span class="transform -rotate-45 text-lg">3</span>
+                            </div>
+                            <span class="text-xs md:text-sm font-medium text-slate-500 transition-all duration-300 tracking-widest">成熟度评估</span>
+                        </div>
+                        <div class="flex flex-col items-center step-indicator gap-4 w-1/4 text-center" id="step4-indicator">
+                            <div class="w-12 h-12 rounded-2xl bg-[#111424] border-2 border-white/10 text-slate-500 font-bold flex items-center justify-center transition-all duration-300 transform rotate-45 border-4 border-[#07090f]">
+                                <span class="transform -rotate-45 text-lg">4</span>
+                            </div>
+                            <span class="text-xs md:text-sm font-medium text-slate-500 transition-all duration-300 tracking-widest">总体评价</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form -->
+                <form id="survey-form">
+                    
+                    <!-- Step 1: 企业基本信息 -->
+                    <div id="step-1" class="space-y-6">
+                        <h3 class="text-2xl font-bold text-white mb-6">第一部分 企业基本信息</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2 md:col-span-2">
+                                <label class="block text-sm font-medium text-slate-300">E1. 企业名称 <span class="text-red-500">*</span></label>
+                                <input type="text" name="orgName" required class="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors placeholder-slate-600" placeholder="请输入完整企业名称">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-slate-300">E2. 所属行业 <span class="text-red-500">*</span></label>
+                                <select name="industry" required class="w-full bg-[#111424] border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors">
+                                    <option value="" disabled selected>请选择</option>
+                                    <option value="智能制造与装备">智能制造与装备</option>
+                                    <option value="高科技/TMT">高科技 / TMT（信息技术、互联网、电子）</option>
+                                    <option value="金融/保险/资管">金融 / 保险 / 资管</option>
+                                    <option value="央企/大型国企">央企 / 大型国企（综合）</option>
+                                    <option value="专精特新/隐形冠军">专精特新 / 隐形冠军</option>
+                                    <option value="消费/零售/流通">消费 / 零售 / 流通</option>
+                                    <option value="医药/生命科学/医疗">医药 / 生命科学 / 医疗</option>
+                                    <option value="能源/化工/材料">能源 / 化工 / 材料</option>
+                                    <option value="建筑/房地产/工程">建筑 / 房地产 / 工程</option>
+                                    <option value="现代服务业">现代服务业（教育、文创、咨询、物流等）</option>
+                                    <option value="其他">其他</option>
+                                </select>
+                                <input type="text" name="industry_other" id="industry_other" class="mt-2 w-full bg-transparent border-b border-slate-500 focus:border-[var(--nqoc-accent-cyan)] focus:outline-none text-white text-sm px-2 py-1 hidden" placeholder="请补充注明所属行业">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-slate-300">E3. 企业性质 <span class="text-red-500">*</span></label>
+                                <select name="orgNature" required class="w-full bg-[#111424] border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors">
+                                    <option value="" disabled selected>请选择</option>
+                                    <option value="中央企业/央企控股">中央企业 / 央企控股</option>
+                                    <option value="地方国有企业">地方国有企业</option>
+                                    <option value="民营企业">民营企业</option>
+                                    <option value="外商独资企业">外商独资企业</option>
+                                    <option value="中外合资企业">中外合资企业</option>
+                                    <option value="其他">其他</option>
+                                </select>
+                                <input type="text" name="orgNature_other" id="orgNature_other" class="mt-2 w-full bg-transparent border-b border-slate-500 focus:border-[var(--nqoc-accent-cyan)] focus:outline-none text-white text-sm px-2 py-1 hidden" placeholder="请补充注明企业性质">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-slate-300">E4. 员工总人数 <span class="text-red-500">*</span></label>
+                                <select name="employeeCount" required class="w-full bg-[#111424] border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors">
+                                    <option value="" disabled selected>请选择</option>
+                                    <option value="300人以下">300 人以下</option>
+                                    <option value="300-1000人">300–1,000 人</option>
+                                    <option value="1001-5000人">1,001–5,000 人</option>
+                                    <option value="5001-10000人">5,001–10,000 人</option>
+                                    <option value="10001-50000人">10,001–50,000 人</option>
+                                    <option value="50000人以上">50,000 人以上</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-slate-300">E5. 上一财年营业收入规模 <span class="text-red-500">*</span></label>
+                                <select name="revenue" required class="w-full bg-[#111424] border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors">
+                                    <option value="" disabled selected>请选择</option>
+                                    <option value="1亿元以下">1 亿元以下</option>
+                                    <option value="1-10亿元">1–10 亿元</option>
+                                    <option value="10-50亿元">10–50 亿元</option>
+                                    <option value="50-100亿元">50–100 亿元</option>
+                                    <option value="100-500亿元">100–500 亿元</option>
+                                    <option value="500亿元以上">500 亿元以上</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-slate-300">E6. 企业成立年限 <span class="text-red-500">*</span></label>
+                                <select name="establishedYears" required class="w-full bg-[#111424] border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors">
+                                    <option value="" disabled selected>请选择</option>
+                                    <option value="5年以内">5 年以内</option>
+                                    <option value="5-10年">5–10 年</option>
+                                    <option value="11-20年">11–20 年</option>
+                                    <option value="21-50年">21–50 年</option>
+                                    <option value="50年以上">50 年以上</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-slate-300">E7. 上市状态 <span class="text-red-500">*</span></label>
+                                <select name="listingStatus" required class="w-full bg-[#111424] border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors">
+                                    <option value="" disabled selected>请选择</option>
+                                    <option value="A股上市">A 股上市</option>
+                                    <option value="港股上市">港股上市</option>
+                                    <option value="美股上市">美股上市</option>
+                                    <option value="其他境外上市">其他境外上市</option>
+                                    <option value="拟上市">拟上市（已启动 IPO 流程）</option>
+                                    <option value="未上市">未上市</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2 md:col-span-2">
+                                <label class="block text-sm font-medium text-slate-300">E8. 贵企业是否已设立专门负责数智化或 AI 转型的部门或岗位？ <span class="text-red-500">*</span></label>
+                                <div class="radio-group grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                                    <label><input type="radio" name="aiDeptStatus" value="已设立首席数字官/首席AI官" required> 是，已设立首席数字官/首席AI官</label>
+                                    <label><input type="radio" name="aiDeptStatus" value="由现有高管兼管"> 是，由现有高管兼管</label>
+                                    <label><input type="radio" name="aiDeptStatus" value="已设立专门部门或委员会"> 是，已设立专门部门或委员会</label>
+                                    <label><input type="radio" name="aiDeptStatus" value="尚未设立"> 否，尚未设立</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pt-6 flex justify-center">
+                            <button type="button" class="btn-next btn-primary inline-flex items-center !px-8 !py-3">
+                                下一步 <i class="fas fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: 填答人信息 -->
+                    <div id="step-2" class="hidden space-y-6">
+                        <h3 class="text-2xl font-bold text-white mb-6">第二部分 填答人信息</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2 md:col-span-2">
+                                <label class="block text-sm font-medium text-slate-300">R1. 您在本企业的职务 <span class="text-red-500">*</span></label>
+                                <div class="radio-group grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                                    <label><input type="radio" name="respondentTitle" value="CEO/总经理/董事长" required> CEO / 总经理 / 董事长</label>
+                                    <label><input type="radio" name="respondentTitle" value="CHRO/HRVP/人力资源总监"> CHRO / HRVP / 人力资源总监</label>
+                                    <label><input type="radio" name="respondentTitle" value="CTO/CIO/CDO"> CTO / CIO / CDO</label>
+                                    <label><input type="radio" name="respondentTitle" value="首席战略官/战略规划负责人"> 首席战略官 / 战略规划负责人</label>
+                                    <label><input type="radio" name="respondentTitle" value="首席运营官/业务部门负责人"> 首席运营官 / 业务部门负责人</label>
+                                    <label><input type="radio" name="respondentTitle" value="组织发展/数字化转型负责人"> 组织发展 / 数字化转型负责人</label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="radio" name="respondentTitle" value="其他高级管理人员">
+                                        其他高级管理人员
+                                        <input type="text" id="respondentTitle_other" name="respondentTitle_other" class="bg-transparent border-b border-slate-500 focus:border-[var(--nqoc-accent-cyan)] focus:outline-none text-white text-sm px-2 py-1 w-32 md:w-48 hidden" placeholder="请补充注明">
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="space-y-2 md:col-span-2">
+                                <label class="block text-sm font-medium text-slate-300">R2. 您在本企业的任职年限 <span class="text-red-500">*</span></label>
+                                <div class="radio-group grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
+                                    <label><input type="radio" name="respondentTenure" value="1年以内" required> 1 年以内</label>
+                                    <label><input type="radio" name="respondentTenure" value="1-3年"> 1–3 年</label>
+                                    <label><input type="radio" name="respondentTenure" value="3-5年"> 3–5 年</label>
+                                    <label><input type="radio" name="respondentTenure" value="5-10年"> 5–10 年</label>
+                                    <label><input type="radio" name="respondentTenure" value="10年以上"> 10 年以上</label>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-slate-300">R3. 您的姓名</label>
+                                <input type="text" name="respondentName" class="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors placeholder-slate-600" placeholder="选填">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-slate-300">R4. 联系方式 (手机号)</label>
+                                <input type="tel" name="respondentContact" id="surveyPhone" class="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors placeholder-slate-600" placeholder="选填，用于反馈个性化诊断简报">
+                            </div>
+                            <!-- SMS Code is conditionally required if phone is filled, will handle in JS -->
+                            <div class="space-y-2" id="smsCodeContainer" style="display: none;">
+                                <label class="block text-sm font-medium text-slate-300">验证码 <span class="text-red-500">*</span></label>
+                                <div class="flex gap-2">
+                                    <input type="text" name="smsCode" id="surveySmsCode" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors placeholder-slate-600" placeholder="请输入6位验证码">
+                                    <button type="button" id="surveySendCodeBtn" class="bg-[var(--nqoc-brand)] hover:bg-[var(--nqoc-brand-light)] text-white px-5 py-3.5 rounded-xl transition-colors whitespace-nowrap min-w-[120px]">获取验证码</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pt-6 flex justify-center gap-4">
+                            <button type="button" class="btn-prev px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors border border-white/10">
+                                <i class="fas fa-arrow-left mr-2"></i> 上一步
+                            </button>
+                            <button type="button" class="btn-next btn-primary inline-flex items-center !px-8 !py-3">
+                                下一步 <i class="fas fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: 新质组织成熟度评估 -->
+                    <div id="step-3" class="hidden space-y-6">
+                        <h3 class="text-2xl font-bold text-white mb-6">第三部分 新质组织成熟度评估</h3>
+                        <p class="text-slate-400 text-sm mb-6">本部分共 5 个维度、32 个二级指标，请根据贵企业当前实际情况，在 1–5 之间选择。</p>
+
+                        <div class="form-section">
+                            <div class="mb-4">
+                                <h4 class="text-lg font-bold text-[var(--nqoc-brand-light)] mb-1">维度一 核心价值观（权重 20%）</h4>
+                                <p class="text-sm text-slate-400">评估组织存在的目的与价值根基，关注价值观对组织发展方向的引领作用。</p>
+                            </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">1.1 价值观清晰度与共识度</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">V1.1.1 我司已在企业战略文件中明确表述面向未来的核心价值观（如绿色、创新、可持续、人机共生等）。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="v1_1_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_1_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_1_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_1_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_1_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">V1.1.2 我司大多数员工在日常工作中能够体现企业的核心价值观。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="v1_1_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_1_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_1_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_1_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_1_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">1.2 绿色发展导向</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">V1.2.1 我司已将绿色低碳目标纳入经营约束。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="v1_2_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_2_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_2_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_2_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_2_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">V1.2.2 我司在产品设计、生产、运营全链条中系统性地考虑环境影响。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="v1_2_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_2_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_2_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_2_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_2_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">1.3 创新导向</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">V1.3.1 我司鼓励员工探索新技术与新方法。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="v1_3_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_3_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_3_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_3_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_3_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">V1.3.2 我司对员工创新探索过程中的失败有较高的容忍度。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="v1_3_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_3_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_3_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_3_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_3_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">V1.3.3 我司持续将稳定比例的资源投入研发与创新活动。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="v1_3_3" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_3_3" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_3_3" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_3_3" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_3_3" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">1.4 可持续性承诺</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">V1.4.1 我司在重大决策中会综合权衡短期收益与长期可持续发展。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="v1_4_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_4_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_4_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_4_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_4_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">V1.4.2 我司主动对外披露 ESG 或可持续发展报告。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="v1_4_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_4_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_4_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_4_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_4_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">1.5 人机共生理念</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">V1.5.1 我司在 AI 应用中明确倡导“人机协同/共生”的工作方式。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="v1_5_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_5_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_5_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_5_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_5_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">V1.5.2 我司在引入 AI 与自动化的过程中，主动关注员工的能力转型与发展。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="v1_5_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_5_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_5_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_5_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="v1_5_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="mb-4">
+                                <h4 class="text-lg font-bold text-[var(--nqoc-brand-light)] mb-1">维度二 商业模式（权重 20%）</h4>
+                                <p class="text-sm text-slate-400">评估价值创造与捕获的逻辑设计，关注 AI 驱动下商业模式的系统性重构。</p>
+                            </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">2.1 价值主张的数智化重构</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">B2.1.1 AI或数智化是我司向客户提供差异化价值的核心要素。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="b2_1_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_1_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_1_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_1_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_1_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">B2.1.2 过去三年内，我司已基于AI能力推出过全新的产品或服务。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="b2_1_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_1_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_1_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_1_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_1_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">2.2 价值创造方式</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">B2.2.1 我司从市场选择、价值定位、价值主张设计方面，已经有完备流程，确保时刻贴近客户需求。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="b2_2_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_2_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_2_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_2_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_2_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">B2.2.2 我司已深度运用AI或数智化技术重塑核心业务的价值创造流程。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="b2_2_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_2_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_2_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_2_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_2_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">B2.2.3 AI或数智化已显著提升我司的研发、生产和运营效率。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="b2_2_3" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_2_3" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_2_3" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_2_3" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_2_3" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">2.3 价值传递与客户连接</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">B2.3.1 我司能够基于客户数据实现高度个性化的产品或服务交付。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="b2_3_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_3_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_3_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_3_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_3_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">B2.3.2 我司已与客户建立数智化的实时互动连接。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="b2_3_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_3_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_3_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_3_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_3_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">2.4 价值捕获与盈利模式</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">B2.4.1 我司正在探索区别于传统一次性交易的新型盈利模式。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="b2_4_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_4_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_4_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_4_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_4_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">B2.4.2 我司的盈利结构正逐步从一次性产品/项目交付向持续性服务转变。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="b2_4_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_4_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_4_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_4_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_4_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">2.5 数据资产化</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">B2.5.1 我司已建立明确的数据治理与运营机制。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="b2_5_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_5_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_5_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_5_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_5_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">B2.5.2 我司能够通过数据相关的产品或服务产生经济价值。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="b2_5_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_5_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_5_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_5_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_5_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">2.6 价值的真实性与穿越周期能力</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">B2.6.1 我司在核心业务上具备差异化定价能力，能够将独特价值转化为高于行业平均水平的盈利空间。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="b2_6_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_6_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_6_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_6_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_6_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">B2.6.2 我司具备穿越政策周期与行业风口的长期价值创造能力。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="b2_6_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_6_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_6_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_6_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_6_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">2.7 可持续价值主张</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">B2.7.1 我司已将绿色或可持续作为价值主张的组成部分。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="b2_7_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_7_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_7_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_7_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="b2_7_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+                            <div class="space-y-2 mt-6 bg-white/5 p-4 rounded-lg">
+                                <label class="block text-sm font-medium text-slate-300">【客观题 B-O1】 以下哪些 AI 或数智化形态已被纳入贵司的产品或服务中？（多选）</label>
+                                <div class="checkbox-group grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                                    <label><input type="checkbox" name="b_o1" value="智能推荐/搜索"> 智能推荐 / 智能搜索</label>
+                                    <label><input type="checkbox" name="b_o1" value="自然语言交互/客服"> 自然语言交互 / 智能客服</label>
+                                    <label><input type="checkbox" name="b_o1" value="计算机视觉与图像识别"> 计算机视觉与图像识别</label>
+                                    <label><input type="checkbox" name="b_o1" value="预测优化与决策算法"> 预测、优化与决策算法</label>
+                                    <label><input type="checkbox" name="b_o1" value="生成式AI内容生成"> 生成式 AI 内容生成</label>
+                                    <label><input type="checkbox" name="b_o1" value="智能体(Agent)"> 智能体（Agent）</label>
+                                    <label><input type="checkbox" name="b_o1" value="行业大模型/垂直大模型"> 行业大模型 / 垂直大模型</label>
+                                    <label><input type="checkbox" name="b_o1" value="数字人/虚拟员工/数字孪生"> 数字人 / 虚拟员工 / 数字孪生</label>
+                                    <label><input type="checkbox" name="b_o1" value="AI嵌入式硬件产品"> AI 嵌入式硬件产品</label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" name="b_o1" value="其他" onchange="document.getElementById('b_o1_other').disabled = !this.checked; if(!this.checked) document.getElementById('b_o1_other').value = '';"> 
+                                        其他（请补充）：
+                                        <input type="text" id="b_o1_other" name="b_o1_other" class="bg-transparent border-b border-slate-500 focus:border-[var(--nqoc-accent-cyan)] focus:outline-none text-white text-sm px-2 py-1 w-32 md:w-48 disabled:opacity-50" disabled>
+                                    </label>
+                                    <label><input type="checkbox" name="b_o1" value="暂未涉及"> 暂未涉及</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="mb-4">
+                                <h4 class="text-lg font-bold text-[var(--nqoc-brand-light)] mb-1">维度三 生产方式（权重 20%）</h4>
+                                <p class="text-sm text-slate-400">评估价值创造的技术与过程实现，关注 AI 在生产、研发、运营中的渗透程度与人机协同水平。</p>
+                            </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">3.1 AI 技术应用深度与广度</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">P3.1.1 AI技术已深度嵌入我司的核心生产或服务流程。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="p3_1_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_1_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_1_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_1_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_1_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">P3.1.2 我司在生产或运营中应用AI的范围正在每年明显扩大。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="p3_1_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_1_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_1_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_1_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_1_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">3.2 自动化与智能化水平</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">P3.2.1 我司在重复性、规则性工作中实现了高比例的自动化或智能化。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="p3_2_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_2_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_2_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_2_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_2_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">P3.2.2 我司在判断性、创造性工作中已开始系统化引入智能化辅助。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="p3_2_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_2_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_2_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_2_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_2_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">3.3 人机协同程度</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">P3.3.1 我司员工在日常工作中已能熟练使用AI工具协同完成任务。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="p3_3_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_3_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_3_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_3_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_3_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">P3.3.2 我司已设计明确的人机分工与协作机制。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="p3_3_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_3_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_3_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_3_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_3_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">3.4 数据驱动决策</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">P3.4.1 我司核心经营决策主要基于数据与算法支撑。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="p3_4_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_4_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_4_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_4_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_4_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">P3.4.2 我司各业务线均能实时获取业务决策所需的数据与分析洞察。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="p3_4_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_4_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_4_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_4_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_4_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">3.5 研发与创新效率</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">P3.5.1 AI或数智化已显著缩短我司新产品或新服务的研发与上市周期。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="p3_5_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_5_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_5_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_5_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_5_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">P3.5.2 我司的创新成果数量持续提升。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="p3_5_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_5_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_5_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_5_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_5_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">3.6 生产敏捷性与柔性</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">P3.6.1 我司能够快速响应市场变化并灵活调整业务部署。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="p3_6_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_6_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_6_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_6_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_6_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">P3.6.2 我司具备较强的柔性生产或服务能力，可高效服务小批量定制化需求。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="p3_6_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_6_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_6_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_6_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_6_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">3.7 绿色与可持续生产</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">P3.7.1 我司运用数智化技术降低生产或运营的环境足迹。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="p3_7_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_7_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_7_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_7_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="p3_7_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+
+                            <div class="space-y-2 mt-6 bg-white/5 p-4 rounded-lg">
+                                <label class="block text-sm font-medium text-slate-300">【客观题 P-O1】 以下哪些智能化工具或平台已在贵司常态化应用？（多选）</label>
+                                <div class="checkbox-group grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                                    <label><input type="checkbox" name="p_o1" value="通用大模型类工具"> 通用大模型类工具</label>
+                                    <label><input type="checkbox" name="p_o1" value="行业/垂直大模型"> 行业 / 垂直大模型</label>
+                                    <label><input type="checkbox" name="p_o1" value="RPA"> RPA（机器人流程自动化）</label>
+                                    <label><input type="checkbox" name="p_o1" value="数据中台/AI中台"> 数据中台 / AI 中台</label>
+                                    <label><input type="checkbox" name="p_o1" value="低代码/无代码平台"> 低代码 / 无代码开发平台</label>
+                                    <label><input type="checkbox" name="p_o1" value="智能体开发部署平台"> 智能体开发与部署平台</label>
+                                    <label><input type="checkbox" name="p_o1" value="工业互联网/物联网平台"> 工业互联网 / 物联网平台</label>
+                                    <label><input type="checkbox" name="p_o1" value="AIGC内容生成工具"> AIGC 内容生成工具</label>
+                                    <label><input type="checkbox" name="p_o1" value="数字人/虚拟员工平台"> 数字人 / 虚拟员工平台</label>
+                                    <label><input type="checkbox" name="p_o1" value="AI编程助手/DevOps"> AI 编程助手 / DevOps</label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" name="p_o1" value="其他" onchange="document.getElementById('p_o1_other').disabled = !this.checked; if(!this.checked) document.getElementById('p_o1_other').value = '';"> 
+                                        其他（请补充）：
+                                        <input type="text" id="p_o1_other" name="p_o1_other" class="bg-transparent border-b border-slate-500 focus:border-[var(--nqoc-accent-cyan)] focus:outline-none text-white text-sm px-2 py-1 w-32 md:w-48 disabled:opacity-50" disabled>
+                                    </label>
+                                    <label><input type="checkbox" name="p_o1" value="暂未常态化应用"> 暂未常态化应用</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="mb-4">
+                                <h4 class="text-lg font-bold text-[var(--nqoc-brand-light)] mb-1">维度四 管理范式（权重 20%）</h4>
+                                <p class="text-sm text-slate-400">评估组织协调人与资源的系统，关注从“静态分工”到“动态编排”的范式跃迁。</p>
+                            </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">4.1 组织架构（平台 + 敏捷小队）</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">M4.1.1 我司组织形态正在从传统科层制向“平台+敏捷小队”模式演进。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="m4_1_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_1_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_1_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_1_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_1_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">M4.1.2 我司能够根据任务需要动态组建跨职能项目团队。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="m4_1_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_1_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_1_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_1_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_1_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">4.2 流程机制（智能自适应）</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">M4.2.1 我司核心管理流程已实现高度数智化。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="m4_2_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_2_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_2_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_2_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_2_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">M4.2.2 我司管理流程能够根据数据与场景进行自适应调整。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="m4_2_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_2_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_2_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_2_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_2_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">4.3 组织能力（人机融合智能）</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">M4.3.1 我司的组织核心能力已从“个体技能堆叠”转向“人机融合智能”。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="m4_3_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_3_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_3_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_3_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_3_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">M4.3.2 我司有系统机制将员工的经验与知识沉淀为可复用的组织或AI资产。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="m4_3_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_3_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_3_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_3_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_3_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">4.4 决策机制</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">M4.4.1 我司重大决策依托实时数据反馈进行快速迭代。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="m4_4_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_4_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_4_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_4_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_4_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">M4.4.2 我司一线团队拥有充分的自主判断与行动空间。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="m4_4_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_4_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_4_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_4_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_4_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">4.5 人才与能力配置</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">M4.5.1 我司有覆盖各层级员工的AI与数智化能力培养计划。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="m4_5_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_5_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_5_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_5_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_5_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">M4.5.2 我司已系统性优化人才结构与多元化用工模式，以适应新质组织需要。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="m4_5_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_5_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_5_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_5_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_5_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">M4.5.3 我司已重新设计岗位边界，完善人才的技能标签，为“任务-技能”匹配做准备。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="m4_5_3" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_5_3" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_5_3" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_5_3" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_5_3" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">M4.5.4 我司的管理者已经适应了从管人向管“AI+人”的能力转变。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="m4_5_4" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_5_4" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_5_4" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_5_4" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_5_4" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">4.6 绩效与激励</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">M4.6.1 我司的激励机制能有效鼓励员工提升人效、创造合理利润。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="m4_6_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_6_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_6_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_6_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_6_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">M4.6.2 我司的激励机制能有效鼓励员工与AI协作。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="m4_6_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_6_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_6_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_6_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_6_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">M4.6.3 我司绩效评估能够准确反映人机协同环境下员工的真实贡献。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="m4_6_3" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_6_3" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_6_3" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_6_3" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_6_3" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">4.7 绿色与可持续管理</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">M4.7.1 我司已将绿色与可持续要求嵌入企业的关键管理机制。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="m4_7_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_7_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_7_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_7_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="m4_7_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+
+                            <div class="space-y-2 mt-6 bg-white/5 p-4 rounded-lg">
+                                <label class="block text-sm font-medium text-slate-300">【客观题 M-O1】 过去12个月内，针对AI能力建设采取了以下哪些举措？（多选）</label>
+                                <div class="checkbox-group grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                                    <label><input type="checkbox" name="m_o1" value="全员AI培训"> 全员 AI 素养 / 通识培训</label>
+                                    <label><input type="checkbox" name="m_o1" value="关键岗位AI认证"> 关键岗位 AI 应用能力认证</label>
+                                    <label><input type="checkbox" name="m_o1" value="引进AI人才"> 外部引进 AI / 数据科学专业人才</label>
+                                    <label><input type="checkbox" name="m_o1" value="设立AI奖金"> 设立 AI 应用创新激励 / 专项奖金</label>
+                                    <label><input type="checkbox" name="m_o1" value="调整岗位说明书"> 调整岗位说明书纳入“与AI协作”要求</label>
+                                    <label><input type="checkbox" name="m_o1" value="设立AI委员会/部门"> 设立首席 AI 官 / AI 委员会</label>
+                                    <label><input type="checkbox" name="m_o1" value="建立内部AI案例库"> 建立内部 AI 应用案例库</label>
+                                    <label><input type="checkbox" name="m_o1" value="高管赴外部学习"> 组织高管赴外部学习考察</label>
+                                    <label><input type="checkbox" name="m_o1" value="重构组织架构"> 重构组织架构（向平台型转型）</label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" name="m_o1" value="其他" onchange="document.getElementById('m_o1_other').disabled = !this.checked; if(!this.checked) document.getElementById('m_o1_other').value = '';"> 
+                                        其他（请补充）：
+                                        <input type="text" id="m_o1_other" name="m_o1_other" class="bg-transparent border-b border-slate-500 focus:border-[var(--nqoc-accent-cyan)] focus:outline-none text-white text-sm px-2 py-1 w-32 md:w-48 disabled:opacity-50" disabled>
+                                    </label>
+                                    <label><input type="checkbox" name="m_o1" value="暂无系统性举措"> 暂无系统性举措</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="mb-4">
+                                <h4 class="text-lg font-bold text-[var(--nqoc-brand-light)] mb-1">维度五 生态协同（权重 20%）</h4>
+                                <p class="text-sm text-slate-400">评估组织与外部生态的协同关系，关注组织边界开放与共创共生的能力。</p>
+                            </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">5.1 产业链协同</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">E5.1.1 我司与上下游核心伙伴的数据与业务流程已实现实时连通。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="e5_1_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_1_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_1_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_1_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_1_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">E5.1.2 我司与产业链伙伴共同推进AI或数智化转型。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="e5_1_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_1_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_1_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_1_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_1_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">5.2 跨界与跨行业合作</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">E5.2.1 我司主动与跨行业、跨领域机构开展合作。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="e5_2_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_2_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_2_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_2_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_2_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">E5.2.2 过去三年内，我司通过跨界合作产生了实际的业务成果。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="e5_2_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_2_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_2_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_2_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_2_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">5.3 平台化能力与开放性</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">E5.3.1 我司可向外部伙伴开放产品、技术或数据等核心能力。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="e5_3_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_3_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_3_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_3_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_3_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">E5.3.2 我司的产品或服务可与外部生态实现互联互通。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="e5_3_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_3_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_3_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_3_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_3_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">5.4 共创生态</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">E5.4.1 我司主动与客户、合作伙伴或开发者共创新产品或新服务。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="e5_4_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_4_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_4_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_4_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_4_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">E5.4.2 我司围绕自身核心能力已形成一定规模的伙伴、开发者或用户生态。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="e5_4_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_4_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_4_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_4_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_4_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">5.5 社会与利益相关者关系</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">E5.5.1 我司在重大决策中系统性地考虑员工、社区、社会等多方利益。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="e5_5_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_5_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_5_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_5_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_5_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">E5.5.2 我司与政府、学术机构、行业协会等外部主体建立了稳定的协同关系。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="e5_5_2" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_5_2" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_5_2" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_5_2" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_5_2" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+                            
+        <div class="mt-8 mb-4 border-l-4 border-[var(--nqoc-brand)] pl-3">
+                                <h5 class="text-base font-bold text-white">5.6 绿色生态协同</h5>
+                            </div>
+                            <div class="mb-4 bg-white/5 p-4 rounded-lg">
+            <p class="text-base md:text-sm font-medium text-white mb-4 leading-relaxed">E5.6.1 我司与产业链伙伴在绿色低碳议题上进行实质性协同。</p>
+            <div class="likert-scale flex flex-wrap gap-2 md:gap-0">
+                <label class="likert-item"><input type="radio" name="e5_6_1" value="1" required><span>1 (完全不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_6_1" value="2"><span>2 (较不符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_6_1" value="3"><span>3 (部分符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_6_1" value="4"><span>4 (较为符合)</span></label>
+                <label class="likert-item"><input type="radio" name="e5_6_1" value="5"><span>5 (完全符合)</span></label>
+            </div>
+        </div>
+
+                            <div class="space-y-2 mt-6 bg-white/5 p-4 rounded-lg">
+                                <label class="block text-sm font-medium text-slate-300">【客观题 E-O1】 当前已建立的外部生态合作类型包括哪些？（多选）</label>
+                                <div class="checkbox-group grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                                    <label><input type="checkbox" name="e_o1" value="上下游产业链合作"> 上下游产业链合作</label>
+                                    <label><input type="checkbox" name="e_o1" value="技术生态合作"> 技术生态合作（云、AI厂商等）</label>
+                                    <label><input type="checkbox" name="e_o1" value="学研合作"> 学研合作（高校、科研院所）</label>
+                                    <label><input type="checkbox" name="e_o1" value="客户共创"> 客户共创（联合实验室等）</label>
+                                    <label><input type="checkbox" name="e_o1" value="开发者生态"> 开发者生态（开放API等）</label>
+                                    <label><input type="checkbox" name="e_o1" value="跨行业战略联盟"> 跨行业 / 跨界战略联盟</label>
+                                    <label><input type="checkbox" name="e_o1" value="政府行业合作"> 政府 / 行业协会合作</label>
+                                    <label><input type="checkbox" name="e_o1" value="国际化合作"> 国际化合作（跨境或海外）</label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" name="e_o1" value="其他" onchange="document.getElementById('e_o1_other').disabled = !this.checked; if(!this.checked) document.getElementById('e_o1_other').value = '';"> 
+                                        其他（请补充）：
+                                        <input type="text" id="e_o1_other" name="e_o1_other" class="bg-transparent border-b border-slate-500 focus:border-[var(--nqoc-accent-cyan)] focus:outline-none text-white text-sm px-2 py-1 w-32 md:w-48 disabled:opacity-50" disabled>
+                                    </label>
+                                    <label><input type="checkbox" name="e_o1" value="暂未形成合作"> 暂未形成系统性外部生态合作</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pt-6 flex justify-center gap-4">
+                            <button type="button" class="btn-prev px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors border border-white/10">
+                                <i class="fas fa-arrow-left mr-2"></i> 上一步
+                            </button>
+                            <button type="button" class="btn-next btn-primary inline-flex items-center !px-8 !py-3">
+                                下一步 <i class="fas fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: 总体评价与综合反馈 -->
+                    <div id="step-4" class="hidden space-y-6">
+                        <h3 class="text-2xl font-bold text-white mb-6">第四部分 总体评价与综合反馈</h3>
+                        
+                        <!-- 五大维度释义折叠面板 -->
+                        <div class="mb-8">
+                            <details class="group bg-white/5 border border-white/10 rounded-xl overflow-hidden transition-all duration-300">
+                                <summary class="flex items-center justify-between cursor-pointer p-4 select-none hover:bg-white/5 transition-colors">
+                                    <span class="font-bold text-white flex items-center gap-2">
+                                        <i class="fas fa-book-open text-[var(--nqoc-accent-cyan)]"></i>
+                                        五大维度释义回顾（点击展开）
+                                    </span>
+                                    <span class="text-white group-open:rotate-180 transition-transform duration-300">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </span>
+                                </summary>
+                                <div class="p-4 border-t border-white/10 bg-black/20">
+                                    <p class="text-sm text-slate-300 mb-4">在进入本部分前，请您回顾以下五大维度的释义，以便对贵企业作出整体判断：</p>
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full text-sm text-left text-slate-300 border-collapse">
+                                            <thead>
+                                                <tr class="bg-white/5 border-b border-white/10">
+                                                    <th class="p-3 font-bold text-white whitespace-nowrap">维度</th>
+                                                    <th class="p-3 font-bold text-white whitespace-nowrap text-center">权重</th>
+                                                    <th class="p-3 font-bold text-white min-w-[300px]">内涵释义</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-white/5">
+                                                <tr class="hover:bg-white/5 transition-colors">
+                                                    <td class="p-3 font-bold whitespace-nowrap">一、核心价值观</td>
+                                                    <td class="p-3 text-center">20%</td>
+                                                    <td class="p-3">组织存在的目的与价值根基，确立企业发展方向；评估价值观的清晰度、共识度及其对绿色、创新、可持续与人机共生等理念的承载。</td>
+                                                </tr>
+                                                <tr class="hover:bg-white/5 transition-colors">
+                                                    <td class="p-3 font-bold whitespace-nowrap">二、商业模式</td>
+                                                    <td class="p-3 text-center">20%</td>
+                                                    <td class="p-3">价值创造与捕获的逻辑设计，决定盈利效率；评估 AI 与数智化对价值主张、价值创造、客户连接、盈利模式与数据资产化的重构程度。</td>
+                                                </tr>
+                                                <tr class="hover:bg-white/5 transition-colors">
+                                                    <td class="p-3 font-bold whitespace-nowrap">三、生产方式</td>
+                                                    <td class="p-3 text-center">20%</td>
+                                                    <td class="p-3">价值创造的技术与过程实现，保障交付能力；评估 AI 在生产、研发、运营中的渗透程度，以及人机协同与数据驱动的成熟度。</td>
+                                                </tr>
+                                                <tr class="hover:bg-white/5 transition-colors">
+                                                    <td class="p-3 font-bold whitespace-nowrap">四、管理范式</td>
+                                                    <td class="p-3 text-center">20%</td>
+                                                    <td class="p-3">组织与协调人、资源的系统，提升组织效能；评估从“静态分工”到“动态编排”的跃迁程度，涵盖架构、流程、能力、决策、人才与激励。</td>
+                                                </tr>
+                                                <tr class="hover:bg-white/5 transition-colors">
+                                                    <td class="p-3 font-bold whitespace-nowrap">五、生态协同</td>
+                                                    <td class="p-3 text-center">20%</td>
+                                                    <td class="p-3">组织与外部生态的协同关系，拓展增长边界；评估产业链协同、跨界合作、平台化能力、共创生态与社会利益相关者关系的成熟度。</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+                        
+                        <div class="space-y-6">
+                            <div class="bg-white/5 p-6 rounded-xl border border-white/10">
+                                <label class="block text-sm font-medium text-slate-300 mb-4">S1. 总体而言，您如何评价贵企业当前的“新质组织”成熟度？ <span class="text-red-500">*</span></label>
+                                <div class="radio-group flex flex-col gap-2">
+                                    <label><input type="radio" name="s1" value="1" required> 1 — 萌芽期（初）：尚未启动新质组织建设</label>
+                                    <label><input type="radio" name="s1" value="2"> 2 — 萌芽期：已有局部探索，未形成体系</label>
+                                    <label><input type="radio" name="s1" value="3"> 3 — 成长期：已系统推进，部分维度初见成效</label>
+                                    <label><input type="radio" name="s1" value="4"> 4 — 成长期—成熟期：已规模化落地，整体成效显著</label>
+                                    <label><input type="radio" name="s1" value="5"> 5 — 成熟期：已形成行业引领的最佳实践</label>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-white/5 p-6 rounded-xl border border-white/10">
+                                    <label class="block text-sm font-medium text-slate-300 mb-4">S2. 您认为贵企业当前在新质组织五大维度中，最强的两个是？（限选2项）</label>
+                                    <div class="checkbox-group flex flex-col gap-2">
+                                        <label><input type="checkbox" name="s2" value="核心价值观"> 核心价值观</label>
+                                        <label><input type="checkbox" name="s2" value="商业模式"> 商业模式</label>
+                                        <label><input type="checkbox" name="s2" value="生产方式"> 生产方式</label>
+                                        <label><input type="checkbox" name="s2" value="管理范式"> 管理范式</label>
+                                        <label><input type="checkbox" name="s2" value="生态协同"> 生态协同</label>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white/5 p-6 rounded-xl border border-white/10">
+                                    <label class="block text-sm font-medium text-slate-300 mb-4">S3. 您认为贵企业当前在新质组织五大维度中，最薄弱的两个是？（限选2项）</label>
+                                    <div class="checkbox-group flex flex-col gap-2">
+                                        <label><input type="checkbox" name="s3" value="核心价值观"> 核心价值观</label>
+                                        <label><input type="checkbox" name="s3" value="商业模式"> 商业模式</label>
+                                        <label><input type="checkbox" name="s3" value="生产方式"> 生产方式</label>
+                                        <label><input type="checkbox" name="s3" value="管理范式"> 管理范式</label>
+                                        <label><input type="checkbox" name="s3" value="生态协同"> 生态协同</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white/5 p-6 rounded-xl border border-white/10">
+                                <label class="block text-sm font-medium text-slate-300 mb-4">S4. 过去 12 个月最显著的进展是？（多选，最多 3 项）</label>
+                                <div class="checkbox-group grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    <label><input type="checkbox" name="s4" value="完善价值观"> 完善了 AI 时代的核心价值观与战略共识</label>
+                                    <label><input type="checkbox" name="s4" value="推新产品"> 推出了基于 AI 的新产品或新业务</label>
+                                    <label><input type="checkbox" name="s4" value="重塑流程"> 大规模重塑了核心业务流程</label>
+                                    <label><input type="checkbox" name="s4" value="建数据体系"> 建立了系统化的数据资产与治理体系</label>
+                                    <label><input type="checkbox" name="s4" value="AI深度部署"> 实现了 AI 与自动化在生产/运营中的深度部署</label>
+                                    <label><input type="checkbox" name="s4" value="提升客户体验"> 提升了客户体验的数智化与个性化水平</label>
+                                    <label><input type="checkbox" name="s4" value="平台化转型"> 推动了组织架构向“平台+敏捷小队”转型</label>
+                                    <label><input type="checkbox" name="s4" value="人才培养机制"> 建立了系统的 AI 人才培养与认证机制</label>
+                                    <label><input type="checkbox" name="s4" value="人机协同机制"> 完成了人机协同机制的设计与试点</label>
+                                    <label><input type="checkbox" name="s4" value="升级激励机制"> 升级了与 AI 协作匹配的绩效与激励机制</label>
+                                    <label><input type="checkbox" name="s4" value="AI协同生态"> 与产业链或学研伙伴形成了 AI 协同生态</label>
+                                    <label><input type="checkbox" name="s4" value="跨界版图"> 拓展了跨界/跨行业的合作版图</label>
+                                    <label><input type="checkbox" name="s4" value="平台能力开放"> 实现了平台化能力对外开放</label>
+                                    <label><input type="checkbox" name="s4" value="ESG实践"> 完善了 ESG 与可持续发展实践</label>
+                                    <label><input type="checkbox" name="s4" value="设首席AI官"> 引进或设立了首席AI官/AI委员会</label>
+                                    <label><input type="checkbox" name="s4" value="管理者角色扩展"> 扩展了管理者角色，从“管人”转向“管员工+AI”</label>
+                                </div>
+                            </div>
+
+                            <div class="bg-white/5 p-6 rounded-xl border border-white/10">
+                                <label class="block text-sm font-medium text-slate-300 mb-4">S5. 当前面临的最大挑战是？（多选，最多 3 项）</label>
+                                <div class="checkbox-group grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    <label><input type="checkbox" name="s5" value="高层共识不足"> 高层共识不足，战略方向尚不清晰</label>
+                                    <label><input type="checkbox" name="s5" value="价值观不匹配"> 核心价值观尚未与 AI 时代的要求充分匹配</label>
+                                    <label><input type="checkbox" name="s5" value="缺领军人才"> 缺乏 AI 或数智化领军人才</label>
+                                    <label><input type="checkbox" name="s5" value="全员素养不足"> 全员 AI 素养与能力不足</label>
+                                    <label><input type="checkbox" name="s5" value="数据基础薄弱"> 数据基础薄弱，数据质量不高</label>
+                                    <label><input type="checkbox" name="s5" value="流程部署脱节"> 业务流程与 AI 部署之间存在脱节</label>
+                                    <label><input type="checkbox" name="s5" value="架构僵化"> 组织架构僵化，难以适应敏捷协作</label>
+                                    <label><input type="checkbox" name="s5" value="激励机制不匹配"> 现有绩效与激励机制无法匹配新质组织要求</label>
+                                    <label><input type="checkbox" name="s5" value="员工抵触焦虑"> 员工对 AI 存在抵触情绪或转型焦虑</label>
+                                    <label><input type="checkbox" name="s5" value="难持续投入"> 投资回报周期长，业绩压力下难以持续投入</label>
+                                    <label><input type="checkbox" name="s5" value="缺最佳实践"> 缺乏可参考的最佳实践与方法论</label>
+                                    <label><input type="checkbox" name="s5" value="伙伴不成熟"> 外部生态合作伙伴尚不成熟</label>
+                                    <label><input type="checkbox" name="s5" value="安全合规风险"> 数据安全、合规或伦理风险</label>
+                                    <label><input type="checkbox" name="s5" value="技术仍在演进"> AI 技术本身仍在演进，难以做出长期承诺</label>
+                                </div>
+                            </div>
+
+                            <div class="bg-white/5 p-6 rounded-xl border border-white/10">
+                                <label class="block text-sm font-medium text-slate-300 mb-4">S6. 未来 3 年内，贵企业最需要补强的能力或实践是？（多选，最多 3 项）</label>
+                                <div class="checkbox-group grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    <label><input type="checkbox" name="s6" value="战略顶层设计"> 新质组织战略规划与顶层设计</label>
+                                    <label><input type="checkbox" name="s6" value="数据治理体系"> 数据资产化与数据治理体系</label>
+                                    <label><input type="checkbox" name="s6" value="业务流程重塑"> 核心业务流程的 AI 重塑</label>
+                                    <label><input type="checkbox" name="s6" value="AI应用深度"> AI 技术应用的深度与广度</label>
+                                    <label><input type="checkbox" name="s6" value="人机协同机制"> 人机协同机制的设计与落地</label>
+                                    <label><input type="checkbox" name="s6" value="敏捷架构改造"> 平台化与敏捷化的组织架构改造</label>
+                                    <label><input type="checkbox" name="s6" value="AI能力培养"> 全员 AI 素养与关键岗位 AI 能力培养</label>
+                                    <label><input type="checkbox" name="s6" value="绩效激励机制"> 与 AI 协作匹配的绩效与激励机制</label>
+                                    <label><input type="checkbox" name="s6" value="创新容错机制"> 创新文化与试错容错机制</label>
+                                    <label><input type="checkbox" name="s6" value="数据决策能力"> 数据驱动的决策能力</label>
+                                    <label><input type="checkbox" name="s6" value="客户体验重构"> 客户体验的数智化重构</label>
+                                    <label><input type="checkbox" name="s6" value="生态共创"> 产业链协同与生态共创</label>
+                                    <label><input type="checkbox" name="s6" value="跨界探索"> 跨界合作与新业务空间探索</label>
+                                    <label><input type="checkbox" name="s6" value="ESG能力"> ESG 与可持续发展能力</label>
+                                    <label><input type="checkbox" name="s6" value="AI伦理治理"> AI 安全、合规与伦理治理能力</label>
+                                </div>
+                            </div>
+
+                            <div class="bg-white/5 p-6 rounded-xl border border-white/10">
+                                <label class="block text-sm font-medium text-slate-300 mb-4">S7. 您是否愿意接受后续的深度访谈？ <span class="text-red-500">*</span></label>
+                                <div class="radio-group flex flex-col gap-2">
+                                    <label><input type="radio" name="s7" value="愿意" required> 愿意，欢迎联系</label>
+                                    <label><input type="radio" name="s7" value="视情况而定"> 视情况而定，请先告知主题</label>
+                                    <label><input type="radio" name="s7" value="暂不方便"> 暂不方便</label>
+                                </div>
+                            </div>
+
+                        </div>
+                        
+                        <div class="pt-6 flex justify-center gap-4">
+                            <button type="button" class="btn-prev px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors border border-white/10">
+                                <i class="fas fa-arrow-left mr-2"></i> 上一步
+                            </button>
+                            <button type="submit" id="btn-submit" class="btn-primary inline-flex items-center !px-8 !py-3">
+                                提交问卷 <i class="fas fa-paper-plane ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </form>
+
+            </div>
+
+            <!-- 05 Success State (Hidden) -->
+            <div id="success-state" class="hidden glass-panel p-12 rounded-3xl animate-on-scroll text-center border border-emerald-500/30 relative overflow-hidden">
+                <div class="absolute inset-0 bg-emerald-500/5 -z-10"></div>
+                <div class="w-24 h-24 mx-auto bg-emerald-500/20 rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-check text-4xl md:text-5xl text-emerald-400"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-white mb-4">衷心感谢您的宝贵时间与思考！</h2>
+                <p class="text-lg text-slate-300 mb-8 max-w-2xl mx-auto">
+                    您的填答将汇入《2026 中国企业新质组织成熟度研究报告》，<br>并作为未来三年纵向研究的重要基线数据。
+                </p>
+                <div class="p-6 bg-gradient-to-br from-[#7c4dff]/20 to-transparent border border-[#7c4dff]/30 rounded-2xl max-w-md mx-auto mb-8 shadow-[0_0_30px_rgba(124,77,255,0.15)] relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-[#7c4dff] blur-[50px] opacity-20"></div>
+                    <h4 class="text-white font-bold mb-2 text-lg">诚邀您参评年度“新质组织标杆企业”！</h4>
+                    <p class="text-sm text-slate-300 mb-5 leading-relaxed">获取权威智库深度诊断，赢取行业重磅荣誉背书，共同引领中国企业组织创新浪潮。</p>
+                    <a href="/nqoc/awards" class="btn-primary block w-full !bg-transparent border border-[#7c4dff] !text-white hover:!bg-[#7c4dff] hover:shadow-[0_0_20px_rgba(124,77,255,0.4)] transition-all duration-300">
+                        立刻申请企业评选
+                    </a>
+                </div>
+                <a href="/nqoc" class="text-slate-400 hover:text-white underline decoration-slate-600 underline-offset-4 transition-colors">
+                    返回项目首页
+                </a>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-8 border-t border-[rgba(255,255,255,0.05)] text-center text-sm text-slate-500">
+<p>© 2026 瑞华智策 - 中国新质组织研究中心. All rights reserved.</p>
+<p class="mt-2"><a href="https://beian.miit.gov.cn/" target="_blank" class="hover:text-white transition-colors">沪ICP备12042344号-24</a></p>
+</footer>
+
+    <script src="/nqoc/js/main.js"></script>
+        <script>
+        // Form Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('survey-form');
+            const formContainer = document.getElementById('survey-form-container');
+            const successState = document.getElementById('success-state');
+            const progressLine = document.getElementById('progress-line');
+            
+            const steps = [
+                document.getElementById('step-1'),
+                document.getElementById('step-2'),
+                document.getElementById('step-3'),
+                document.getElementById('step-4')
+            ];
+            
+            const indicators = [
+                document.getElementById('step1-indicator'),
+                document.getElementById('step2-indicator'),
+                document.getElementById('step3-indicator'),
+                document.getElementById('step4-indicator')
+            ];
+            
+            let currentStep = 0;
+
+            // --- CACHE LOGIC ---
+            const CACHE_KEY = 'nqoc_survey_cache_v3';
+            const CACHE_EXPIRE_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+            function saveDraft() {
+                const formData = new FormData(form);
+                const data = {};
+                const arrayFields = ['b_o1', 'p_o1', 'm_o1', 'e_o1', 's2', 's3', 's4', 's5', 's6'];
+                for (let key of formData.keys()) {
+                    if (arrayFields.includes(key)) {
+                        data[key] = formData.getAll(key);
+                    } else {
+                        data[key] = formData.get(key);
+                    }
+                }
+                const cacheObj = {
+                    timestamp: Date.now(),
+                    step: currentStep,
+                    data: data
+                };
+                try {
+                    const encoded = btoa(encodeURIComponent(JSON.stringify(cacheObj)));
+                    localStorage.setItem(CACHE_KEY, encoded);
+                } catch (e) { console.error('Cache save error', e); }
+            }
+
+            function restoreDraft(draft) {
+                const data = draft.data;
+                for (const key in data) {
+                    const value = data[key];
+                    if (Array.isArray(value)) {
+                        value.forEach(val => {
+                            const el = form.querySelector(`input[name="${key}"][value="${val}"]`);
+                            if (el) {
+                                el.checked = true;
+                                if(val === '其他') {
+                                    const otherInput = form.querySelector(`#${key}_other`);
+                                    if(otherInput) otherInput.disabled = false;
+                                }
+                            }
+                        });
+                    } else {
+                        const el = form.querySelector(`[name="${key}"]`);
+                        if (el) {
+                            if (el.type === 'radio') {
+                                const radio = form.querySelector(`input[name="${key}"][value="${value}"]`);
+                                if (radio) {
+                                    radio.checked = true;
+                                    if (key === 'respondentTitle' && value === '其他高级管理人员') {
+                                        document.getElementById('respondentTitle_other').classList.remove('hidden');
+                                    }
+                                }
+                            } else {
+                                el.value = value;
+                                if (key === 'industry' && value === '其他') {
+                                    document.getElementById('industry_other').classList.remove('hidden');
+                                }
+                                if (key === 'orgNature' && value === '其他') {
+                                    document.getElementById('orgNature_other').classList.remove('hidden');
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Jump to the saved step
+                if (draft.step > 0 && draft.step < steps.length) {
+                    goToStep(draft.step);
+                }
+
+                // Trigger checkbox limit updates
+                const limits = { s2: 2, s3: 2, s4: 3, s5: 3, s6: 3 };
+                Object.keys(limits).forEach(key => {
+                    const checkboxes = form.querySelectorAll(`input[type="checkbox"][name="${key}"]`);
+                    const limit = limits[key];
+                    const checkedCount = form.querySelectorAll(`input[type="checkbox"][name="${key}"]:checked`).length;
+                    checkboxes.forEach(cb => {
+                        if (!cb.checked && checkedCount >= limit) {
+                            cb.disabled = true;
+                            cb.parentElement.classList.add('opacity-50', 'cursor-not-allowed');
+                        }
+                    });
+                });
+            }
+
+            // Event Listeners for "Other" in Industry and OrgNature
+            const industrySelect = form.querySelector('select[name="industry"]');
+            const industryOther = form.querySelector('#industry_other');
+            industrySelect.addEventListener('change', (e) => {
+                if(e.target.value === '其他') {
+                    industryOther.classList.remove('hidden');
+                    industryOther.required = true;
+                } else {
+                    industryOther.classList.add('hidden');
+                    industryOther.required = false;
+                    industryOther.value = '';
+                }
+            });
+
+            const orgNatureSelect = form.querySelector('select[name="orgNature"]');
+            const orgNatureOther = form.querySelector('#orgNature_other');
+            orgNatureSelect.addEventListener('change', (e) => {
+                if(e.target.value === '其他') {
+                    orgNatureOther.classList.remove('hidden');
+                    orgNatureOther.required = true;
+                } else {
+                    orgNatureOther.classList.add('hidden');
+                    orgNatureOther.required = false;
+                    orgNatureOther.value = '';
+                }
+            });
+
+            const respondentTitleRadios = form.querySelectorAll('input[name="respondentTitle"]');
+            const respondentTitleOther = form.querySelector('#respondentTitle_other');
+            respondentTitleRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    if(e.target.value === '其他高级管理人员') {
+                        respondentTitleOther.classList.remove('hidden');
+                        respondentTitleOther.required = true;
+                    } else {
+                        respondentTitleOther.classList.add('hidden');
+                        respondentTitleOther.required = false;
+                        respondentTitleOther.value = '';
+                    }
+                });
+            });
+
+            // --- Checkbox Limits Logic ---
+            const limits = { s2: 2, s3: 2, s4: 3, s5: 3, s6: 3 };
+            Object.keys(limits).forEach(key => {
+                const checkboxes = form.querySelectorAll(`input[type="checkbox"][name="${key}"]`);
+                const limit = limits[key];
+                
+                function updateCheckboxState() {
+                    const checkedCount = form.querySelectorAll(`input[type="checkbox"][name="${key}"]:checked`).length;
+                    checkboxes.forEach(cb => {
+                        if (!cb.checked && checkedCount >= limit) {
+                            cb.disabled = true;
+                            cb.parentElement.classList.add('opacity-50', 'cursor-not-allowed');
+                        } else {
+                            cb.disabled = false;
+                            cb.parentElement.classList.remove('opacity-50', 'cursor-not-allowed');
+                        }
+                    });
+                }
+                
+                checkboxes.forEach(cb => {
+                    cb.addEventListener('change', () => {
+                        if (cb.checked && form.querySelectorAll(`input[type="checkbox"][name="${key}"]:checked`).length > limit) {
+                            cb.checked = false; // fallback if someone clicked fast
+                            showToast('warning', `【该项】最多只能选择 ${limit} 个`);
+                        }
+                        updateCheckboxState();
+                    });
+                });
+            });
+
+            function checkCache() {
+                const rawCache = localStorage.getItem(CACHE_KEY);
+                if (rawCache) {
+                    try {
+                        const draft = JSON.parse(decodeURIComponent(atob(rawCache)));
+                        if (Date.now() - draft.timestamp < CACHE_EXPIRE_MS) {
+                            const confirmModal = document.createElement('div');
+                            confirmModal.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity';
+                            confirmModal.innerHTML = `
+                                <div class="bg-[#111424] border border-white/10 rounded-2xl p-5 md:p-8 max-w-sm w-full mx-4 shadow-[0_0_40px_rgba(124,77,255,0.2)]">
+                                    <div class="w-16 h-16 rounded-full bg-[var(--nqoc-brand)]/20 text-[var(--nqoc-brand-light)] flex items-center justify-center text-2xl mx-auto mb-4">
+                                        <i class="fas fa-history"></i>
+                                    </div>
+                                    <h3 class="text-xl font-bold text-white text-center mb-2">发现未完成的调研</h3>
+                                    <p class="text-slate-400 text-center text-sm mb-6">系统为您保存了上次填写的草稿内容（24小时内有效）。是否继续填写？</p>
+                                    <div class="flex gap-3">
+                                        <button id="btn-discard-draft" type="button" class="flex-1 py-2.5 rounded-xl border border-white/20 text-slate-300 hover:bg-white/5 transition-colors">放弃重填</button>
+                                        <button id="btn-restore-draft" type="button" class="flex-1 py-2.5 rounded-xl bg-[var(--nqoc-brand)] hover:bg-[var(--nqoc-brand-light)] text-white font-bold transition-colors">恢复草稿</button>
+                                    </div>
+                                </div>
+                            `;
+                            document.body.appendChild(confirmModal);
+                            
+                            document.getElementById('btn-restore-draft').addEventListener('click', () => {
+                                restoreDraft(draft);
+                                document.body.removeChild(confirmModal);
+                            });
+                            document.getElementById('btn-discard-draft').addEventListener('click', () => {
+                                localStorage.removeItem(CACHE_KEY);
+                                document.body.removeChild(confirmModal);
+                            });
+                        } else {
+                            localStorage.removeItem(CACHE_KEY);
+                        }
+                    } catch (e) {
+                        localStorage.removeItem(CACHE_KEY);
+                    }
+                }
+            }
+
+            form.addEventListener('input', saveDraft);
+            form.addEventListener('change', saveDraft);
+            checkCache();
+            // --- CACHE LOGIC END ---
+
+            // --- Multi-step Logic ---
+            function updateProgressUI(targetStep) {
+                // Update Line
+                const percentage = (targetStep / (steps.length - 1)) * 100;
+                progressLine.style.width = `${percentage}%`;
+
+                // Update Indicators
+                indicators.forEach((indicator, index) => {
+                    const div = indicator.querySelector('div');
+                    const span = indicator.querySelector('span');
+                    
+                    if (index <= targetStep) {
+                        div.className = 'w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--nqoc-brand-light)] to-[var(--nqoc-brand)] text-white font-bold flex items-center justify-center shadow-[0_0_20px_rgba(124,77,255,0.5)] transform rotate-45 transition-all duration-300 border-4 border-[#07090f]';
+                        span.className = 'text-xs md:text-sm font-bold text-[var(--nqoc-brand-light)] tracking-widest transition-all duration-300';
+                    } else {
+                        div.className = 'w-12 h-12 rounded-2xl bg-[#111424] border-2 border-white/10 text-slate-500 font-bold flex items-center justify-center transition-all duration-300 transform rotate-45 border-4 border-[#07090f]';
+                        span.className = 'text-xs md:text-sm font-medium text-slate-500 transition-all duration-300 tracking-widest';
+                    }
+                });
+            }
+
+            function goToStep(targetStep) {
+                // Validation for current step
+                if (targetStep > currentStep) {
+                    const currentStepEl = steps[currentStep];
+                    const inputs = currentStepEl.querySelectorAll('input[required], select[required]');
+                    let isValid = true;
+                    let firstInvalidEl = null;
+
+                    inputs.forEach(input => {
+                        if (!input.value || (input.type === 'radio' && !currentStepEl.querySelector(`input[name="${input.name}"]:checked`))) {
+                            isValid = false;
+                            
+                            // Highlight logic
+                            if (input.type !== 'radio') {
+                                input.classList.add('border-red-500');
+                            } else {
+                                // For radio buttons, highlight the container
+                                const container = input.closest('.mb-4, .space-y-2, .space-y-4, .form-section');
+                                if (container) {
+                                    container.classList.add('border-red-500', 'border', 'rounded-lg');
+                                }
+                            }
+
+                            if (!firstInvalidEl) {
+                                firstInvalidEl = input.closest('.mb-4, .space-y-2, .space-y-4, .form-section') || input;
+                            }
+                        } else {
+                            // Remove highlight
+                            if (input.type !== 'radio') {
+                                input.classList.remove('border-red-500');
+                            } else {
+                                const container = input.closest('.mb-4, .space-y-2, .space-y-4, .form-section');
+                                if (container) {
+                                    container.classList.remove('border-red-500', 'border', 'rounded-lg');
+                                }
+                            }
+                        }
+                    });
+
+                    // Custom validations
+                    if (currentStep === 1) { // 填答人信息
+                        const phoneInput = document.getElementById('surveyPhone');
+                        const phoneVal = phoneInput ? phoneInput.value.trim() : '';
+                        if (phoneVal && !/^1[3-9]\d{9}$/.test(phoneVal)) {
+                            showToast('error', '请输入有效的11位手机号');
+                            isValid = false;
+                            if (!firstInvalidEl) firstInvalidEl = phoneInput.closest('.space-y-2');
+                        }
+                        const codeInput = document.getElementById('surveySmsCode');
+                        if (phoneVal && (!codeInput || !/^\d{6}$/.test(codeInput.value.trim()))) {
+                            showToast('error', '请输入有效的6位验证码');
+                            isValid = false;
+                            if (!firstInvalidEl) firstInvalidEl = codeInput.closest('.space-y-2');
+                        }
+                    }
+
+                    if (!isValid) {
+                        showToast('error', '请填写完整的必填项信息');
+                        if (firstInvalidEl) {
+                            firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                        return;
+                    }
+                }
+
+                // Hide current, show target
+                steps[currentStep].classList.add('hidden');
+                steps[targetStep].classList.remove('hidden');
+                
+                // Toggle immersive mode if not on step 0
+                if (targetStep > 0 && currentStep === 0) {
+                    document.querySelector('nav').style.display = 'none';
+                    const footer = document.querySelector('footer');
+                    if (footer) footer.style.display = 'none';
+                    document.querySelectorAll('.hide-in-immersive').forEach(el => el.style.display = 'none');
+                    document.querySelector('main').classList.remove('pt-24');
+                    document.querySelector('main').classList.add('pt-8');
+                } else if (targetStep === 0 && currentStep > 0) {
+                    document.querySelector('nav').style.display = '';
+                    const footer = document.querySelector('footer');
+                    if (footer) footer.style.display = '';
+                    document.querySelectorAll('.hide-in-immersive').forEach(el => el.style.display = '');
+                    document.querySelector('main').classList.add('pt-24');
+                    document.querySelector('main').classList.remove('pt-8');
+                }
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                updateProgressUI(targetStep);
+                currentStep = targetStep;
+                saveDraft();
+            }
+
+            // Attach event listeners to next/prev buttons
+            document.querySelectorAll('.btn-next').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (currentStep < steps.length - 1) goToStep(currentStep + 1);
+                });
+            });
+            document.querySelectorAll('.btn-prev').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (currentStep > 0) goToStep(currentStep - 1);
+                });
+            });
+
+            // --- SMS LOGIC ---
+            const sendCodeBtn = document.getElementById('surveySendCodeBtn');
+            const phoneInput = document.getElementById('surveyPhone');
+            const smsCodeContainer = document.getElementById('smsCodeContainer');
+            let countdownTimer = null;
+
+            if (phoneInput && smsCodeContainer) {
+                phoneInput.addEventListener('input', () => {
+                    if (phoneInput.value.trim().length > 0) {
+                        smsCodeContainer.style.display = 'block';
+                        document.getElementById('surveySmsCode').required = true;
+                    } else {
+                        smsCodeContainer.style.display = 'none';
+                        document.getElementById('surveySmsCode').required = false;
+                    }
+                });
+            }
+
+            if (sendCodeBtn && phoneInput) {
+                sendCodeBtn.addEventListener('click', async () => {
+                    const phone = phoneInput.value.trim();
+                    if (!/^1[3-9]\d{9}$/.test(phone)) {
+                        alert('请输入有效的11位手机号');
+                        phoneInput.focus();
+                        return;
+                    }
+                    try {
+                        sendCodeBtn.disabled = true;
+                        sendCodeBtn.textContent = '发送中...';
+                        const res = await fetch('/api/send-verification-code', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ phone, scene: 'survey' })
+                        });
+                        const data = await res.json();
+                        if (res.ok && data.success) {
+                            alert('验证码已发送，请注意查收');
+                            let countdown = 60;
+                            sendCodeBtn.textContent = countdown + '秒后重发';
+                            if (countdownTimer) clearInterval(countdownTimer);
+                            countdownTimer = setInterval(() => {
+                                countdown--;
+                                if (countdown <= 0) {
+                                    clearInterval(countdownTimer);
+                                    sendCodeBtn.disabled = false;
+                                    sendCodeBtn.textContent = '获取验证码';
+                                } else {
+                                    sendCodeBtn.textContent = countdown + '秒后重发';
+                                }
+                            }, 1000);
+                        } else {
+                            sendCodeBtn.disabled = false;
+                            sendCodeBtn.textContent = '获取验证码';
+                            alert(data.error || '验证码发送失败');
+                        }
+                    } catch (e) {
+                        console.error('发送验证码失败:', e);
+                        sendCodeBtn.disabled = false;
+                        sendCodeBtn.textContent = '获取验证码';
+                        alert('网络错误，请稍后重试');
+                    }
+                });
+            }
+            // --- SMS LOGIC END ---
+
+            // Parse URL parameters for channel
+            const urlParams = new URLSearchParams(window.location.search);
+            const channel = urlParams.get('channel') || 'organic';
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Validate step 4 inputs before submitting
+                const currentStepEl = steps[currentStep];
+                const inputs = currentStepEl.querySelectorAll('input[required], select[required], textarea[required]');
+                let isValid = true;
+                let firstInvalidEl = null;
+
+                inputs.forEach(input => {
+                    if (!input.value || (input.type === 'radio' && !currentStepEl.querySelector(`input[name="${input.name}"]:checked`))) {
+                        isValid = false;
+                        if (input.type !== 'radio') {
+                            input.classList.add('border-red-500');
+                        } else {
+                            const container = input.closest('.mb-4, .space-y-2, .space-y-4, .form-section');
+                            if (container) container.classList.add('border-red-500', 'border', 'rounded-lg');
+                        }
+                        if (!firstInvalidEl) {
+                            firstInvalidEl = input.closest('.mb-4, .space-y-2, .space-y-4, .form-section') || input;
+                        }
+                    } else {
+                        if (input.type !== 'radio') {
+                            input.classList.remove('border-red-500');
+                        } else {
+                            const container = input.closest('.mb-4, .space-y-2, .space-y-4, .form-section');
+                            if (container) container.classList.remove('border-red-500', 'border', 'rounded-lg');
+                        }
+                    }
+                });
+
+                if (!isValid) {
+                    showToast('error', '请填写完整的必填项信息');
+                    if (firstInvalidEl) {
+                        firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    return;
+                }
+
+                const btnSubmit = document.getElementById('btn-submit');
+                const originalBtnHtml = btnSubmit.innerHTML;
+                btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> 提交中...';
+                btnSubmit.disabled = true;
+                
+                // Add limits to s2, s3, s4, s5, s6
+                const limits = { s2: 2, s3: 2, s4: 3, s5: 3, s6: 3 };
+                const formData = new FormData(form);
+                const payload = { channel };
+                
+                const arrayFields = ['b_o1', 'p_o1', 'm_o1', 'e_o1', 's2', 's3', 's4', 's5', 's6'];
+                let limitExceeded = false;
+                let limitMsg = '';
+                let errorKey = '';
+
+                for (let key of formData.keys()) {
+                    if (arrayFields.includes(key)) {
+                        const vals = formData.getAll(key);
+                        if (limits[key] && vals.length > limits[key]) {
+                            limitExceeded = true;
+                            limitMsg = `【${key.toUpperCase()}】 最多只能选择 ${limits[key]} 个选项`;
+                            errorKey = key;
+                        }
+                        payload[key] = vals;
+                    } else {
+                        payload[key] = formData.get(key);
+                    }
+                }
+
+                if (limitExceeded) {
+                    showToast('error', limitMsg);
+                    const errorEl = document.querySelector(`input[name="${errorKey}"]`);
+                    if (errorEl) {
+                        errorEl.closest('.mb-6').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    btnSubmit.innerHTML = originalBtnHtml;
+                    btnSubmit.disabled = false;
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/nqoc/survey/submit', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        localStorage.removeItem(CACHE_KEY);
+                        formContainer.classList.add('hidden');
+                        successState.classList.remove('hidden');
+                        window.scrollTo(0, 0);
+                    } else {
+                        alert(result.error || '提交失败');
+                        btnSubmit.innerHTML = originalBtnHtml;
+                        btnSubmit.disabled = false;
+                    }
+                } catch (err) {
+                    alert('网络异常，请重试');
+                    btnSubmit.innerHTML = originalBtnHtml;
+                    btnSubmit.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

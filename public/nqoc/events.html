@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国新质组织研究项目启动仪式 & 研究洞察分享会</title>
+    <meta name="keywords" content="新质组织研讨会, 组织发展论坛, 闭门沙龙, AI组织变革, 人力资源活动">
+    <meta name="description" content="参加中国新质组织研究中心举办的各类高端研讨会、闭门沙龙与行业论坛，与智库专家面对面，共话AI时代的组织进化与管理创新。">
+    <link rel="canonical" href="https://www.ruihuaconsulting.com/nqoc/events">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            500: '#8b5cf6',
+                            600: '#7c3aed'
+                        },
+                        cyber: {
+                            cyan: '#00f0ff',
+                            purple: '#b026ff'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/nqoc/css/style.css">
+<script> 
+ var _hmt = _hmt || []; 
+ (function() { 
+   var hm = document.createElement("script"); 
+   hm.src = "https://hm.baidu.com/hm.js?3302f271fa7fe8d2ddc6176b39359827"; 
+   var s = document.getElementsByTagName("script")[0]; 
+   s.parentNode.insertBefore(hm, s); 
+ })(); 
+ </script>
+</head>
+<body class="antialiased bg-[#080b14] text-white min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="nqoc-nav py-4 fixed w-full z-50 bg-[#080b14]/90 backdrop-blur-md border-b border-white/5">
+        <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <div class="flex items-center">
+                <a href="/nqoc" class="flex items-center">
+                    <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/nqoc-logo.png" alt="中国新质组织研究中心" loading="lazy" class="nqoc-logo">
+                </a>
+            </div>
+            <div class="hidden md:flex items-center space-x-6 text-sm font-medium flex-1 justify-end">
+                <div class="flex space-x-6 top-nav-links">
+                    <a href="/nqoc" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">首页</a>
+                    <a href="/nqoc/survey" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">参与调研</a>
+                    <a href="/nqoc/awards" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">评选申报</a>
+                    <a href="/nqoc/cases" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">案例分享</a>
+                    <a href="/nqoc/insights" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">新质观点</a>
+                    <a href="/nqoc/events" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition text-[#7c4dff] font-bold border-b-2 border-[#00f0ff] pb-1 active">研讨活动</a>
+                    <a href="/nqoc/whitepaper" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">研究成果</a>
+                    <a href="/nqoc/about" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">关于我们</a>
+                </div>
+                <a href="/nqoc/survey" class="btn-primary ml-6 !py-2 !px-4 !text-sm whitespace-nowrap">参与调研</a>
+            </div>
+            <div class="md:hidden flex items-center">
+                <a href="/nqoc/survey" class="btn-primary mr-4 !py-1.5 !px-3 !text-xs whitespace-nowrap">参与调研</a>
+                <button class="text-white" id="mobile-menu-btn" onclick="toggleNqocMobileMenu()"><i class="fas fa-bars text-xl"></i></button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Mobile Menu -->
+    <nav id="nqocMobileMenu" class="hidden md:hidden fixed top-[70px] left-0 w-full bg-[#0a0a1a] border-b border-white/10 px-4 py-6 z-50 shadow-2xl">
+        <div class="flex flex-col space-y-4 text-center">
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc">首页</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/survey">参与调研</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/awards">评选申报</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/cases">案例分享</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/insights">新质观点</a>
+            <a class="text-[#7c4dff] font-bold text-lg" href="/nqoc/events">研讨活动</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/whitepaper">研究成果</a>
+            <a class="text-slate-300 text-lg hover:text-[#7c4dff]" href="/nqoc/about">关于我们</a>
+        </div>
+    </nav>
+
+    <script>
+    function toggleNqocMobileMenu() {
+        const menu = document.getElementById('nqocMobileMenu');
+        if (menu.classList.contains('hidden')) {
+            menu.classList.remove('hidden');
+        } else {
+            menu.classList.add('hidden');
+        }
+    }
+    </script>
+
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-24 pb-16 relative overflow-hidden">
+
+        <!-- Full-width Banner Background -->
+        <div class="absolute top-0 left-0 w-full min-h-[750px] pointer-events-none z-0 bg-[#07090f]">
+            <!-- Banner Background Image -->
+            <div class="absolute inset-0 bg-[url('https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/banner-back.webp')] bg-cover bg-center opacity-60"></div>
+            
+            <!-- Subtle top radial gradient -->
+            <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-900/40 via-transparent to-transparent"></div>
+            
+            <!-- Bottom fade to blend with next section -->
+            <div class="absolute bottom-0 left-0 w-full h-[200px] bg-gradient-to-t from-[#080b14] to-transparent z-10"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            
+            <!-- Hero Section (PC Layout) -->
+            <div class="mb-20 animate-on-scroll relative min-h-[600px] flex flex-col justify-center">
+
+                <div class="flex flex-col md:flex-row items-center justify-between gap-12 relative z-10 py-12">
+                    <!-- Left Content -->
+                    <div class="flex-1 text-left">
+                        <!-- Logos -->
+                        <div class="flex items-center mb-12">
+                            <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/logo/3-logo.png" alt="主办方Logo" class="h-14 md:h-16 object-contain filter drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">
+                        </div>
+                        
+                        <!-- Titles -->
+                        <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white leading-[1.5] mb-6 tracking-tight">
+                            AI 变革深水区，如何打造<br>适配未来的<span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00f0ff] to-[#b026ff]">新质组织</span>
+                        </h1>
+                        
+                        <!-- Subtitle with a different tech style (Gradient Line & Glow Text) -->
+                        <div class="relative inline-flex flex-col mb-12 group">
+                            <div class="flex items-center gap-4 pl-4 border-l-4 border-[var(--nqoc-accent-cyan)]">
+                                <h2 class="text-base md:text-lg text-white font-bold tracking-widest whitespace-nowrap drop-shadow-[0_0_8px_rgba(0,240,255,0.4)]">
+                                    中国新质组织研究项目启动仪式 <span class="text-[var(--nqoc-accent-purple)] px-2">|</span> 研究洞察分享会
+                                </h2>
+                            </div>
+                            <!-- Decorative underlying glow -->
+                            <div class="absolute -bottom-2 left-0 w-full h-[1px] bg-gradient-to-r from-[var(--nqoc-accent-cyan)] via-[var(--nqoc-brand)] to-transparent opacity-50"></div>
+                        </div>
+
+                        <!-- Time & Location & CTA -->
+                        <div class="flex flex-col items-start gap-8 text-white mt-12">
+                            <!-- Time & Location Row -->
+                            <div class="flex flex-row items-center flex-wrap gap-4 bg-white/5 border border-white/10 rounded-2xl md:rounded-full px-5 py-4 md:px-6 md:py-3 backdrop-blur-sm w-full md:w-auto flex-col md:flex-row items-start md:items-center">
+                                <div class="flex items-center gap-3 border-r border-white/10 pr-4">
+                                    <i class="far fa-clock text-xl font-light text-slate-300"></i>
+                                    <div class="flex items-center gap-2">
+                                        <div class="text-[10px] leading-[1.1] flex flex-col justify-center text-slate-400">
+                                            <div class="tracking-widest">TIME</div>
+                                            <div class="tracking-widest">2026</div>
+                                        </div>
+                                        <div class="text-2xl font-light tracking-wider leading-none">05/21</div>
+                                        <div class="text-sm font-light tracking-wider leading-none ml-1 text-slate-300">13:00-17:00</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-map-marker-alt text-lg text-[var(--nqoc-accent-cyan)]"></i>
+                                    <div class="text-base font-light tracking-wide">中国·北京 北京大学光华管理学院</div>
+                                </div>
+                            </div>
+
+                            <!-- Bottom CTA Button -->
+                            <div class="shrink-0">
+                                <a href="http://www.ruihuaconsulting.com/event/register/86870323e9681860c4f5" target="_blank" class="flex md:inline-flex w-full md:w-auto items-center justify-center px-8 py-3.5 text-base md:text-lg font-bold rounded-xl md:rounded-full text-white bg-gradient-to-r from-[var(--nqoc-brand)] to-[var(--nqoc-accent-purple)] hover:shadow-[0_0_20px_rgba(176,38,255,0.5)] transition-all duration-300 transform hover:-translate-y-1 border border-white/20 relative overflow-hidden group">
+                                    <span class="relative z-10">立即报名参会</span>
+                                    <i class="fas fa-arrow-right ml-2 relative z-10 group-hover:translate-x-1 transition-transform"></i>
+                                    <div class="absolute inset-0 bg-gradient-to-r from-[var(--nqoc-accent-cyan)] to-[var(--nqoc-brand)] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Graphic -->
+                    <div class="hidden md:flex flex-1 justify-center items-center relative">
+                        <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/nqoc-banner.png" class="w-full max-w-lg object-contain filter drop-shadow-[0_0_30px_rgba(176,38,255,0.4)] animate-float" alt="NQOC Graphic">
+                    </div>
+                </div>
+
+                <!-- Bottom Organizers Bar -->
+                <div class="relative z-10 w-full border-t border-white/10 pt-6 pb-2 flex flex-col xl:flex-row justify-between items-center text-sm text-slate-300 gap-6 mt-8">
+                    <div class="whitespace-nowrap">
+                        <span class="font-bold text-white mr-3">发起单位:</span>人瑞人才&瑞华智策 · 新质组织研究中心
+                    </div>
+                    <div class="whitespace-nowrap">
+                        <span class="font-bold text-white mr-3">联合主办:</span>中国经营报
+                    </div>
+                    <div class="whitespace-nowrap">
+                        <span class="font-bold text-white mr-3">学术支持:</span>北京大学光华管理学院
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invitation Letter -->
+            <div class="glass-panel p-4 md:p-8 md:p-12 mb-12 border border-[var(--nqoc-brand)]/30 rounded-3xl animate-on-scroll relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--nqoc-accent-cyan)] to-[var(--nqoc-accent-purple)]"></div>
+                <h3 class="text-2xl font-bold text-white mb-8 flex items-center justify-between">
+                    <span>邀请 INVITATION</span>
+                    <i class="fas fa-envelope-open-text text-[var(--nqoc-brand)] opacity-50"></i>
+                </h3>
+                <div class="space-y-6 text-slate-300 leading-relaxed text-lg">
+                    <p class="font-bold text-white">尊敬的企业管理者：</p>
+                    <p>技术不应替代人，增长不该透支环境。新质组织，让 AI 与人共智、效率与人性共存。</p>
+                    <p>针对战略与组织不匹配、数智转型难、人力经营低效等痛点，人瑞人才、瑞华智策联合北京大学光华管理学院、中国经营报发起“中国新质组织研究项目”，携手产学研各界专家，群力群策构建理论体系与评估标准，打造案例库与实践指南，打通“学术—实践—传播”闭环，为企业提供AI时代的组织变革方法论。</p>
+                    <p>诚邀您一起见证并加入这一努力，共同创造技术服务于人、商业可持续的未来。</p>
+                    <div class="text-right mt-8 pt-8 border-t border-white/10">
+                        <p class="font-bold text-white">人瑞人才 · 瑞华智策</p>
+                        <p class="text-sm mt-1">2026年5月8日</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agenda -->
+            <div class="mb-16 animate-on-scroll max-w-3xl mx-auto">
+                <h3 class="text-3xl font-bold text-center text-white mb-16 flex items-center justify-center gap-4">
+                    <span class="w-12 h-px bg-[var(--nqoc-brand)]"></span>
+                    活动议程
+                    <span class="w-12 h-px bg-[var(--nqoc-brand)]"></span>
+                </h3>
+
+                <div class="agenda-container">
+                    
+                    <!-- Agenda Item 1 -->
+                    <div class="agenda-item">
+                        <div class="agenda-time">13:00-13:30</div>
+                        <div class="agenda-separator">
+                            <div class="agenda-line"></div>
+                            <div class="agenda-dot"></div>
+                        </div>
+                        <div class="agenda-content">
+                            <h4 class="text-white font-bold text-xl mb-1">签到注册</h4>
+                        </div>
+                    </div>
+
+                    <!-- Agenda Item 2 -->
+                    <div class="agenda-item">
+                        <div class="agenda-time">13:30-14:00</div>
+                        <div class="agenda-separator">
+                            <div class="agenda-line"></div>
+                            <div class="agenda-dot"></div>
+                        </div>
+                        <div class="agenda-content">
+                            <h4 class="text-white font-bold text-xl mb-3">项目启动</h4>
+                            <div class="text-sm text-slate-400 space-y-2">
+                                <p><span class="text-slate-500 w-12 inline-block">嘉宾：</span><span class="text-slate-300">张建国</span> · 人瑞人才创始人/瑞华智策CEO</p>
+                                <p><span class="text-slate-500 w-12 inline-block"></span><span class="text-slate-300">李颖飞</span> · 中国经营报社长兼总编辑</p>
+                                <p><span class="text-slate-500 w-12 inline-block"></span><span class="text-slate-300">张闫龙</span> · 北京大学光华管理学院副院长、教授</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agenda Item 3 -->
+                    <div class="agenda-item">
+                        <div class="agenda-time">14:00-14:30</div>
+                        <div class="agenda-separator">
+                            <div class="agenda-line"></div>
+                            <div class="agenda-dot"></div>
+                        </div>
+                        <div class="agenda-content">
+                            <div class="text-[var(--nqoc-accent-cyan)] font-bold text-sm mb-1">专家智策</div>
+                            <h4 class="text-white font-bold text-lg mb-3 leading-snug">《人机共智时代组织与个体双赢发展的理念与策略》</h4>
+                            <div class="text-sm text-slate-400">
+                                <p><span class="text-slate-500 w-12 inline-block">嘉宾：</span><span class="text-slate-300">周文霞</span> · 中国人民大学劳动人事学院教授</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agenda Item 4 -->
+                    <div class="agenda-item">
+                        <div class="agenda-time">14:30-15:00</div>
+                        <div class="agenda-separator">
+                            <div class="agenda-line"></div>
+                            <div class="agenda-dot"></div>
+                        </div>
+                        <div class="agenda-content">
+                            <div class="text-[var(--nqoc-accent-cyan)] font-bold text-sm mb-1">新质研究</div>
+                            <h4 class="text-white font-bold text-lg mb-3 leading-snug">《五维模型：适配人机共智的组织形态&管理范式跃迁》</h4>
+                            <div class="text-sm text-slate-400">
+                                <p><span class="text-slate-500 w-12 inline-block">嘉宾：</span><span class="text-slate-300">高燕</span> · 瑞华智策副总裁/新质组织研究中心主任</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agenda Item 5 -->
+                    <div class="agenda-item is-break">
+                        <div class="agenda-time text-slate-500">15:00-15:20</div>
+                        <div class="agenda-separator">
+                            <div class="agenda-line"></div>
+                            <div class="agenda-dot break-dot"></div>
+                        </div>
+                        <div class="agenda-content">
+                            <h4 class="text-slate-400 font-bold text-lg">茶歇交流</h4>
+                        </div>
+                    </div>
+
+                    <!-- Agenda Item 6 -->
+                    <div class="agenda-item">
+                        <div class="agenda-time">15:20-15:50</div>
+                        <div class="agenda-separator">
+                            <div class="agenda-line"></div>
+                            <div class="agenda-dot"></div>
+                        </div>
+                        <div class="agenda-content">
+                            <div class="text-[var(--nqoc-accent-cyan)] font-bold text-sm mb-1">前沿洞察</div>
+                            <h4 class="text-white font-bold text-lg mb-3 leading-snug">《人工智能驱动的人力资源管理》</h4>
+                            <div class="text-sm text-slate-400">
+                                <p><span class="text-slate-500 w-12 inline-block">嘉宾：</span><span class="text-slate-300">吴肖颋</span> · 北京大学光华管理学院组织与战略管理系教授</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agenda Item 7 -->
+                    <div class="agenda-item is-final">
+                        <div class="agenda-time text-[var(--nqoc-brand-light)]">15:50-17:00</div>
+                        <div class="agenda-separator">
+                            <div class="agenda-dot final-dot"></div>
+                        </div>
+                        <div class="agenda-content">
+                            <div class="flex items-center justify-between mb-1">
+                                <div class="text-[var(--nqoc-brand-light)] font-bold text-sm">辩论式研讨</div>
+                                <a href="/nqoc/debate-vote.html" target="_blank" class="btn-shiny px-4 py-1.5 rounded-full text-xs font-bold text-[#080b14] bg-gradient-to-r from-[#00f0ff] to-white hover:shadow-[0_0_15px_rgba(0,240,255,0.4)] transition-all flex items-center gap-1">
+                                    <i class="fas fa-vote-yea"></i> 参与现场投票
+                                </a>
+                            </div>
+                            <h4 class="text-white font-bold text-xl mb-4">AI时代组织与人的重构及跃迁</h4>
+                            <div class="text-sm text-slate-400 space-y-4">
+                                <div class="bg-[rgba(124,77,255,0.1)] border border-[rgba(124,77,255,0.3)] p-4 rounded-lg text-white">
+                                    <p class="mb-2"><span class="text-[var(--nqoc-accent-cyan)] font-bold mr-2">话题1:</span>Agent&人，替代or共生？ ——组织与人的信任重构</p>
+                                    <p><span class="text-[var(--nqoc-accent-cyan)] font-bold mr-2">话题2:</span>降本&提效，谁该优先？ ——从“成本管控”到“价值经营”的跃迁</p>
+                                </div>
+                                <p class="flex items-start"><span class="text-slate-500 w-16 shrink-0">主持人：</span><span class="text-slate-300"><span class="text-white font-bold">高燕</span> · 瑞华智策副总裁/新质组织研究中心主任</span></p>
+                                <div>
+                                    <span class="text-slate-500 block mb-2">智库专家团：</span>
+                                    <ul class="space-y-2 pl-2 border-l-2 border-white/10 ml-2">
+                                        <li><span class="text-slate-300">周文霞</span> · 中国人民大学劳动人事学院教授</li>
+                                        <li><span class="text-slate-300">刘捷</span> · 中建电商人力资源总经理</li>
+                                        <li><span class="text-slate-300">熊桂舍</span> · 东方雨虹民建集团人力资源总监</li>
+                                        <li><span class="text-slate-300">李丰华</span> · 瑞华智策副总裁/组织与人才变革专家</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- CTA Section -->
+            <div class="text-center animate-on-scroll">
+                <a href="http://www.ruihuaconsulting.com/event/register/86870323e9681860c4f5" target="_blank" class="flex md:inline-flex w-full md:w-auto items-center justify-center px-8 py-4 text-lg md:text-xl font-bold rounded-xl md:rounded-full text-white bg-gradient-to-r from-[var(--nqoc-accent-cyan)] to-[var(--nqoc-accent-purple)] hover:shadow-[0_0_30px_rgba(0,240,255,0.4)] transition-all duration-300 transform hover:-translate-y-1">
+                    立即报名参会 <i class="fas fa-arrow-right ml-3"></i>
+                </a>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-8 border-t border-[rgba(255,255,255,0.05)] text-center text-sm text-slate-500">
+<p>© 2026 瑞华智策 - 中国新质组织研究中心. All rights reserved.</p>
+<p class="mt-2"><a href="https://beian.miit.gov.cn/" target="_blank" class="hover:text-white transition-colors">沪ICP备12042344号-24</a></p>
+</footer>
+
+    <script src="/nqoc/js/main.js"></script>
+</body>
+</html>

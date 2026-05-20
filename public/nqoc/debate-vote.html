@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>现场辩论投票 - 中国新质组织研究中心</title>
+    <meta name="keywords" content="新质组织辩论, 组织变革投票, AI时代管理话题">
+    <meta name="description" content="参与中国新质组织研究中心发起的组织变革前沿话题辩论与投票，与全行业管理者共同探讨AI时代下企业组织演进的最佳方向。">
+    <link rel="canonical" href="https://www.ruihuaconsulting.com/nqoc/debate-vote">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            500: '#8b5cf6',
+                            600: '#7c3aed'
+                        },
+                        cyber: {
+                            cyan: '#00f0ff',
+                            purple: '#b026ff'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/nqoc/css/style.css">
+    <style>
+        .vs-circle {
+            background: linear-gradient(135deg, #00f0ff 0%, #b026ff 100%);
+            box-shadow: 0 0 20px rgba(176, 38, 255, 0.5);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .vote-btn-pro {
+            background: linear-gradient(90deg, rgba(0,240,255,0.1) 0%, rgba(0,240,255,0.3) 100%);
+            border-color: rgba(0,240,255,0.5);
+        }
+        .vote-btn-pro:hover:not(:disabled) {
+            background: linear-gradient(90deg, rgba(0,240,255,0.2) 0%, rgba(0,240,255,0.5) 100%);
+            box-shadow: 0 0 15px rgba(0,240,255,0.4);
+        }
+        .vote-btn-con {
+            background: linear-gradient(90deg, rgba(176,38,255,0.3) 0%, rgba(176,38,255,0.1) 100%);
+            border-color: rgba(176,38,255,0.5);
+        }
+        .vote-btn-con:hover:not(:disabled) {
+            background: linear-gradient(90deg, rgba(176,38,255,0.5) 0%, rgba(176,38,255,0.2) 100%);
+            box-shadow: 0 0 15px rgba(176,38,255,0.4);
+        }
+        .progress-pro {
+            background: linear-gradient(90deg, #0080ff, #00f0ff);
+            box-shadow: 0 0 10px rgba(0,240,255,0.5);
+        }
+        .progress-con {
+            background: linear-gradient(90deg, #b026ff, #6000ff);
+            box-shadow: 0 0 10px rgba(176,38,255,0.5);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Custom Mobile Adjustments for VS Badge */
+        @media (max-width: 767px) {
+            .mobile-vs-badge {
+                /* Reset any absolute positioning and margin hacks */
+                position: static !important;
+                transform: none !important;
+                margin: 24px auto !important; /* Fixed symmetrical spacing */
+            }
+        }
+    </style>
+<script> 
+ var _hmt = _hmt || []; 
+ (function() { 
+   var hm = document.createElement("script"); 
+   hm.src = "https://hm.baidu.com/hm.js?3302f271fa7fe8d2ddc6176b39359827"; 
+   var s = document.getElementsByTagName("script")[0]; 
+   s.parentNode.insertBefore(hm, s); 
+ })(); 
+ </script>
+</head>
+<body class="antialiased bg-[#080b14] text-white min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="nqoc-nav py-4 fixed w-full z-50 bg-[#080b14]/90 backdrop-blur-md border-b border-white/5">
+        <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <div class="flex items-center">
+                <a href="/nqoc" class="flex items-center">
+                    <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/nqoc-logo.png" alt="中国新质组织研究中心" loading="lazy" class="nqoc-logo">
+                </a>
+            </div>
+            <div class="hidden md:flex items-center space-x-6 text-sm font-medium flex-1 justify-end">
+                <div class="flex space-x-6 top-nav-links">
+                    <a href="/nqoc" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">首页</a>
+                    <a href="/nqoc/survey" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">参与调研</a>
+                    <a href="/nqoc/awards" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">评选申报</a>
+                    <a href="/nqoc/cases" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">案例分享</a>
+                    <a href="/nqoc/insights" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">新质观点</a>
+                    <a href="/nqoc/events" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">研讨活动</a>
+                    <a href="/nqoc/whitepaper" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">研究成果</a>
+                    <a href="/nqoc/about" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">关于我们</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-24 pb-16 relative overflow-hidden">
+        
+        <!-- Banner Background -->
+        <div class="absolute top-0 left-0 w-full min-h-[600px] pointer-events-none z-0 overflow-hidden">
+            <div class="absolute inset-0 bg-[url('https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/banner-back.webp')] bg-cover bg-center opacity-30 mix-blend-screen"></div>
+            <div class="glowing-orb w-[600px] h-[600px] bg-[var(--nqoc-brand)]/20 top-[-20%] left-[-10%]"></div>
+            <div class="glowing-orb w-[800px] h-[800px] bg-[var(--nqoc-accent-cyan)]/15 bottom-[-30%] right-[-10%] animation-delay-2000"></div>
+            <div class="absolute bottom-0 left-0 w-full h-[300px] bg-gradient-to-t from-[#080b14] via-[#080b14]/90 to-transparent z-10"></div>
+        </div>
+
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            
+            <!-- Hero Section -->
+            <div class="mb-12 animate-on-scroll relative min-h-[300px] flex flex-col items-center justify-center text-center pt-16">
+                <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-[var(--nqoc-brand)]/30 bg-[var(--nqoc-brand)]/10 mb-6 backdrop-blur-md">
+                    <i class="fas fa-gavel text-[var(--nqoc-brand-light)]"></i>
+                    <span class="text-sm md:text-base text-white font-medium tracking-widest">现场互动环节</span>
+                </div>
+
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-[1.2] mb-6 tracking-wider">
+                    巅峰辩论 <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00f0ff] to-[#b026ff]">现场投票</span>
+                </h1>
+                
+                <p class="text-slate-400 text-lg max-w-2xl mx-auto">
+                    思想的碰撞，价值的交锋。请为您支持的观点投出宝贵的一票！
+                </p>
+            </div>
+
+            <!-- Voting Rules -->
+            <div class="glass-panel p-6 mb-12 border border-[var(--nqoc-accent-cyan)]/20 bg-gradient-to-br from-[#080b14]/80 to-[#080b14]/90">
+                <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fas fa-clipboard-list text-[var(--nqoc-accent-cyan)]"></i> 投票规则
+                </h3>
+                <ul class="space-y-2 text-slate-300 text-sm">
+                    <li class="flex items-start gap-2"><i class="fas fa-check-circle text-[var(--nqoc-brand)] mt-1 shrink-0"></i> <span>现场共设有 2 个核心辩论话题。</span></li>
+                    <li class="flex items-start gap-2"><i class="fas fa-check-circle text-[var(--nqoc-brand)] mt-1 shrink-0"></i> <span>每个话题包含正方与反方两个对立观点。</span></li>
+                    <li class="flex items-start gap-2"><i class="fas fa-check-circle text-[var(--nqoc-brand)] mt-1 shrink-0"></i> <span>每位现场观众在每个话题中 <strong class="text-[var(--nqoc-accent-cyan)]">最多可投出 <span id="rule-max-votes">5</span> 票</strong>（可以全部投给一方，也可以分散投给双方）。</span></li>
+                    <li class="flex items-start gap-2"><i class="fas fa-check-circle text-[var(--nqoc-brand)] mt-1 shrink-0"></i> <span>投票结果将实时在大屏幕及本页面同步更新。</span></li>
+                </ul>
+            </div>
+
+            <!-- Topic 1 -->
+            <div class="mb-16 animate-on-scroll" id="topic-1-container">
+                <div class="text-center mb-8">
+                    <div class="text-[var(--nqoc-brand-light)] font-bold tracking-widest text-sm mb-2">TOPIC 01</div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-white mb-2">Agent & 人，替代 or 共生？</h2>
+                    <p class="text-slate-400">—— 组织与人的信任重构</p>
+                </div>
+
+                <div class="glass-panel p-4 md:p-8 relative border border-white/5 overflow-hidden">
+                    <div class="hidden md:flex absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 w-16 h-16 rounded-full vs-circle items-center justify-center font-black text-2xl italic text-white border-4 border-[#080b14]">
+                        VS
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-12 md:gap-0 relative z-0">
+                        <!-- Pro Side -->
+                        <div class="md:pr-12 flex flex-col items-center md:items-end text-center md:text-right relative">
+                            <h3 class="text-3xl font-bold text-[var(--nqoc-accent-cyan)] mb-2 drop-shadow-[0_0_10px_rgba(0,240,255,0.3)]">替代</h3>
+                            <p class="text-sm text-slate-400 mb-6 min-h-[40px]">AI Agent 将逐步替代部分人类岗位<br>组织需重构能力模型</p>
+                            <button id="btn-vote-1-pro" onclick="castVote(1, 'pro')" class="vote-btn-pro border rounded-full px-8 py-3 text-white font-bold transition-all transform hover:scale-105 flex items-center gap-2">
+                                <i class="fas fa-thumbs-up"></i> 支持正方
+                            </button>
+                            <div class="mt-4 flex items-baseline justify-center md:justify-end gap-1 pb-2 md:pb-0">
+                                <span class="text-3xl font-black text-white" id="count-1-pro">0</span>
+                                <span class="text-sm text-slate-500 font-medium">票</span>
+                            </div>
+                        </div>
+
+                        <!-- Mobile VS Badge -->
+                        <div class="md:hidden w-12 h-12 rounded-full vs-circle flex items-center justify-center font-black text-xl italic text-white border-4 border-[#080b14] mobile-vs-badge">
+                            VS
+                        </div>
+
+                        <!-- Con Side -->
+                        <div class="md:pl-12 flex flex-col items-center md:items-start text-center md:text-left pt-2 md:pt-0">
+                            <h3 class="text-3xl font-bold text-[var(--nqoc-accent-purple)] mb-2 drop-shadow-[0_0_10px_rgba(176,38,255,0.3)]">共生</h3>
+                            <p class="text-sm text-slate-400 mb-6">AI 是赋能工具，人机共生才是未来<br>核心在于信任与协同</p>
+                            <button id="btn-vote-1-con" onclick="castVote(1, 'con')" class="vote-btn-con border rounded-full px-8 py-3 text-white font-bold transition-all transform hover:scale-105 flex items-center gap-2">
+                                <i class="fas fa-thumbs-up"></i> 支持反方
+                            </button>
+                            <div class="mt-4 flex items-baseline gap-1">
+                                <span class="text-3xl font-black text-white" id="count-1-con">0</span>
+                                <span class="text-sm text-slate-500 font-medium">票</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="mt-10 h-4 bg-white/5 rounded-full overflow-hidden flex w-full relative">
+                        <div id="bar-1-pro" class="progress-pro h-full transition-all duration-1000 ease-out flex items-center justify-start px-2 text-[10px] font-bold" style="width: 50%;">50%</div>
+                        <div id="bar-1-con" class="progress-con h-full transition-all duration-1000 ease-out flex items-center justify-end px-2 text-[10px] font-bold" style="width: 50%;">50%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Topic 2 -->
+            <div class="mb-16 animate-on-scroll" id="topic-2-container">
+                <div class="text-center mb-8">
+                    <div class="text-[var(--nqoc-brand-light)] font-bold tracking-widest text-sm mb-2">TOPIC 02</div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-white mb-2">降本 & 提效，谁该优先？</h2>
+                    <p class="text-slate-400">—— 从“成本管控”到“价值经营”的跃迁</p>
+                </div>
+
+                <div class="glass-panel p-4 md:p-8 relative border border-white/5 overflow-hidden">
+                    <div class="hidden md:flex absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 w-16 h-16 rounded-full vs-circle items-center justify-center font-black text-2xl italic text-white border-4 border-[#080b14]">
+                        VS
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-12 md:gap-0 relative z-0">
+                        <!-- Pro Side -->
+                        <div class="md:pr-12 flex flex-col items-center md:items-end text-center md:text-right relative">
+                            <h3 class="text-3xl font-bold text-[var(--nqoc-accent-cyan)] mb-2 drop-shadow-[0_0_10px_rgba(0,240,255,0.3)]">降本优先</h3>
+                            <p class="text-sm text-slate-400 mb-6 min-h-[40px]">寒冬之下，生存第一<br>优化结构，极限压缩成本是当务之急</p>
+                            <button id="btn-vote-2-pro" onclick="castVote(2, 'pro')" class="vote-btn-pro border rounded-full px-8 py-3 text-white font-bold transition-all transform hover:scale-105 flex items-center gap-2">
+                                <i class="fas fa-thumbs-up"></i> 支持正方
+                            </button>
+                            <div class="mt-4 flex items-baseline justify-center md:justify-end gap-1 pb-2 md:pb-0">
+                                <span class="text-3xl font-black text-white" id="count-2-pro">0</span>
+                                <span class="text-sm text-slate-500 font-medium">票</span>
+                            </div>
+                        </div>
+
+                        <!-- Mobile VS Badge -->
+                        <div class="md:hidden w-12 h-12 rounded-full vs-circle flex items-center justify-center font-black text-xl italic text-white border-4 border-[#080b14] mobile-vs-badge">
+                            VS
+                        </div>
+
+                        <!-- Con Side -->
+                        <div class="md:pl-12 flex flex-col items-center md:items-start text-center md:text-left pt-2 md:pt-0">
+                            <h3 class="text-3xl font-bold text-[var(--nqoc-accent-purple)] mb-2 drop-shadow-[0_0_10px_rgba(176,38,255,0.3)]">提效优先</h3>
+                            <p class="text-sm text-slate-400 mb-6">纯降本会伤及筋骨<br>通过创新实现人效跃迁与价值创造才是破局之道</p>
+                            <button id="btn-vote-2-con" onclick="castVote(2, 'con')" class="vote-btn-con border rounded-full px-8 py-3 text-white font-bold transition-all transform hover:scale-105 flex items-center gap-2">
+                                <i class="fas fa-thumbs-up"></i> 支持反方
+                            </button>
+                            <div class="mt-4 flex items-baseline gap-1">
+                                <span class="text-3xl font-black text-white" id="count-2-con">0</span>
+                                <span class="text-sm text-slate-500 font-medium">票</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="mt-10 h-4 bg-white/5 rounded-full overflow-hidden flex w-full relative">
+                        <div id="bar-2-pro" class="progress-pro h-full transition-all duration-1000 ease-out flex items-center justify-start px-2 text-[10px] font-bold" style="width: 50%;">50%</div>
+                        <div id="bar-2-con" class="progress-con h-full transition-all duration-1000 ease-out flex items-center justify-end px-2 text-[10px] font-bold" style="width: 50%;">50%</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Custom Voted Modal -->
+    <div id="voteModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-[#0a0f1c] border border-white/10 rounded-2xl p-8 max-w-md w-full mx-4 shadow-[0_0_40px_rgba(0,240,255,0.15)] relative overflow-hidden text-center transform scale-95 transition-transform duration-300" id="voteModalContent">
+            <div class="absolute -top-20 -right-20 w-40 h-40 bg-[var(--nqoc-accent-cyan)]/20 blur-[50px] rounded-full"></div>
+            <div class="absolute -bottom-20 -left-20 w-40 h-40 bg-[var(--nqoc-brand)]/20 blur-[50px] rounded-full"></div>
+            
+            <div class="relative z-10">
+                <div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-[var(--nqoc-accent-cyan)]/20 to-transparent flex items-center justify-center mb-6 border border-[var(--nqoc-accent-cyan)]/30 shadow-[0_0_20px_rgba(0,240,255,0.2)]">
+                    <i class="fas fa-check-double text-4xl text-[var(--nqoc-accent-cyan)]"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-3" id="voteModalTitle">投票成功</h3>
+                <p class="text-slate-400 mb-8 text-sm leading-relaxed" id="voteModalDesc">感谢您的参与！您的观点已成功记录。<br>思想因交锋而璀璨！</p>
+                <button type="button" onclick="closeVoteModal()" class="w-full btn-shiny px-8 py-3 rounded-full text-[#080b14] bg-gradient-to-r from-[#00f0ff] to-white hover:shadow-[0_0_20px_rgba(0,240,255,0.4)] transition-all font-bold">
+                    关闭
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-8 border-t border-[rgba(255,255,255,0.05)] text-center text-sm text-slate-500">
+<p>© 2026 瑞华智策 - 中国新质组织研究中心. All rights reserved.</p>
+<p class="mt-2"><a href="https://beian.miit.gov.cn/" target="_blank" class="hover:text-white transition-colors">沪ICP备12042344号-24</a></p>
+</footer>
+
+    <!-- Scripts -->
+    <script src="/nqoc/js/main.js"></script>
+    <script>
+        // Simulate real-time data or fetch from backend
+        // Since we are building the frontend first, we'll use a mocked robust logic that can easily be replaced by fetch
+        
+        let voteData = {
+            1: { pro: 0, con: 0, isOpen: true },
+            2: { pro: 0, con: 0, isOpen: true }
+        };
+
+        let MAX_VOTES_PER_TOPIC = 5;
+
+        // Initialize state on load
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchVoteData();
+            setInterval(fetchVoteData, 3000); // Polling every 3s for live effect
+        });
+
+        async function fetchVoteData() {
+            try {
+                const res = await fetch('/api/nqoc/debate/votes');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success && data.data) {
+                        voteData = data.data;
+                        MAX_VOTES_PER_TOPIC = data.data.maxVotes || 5;
+                        document.getElementById('rule-max-votes').innerText = MAX_VOTES_PER_TOPIC;
+                    }
+                }
+            } catch (e) {
+                // Silently fallback to mock data if API is not ready
+            }
+            updateUI();
+            checkLocalVotes();
+        }
+
+        function checkLocalVotes() {
+            [1, 2].forEach(topicId => {
+                const votes = getLocalVotes(topicId);
+                const isOpen = voteData[topicId]?.isOpen !== false;
+
+                if (!isOpen) {
+                    disableButtonsClosed(topicId);
+                } else if (votes >= MAX_VOTES_PER_TOPIC) {
+                    disableButtonsMaxed(topicId);
+                } else {
+                    updateButtonLabels(topicId, votes);
+                }
+            });
+        }
+        
+        function getLocalVotes(topicId) {
+            return parseInt(localStorage.getItem(`nqoc_voted_topic_${topicId}_count`) || '0', 10);
+        }
+
+        function updateUI() {
+            [1, 2].forEach(topicId => {
+                const proVotes = voteData[topicId]?.pro || 0;
+                const conVotes = voteData[topicId]?.con || 0;
+                const total = proVotes + conVotes;
+                
+                document.getElementById(`count-${topicId}-pro`).innerText = proVotes;
+                document.getElementById(`count-${topicId}-con`).innerText = conVotes;
+
+                let proPct = 50;
+                let conPct = 50;
+                if (total > 0) {
+                    proPct = Math.round((proVotes / total) * 100);
+                    conPct = 100 - proPct;
+                }
+
+                const proBar = document.getElementById(`bar-${topicId}-pro`);
+                const conBar = document.getElementById(`bar-${topicId}-con`);
+                
+                proBar.style.width = `${proPct}%`;
+                proBar.innerText = `${proPct}%`;
+                
+                conBar.style.width = `${conPct}%`;
+                conBar.innerText = `${conPct}%`;
+            });
+        }
+
+        async function castVote(topicId, side) {
+            if (voteData[topicId]?.isOpen === false) {
+                showModal('投票已结束', '该话题的投票环节已经关闭啦！');
+                return;
+            }
+
+            const currentVotes = getLocalVotes(topicId);
+            
+            // Prevent voting over limit
+            if (currentVotes >= MAX_VOTES_PER_TOPIC) {
+                showModal('票数已用完', `您在这个话题下的 ${MAX_VOTES_PER_TOPIC} 票已经全部投完啦！`);
+                return;
+            }
+
+            // Optimistic update
+            voteData[topicId][side]++;
+            const newVotes = currentVotes + 1;
+            localStorage.setItem(`nqoc_voted_topic_${topicId}_count`, newVotes.toString());
+            
+            if (newVotes >= MAX_VOTES_PER_TOPIC) {
+                disableButtonsMaxed(topicId);
+            } else {
+                updateButtonLabels(topicId, newVotes);
+            }
+            
+            updateUI();
+            showModal('投票成功', `感谢您的参与！您在这个话题还剩 <strong class="text-[var(--nqoc-accent-cyan)]">${MAX_VOTES_PER_TOPIC - newVotes}</strong> 票。<br>思想因交锋而璀璨！`);
+
+            // Send to backend
+            try {
+                const res = await fetch('/api/nqoc/debate/vote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topicId, side })
+                });
+                const result = await res.json();
+                if (!result.success && result.error === '该话题投票已结束') {
+                    // Revert if backend says closed
+                    voteData[topicId][side]--;
+                    voteData[topicId].isOpen = false;
+                    localStorage.setItem(`nqoc_voted_topic_${topicId}_count`, currentVotes.toString());
+                    disableButtonsClosed(topicId);
+                    updateUI();
+                    showModal('投票已结束', '该话题的投票环节刚刚关闭了！');
+                }
+            } catch (e) {
+                console.error('Failed to sync vote to server', e);
+            }
+        }
+        
+        function updateButtonLabels(topicId, usedVotes) {
+            const btnPro = document.getElementById(`btn-vote-${topicId}-pro`);
+            const btnCon = document.getElementById(`btn-vote-${topicId}-con`);
+            const remaining = MAX_VOTES_PER_TOPIC - usedVotes;
+            
+            btnPro.disabled = false;
+            btnCon.disabled = false;
+            btnPro.classList.remove('opacity-50');
+            btnCon.classList.remove('opacity-50');
+
+            btnPro.innerHTML = `<i class="fas fa-thumbs-up"></i> 支持正方`;
+            btnCon.innerHTML = `<i class="fas fa-thumbs-up"></i> 支持反方`;
+        }
+
+        function disableButtonsMaxed(topicId) {
+            const btnPro = document.getElementById(`btn-vote-${topicId}-pro`);
+            const btnCon = document.getElementById(`btn-vote-${topicId}-con`);
+            
+            btnPro.disabled = true;
+            btnCon.disabled = true;
+
+            btnPro.innerHTML = '<i class="fas fa-check-circle"></i> 票数已用完';
+            btnCon.innerHTML = '<i class="fas fa-check-circle"></i> 票数已用完';
+            
+            btnPro.classList.add('opacity-50');
+            btnCon.classList.add('opacity-50');
+        }
+
+        function disableButtonsClosed(topicId) {
+            const btnPro = document.getElementById(`btn-vote-${topicId}-pro`);
+            const btnCon = document.getElementById(`btn-vote-${topicId}-con`);
+            
+            btnPro.disabled = true;
+            btnCon.disabled = true;
+
+            btnPro.innerHTML = '<i class="fas fa-lock"></i> 投票已结束';
+            btnCon.innerHTML = '<i class="fas fa-lock"></i> 投票已结束';
+            
+            btnPro.classList.add('opacity-50');
+            btnCon.classList.add('opacity-50');
+        }
+
+        function showModal(title, desc) {
+            document.getElementById('voteModalTitle').innerText = title;
+            document.getElementById('voteModalDesc').innerHTML = desc;
+            const modal = document.getElementById('voteModal');
+            const modalContent = document.getElementById('voteModalContent');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+        }
+
+        function closeVoteModal() {
+            const modal = document.getElementById('voteModal');
+            const modalContent = document.getElementById('voteModalContent');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+        }
+    </script>
+</body>
+</html>

@@ -70,9 +70,9 @@ echo.
 echo 🌐 访问信息：
 echo 使用端口转发访问应用：
 echo kubectl port-forward svc/ruihuawebsite-service 3000:80
-echo 然后访问: http://localhost:3000
+echo 然后访问: https://www.ruihuaconsulting.com (正式环境) 或 http://localhost:3000 (本地)
 echo.
-echo 管理后台: http://localhost:3000/admin/index.html
+echo 管理后台: https://www.ruihuaconsulting.com/admin/index.html
 echo 默认管理员账号: zhice / zhiceruihua123
 echo.
 echo 查看应用日志:

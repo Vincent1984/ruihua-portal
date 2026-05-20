@@ -129,16 +129,6 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Global category cache
-let globalCategoryMap = null;
-
-async function ensureCategoryMap() {
-  if (globalCategoryMap) return globalCategoryMap;
-  try {
-    const res = await fetchWithRetry('/api/categories');
-    if (!res.ok) throw new Error('Failed to fetch categories');
-    const categories = await res.json();
-    globalCategoryMap = {};
 const homeContentState = {
   insights: {
     page: 1,
@@ -152,6 +142,17 @@ const homeContentState = {
     initialized: false
   }
 };
+
+// Global category cache
+let globalCategoryMap = null;
+
+async function ensureCategoryMap() {
+  if (globalCategoryMap) return globalCategoryMap;
+  try {
+    const res = await fetchWithRetry('/api/categories');
+    if (!res.ok) throw new Error('Failed to fetch categories');
+    const categories = await res.json();
+    globalCategoryMap = {};
     if (Array.isArray(categories)) {
       categories.forEach(cat => {
         globalCategoryMap[cat.code] = cat.name;

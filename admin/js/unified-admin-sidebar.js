@@ -24,10 +24,22 @@
       icon: 'bi-database',
       items: [
         { label: '预约表单', icon: 'bi-list-check', href: '/admin/dashboard.html', section: 'appointments' },
+        { label: '课程咨询', icon: 'bi-mortarboard', href: '/admin/training-applications.html', perm: 'appointment:list' },
         { label: '调研问卷', icon: 'bi-clipboard-data', href: '/admin/survey.html', i18nKey: 'nav.survey', perm: 'appointment:list' },
         { label: '资源下载记录', icon: 'bi-file-earmark-arrow-down', href: '/admin/whitepaper-submissions.html' },
         { label: '诊断评测数据', icon: 'bi-bar-chart-steps', href: '/admin/maturity.html' },
         { label: '经营分析报告', icon: 'bi-graph-up-arrow', href: '/admin/efficiency.html' }
+      ]
+    },
+    {
+      title: '新质组织',
+      icon: 'bi-stars',
+      items: [
+        { label: '申报数据', icon: 'bi-trophy', href: '/admin/nqoc-awards.html', perm: 'appointment:list' },
+        { label: '调研问卷', icon: 'bi-clipboard-data', href: '/admin/nqoc-survey.html', perm: 'appointment:list' },
+        { label: '在线投票', icon: 'bi-bar-chart-steps', href: '/admin/nqoc-debate.html', perm: 'appointment:list' },
+        { label: '专家申请', icon: 'bi-person-check', href: '/admin/nqoc-experts.html', perm: 'appointment:list' },
+        { label: '白皮书', icon: 'bi-file-earmark-text', href: '/admin/nqoc-whitepaper.html', perm: 'appointment:list' }
       ]
     },
     {
@@ -176,9 +188,9 @@
   function renderSidebar() {
     const path = currentPath();
     if (!path.startsWith('/admin/') || path === '/admin/index.html') return;
-    const sidebar = document.querySelector('.sidebar');
+    const sidebar = document.querySelector('.sidebar') || document.querySelector('#unified-sidebar-container');
     if (!sidebar) return;
-    sidebar.classList.add('u-admin-sidebar');
+    sidebar.classList.add('u-admin-sidebar', 'sidebar');
     sidebar.innerHTML = buildSidebarHtml();
     bindSectionJump(sidebar);
     bindCollapse(sidebar);

@@ -152,9 +152,52 @@
                 </div>
                 <div class="hidden lg:flex space-x-2" role="menubar">
                     <a href="/" class="nav-link text-slate-800 hover:text-brand-600 px-3 py-2 transition" role="menuitem">首页</a>
-                    <a href="/solutions/" class="nav-link text-slate-800 hover:text-brand-600 px-3 py-2 transition" role="menuitem">解决方案</a>
+                    <div class="relative group inline-block">
+    <a href="/solutions/" class="nav-link text-slate-800 hover:text-brand-600 px-3 py-2 transition flex items-center gap-1" role="menuitem">
+        解决方案
+        <i class="fas fa-chevron-down text-[10px] transition-transform duration-300 group-hover:rotate-180"></i>
+    </a>
+    <div class="absolute left-1/2 -translate-x-1/2 top-full pt-4 w-[24rem] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl shadow-brand-500/10 border border-slate-100 overflow-hidden p-3 relative">
+            <!-- Decorative background -->
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-brand-50 to-white rounded-bl-full -z-10 opacity-60"></div>
+            
+            <a href="/solutions-hcvm/" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all">
+                <div class="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center shrink-0 group-hover/item:bg-brand-600 group-hover/item:text-white transition-colors shadow-sm">
+                    <i class="fas fa-chess-knight text-lg"></i>
+                </div>
+                <div>
+                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-brand-700 mb-0.5">人力资本价值经营</div>
+                    <div class="text-[11px] text-slate-500">HCVM体系 (自有员工)</div>
+                </div>
+            </a>
+            
+            <a href="/solutions-ohcvm/" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all mt-1">
+                <div class="w-10 h-10 rounded-xl bg-[#00f0ff]/10 text-[#00a0ff] flex items-center justify-center shrink-0 group-hover/item:bg-[#00a0ff] group-hover/item:text-white transition-colors shadow-sm">
+                    <i class="fas fa-network-wired text-lg"></i>
+                </div>
+                <div>
+                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-[#00a0ff] mb-0.5">全场景一体化用工</div>
+                    <div class="text-[11px] text-slate-500">OHCVM体系 (外包员工)</div>
+                </div>
+            </a>
+            
+            <div class="h-px w-full bg-gradient-to-r from-transparent via-slate-100 to-transparent my-2"></div>
+            
+            <a href="/training" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all">
+                <div class="w-10 h-10 rounded-xl bg-fuchsia-100 text-fuchsia-600 flex items-center justify-center shrink-0 group-hover/item:bg-fuchsia-600 group-hover/item:text-white transition-colors shadow-sm">
+                    <i class="fas fa-chalkboard-teacher text-lg"></i>
+                </div>
+                <div>
+                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-fuchsia-600 mb-0.5">企业AI落地咨询式培训</div>
+                    <div class="text-[11px] text-slate-500">高管工作坊与共创蓝图</div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
                     <a href="/resources/" class="nav-link font-semibold text-brand-600 px-3 py-2" aria-current="page" role="menuitem">行业洞察</a>
-                    <a href="/videos/" class="nav-link text-slate-800 hover:text-brand-600 px-3 py-2 transition" role="menuitem">视频中心</a>
+                    <a href="/nqoc" class="nav-link text-slate-800 hover:text-brand-600 px-3 py-2 transition" role="menuitem">新质组织研究<span class="inline-flex items-center justify-center px-1.5 py-[1px] ml-1.5 text-[9px] font-black tracking-wider text-white uppercase bg-gradient-to-r from-[#ff6a00] to-[#ee0979] rounded-tl-md rounded-tr-md rounded-br-md rounded-bl-sm shadow-sm -translate-y-1 relative">HOT<span class="absolute top-0 right-0 w-1.5 h-1.5 bg-white rounded-full opacity-30 animate-ping"></span></span></a>
                     <a href="/about/" class="nav-link text-slate-800 hover:text-brand-600 px-3 py-2 transition" role="menuitem">关于我们</a>
                 </div>
                 <div class="hidden md:flex items-center space-x-4">
