@@ -4113,6 +4113,8 @@ app.post('/api/send-verification-code', smsLimiter, async (req, res) => {
             smsContent = `【瑞华智策】验证码为：${code} 你正在参与新质组织调研，需要进行验证码校验（3分钟内有效），请勿向任何人提供此验证码。`;
         } else if (scene === 'training') {
             smsContent = `【瑞华智策】验证码为：${code} 你正在提交课程咨询，需要进行验证码校验（3分钟内有效），请勿向任何人提供此验证码。`;
+        } else if (scene === 'expert') {
+            smsContent = `【瑞华智策】验证码为：${code} 你正在申请加入新质组织智库，需要进行验证码校验（3分钟内有效），请勿向任何人提供此验证码。`;
         }
         
         // 异步保存验证码到数据库以减少阻塞时间

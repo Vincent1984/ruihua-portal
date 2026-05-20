@@ -1023,7 +1023,7 @@ function toggleNqocMobileMenu() {
 </div>
 <div class="glass-panel p-8 max-w-md w-full text-left">
 <h4 class="text-xl font-bold text-white mb-2">申请智库专家</h4>
-<p class="text-sm text-slate-400 mb-6">加入百人专家智库，共建新质组织未来生态。</p>
+<p class="text-sm text-slate-400 mb-6">加入专家智库，共建新质组织未来生态。</p>
 <button class="btn-outline w-full justify-center hover:scale-105 hover:bg-white/10 hover:border-white/50 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300" onclick="openExpertModal()">立即申请</button>
 </div>
 </div>
@@ -1035,23 +1035,23 @@ function toggleNqocMobileMenu() {
             <i class="fas fa-times text-xl"></i>
         </button>
         <h3 class="text-2xl font-bold text-white mb-6 heading-decorative text-center">申请智库专家</h3>
-        <form id="expertForm" onsubmit="submitExpertForm(event)" class="space-y-4">
-            <div>
+        <form id="expertForm" onsubmit="submitExpertForm(event)" class="space-y-4 text-left">
+            <div class="text-left">
                 <label class="block text-sm font-medium text-slate-300 mb-1">姓名 <span class="text-red-500">*</span></label>
                 <input type="text" id="expertName" required class="w-full bg-[#050814] border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#7c4dff] transition-colors">
             </div>
-            <div>
+            <div class="text-left">
                 <label class="block text-sm font-medium text-slate-300 mb-1">手机号 <span class="text-red-500">*</span></label>
                 <div class="flex gap-2">
                     <input type="tel" id="expertPhone" required pattern="^1[3-9]\d{9}$" title="请输入有效的11位手机号码" class="flex-1 bg-[#050814] border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#7c4dff] transition-colors">
                     <button type="button" id="expertSendCodeBtn" class="btn-outline !py-2 !px-4 !text-sm whitespace-nowrap border-slate-600 text-slate-300 hover:text-white hover:border-white">获取验证码</button>
                 </div>
             </div>
-            <div>
+            <div class="text-left">
                 <label class="block text-sm font-medium text-slate-300 mb-1">验证码 <span class="text-red-500">*</span></label>
                 <input type="text" id="expertSmsCode" required pattern="^\d{4,6}$" title="请输入验证码" class="w-full bg-[#050814] border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#7c4dff] transition-colors">
             </div>
-            <div>
+            <div class="text-left">
                 <label class="block text-sm font-medium text-slate-300 mb-1">专家描述 <span class="text-red-500">*</span></label>
                 <textarea id="expertDesc" required rows="4" placeholder="请简述您的专业领域、行业经验等" class="w-full bg-[#050814] border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#7c4dff] transition-colors"></textarea>
             </div>
@@ -1083,7 +1083,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const res = await fetch('/api/send-verification-code', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone })
+                    body: JSON.stringify({ phone, scene: 'expert' })
                 });
 
                 const data = await res.json();
