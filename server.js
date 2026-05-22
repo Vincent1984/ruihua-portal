@@ -3000,16 +3000,6 @@ app.post('/api/nqoc/survey/submit', async (req, res) => {
         if (!payload.orgName || !payload.industry || !payload.respondentTitle || !payload.s7) {
             return res.status(400).json({ success: false, error: '缺少必填字段' });
         }
-        
-        if (payload.respondentContact) {
-            if (!payload.smsCode) {
-                return res.status(400).json({ success: false, error: '请输入短信验证码' });
-            }
-            const verifyResult = await verifyCode(payload.respondentContact, payload.smsCode);
-            if (!verifyResult.valid) {
-                return res.status(400).json({ success: false, error: verifyResult.message || '验证码无效或已过期' });
-            }
-        }
 
         const submission = new NqocSurveySubmission(payload);
         await submission.save();

@@ -219,7 +219,7 @@
                     <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00f0ff] to-[#b026ff]">成熟度调研问卷</span>
                 </h1>
                 <p class="text-base md:text-lg text-slate-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-                    本研究由瑞华智策·新质组织研究中心（NQOC）发起，联合北京大学光华管理学院、中国经营报等权威机构共同开展，旨在系统化评估中国企业在 AI 时代向“新质组织”演进的成熟度。
+                    本调研由人瑞人才、瑞华智策·新质组织研究中心、中国经营报联合发起，为确保学术严谨性，项目邀请北京大学光华管理学院组织与战略管理系姜铠丰教授作为学术负责人，旨在系统化评估中国企业在 AI 时代向“新质组织”演进的成熟度。
                 </p>
                 <div class="flex items-start md:items-center gap-3 text-sm text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 py-3 px-6 rounded-2xl md:rounded-full text-left md:text-center mt-4">
                     <i class="fas fa-shield-alt mt-0.5 md:mt-0"></i>
@@ -522,14 +522,6 @@
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-slate-300">R4. 联系方式 (手机号)</label>
                                 <input type="tel" name="respondentContact" id="surveyPhone" class="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors placeholder-slate-600" placeholder="选填，用于反馈个性化诊断简报">
-                            </div>
-                            <!-- SMS Code is conditionally required if phone is filled, will handle in JS -->
-                            <div class="space-y-2" id="smsCodeContainer" style="display: none;">
-                                <label class="block text-sm font-medium text-slate-300">验证码 <span class="text-red-500">*</span></label>
-                                <div class="flex gap-2">
-                                    <input type="text" name="smsCode" id="surveySmsCode" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors placeholder-slate-600" placeholder="请输入6位验证码">
-                                    <button type="button" id="surveySendCodeBtn" class="bg-[var(--nqoc-brand)] hover:bg-[var(--nqoc-brand-light)] text-white px-5 py-3.5 rounded-xl transition-colors whitespace-nowrap min-w-[120px]">获取验证码</button>
-                                </div>
                             </div>
                         </div>
                         <div class="pt-6 flex justify-center gap-4">
@@ -1998,12 +1990,6 @@
                             isValid = false;
                             if (!firstInvalidEl) firstInvalidEl = phoneInput.closest('.space-y-2');
                         }
-                        const codeInput = document.getElementById('surveySmsCode');
-                        if (phoneVal && (!codeInput || !/^\d{6}$/.test(codeInput.value.trim()))) {
-                            showToast('error', '请输入有效的6位验证码');
-                            isValid = false;
-                            if (!firstInvalidEl) firstInvalidEl = codeInput.closest('.space-y-2');
-                        }
                     }
 
                     if (!isValid) {
@@ -2053,71 +2039,6 @@
                     if (currentStep > 0) goToStep(currentStep - 1);
                 });
             });
-
-            // --- SMS LOGIC ---
-            const sendCodeBtn = document.getElementById('surveySendCodeBtn');
-            const phoneInput = document.getElementById('surveyPhone');
-            const smsCodeContainer = document.getElementById('smsCodeContainer');
-            let countdownTimer = null;
-
-            if (phoneInput && smsCodeContainer) {
-                phoneInput.addEventListener('input', () => {
-                    if (phoneInput.value.trim().length > 0) {
-                        smsCodeContainer.style.display = 'block';
-                        document.getElementById('surveySmsCode').required = true;
-                    } else {
-                        smsCodeContainer.style.display = 'none';
-                        document.getElementById('surveySmsCode').required = false;
-                    }
-                });
-            }
-
-            if (sendCodeBtn && phoneInput) {
-                sendCodeBtn.addEventListener('click', async () => {
-                    const phone = phoneInput.value.trim();
-                    if (!/^1[3-9]\d{9}$/.test(phone)) {
-                        alert('请输入有效的11位手机号');
-                        phoneInput.focus();
-                        return;
-                    }
-                    try {
-                        sendCodeBtn.disabled = true;
-                        sendCodeBtn.textContent = '发送中...';
-                        const res = await fetch('/api/send-verification-code', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ phone, scene: 'survey' })
-                        });
-                        const data = await res.json();
-                        if (res.ok && data.success) {
-                            alert('验证码已发送，请注意查收');
-                            let countdown = 60;
-                            sendCodeBtn.textContent = countdown + '秒后重发';
-                            if (countdownTimer) clearInterval(countdownTimer);
-                            countdownTimer = setInterval(() => {
-                                countdown--;
-                                if (countdown <= 0) {
-                                    clearInterval(countdownTimer);
-                                    sendCodeBtn.disabled = false;
-                                    sendCodeBtn.textContent = '获取验证码';
-                                } else {
-                                    sendCodeBtn.textContent = countdown + '秒后重发';
-                                }
-                            }, 1000);
-                        } else {
-                            sendCodeBtn.disabled = false;
-                            sendCodeBtn.textContent = '获取验证码';
-                            alert(data.error || '验证码发送失败');
-                        }
-                    } catch (e) {
-                        console.error('发送验证码失败:', e);
-                        sendCodeBtn.disabled = false;
-                        sendCodeBtn.textContent = '获取验证码';
-                        alert('网络错误，请稍后重试');
-                    }
-                });
-            }
-            // --- SMS LOGIC END ---
 
             // Parse URL parameters for channel
             const urlParams = new URLSearchParams(window.location.search);
