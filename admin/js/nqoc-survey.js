@@ -198,7 +198,9 @@ let currentData = [];
 async function loadData(page) {
     currentPage = page;
     const token = sessionStorage.getItem('token');
-    const keyword = document.getElementById('searchKeyword').value;
+    const orgName = document.getElementById('searchOrgName').value;
+    const name = document.getElementById('searchName').value;
+    const phone = document.getElementById('searchPhone').value;
     const channel = document.getElementById('searchChannel').value;
     const startDate = document.getElementById('searchStartDate').value;
     const endDate = document.getElementById('searchEndDate').value;
@@ -206,9 +208,15 @@ async function loadData(page) {
     showLoading();
     try {
         const query = new URLSearchParams({
-            page, limit: 20,
-            keyword, channel, startDate, endDate
+            page, limit: 20
         });
+        if (orgName) query.append('orgName', orgName);
+        if (name) query.append('name', name);
+        if (phone) query.append('phone', phone);
+        if (channel) query.append('channel', channel);
+        if (startDate) query.append('startDate', startDate);
+        if (endDate) query.append('endDate', endDate);
+
         const response = await fetch(`/api/admin/nqoc/survey/submissions?${query}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -228,6 +236,41 @@ async function loadData(page) {
     }
 }
 
+// --- QR Code Management ---
+let qrModal;
+function showQRCode(name, code) {
+    const baseUrl = window.location.origin;
+    const link = `${baseUrl}/nqoc/survey?channel=${code}`;
+    
+    document.getElementById('qrChannelName').textContent = `渠道: ${name} (${code})`;
+    const container = document.getElementById('qrCodeContainer');
+    container.innerHTML = ''; // clear old
+
+    if (!qrModal) qrModal = new bootstrap.Modal(document.getElementById('qrCodeModal'));
+    qrModal.show();
+
+    // Generate clean QR code using QRCode.js directly in container
+    new QRCode(container, {
+        text: link,
+        width: 300,
+        height: 300,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+    });
+}
+
+function downloadQRCode() {
+    const container = document.getElementById('qrCodeContainer');
+    const canvas = container.querySelector('canvas');
+    if (!canvas) return;
+    
+    const link = document.createElement('a');
+    link.download = `NQOC_Survey_QR.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+}
+
 function renderTable(data) {
     const tbody = document.getElementById('dataTableBody');
     if (data.length === 0) {
@@ -240,6 +283,7 @@ function renderTable(data) {
             <td>
                 <div class="fw-bold">${item.orgName}</div>
             </td>
+            <td><span class="badge bg-info text-dark">${item.channel === 'organic' ? '自然流量' : (item.channel || 'organic')}</span></td>
             <td><span class="badge bg-light text-dark border">${item.industry}</span></td>
             <td>${item.employeeCount}</td>
             <td>${item.orgNature || '-'}</td>
@@ -465,13 +509,27 @@ async function deleteRecord(id) {
 
 function exportData() {
     const token = sessionStorage.getItem('token');
-    const keyword = document.getElementById('searchKeyword').value;
+    const orgName = document.getElementById('searchOrgName').value;
+    const name = document.getElementById('searchName').value;
+    const phone = document.getElementById('searchPhone').value;
     const channel = document.getElementById('searchChannel').value;
     const startDate = document.getElementById('searchStartDate').value;
     const endDate = document.getElementById('searchEndDate').value;
+
+    const query = new URLSearchParams();
+    if (orgName) query.append('orgName', orgName);
+    if (name) query.append('name', name);
+    if (phone) query.append('phone', phone);
+    if (channel) query.append('channel', channel);
+    if (startDate) query.append('startDate', startDate);
+    if (endDate) query.append('endDate', endDate);
     
-    const query = new URLSearchParams({ token, keyword, channel, startDate, endDate });
-    window.open(`/api/admin/nqoc/survey/submissions/export?${query}`, '_blank');
+    // We append the token to the URL so the browser can download it directly
+    // Note: the backend middleware expects it in the header, but for a direct download link,
+    // we must support token in query params.
+    query.append('token', token);
+
+    window.open(`/api/admin/nqoc/survey/submissions/export?${query.toString()}`, '_blank');
 }
 
 // --- Channels Management ---
@@ -532,6 +590,9 @@ function renderChannelTable(data) {
                     <input type="text" class="form-control" value="${baseUrl}/nqoc/survey?channel=${item.code}" readonly id="link-${item.code}">
                     <button class="btn btn-outline-secondary" onclick="copyLink('link-${item.code}')"><i class="bi bi-clipboard"></i></button>
                 </div>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-outline-info" onclick="showQRCode('${item.name}', '${item.code}')"><i class="bi bi-qr-code"></i></button>
             </td>
             <td class="text-muted small">${new Date(item.createdAt).toLocaleString('zh-CN')}</td>
             <td>

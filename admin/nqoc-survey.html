@@ -125,9 +125,15 @@
                 <div class="tab-pane fade show active" id="data-pane" role="tabpanel" tabindex="0">
                     <div class="card border-0 shadow-sm">
                         <div class="card-header bg-white py-3">
-                            <div class="row g-3 align-items-center">
-                                <div class="col-md-3">
-                                    <input type="text" id="searchKeyword" class="form-control" placeholder="搜索企业名称/填答人/联系方式...">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-md-2">
+                                    <input type="text" id="searchOrgName" class="form-control" placeholder="搜索公司名称">
+                                </div>
+                                <div class="col-md-1">
+                                    <input type="text" id="searchName" class="form-control" placeholder="填答人">
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="text" id="searchPhone" class="form-control" placeholder="手机号码">
                                 </div>
                                 <div class="col-md-2">
                                     <select id="searchChannel" class="form-select">
@@ -140,18 +146,19 @@
                                 <div class="col-md-2">
                                     <input type="date" id="searchEndDate" class="form-control" placeholder="结束时间">
                                 </div>
-                                <div class="col-md-3 d-flex gap-2">
-                                    <button class="btn btn-primary w-100" onclick="loadData(1)"><i class="bi bi-search"></i> 查询</button>
-                                    <button class="btn btn-success w-100" onclick="exportData()"><i class="bi bi-file-earmark-excel"></i> 导出</button>
+                                <div class="col-md-1 d-flex gap-1">
+                                    <button class="btn btn-primary w-100" onclick="loadData(1)"><i class="bi bi-search"></i></button>
+                                    <button class="btn btn-success w-100" onclick="exportData()"><i class="bi bi-file-earmark-excel"></i></button>
                                 </div>
                             </div>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
+                                <table class="table table-hover align-middle mb-0 table-sm small">
                                     <thead class="table-light">
                                         <tr>
                                             <th>企业名称</th>
+                                            <th>渠道来源</th>
                                             <th>行业</th>
                                             <th>规模</th>
                                             <th>企业性质</th>
@@ -265,6 +272,7 @@
                                             <th>渠道代码 (code)</th>
                                             <th>描述说明</th>
                                             <th>专属链接</th>
+                                            <th>二维码</th>
                                             <th>创建时间</th>
                                             <th>操作</th>
                                         </tr>
@@ -330,7 +338,33 @@
     </div>
 </div>
 
+<!-- QR Code Modal -->
+<div class="modal fade" id="qrCodeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">专属推广二维码</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center pt-2">
+                <p class="text-muted small mb-4" id="qrChannelName"></p>
+                <div class="d-flex justify-content-center mb-4">
+                    <div id="qrCodeContainer" class="bg-white p-3 rounded-4 shadow-sm border" style="width: fit-content;">
+                        <!-- Canvas will be injected here -->
+                    </div>
+                </div>
+                <div>
+                    <button class="btn btn-primary px-4 rounded-pill" onclick="downloadQRCode()">
+                        <i class="bi bi-download me-1"></i> 下载高质量海报
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="/admin/js/unified-admin-sidebar.js"></script>
 <script src="/admin/js/nqoc-survey.js"></script>
