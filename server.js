@@ -35,6 +35,7 @@ const Subscription = require('./models/Subscription');
 const WhitepaperSubmission = require('./models/WhitepaperSubmission');
 const VerificationCode = require('./models/VerificationCode');
 const Video = require('./models/Video');
+const SeoConfig = require('./models/SeoConfig');
 const quizData = require('./config/quizData'); // Import Quiz Data
 const efficiencyQuizData = require('./config/efficiencyQuizData'); // Import Efficiency Quiz Data
 const XLSX = require('xlsx'); // Import xlsx
@@ -334,6 +335,17 @@ app.use((req, res, next) => {
     next();
 });
 
+// Enforce WWW Redirect (301 Permanent Redirect for bare domain)
+app.use((req, res, next) => {
+    const host = req.get('host');
+    // If the host exactly matches the bare domain, redirect to www
+    if (host && host.toLowerCase() === 'ruihuaconsulting.com') {
+        const targetUrl = 'https://www.ruihuaconsulting.com' + req.originalUrl;
+        return res.redirect(301, targetUrl);
+    }
+    next();
+});
+
 // UTM Tracking Middleware
 app.use((req, res, next) => {
     const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } = req.query;
@@ -423,15 +435,11 @@ const rootHtmlFiles = [
 ];
 
 rootHtmlFiles.forEach(file => {
-    if (['privacy.html', 'solutions.html', 'solutions-hcvm.html', 'solutions-ohcvm.html', 'about.html'].includes(file)) {
-        app.get('/' + file, (req, res) => renderStaticHtmlWithFooter(res, file));
-    } else {
-        app.get('/' + file, (req, res) => res.sendFile(path.join(__dirname, file)));
-    }
+    app.get('/' + file, (req, res) => renderStaticHtmlWithFooter(res, file));
 });
 
-app.get('/videos/', (req, res) => res.sendFile(path.join(__dirname, 'videos.html')));
-app.get('/survey/', (req, res) => res.sendFile(path.join(__dirname, 'survey.html')));
+app.get('/videos/', (req, res) => renderStaticHtmlWithFooter(res, 'videos.html'));
+app.get('/survey/', (req, res) => renderStaticHtmlWithFooter(res, 'survey.html'));
 app.get('/survey', (req, res) => res.redirect(301, '/survey/'));
 app.get('/survey.html', (req, res) => res.redirect(301, '/survey/'));
 
@@ -899,7 +907,7 @@ app.get('/solutions/', (req, res) => res.sendFile(path.join(__dirname, 'solution
 app.get('/solutions.html', (req, res) => res.redirect(301, '/solutions/'));
 
 // 3. training.html -> /training
-app.get('/training', (req, res) => res.sendFile(path.join(__dirname, 'training.html')));
+app.get('/training', (req, res) => renderStaticHtmlWithFooter(res, 'training.html'));
 app.get('/training.html', (req, res) => res.redirect(301, '/training'));
 app.get('/training/', (req, res) => res.redirect(301, '/training'));
 app.get('/raining.html', (req, res) => res.redirect(301, '/training'));
@@ -1008,6 +1016,9 @@ async function renderResourcesPage(req, res) {
             }
         }
         
+        // Inject SEO
+        await injectSeoTags(document, '/resources.html');
+
         // Inject Footer
         try {
             injectFooterHTML(document);
@@ -1026,6 +1037,38 @@ async function renderResourcesPage(req, res) {
 app.get('/resources/', renderResourcesPage);
 app.get('/resources.html', (req, res) => res.redirect(301, '/resources/'));
 
+async function injectSeoTags(document, pagePath) {
+    try {
+        console.log('Injecting SEO for:', pagePath);
+        const config = await SeoConfig.findOne({ pagePath });
+        console.log('SEO Config found:', !!config);
+        if (config) {
+            if (config.title) document.title = config.title;
+            if (config.keywords) {
+                let metaKeywords = document.querySelector('meta[name="keywords"]');
+                if (!metaKeywords) {
+                    metaKeywords = document.createElement('meta');
+                    metaKeywords.name = 'keywords';
+                    document.head.appendChild(metaKeywords);
+                }
+                metaKeywords.content = config.keywords;
+            }
+            if (config.description) {
+                let metaDescription = document.querySelector('meta[name="description"]');
+                if (!metaDescription) {
+                    metaDescription = document.createElement('meta');
+                    metaDescription.name = 'description';
+                    document.head.appendChild(metaDescription);
+                }
+                metaDescription.content = config.description;
+            }
+            console.log('SEO injected successfully for:', pagePath);
+        }
+    } catch (e) {
+        console.error(`Error injecting SEO tags for ${pagePath}:`, e);
+    }
+}
+
 // Helper function to render static HTML files with injected Footer
 const renderStaticHtmlWithFooter = async (res, filename) => {
     try {
@@ -1039,6 +1082,7 @@ const renderStaticHtmlWithFooter = async (res, filename) => {
             await injectHomeDynamicContent(document, { insightsLimit: 3, faqLimit: 5 });
         }
         
+        await injectSeoTags(document, `/${filename}`);
         injectFooterHTML(document);
         
         res.send(dom.serialize());
@@ -1511,6 +1555,72 @@ app.get('/api/auth/verify', authRequired, async (req, res) => {
             permissions: Array.from(permissionSet)
         }
     });
+});
+
+// --- SEO Config API ---
+app.get('/api/admin/seo', authRequired, requirePerm('system:manage'), async (req, res) => {
+    try {
+        const { pagePath } = req.query;
+        if (!pagePath) return res.status(400).json({ success: false, error: 'pagePath is required' });
+        
+        const config = await SeoConfig.findOne({ pagePath });
+        
+        let defaultTitle = '';
+        let defaultKeywords = '';
+        let defaultDescription = '';
+        
+        try {
+            const fs = require('fs');
+            const { JSDOM } = require('jsdom');
+            const filePath = require('path').join(__dirname, pagePath.startsWith('/') ? pagePath.substring(1) : pagePath);
+            if (fs.existsSync(filePath)) {
+                const html = await fs.promises.readFile(filePath, 'utf8');
+                const dom = new JSDOM(html);
+                const doc = dom.window.document;
+                
+                defaultTitle = doc.title || '';
+                const kwMeta = doc.querySelector('meta[name="keywords"]');
+                if (kwMeta) defaultKeywords = kwMeta.content || '';
+                
+                const descMeta = doc.querySelector('meta[name="description"]');
+                if (descMeta) defaultDescription = descMeta.content || '';
+            }
+        } catch (fileErr) {
+            console.warn(`Could not read default SEO from ${pagePath}:`, fileErr);
+        }
+
+        const data = {
+            title: config && config.title ? config.title : defaultTitle,
+            keywords: config && config.keywords ? config.keywords : defaultKeywords,
+            description: config && config.description ? config.description : defaultDescription
+        };
+
+        res.json({ success: true, data });
+    } catch (e) {
+        console.error('SEO Get Error:', e);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+});
+
+app.post('/api/admin/seo', authRequired, requirePerm('system:manage'), async (req, res) => {
+    try {
+        const { pagePath, title, keywords, description } = req.body;
+        if (!pagePath) return res.status(400).json({ success: false, error: 'pagePath is required' });
+        
+        let config = await SeoConfig.findOne({ pagePath });
+        if (config) {
+            config.title = title;
+            config.keywords = keywords;
+            config.description = description;
+        } else {
+            config = new SeoConfig({ pagePath, title, keywords, description });
+        }
+        await config.save();
+        res.json({ success: true, data: config });
+    } catch (e) {
+        console.error('SEO Post Error:', e);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
 });
 
 // --- Dashboard Stats API (Restored) ---
@@ -2564,6 +2674,7 @@ const NqocAwardApplication = require('./models/NqocAwardApplication');
 const NqocDebateConfig = require('./models/NqocDebateConfig');
 const NqocSurveyChannel = require('./models/NqocSurveyChannel');
 const NqocSurveySubmission = require('./models/NqocSurveySubmission');
+const SurveyTrackingLog = require('./models/SurveyTrackingLog');
 const TrainingApplication = require('./models/TrainingApplication');
 const NqocExpertApplication = require('./models/NqocExpertApplication');
 
@@ -2992,6 +3103,33 @@ app.get('/api/admin/nqoc/awards/export', async (req, res) => {
 
 // --- NQOC Survey API ---
 
+// Public: Submit Tracking Log
+app.post('/api/tracking', async (req, res) => {
+    try {
+        const { sessionId, channel, deviceType, eventType, stepIndex, durationMs, errorField } = req.body;
+        
+        if (!sessionId || !eventType) {
+            return res.status(400).json({ success: false, error: 'Missing required tracking fields' });
+        }
+
+        const log = new SurveyTrackingLog({
+            sessionId,
+            channel,
+            deviceType,
+            eventType,
+            stepIndex,
+            durationMs,
+            errorField
+        });
+
+        await log.save();
+        res.status(204).send(); // No content needed
+    } catch (error) {
+        console.error('Tracking Log Error:', error);
+        res.status(500).json({ success: false, error: 'Failed to save tracking log' });
+    }
+});
+
 // Public: Submit Survey
 app.post('/api/nqoc/survey/submit', async (req, res) => {
     try {
@@ -3014,7 +3152,11 @@ app.post('/api/nqoc/survey/submit', async (req, res) => {
 // Admin: Channels CRUD
 app.get('/api/admin/nqoc/survey/channels', authRequired, requirePerm('appointment:list'), async (req, res) => {
     try {
-        const channels = await NqocSurveyChannel.find().sort({ createdAt: -1 });
+        const channels = await NqocSurveyChannel.find().sort({ createdAt: -1 }).lean();
+        // Calculate submission count for each channel
+        for (let ch of channels) {
+            ch.submissionCount = await NqocSurveySubmission.countDocuments({ channel: ch.code });
+        }
         res.json({ success: true, data: channels });
     } catch (e) {
         res.status(500).json({ success: false, error: '服务器内部错误' });
@@ -3063,16 +3205,12 @@ app.delete('/api/admin/nqoc/survey/channels/:id', authRequired, requirePerm('app
 // Admin: Survey Submissions List
 app.get('/api/admin/nqoc/survey/submissions', authRequired, requirePerm('appointment:list'), async (req, res) => {
     try {
-        const { page = 1, limit = 20, keyword, channel, startDate, endDate } = req.query;
+        const { page = 1, limit = 20, orgName, name, phone, channel, startDate, endDate } = req.query;
         let query = {};
         
-        if (keyword) {
-            query.$or = [
-                { orgName: { $regex: keyword, $options: 'i' } },
-                { respondentName: { $regex: keyword, $options: 'i' } },
-                { respondentContact: { $regex: keyword, $options: 'i' } }
-            ];
-        }
+        if (orgName) query.orgName = { $regex: orgName, $options: 'i' };
+        if (name) query.respondentName = { $regex: name, $options: 'i' };
+        if (phone) query.respondentContact = { $regex: phone, $options: 'i' };
         if (channel) query.channel = channel;
         if (startDate && endDate) {
             query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
@@ -3098,7 +3236,7 @@ app.get('/api/admin/nqoc/survey/submissions', authRequired, requirePerm('appoint
     }
 });
 
-app.delete('/api/admin/nqoc/survey/submissions/:id', authRequired, requirePerm('appointment:delete'), async (req, res) => {
+app.delete('/api/admin/nqoc/survey/submissions/:id', authRequired, requirePerm('appointment:list'), async (req, res) => {
     try {
         const deleted = await NqocSurveySubmission.findByIdAndDelete(req.params.id);
         if (!deleted) return res.status(404).json({ success: false, error: '记录不存在' });
@@ -3111,8 +3249,23 @@ app.delete('/api/admin/nqoc/survey/submissions/:id', authRequired, requirePerm('
 // Admin: Survey Stats
 app.get('/api/admin/nqoc/survey/stats', authRequired, requirePerm('appointment:list'), async (req, res) => {
     try {
-        const total = await NqocSurveySubmission.countDocuments();
-        const submissions = await NqocSurveySubmission.find();
+        const { channel, startDate, endDate } = req.query;
+        let matchQuery = {};
+        if (channel) matchQuery.channel = channel;
+        if (startDate && endDate) {
+            const endOfDay = new Date(endDate);
+            endOfDay.setHours(23, 59, 59, 999);
+            matchQuery.createdAt = { $gte: new Date(startDate), $lte: endOfDay };
+        } else if (startDate) {
+            matchQuery.createdAt = { $gte: new Date(startDate) };
+        } else if (endDate) {
+            const endOfDay = new Date(endDate);
+            endOfDay.setHours(23, 59, 59, 999);
+            matchQuery.createdAt = { $lte: endOfDay };
+        }
+
+        const total = await NqocSurveySubmission.countDocuments(matchQuery);
+        const submissions = await NqocSurveySubmission.find(matchQuery);
         
         // Calculate average scores for radar chart
         let scores = { v1: 0, b2: 0, p3: 0, m4: 0, e5: 0 };
@@ -3169,36 +3322,134 @@ app.get('/api/admin/nqoc/survey/stats', authRequired, requirePerm('appointment:l
     }
 });
 
+// Admin: Tracking Stats for Funnel
+app.get('/api/admin/nqoc/survey/tracking-stats', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const { channel, startDate, endDate } = req.query;
+        let matchQuery = {};
+        if (channel) {
+            matchQuery.channel = channel;
+        }
+        if (startDate && endDate) {
+            const endOfDay = new Date(endDate);
+            endOfDay.setHours(23, 59, 59, 999);
+            matchQuery.createdAt = { $gte: new Date(startDate), $lte: endOfDay };
+        } else if (startDate) {
+            matchQuery.createdAt = { $gte: new Date(startDate) };
+        } else if (endDate) {
+            const endOfDay = new Date(endDate);
+            endOfDay.setHours(23, 59, 59, 999);
+            matchQuery.createdAt = { $lte: endOfDay };
+        }
+
+        // Aggregate unique users entering each step
+        const funnelStats = await SurveyTrackingLog.aggregate([
+            { $match: matchQuery },
+            {
+                $group: {
+                    _id: "$stepIndex",
+                    uniqueUsers: { $addToSet: "$sessionId" },
+                    avgDuration: { $avg: "$durationMs" }
+                }
+            },
+            {
+                $project: {
+                    stepIndex: "$_id",
+                    userCount: { $size: "$uniqueUsers" },
+                    avgDuration: { $round: ["$avgDuration", 0] },
+                    _id: 0
+                }
+            },
+            { $sort: { stepIndex: 1 } }
+        ]);
+
+        // Aggregate event counts (e.g. page_view vs submit_success)
+        const eventStats = await SurveyTrackingLog.aggregate([
+            { $match: matchQuery },
+            {
+                $group: {
+                    _id: "$eventType",
+                    uniqueUsers: { $addToSet: "$sessionId" }
+                }
+            },
+            {
+                $project: {
+                    eventType: "$_id",
+                    userCount: { $size: "$uniqueUsers" },
+                    _id: 0
+                }
+            }
+        ]);
+
+        // Aggregate field interactions
+        const fieldStats = await SurveyTrackingLog.aggregate([
+            { $match: { ...matchQuery, eventType: 'field_interact' } },
+            {
+                $group: {
+                    _id: { step: "$stepIndex", field: "$errorField" },
+                    uniqueUsers: { $addToSet: "$sessionId" }
+                }
+            },
+            {
+                $project: {
+                    stepIndex: "$_id.step",
+                    fieldName: "$_id.field",
+                    userCount: { $size: "$uniqueUsers" },
+                    _id: 0
+                }
+            },
+            { $sort: { userCount: -1 } }
+        ]);
+
+        res.json({
+            success: true,
+            data: {
+                funnel: funnelStats,
+                events: eventStats,
+                fieldStats: fieldStats
+            }
+        });
+    } catch (error) {
+        console.error('Tracking stats error:', error);
+        res.status(500).json({ success: false, error: '服务器错误' });
+    }
+});
+
 // Admin: Export Survey Submissions
 app.get('/api/admin/nqoc/survey/submissions/export', authRequired, requirePerm('appointment:list'), async (req, res) => {
     try {
-        const { keyword, channel, startDate, endDate } = req.query;
+        const { orgName, name, phone, channel, startDate, endDate } = req.query;
         let query = {};
-        if (keyword) {
-            query.$or = [
-                { orgName: { $regex: keyword, $options: 'i' } },
-                { respondentName: { $regex: keyword, $options: 'i' } },
-                { respondentContact: { $regex: keyword, $options: 'i' } }
-            ];
-        }
+        if (orgName) query.orgName = { $regex: orgName, $options: 'i' };
+        if (name) query.respondentName = { $regex: name, $options: 'i' };
+        if (phone) query.respondentContact = { $regex: phone, $options: 'i' };
         if (channel) query.channel = channel;
         if (startDate && endDate) query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
 
         const NqocSurveySubmission = require('./models/NqocSurveySubmission');
-        const TrainingApplication = require('./models/TrainingApplication');
         const submissions = await NqocSurveySubmission.find(query).sort({ createdAt: -1 });
         const BOM = '\uFEFF';
         
+        const mappings = require('./admin/js/survey_mappings.json');
+        const getLabel = (key, defaultLabel = key) => mappings[key] || defaultLabel;
+        const getOptionLabel = (key, val) => {
+            if (!val) return '';
+            if (Array.isArray(val)) return val.map(v => getOptionLabel(key, v)).join(' | ');
+            if (mappings[key + '_' + val]) return mappings[key + '_' + val];
+            return val;
+        };
+        
         const headers = [
             '提交时间', '来源渠道', 
-            '企业名称', '所属行业', '所属行业(其他)', '企业性质', '企业性质(其他)', '员工总人数', '上一财年营业收入', '企业成立年限', '上市状态', 'AI部门/岗位状态',
-            '填答人职务', '填答人职务(其他)', '任职年限', '填答人姓名', '联系方式(手机号)',
-            'V1.1.1', 'V1.1.2', 'V1.2.1', 'V1.2.2', 'V1.3.1', 'V1.3.2', 'V1.3.3', 'V1.4.1', 'V1.4.2', 'V1.5.1', 'V1.5.2',
-            'B2.1.1', 'B2.1.2', 'B2.2.1', 'B2.2.2', 'B2.2.3', 'B2.3.1', 'B2.3.2', 'B2.4.1', 'B2.4.2', 'B2.5.1', 'B2.5.2', 'B2.6.1', 'B2.6.2', 'B2.7.1', 'B-O1', 'B-O1(其他)',
-            'P3.1.1', 'P3.1.2', 'P3.2.1', 'P3.2.2', 'P3.3.1', 'P3.3.2', 'P3.4.1', 'P3.4.2', 'P3.5.1', 'P3.5.2', 'P3.6.1', 'P3.6.2', 'P3.7.1', 'P-O1', 'P-O1(其他)',
-            'M4.1.1', 'M4.1.2', 'M4.2.1', 'M4.2.2', 'M4.3.1', 'M4.3.2', 'M4.4.1', 'M4.4.2', 'M4.5.1', 'M4.5.2', 'M4.5.3', 'M4.5.4', 'M4.6.1', 'M4.6.2', 'M4.6.3', 'M4.7.1', 'M-O1', 'M-O1(其他)',
-            'E5.1.1', 'E5.1.2', 'E5.2.1', 'E5.2.2', 'E5.3.1', 'E5.3.2', 'E5.4.1', 'E5.4.2', 'E5.5.1', 'E5.5.2', 'E5.6.1', 'E-O1', 'E-O1(其他)',
-            'S1总体评价', 'S2最强维度', 'S3最弱维度', 'S4最显著进展', 'S5最大挑战', 'S6需补强能力', 'S7深度访谈'
+            getLabel('E1'), getLabel('E2'), getLabel('E2') + '(其他)', getLabel('E3'), getLabel('E3') + '(其他)', getLabel('E4'), getLabel('E5'), getLabel('E6'), getLabel('E7'), getLabel('E8'),
+            getLabel('R1'), getLabel('R1') + '(其他)', getLabel('R2'), getLabel('R3'), getLabel('R4'), getLabel('R5'),
+            getLabel('V1.1.1'), getLabel('V1.1.2'), getLabel('V1.2.1'), getLabel('V1.2.2'), getLabel('V1.3.1'), getLabel('V1.3.2'), getLabel('V1.3.3'), getLabel('V1.4.1'), getLabel('V1.4.2'), getLabel('V1.5.1'), getLabel('V1.5.2'),
+            getLabel('B2.1.1'), getLabel('B2.1.2'), getLabel('B2.2.1'), getLabel('B2.2.2'), getLabel('B2.2.3'), getLabel('B2.3.1'), getLabel('B2.3.2'), getLabel('B2.4.1'), getLabel('B2.4.2'), getLabel('B2.5.1'), getLabel('B2.5.2'), getLabel('B2.6.1'), getLabel('B2.6.2'), getLabel('B2.7.1'), getLabel('B-O1'), getLabel('B-O1') + '(其他)',
+            getLabel('P3.1.1'), getLabel('P3.1.2'), getLabel('P3.2.1'), getLabel('P3.2.2'), getLabel('P3.3.1'), getLabel('P3.3.2'), getLabel('P3.4.1'), getLabel('P3.4.2'), getLabel('P3.5.1'), getLabel('P3.5.2'), getLabel('P3.6.1'), getLabel('P3.6.2'), getLabel('P3.7.1'), getLabel('P-O1'), getLabel('P-O1') + '(其他)',
+            getLabel('M4.1.1'), getLabel('M4.1.2'), getLabel('M4.2.1'), getLabel('M4.2.2'), getLabel('M4.3.1'), getLabel('M4.3.2'), getLabel('M4.4.1'), getLabel('M4.4.2'), getLabel('M4.5.1'), getLabel('M4.5.2'), getLabel('M4.5.3'), getLabel('M4.5.4'), getLabel('M4.6.1'), getLabel('M4.6.2'), getLabel('M4.6.3'), getLabel('M4.7.1'), getLabel('M-O1'), getLabel('M-O1') + '(其他)',
+            getLabel('E5.1.1'), getLabel('E5.1.2'), getLabel('E5.2.1'), getLabel('E5.2.2'), getLabel('E5.3.1'), getLabel('E5.3.2'), getLabel('E5.4.1'), getLabel('E5.4.2'), getLabel('E5.5.1'), getLabel('E5.5.2'), getLabel('E5.6.1'), getLabel('E-O1'), getLabel('E-O1') + '(其他)',
+            getLabel('O1.1'), getLabel('O1.2'), getLabel('O2.1'), getLabel('O2.2'), getLabel('O2.3'), getLabel('O3.1'), getLabel('O3.2'), getLabel('O3.3'), getLabel('O4.1'), getLabel('O4.2'), getLabel('O4.3'), getLabel('O5.1'), getLabel('O5.2'), getLabel('O5.3'),
+            getLabel('S1'), getLabel('S2'), getLabel('S3'), getLabel('S4'), getLabel('S4') + '(其他)', getLabel('S5'), getLabel('S5') + '(其他)', getLabel('S6'), getLabel('S6') + '(其他)', getLabel('S7')
         ];
 
         let csv = BOM + headers.join(',') + '\n';
@@ -3213,16 +3464,17 @@ app.get('/api/admin/nqoc/survey/submissions/export', authRequired, requirePerm('
             const row = [
                 sub.createdAt.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }),
                 sub.channel || 'organic',
-                sub.orgName, sub.industry, sub.industry_other, sub.orgNature, sub.orgNature_other, sub.employeeCount, sub.revenue, 
-                sub.establishedYears, sub.listingStatus, sub.aiDeptStatus,
-                sub.respondentTitle, sub.respondentTitle_other, sub.respondentTenure, sub.respondentName, sub.respondentContact,
+                sub.orgName, getOptionLabel('industry', sub.industry), sub.industry && sub.industry.includes('其他') ? sub.industry_other : '', getOptionLabel('orgNature', sub.orgNature), sub.orgNature && sub.orgNature.includes('其他') ? sub.orgNature_other : '', getOptionLabel('employeeCount', sub.employeeCount), getOptionLabel('revenue', sub.revenue), 
+                getOptionLabel('establishedYears', sub.establishedYears), getOptionLabel('listingStatus', sub.listingStatus), getOptionLabel('aiDeptStatus', sub.aiDeptStatus),
+                getOptionLabel('respondentTitle', sub.respondentTitle), sub.respondentTitle && sub.respondentTitle.includes('其他') ? sub.respondentTitle_other : '', getOptionLabel('respondentTenure', sub.respondentTenure), sub.respondentName, sub.respondentContact, sub.respondentEmail,
                 
-                sub.v1_1_1, sub.v1_1_2, sub.v1_2_1, sub.v1_2_2, sub.v1_3_1, sub.v1_3_2, sub.v1_3_3, sub.v1_4_1, sub.v1_4_2, sub.v1_5_1, sub.v1_5_2,
-                sub.b2_1_1, sub.b2_1_2, sub.b2_2_1, sub.b2_2_2, sub.b2_2_3, sub.b2_3_1, sub.b2_3_2, sub.b2_4_1, sub.b2_4_2, sub.b2_5_1, sub.b2_5_2, sub.b2_6_1, sub.b2_6_2, sub.b2_7_1, sub.b_o1, sub.b_o1_other,
-                sub.p3_1_1, sub.p3_1_2, sub.p3_2_1, sub.p3_2_2, sub.p3_3_1, sub.p3_3_2, sub.p3_4_1, sub.p3_4_2, sub.p3_5_1, sub.p3_5_2, sub.p3_6_1, sub.p3_6_2, sub.p3_7_1, sub.p_o1, sub.p_o1_other,
-                sub.m4_1_1, sub.m4_1_2, sub.m4_2_1, sub.m4_2_2, sub.m4_3_1, sub.m4_3_2, sub.m4_4_1, sub.m4_4_2, sub.m4_5_1, sub.m4_5_2, sub.m4_5_3, sub.m4_5_4, sub.m4_6_1, sub.m4_6_2, sub.m4_6_3, sub.m4_7_1, sub.m_o1, sub.m_o1_other,
-                sub.e5_1_1, sub.e5_1_2, sub.e5_2_1, sub.e5_2_2, sub.e5_3_1, sub.e5_3_2, sub.e5_4_1, sub.e5_4_2, sub.e5_5_1, sub.e5_5_2, sub.e5_6_1, sub.e_o1, sub.e_o1_other,
-                sub.s1, sub.s2, sub.s3, sub.s4, sub.s5, sub.s6, sub.s7
+                getOptionLabel('v1_1_1', sub.v1_1_1), getOptionLabel('v1_1_2', sub.v1_1_2), getOptionLabel('v1_2_1', sub.v1_2_1), getOptionLabel('v1_2_2', sub.v1_2_2), getOptionLabel('v1_3_1', sub.v1_3_1), getOptionLabel('v1_3_2', sub.v1_3_2), getOptionLabel('v1_3_3', sub.v1_3_3), getOptionLabel('v1_4_1', sub.v1_4_1), getOptionLabel('v1_4_2', sub.v1_4_2), getOptionLabel('v1_5_1', sub.v1_5_1), getOptionLabel('v1_5_2', sub.v1_5_2),
+                getOptionLabel('b2_1_1', sub.b2_1_1), getOptionLabel('b2_1_2', sub.b2_1_2), getOptionLabel('b2_2_1', sub.b2_2_1), getOptionLabel('b2_2_2', sub.b2_2_2), getOptionLabel('b2_2_3', sub.b2_2_3), getOptionLabel('b2_3_1', sub.b2_3_1), getOptionLabel('b2_3_2', sub.b2_3_2), getOptionLabel('b2_4_1', sub.b2_4_1), getOptionLabel('b2_4_2', sub.b2_4_2), getOptionLabel('b2_5_1', sub.b2_5_1), getOptionLabel('b2_5_2', sub.b2_5_2), getOptionLabel('b2_6_1', sub.b2_6_1), getOptionLabel('b2_6_2', sub.b2_6_2), getOptionLabel('b2_7_1', sub.b2_7_1), getOptionLabel('b_o1', sub.b_o1), sub.b_o1_other,
+                getOptionLabel('p3_1_1', sub.p3_1_1), getOptionLabel('p3_1_2', sub.p3_1_2), getOptionLabel('p3_2_1', sub.p3_2_1), getOptionLabel('p3_2_2', sub.p3_2_2), getOptionLabel('p3_3_1', sub.p3_3_1), getOptionLabel('p3_3_2', sub.p3_3_2), getOptionLabel('p3_4_1', sub.p3_4_1), getOptionLabel('p3_4_2', sub.p3_4_2), getOptionLabel('p3_5_1', sub.p3_5_1), getOptionLabel('p3_5_2', sub.p3_5_2), getOptionLabel('p3_6_1', sub.p3_6_1), getOptionLabel('p3_6_2', sub.p3_6_2), getOptionLabel('p3_7_1', sub.p3_7_1), getOptionLabel('p_o1', sub.p_o1), sub.p_o1_other,
+                getOptionLabel('m4_1_1', sub.m4_1_1), getOptionLabel('m4_1_2', sub.m4_1_2), getOptionLabel('m4_2_1', sub.m4_2_1), getOptionLabel('m4_2_2', sub.m4_2_2), getOptionLabel('m4_3_1', sub.m4_3_1), getOptionLabel('m4_3_2', sub.m4_3_2), getOptionLabel('m4_4_1', sub.m4_4_1), getOptionLabel('m4_4_2', sub.m4_4_2), getOptionLabel('m4_5_1', sub.m4_5_1), getOptionLabel('m4_5_2', sub.m4_5_2), getOptionLabel('m4_5_3', sub.m4_5_3), getOptionLabel('m4_5_4', sub.m4_5_4), getOptionLabel('m4_6_1', sub.m4_6_1), getOptionLabel('m4_6_2', sub.m4_6_2), getOptionLabel('m4_6_3', sub.m4_6_3), getOptionLabel('m4_7_1', sub.m4_7_1), getOptionLabel('m_o1', sub.m_o1), sub.m_o1_other,
+                getOptionLabel('e5_1_1', sub.e5_1_1), getOptionLabel('e5_1_2', sub.e5_1_2), getOptionLabel('e5_2_1', sub.e5_2_1), getOptionLabel('e5_2_2', sub.e5_2_2), getOptionLabel('e5_3_1', sub.e5_3_1), getOptionLabel('e5_3_2', sub.e5_3_2), getOptionLabel('e5_4_1', sub.e5_4_1), getOptionLabel('e5_4_2', sub.e5_4_2), getOptionLabel('e5_5_1', sub.e5_5_1), getOptionLabel('e5_5_2', sub.e5_5_2), getOptionLabel('e5_6_1', sub.e5_6_1), getOptionLabel('e_o1', sub.e_o1), sub.e_o1_other,
+                getOptionLabel('o1_1', sub.o1_1), getOptionLabel('o1_2', sub.o1_2), getOptionLabel('o2_1', sub.o2_1), getOptionLabel('o2_2', sub.o2_2), getOptionLabel('o2_3', sub.o2_3), getOptionLabel('o3_1', sub.o3_1), getOptionLabel('o3_2', sub.o3_2), getOptionLabel('o3_3', sub.o3_3), getOptionLabel('o4_1', sub.o4_1), getOptionLabel('o4_2', sub.o4_2), getOptionLabel('o4_3', sub.o4_3), getOptionLabel('o5_1', sub.o5_1), getOptionLabel('o5_2', sub.o5_2), getOptionLabel('o5_3', sub.o5_3),
+                getOptionLabel('s1', sub.s1), getOptionLabel('s2', sub.s2), getOptionLabel('s3', sub.s3), getOptionLabel('s4', sub.s4), sub.s4_other, getOptionLabel('s5', sub.s5), sub.s5_other, getOptionLabel('s6', sub.s6), sub.s6_other, getOptionLabel('s7', sub.s7)
             ].map(escapeCsv);
             
             csv += row.join(',') + '\n';

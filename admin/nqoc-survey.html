@@ -29,6 +29,57 @@
         }
         .nav-tabs .nav-link { color: #6c757d; font-weight: 500; }
         .nav-tabs .nav-link.active { color: #0d6efd; font-weight: bold; }
+        
+        /* Custom Funnel Chart Styles */
+        .funnel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .funnel-step-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            position: relative;
+        }
+        .funnel-bar {
+            background: linear-gradient(90deg, #9b6dff, #7c4dff);
+            color: white;
+            border-radius: 8px;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(124, 77, 255, 0.15);
+            min-width: 250px;
+            max-width: 100%;
+        }
+        .funnel-bar:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 16px rgba(124, 77, 255, 0.25);
+            filter: brightness(1.05);
+        }
+        .funnel-rate {
+            font-size: 12px;
+            color: #6c757d;
+            background: #f8f9fa;
+            padding: 2px 12px;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+            z-index: 1;
+            margin: 6px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .funnel-rate i {
+            color: #7c4dff;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -79,7 +130,9 @@
                                     <input type="text" id="searchKeyword" class="form-control" placeholder="搜索企业名称/填答人/联系方式...">
                                 </div>
                                 <div class="col-md-2">
-                                    <input type="text" id="searchChannel" class="form-control" placeholder="搜索来源渠道...">
+                                    <select id="searchChannel" class="form-select">
+                                        <option value="">所有渠道 (不限)</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-2">
                                     <input type="date" id="searchStartDate" class="form-control" placeholder="开始时间">
@@ -126,9 +179,30 @@
 
                 <!-- Analysis Pane -->
                 <div class="tab-pane fade" id="analysis-pane" role="tabpanel" tabindex="0">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body py-3">
+                            <div class="row g-3 align-items-center">
+                                <div class="col-md-3">
+                                    <select id="statSearchChannel" class="form-select">
+                                        <option value="">所有渠道 (不限)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="date" id="statStartDate" class="form-control" placeholder="开始时间">
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="date" id="statEndDate" class="form-control" placeholder="结束时间">
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-primary w-100" onclick="loadStats()"><i class="bi bi-filter"></i> 筛选分析数据</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row g-4 mb-4">
                         <div class="col-md-3">
-                            <div class="card border-0 shadow-sm text-center py-4">
+                            <div class="card border-0 shadow-sm text-center py-4 h-100">
                                 <h6 class="text-secondary mb-2">总问卷回收量</h6>
                                 <h2 class="text-primary mb-0 fw-bold" id="statTotalCount">0</h2>
                             </div>
@@ -136,32 +210,39 @@
                         <div class="col-md-9">
                             <div class="card border-0 shadow-sm h-100">
                                 <div class="card-header bg-white py-3 border-bottom">
-                                    <h6 class="mb-0">各维度平均得分 (雷达图)</h6>
+                                    <h6 class="mb-0">填写转化漏斗 (全链路)</h6>
                                 </div>
-                                <div class="card-body d-flex justify-content-center align-items-center" style="min-height: 300px;">
-                                    <canvas id="radarChart" width="400" height="300"></canvas>
+                                <div class="card-body" style="min-height: 300px; display: flex; align-items: center; overflow-x: auto;">
+                                    <div id="customFunnelContainer" class="w-100 px-3"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-header bg-white py-3 border-bottom">
-                                    <h6 class="mb-0">企业总体阶段分布</h6>
+
+                    <div class="row g-4 mt-2 mb-4">
+                        <div class="col-md-12">
+                            <div class="card border-0 shadow-sm rounded-4">
+                                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0 fw-bold"><i class="bi bi-list-columns-reverse text-danger me-2"></i>字段级流失卡点分析</h6>
+                                    <span class="badge bg-light text-dark border">根据填答人光标聚焦自动捕获</span>
                                 </div>
-                                <div class="card-body">
-                                    <canvas id="stageChart" height="250"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-header bg-white py-3 border-bottom">
-                                    <h6 class="mb-0">核心痛点分布 (S2)</h6>
-                                </div>
-                                <div class="card-body">
-                                    <canvas id="painPointChart" height="250"></canvas>
+                                <div class="card-body py-0 px-0">
+                                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                        <table class="table table-hover align-middle mb-0 text-sm">
+                                            <thead class="table-light sticky-top" style="z-index: 1;">
+                                                <tr>
+                                                    <th class="ps-4">所属模块</th>
+                                                    <th>字段题干 (自动映射)</th>
+                                                    <th>触达人数 (UV)</th>
+                                                    <th>步骤内流失</th>
+                                                    <th class="pe-4">单题流失率</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="fieldDropoffTableBody">
+                                                <tr><td colspan="5" class="text-center py-4 text-muted">加载中...</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>

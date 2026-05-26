@@ -10,6 +10,7 @@ const ROUTES = [
     { id: 'appointments', title: '预约管理', load: () => { if(window.loadAppointments) window.loadAppointments(); } },
     { id: 'permissions', title: '权限管理', load: () => { if(window.switchPermTab) window.switchPermTab('users'); } },
     { id: 'logs', title: '操作日志', load: () => { if(window.loadLogs) window.loadLogs(); } },
+    { id: 'seo', title: 'TDK管理', load: () => { if(window.loadSeoConfig) window.loadSeoConfig(); } },
     { id: 'video', title: '视频管理', load: () => { 
         if (window.mountVideoApp) window.mountVideoApp();
     } }

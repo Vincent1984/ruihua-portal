@@ -51,6 +51,13 @@
       ]
     },
     {
+      title: 'SEO优化',
+      icon: 'bi-search',
+      items: [
+        { label: 'TDK管理', icon: 'bi-search', href: '/admin/dashboard.html', section: 'seo', perm: 'system:manage' }
+      ]
+    },
+    {
       title: '系统设置',
       icon: 'bi-gear',
       items: [

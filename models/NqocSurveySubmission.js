@@ -19,6 +19,7 @@ const nqocSurveySubmissionSchema = new mongoose.Schema({
     respondentTenure: { type: String, required: true },
     respondentName: { type: String, default: '' },
     respondentContact: { type: String, default: '' },
+    respondentEmail: { type: String, default: '' },
     smsCode: { type: String, default: '' },
 
     // 第三部分 新质组织成熟度评估
@@ -105,13 +106,32 @@ const nqocSurveySubmissionSchema = new mongoose.Schema({
     e_o1: [{ type: String }],
     e_o1_other: { type: String, default: '' },
 
-    // 第四部分 总体评价与综合反馈
+    // 第四部分 客观数据参照
+    o1_1: { type: String, default: '' },
+    o1_2: { type: String, default: '' },
+    o2_1: { type: String, default: '' },
+    o2_2: { type: String, default: '' },
+    o2_3: { type: String, default: '' },
+    o3_1: { type: String, default: '' },
+    o3_2: { type: String, default: '' },
+    o3_3: { type: String, default: '' },
+    o4_1: { type: String, default: '' },
+    o4_2: { type: String, default: '' },
+    o4_3: { type: String, default: '' },
+    o5_1: { type: String, default: '' },
+    o5_2: { type: String, default: '' },
+    o5_3: { type: String, default: '' },
+
+    // 第五部分 总体评价与综合反馈
     s1: { type: Number, required: true },
     s2: [{ type: String }],
     s3: [{ type: String }],
     s4: [{ type: String }],
+    s4_other: { type: String, default: '' },
     s5: [{ type: String }],
+    s5_other: { type: String, default: '' },
     s6: [{ type: String }],
+    s6_other: { type: String, default: '' },
     s7: { type: String, required: true },
 
     // 元数据

@@ -371,6 +371,20 @@
                 </div>
             </div>
             
+            <!-- SEO Module -->
+            <div class="nav-group mt-3">
+                <div class="nav-header" onclick="toggleNavGroup(this)">
+                    <div class="d-flex align-items-center overflow-hidden">
+                        <i class="bi bi-search icon"></i>
+                        <span class="label">SEO优化</span>
+                    </div>
+                    <i class="bi bi-chevron-right arrow"></i>
+                </div>
+                <div class="nav-items">
+                    <a href="#" onclick="show('seo'); return false;" id="nav-seo" class="sub-menu-item">TDK管理</a>
+                </div>
+            </div>
+            
             <!-- System Module -->
             <div class="nav-group mt-3">
                 <div class="nav-header" onclick="toggleNavGroup(this)">
@@ -835,6 +849,44 @@
             </div>
             
             <!-- UTM Stats (Removed) -->
+
+            <!-- SEO Config -->
+            <div id="seo" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">SEO TDK 管理</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <select id="seoPageSelect" class="form-select w-auto" onchange="loadSeoConfig()">
+                                <option value="/index.html">首页 (index.html)</option>
+                                <option value="/solutions.html">解决方案 (solutions.html)</option>
+                                <option value="/solutions-hcvm.html">HCVM (solutions-hcvm.html)</option>
+                                <option value="/solutions-ohcvm.html">OHCVM (solutions-ohcvm.html)</option>
+                                <option value="/videos.html">视频中心 (videos.html)</option>
+                                <option value="/resources.html">经营智库 (resources.html)</option>
+                                <option value="/about.html">关于我们 (about.html)</option>
+                                <option value="/training.html">培训课程 (training.html)</option>
+                            </select>
+                        </div>
+                        <form id="seoConfigForm" onsubmit="saveSeoConfig(event)">
+                            <div class="mb-3">
+                                <label class="form-label">页面标题 (Title)</label>
+                                <input type="text" id="seoTitle" class="form-control" placeholder="建议包含核心关键词，长度在60字符以内">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">页面关键词 (Keywords)</label>
+                                <input type="text" id="seoKeywords" class="form-control" placeholder="多个关键词请用英文逗号分隔">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">页面描述 (Description)</label>
+                                <textarea id="seoDescription" class="form-control" rows="3" placeholder="概括页面核心内容，长度在150字符以内"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">保存配置</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
 
             <!-- Permissions -->
             <div id="permissions" class="section">
@@ -1530,5 +1582,6 @@
     <script src="js/permission-management.js?v=20260130"></script>
     <script src="js/video-management.js?v=20260130"></script>
     <script src="js/logs.js?v=20260130"></script>
+    <script src="js/seo-management.js?v=20260130"></script>
 </body>
 </html>
