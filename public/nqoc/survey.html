@@ -223,11 +223,11 @@
             <!-- 01 Banner -->
             <div class="text-center mb-16 animate-on-scroll mt-10 hide-in-immersive">
                 <div class="inline-block mb-4 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[var(--nqoc-accent-cyan)] text-sm font-medium tracking-wider uppercase">
-                    CHINA NEW QUALITY ORGANIZATION RESEARCH
+                    有奖调研
                 </div>
                 <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white leading-tight mb-6 tracking-tight">
                     <span class="block mb-2">2025-2026中国企业新质组织</span>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00f0ff] to-[#b026ff]">成熟度调研问卷</span>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00f0ff] to-[#b026ff]">成熟度有奖调研</span>
                 </h1>
                 <p class="text-base md:text-lg text-slate-300 mb-8 max-w-3xl mx-auto leading-relaxed">
                     本调研由人瑞人才、瑞华智策·新质组织研究中心、中国经营报联合发起，为确保学术严谨性，项目邀请北京大学光华管理学院组织与战略管理系姜铠丰教授作为学术负责人，旨在系统化评估中国企业在 AI 时代向“新质组织”演进的成熟度。
@@ -2357,14 +2357,22 @@
                     let firstInvalidEl = null;
 
                     inputs.forEach(input => {
-                        if (!input.value || (input.type === 'radio' && !currentStepEl.querySelector(`input[name="${input.name}"]:checked`)) || (input.type === 'checkbox' && !currentStepEl.querySelector(`input[name="${input.name}"]:checked`))) {
+                        // Check if radio or checkbox is checked within the current step
+                        const isRadioOrCheckbox = input.type === 'radio' || input.type === 'checkbox';
+                        let isChecked = true;
+                        if (isRadioOrCheckbox) {
+                            const checkedInputs = currentStepEl.querySelectorAll(`input[name="${input.name}"]:checked`);
+                            isChecked = checkedInputs.length > 0;
+                        }
+
+                        if (!input.value || (isRadioOrCheckbox && !isChecked)) {
                             isValid = false;
                             
                             // Highlight logic
-                            let container = (input.type === 'radio' || input.type === 'checkbox') ? input.closest('.space-y-2, .mb-4, .mb-6, .form-section, [class*="bg-white/5"]') : input;
+                            let container = isRadioOrCheckbox ? input.closest('.space-y-2, .mb-4, .mb-6, .form-section, [class*="bg-white/5"]') : input;
                             if (container) {
                                 container.classList.add('border-red-500');
-                                if (input.type === 'radio' || input.type === 'checkbox') {
+                                if (isRadioOrCheckbox) {
                                     container.classList.add('border', 'rounded-lg');
                                 }
                             }
@@ -2374,10 +2382,10 @@
                             }
                         } else {
                             // Remove highlight
-                            let container = (input.type === 'radio' || input.type === 'checkbox') ? input.closest('.space-y-2, .mb-4, .mb-6, .form-section, [class*="bg-white/5"]') : input;
+                            let container = isRadioOrCheckbox ? input.closest('.space-y-2, .mb-4, .mb-6, .form-section, [class*="bg-white/5"]') : input;
                             if (container) {
                                 container.classList.remove('border-red-500', 'highlight-flash');
-                                if ((input.type === 'radio' || input.type === 'checkbox') && !container.classList.contains('bg-white/5')) {
+                                if (isRadioOrCheckbox && !container.classList.contains('bg-white/5')) {
                                     container.classList.remove('border', 'rounded-lg');
                                 }
                             }
@@ -2478,12 +2486,19 @@
                 let firstInvalidEl = null;
 
                 inputs.forEach(input => {
-                    if (!input.value || (input.type === 'radio' && !currentStepEl.querySelector(`input[name="${input.name}"]:checked`)) || (input.type === 'checkbox' && !currentStepEl.querySelector(`input[name="${input.name}"]:checked`))) {
+                    const isRadioOrCheckbox = input.type === 'radio' || input.type === 'checkbox';
+                    let isChecked = true;
+                    if (isRadioOrCheckbox) {
+                        const checkedInputs = currentStepEl.querySelectorAll(`input[name="${input.name}"]:checked`);
+                        isChecked = checkedInputs.length > 0;
+                    }
+
+                    if (!input.value || (isRadioOrCheckbox && !isChecked)) {
                         isValid = false;
-                        let container = (input.type === 'radio' || input.type === 'checkbox') ? input.closest('.space-y-2, .mb-4, .mb-6, .form-section, [class*="bg-white/5"]') : input;
+                        let container = isRadioOrCheckbox ? input.closest('.space-y-2, .mb-4, .mb-6, .form-section, [class*="bg-white/5"]') : input;
                         if (container) {
                             container.classList.add('border-red-500');
-                            if (input.type === 'radio' || input.type === 'checkbox') {
+                            if (isRadioOrCheckbox) {
                                 container.classList.add('border', 'rounded-lg');
                             }
                         }
@@ -2491,10 +2506,10 @@
                             firstInvalidEl = container || input;
                         }
                     } else {
-                        let container = (input.type === 'radio' || input.type === 'checkbox') ? input.closest('.space-y-2, .mb-4, .mb-6, .form-section, [class*="bg-white/5"]') : input;
+                        let container = isRadioOrCheckbox ? input.closest('.space-y-2, .mb-4, .mb-6, .form-section, [class*="bg-white/5"]') : input;
                         if (container) {
                             container.classList.remove('border-red-500', 'highlight-flash');
-                            if ((input.type === 'radio' || input.type === 'checkbox') && !container.classList.contains('bg-white/5')) {
+                            if (isRadioOrCheckbox && !container.classList.contains('bg-white/5')) {
                                 container.classList.remove('border', 'rounded-lg');
                             }
                         }
