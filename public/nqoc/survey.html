@@ -2019,32 +2019,6 @@
     <script src="/nqoc/js/main.js"></script>
         <script>
         // Form Logic
-        // Polyfill for guaranteed cross-device smooth scrolling
-        function robustSmoothScrollTo(element) {
-            if (!element) return;
-            const headerOffset = 120; // Ensure it clears the fixed header
-            const targetY = element.getBoundingClientRect().top + window.pageYOffset - headerOffset;
-            const startY = window.pageYOffset;
-            const difference = targetY - startY;
-            const duration = 400;
-            const startTime = performance.now();
-
-            function easeInOutQuad(t) {
-                return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-            }
-
-            function step() {
-                const progress = (performance.now() - startTime) / duration;
-                if (progress < 1) {
-                    window.scrollTo(0, startY + difference * easeInOutQuad(progress));
-                    requestAnimationFrame(step);
-                } else {
-                    window.scrollTo(0, targetY);
-                }
-            }
-            requestAnimationFrame(step);
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('survey-form');
             const formContainer = document.getElementById('survey-form-container');
@@ -2434,7 +2408,8 @@
                         showToast('error', '请填写完整的必填项信息');
                         Tracking.send('validation_error', currentStep, 0, 'missing_required');
                         if (firstInvalidEl) {
-                            robustSmoothScrollTo(firstInvalidEl);
+                            firstInvalidEl.style.scrollMarginTop = '120px';
+                            firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
                             // Trigger reflow to restart animation
                             firstInvalidEl.classList.remove('highlight-flash');
                             void firstInvalidEl.offsetWidth;
@@ -2540,7 +2515,8 @@
                     showToast('error', '请填写完整的必填项信息');
                     Tracking.send('validation_error', currentStep, 0, 'missing_required_step4');
                     if (firstInvalidEl) {
-                        robustSmoothScrollTo(firstInvalidEl);
+                        firstInvalidEl.style.scrollMarginTop = '120px';
+                        firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         // Trigger reflow to restart animation
                         firstInvalidEl.classList.remove('highlight-flash');
                         void firstInvalidEl.offsetWidth;
@@ -2589,7 +2565,8 @@
                     const errorEl = document.querySelector(`input[name="${errorKey}"]`);
                     if (errorEl) {
                         const container = errorEl.closest('.mb-4, .space-y-2, .space-y-4, .form-section, [class*="bg-white/5"]') || errorEl;
-                        robustSmoothScrollTo(container);
+                        container.style.scrollMarginTop = '120px';
+                        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         container.classList.remove('highlight-flash');
                         void container.offsetWidth;
                         container.classList.add('highlight-flash');
