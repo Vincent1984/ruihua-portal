@@ -2369,7 +2369,7 @@
                             isValid = false;
                             
                             // Highlight logic
-                            let container = isRadioOrCheckbox ? input.closest('.space-y-2, .mb-4, .mb-6, .form-section, [class*="bg-white/5"]') : input;
+                            let container = isRadioOrCheckbox ? input.closest('.mb-4, .space-y-2, .space-y-4, .form-section, [class*="bg-white/5"]') : input;
                             if (container) {
                                 container.classList.add('border-red-500');
                                 if (isRadioOrCheckbox) {
@@ -2382,7 +2382,7 @@
                             }
                         } else {
                             // Remove highlight
-                            let container = isRadioOrCheckbox ? input.closest('.space-y-2, .mb-4, .mb-6, .form-section, [class*="bg-white/5"]') : input;
+                            let container = isRadioOrCheckbox ? input.closest('.mb-4, .space-y-2, .space-y-4, .form-section, [class*="bg-white/5"]') : input;
                             if (container) {
                                 container.classList.remove('border-red-500', 'highlight-flash');
                                 if (isRadioOrCheckbox && !container.classList.contains('bg-white/5')) {
@@ -2495,7 +2495,7 @@
 
                     if (!input.value || (isRadioOrCheckbox && !isChecked)) {
                         isValid = false;
-                        let container = isRadioOrCheckbox ? input.closest('.space-y-2, .mb-4, .mb-6, .form-section, [class*="bg-white/5"]') : input;
+                        let container = isRadioOrCheckbox ? input.closest('.mb-4, .space-y-2, .space-y-4, .form-section, [class*="bg-white/5"]') : input;
                         if (container) {
                             container.classList.add('border-red-500');
                             if (isRadioOrCheckbox) {
@@ -2506,7 +2506,7 @@
                             firstInvalidEl = container || input;
                         }
                     } else {
-                        let container = isRadioOrCheckbox ? input.closest('.space-y-2, .mb-4, .mb-6, .form-section, [class*="bg-white/5"]') : input;
+                        let container = isRadioOrCheckbox ? input.closest('.mb-4, .space-y-2, .space-y-4, .form-section, [class*="bg-white/5"]') : input;
                         if (container) {
                             container.classList.remove('border-red-500', 'highlight-flash');
                             if (isRadioOrCheckbox && !container.classList.contains('bg-white/5')) {
