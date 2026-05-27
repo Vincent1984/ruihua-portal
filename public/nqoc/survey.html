@@ -132,6 +132,16 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        @keyframes flashInvalid {
+            0%, 100% { background-color: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.8); box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
+            50% { background-color: transparent; border-color: rgba(239, 68, 68, 0.4); box-shadow: none; }
+        }
+        .highlight-flash {
+            animation: flashInvalid 0.8s ease-in-out 3;
+            border: 1px solid rgba(239, 68, 68, 0.8) !important;
+            border-radius: 0.75rem;
+        }
     </style>
 <script> 
  var _hmt = _hmt || []; 
@@ -1642,7 +1652,7 @@
                             <h4 class="text-xl font-bold text-[var(--nqoc-brand)] mb-6 pb-2 border-b border-white/10">维度三　生产方式</h4>
                             
                             <div class="mb-6 bg-white/5 p-5 rounded-xl border border-white/10">
-                                <label class="block text-base font-medium text-white mb-2">O3.1 AI 与数智化年度投入占总预算或营收比例 <span class="text-red-500">*</span></label>
+                                <label class="block text-base font-medium text-white mb-2">O3.1 AI 与数智化年度投入占总营收比例 <span class="text-red-500">*</span></label>
                                 <div class="flex flex-wrap items-center gap-2 mb-4 text-xs">
                                     <span class="bg-blue-500/20 text-blue-300 px-2 py-1 rounded cursor-help flex items-center group relative">
                                         <i class="fas fa-book-open mr-1"></i> 释义说明
@@ -1801,28 +1811,7 @@
                             </div>
 
                             <div class="mb-6 bg-white/5 p-5 rounded-xl border border-white/10">
-                                <label class="block text-base font-medium text-white mb-2">O5.2 对外开放的核心能力数量 <span class="text-red-500">*</span></label>
-                                <div class="flex flex-wrap items-center gap-2 mb-4 text-xs">
-                                    <span class="bg-blue-500/20 text-blue-300 px-2 py-1 rounded cursor-help flex items-center group relative">
-                                        <i class="fas fa-book-open mr-1"></i> 释义说明
-                                        <div class="absolute bottom-full left-0 mb-2 w-64 p-2 bg-black text-white text-xs rounded shadow-lg hidden group-hover:block z-50">
-                                            贵企业当前已正式对外开放、可被合作伙伴或开发者使用的核心能力数量。包括公开 API、SDK、开放数据集、开发者平台、对合作伙伴白标输出的解决方案等。仅供内部使用、未对外开放的不计入。
-                                        </div>
-                                    </span>
-                                    <span class="bg-purple-500/20 text-purple-300 px-2 py-1 rounded"><i class="fas fa-user-tie mr-1"></i> 适合咨询：技术总监 / 平台运营 / 商务合作</span>
-                                </div>
-                                <div class="radio-group flex flex-col gap-2">
-                                    <label><input type="radio" name="o5_2" value="0" required> 0 个</label>
-                                    <label><input type="radio" name="o5_2" value="1-3"> 1 – 3 个</label>
-                                    <label><input type="radio" name="o5_2" value="4-10"> 4 – 10 个</label>
-                                    <label><input type="radio" name="o5_2" value="11-30"> 11 – 30 个</label>
-                                    <label><input type="radio" name="o5_2" value=">30"> > 30 个</label>
-                                    <label><input type="radio" name="o5_2" value="不掌握/不清楚"> 不掌握 / 不清楚</label>
-                                </div>
-                            </div>
-
-                            <div class="mb-6 bg-white/5 p-5 rounded-xl border border-white/10">
-                                <label class="block text-base font-medium text-white mb-2">O5.3 与外部机构联合创新项目数量 <span class="text-red-500">*</span></label>
+                                <label class="block text-base font-medium text-white mb-2">O5.2 与外部机构联合创新项目数量 <span class="text-red-500">*</span></label>
                                 <div class="flex flex-wrap items-center gap-2 mb-4 text-xs">
                                     <span class="bg-blue-500/20 text-blue-300 px-2 py-1 rounded cursor-help flex items-center group relative">
                                         <i class="fas fa-book-open mr-1"></i> 释义说明
@@ -1833,12 +1822,12 @@
                                     <span class="bg-purple-500/20 text-purple-300 px-2 py-1 rounded"><i class="fas fa-user-tie mr-1"></i> 适合咨询：技术总监 / 战略合作 / 研发管理</span>
                                 </div>
                                 <div class="radio-group flex flex-col gap-2">
-                                    <label><input type="radio" name="o5_3" value="0" required> 0 个</label>
-                                    <label><input type="radio" name="o5_3" value="1-3"> 1 – 3 个</label>
-                                    <label><input type="radio" name="o5_3" value="4-10"> 4 – 10 个</label>
-                                    <label><input type="radio" name="o5_3" value="11-20"> 11 – 20 个</label>
-                                    <label><input type="radio" name="o5_3" value=">20"> > 20 个</label>
-                                    <label><input type="radio" name="o5_3" value="不掌握/不清楚"> 不掌握 / 不清楚</label>
+                                    <label><input type="radio" name="o5_2" value="0" required> 0 个</label>
+                                    <label><input type="radio" name="o5_2" value="1-3"> 1 – 3 个</label>
+                                    <label><input type="radio" name="o5_2" value="4-10"> 4 – 10 个</label>
+                                    <label><input type="radio" name="o5_2" value="11-20"> 11 – 20 个</label>
+                                    <label><input type="radio" name="o5_2" value=">20"> > 20 个</label>
+                                    <label><input type="radio" name="o5_2" value="不掌握/不清楚"> 不掌握 / 不清楚</label>
                                 </div>
                             </div>
                         </div>
@@ -2371,27 +2360,24 @@
                             isValid = false;
                             
                             // Highlight logic
-                            if (input.type !== 'radio') {
-                                input.classList.add('border-red-500');
-                            } else {
-                                // For radio buttons, highlight the container
-                                const container = input.closest('.mb-4, .space-y-2, .space-y-4, .form-section');
-                                if (container) {
-                                    container.classList.add('border-red-500', 'border', 'rounded-lg');
+                            let container = input.type !== 'radio' ? input : input.closest('.mb-4, .space-y-2, .space-y-4, .form-section');
+                            if (container) {
+                                container.classList.add('border-red-500');
+                                if (input.type === 'radio') {
+                                    container.classList.add('border', 'rounded-lg');
                                 }
                             }
 
                             if (!firstInvalidEl) {
-                                firstInvalidEl = input.closest('.mb-4, .space-y-2, .space-y-4, .form-section') || input;
+                                firstInvalidEl = container || input;
                             }
                         } else {
                             // Remove highlight
-                            if (input.type !== 'radio') {
-                                input.classList.remove('border-red-500');
-                            } else {
-                                const container = input.closest('.mb-4, .space-y-2, .space-y-4, .form-section');
-                                if (container) {
-                                    container.classList.remove('border-red-500', 'border', 'rounded-lg');
+                            let container = input.type !== 'radio' ? input : input.closest('.mb-4, .space-y-2, .space-y-4, .form-section');
+                            if (container) {
+                                container.classList.remove('border-red-500', 'highlight-flash');
+                                if (input.type === 'radio' && !container.classList.contains('bg-white/5')) {
+                                    container.classList.remove('border', 'rounded-lg');
                                 }
                             }
                         }
@@ -2405,7 +2391,7 @@
                             showToast('error', '请输入有效的11位手机号');
                             Tracking.send('validation_error', currentStep, 0, 'surveyPhone');
                             isValid = false;
-                            if (!firstInvalidEl) firstInvalidEl = phoneInput.closest('.space-y-2');
+                            if (!firstInvalidEl) firstInvalidEl = phoneInput.closest('.space-y-2') || phoneInput;
                         }
                     }
 
@@ -2414,6 +2400,19 @@
                         Tracking.send('validation_error', currentStep, 0, 'missing_required');
                         if (firstInvalidEl) {
                             firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            // Trigger reflow to restart animation
+                            firstInvalidEl.classList.remove('highlight-flash');
+                            void firstInvalidEl.offsetWidth;
+                            firstInvalidEl.classList.add('highlight-flash');
+                            
+                            // Try to focus the actual input for better accessibility/experience
+                            const inputToFocus = firstInvalidEl.tagName === 'INPUT' || firstInvalidEl.tagName === 'SELECT' ? 
+                                                 firstInvalidEl : 
+                                                 firstInvalidEl.querySelector('input, select, textarea');
+                            if (inputToFocus) {
+                                // use setTimeout to allow smooth scroll to start before focusing
+                                setTimeout(() => inputToFocus.focus({ preventScroll: true }), 300);
+                            }
                         }
                         return;
                     }
@@ -2478,21 +2477,23 @@
                 inputs.forEach(input => {
                     if (!input.value || (input.type === 'radio' && !currentStepEl.querySelector(`input[name="${input.name}"]:checked`))) {
                         isValid = false;
-                        if (input.type !== 'radio') {
-                            input.classList.add('border-red-500');
-                        } else {
-                            const container = input.closest('.mb-4, .space-y-2, .space-y-4, .form-section');
-                            if (container) container.classList.add('border-red-500', 'border', 'rounded-lg');
+                        let container = input.type !== 'radio' ? input : input.closest('.mb-4, .space-y-2, .space-y-4, .form-section');
+                        if (container) {
+                            container.classList.add('border-red-500');
+                            if (input.type === 'radio') {
+                                container.classList.add('border', 'rounded-lg');
+                            }
                         }
                         if (!firstInvalidEl) {
-                            firstInvalidEl = input.closest('.mb-4, .space-y-2, .space-y-4, .form-section') || input;
+                            firstInvalidEl = container || input;
                         }
                     } else {
-                        if (input.type !== 'radio') {
-                            input.classList.remove('border-red-500');
-                        } else {
-                            const container = input.closest('.mb-4, .space-y-2, .space-y-4, .form-section');
-                            if (container) container.classList.remove('border-red-500', 'border', 'rounded-lg');
+                        let container = input.type !== 'radio' ? input : input.closest('.mb-4, .space-y-2, .space-y-4, .form-section');
+                        if (container) {
+                            container.classList.remove('border-red-500', 'highlight-flash');
+                            if (input.type === 'radio' && !container.classList.contains('bg-white/5')) {
+                                container.classList.remove('border', 'rounded-lg');
+                            }
                         }
                     }
                 });
@@ -2502,6 +2503,17 @@
                     Tracking.send('validation_error', currentStep, 0, 'missing_required_step4');
                     if (firstInvalidEl) {
                         firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Trigger reflow to restart animation
+                        firstInvalidEl.classList.remove('highlight-flash');
+                        void firstInvalidEl.offsetWidth;
+                        firstInvalidEl.classList.add('highlight-flash');
+                        
+                        const inputToFocus = firstInvalidEl.tagName === 'INPUT' || firstInvalidEl.tagName === 'SELECT' ? 
+                                             firstInvalidEl : 
+                                             firstInvalidEl.querySelector('input, select, textarea');
+                        if (inputToFocus) {
+                            setTimeout(() => inputToFocus.focus({ preventScroll: true }), 300);
+                        }
                     }
                     return;
                 }
@@ -2540,7 +2552,11 @@
                     Tracking.send('validation_error', currentStep, 0, 'limit_exceeded_' + errorKey);
                     const errorEl = document.querySelector(`input[name="${errorKey}"]`);
                     if (errorEl) {
-                        errorEl.closest('.mb-6').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        const container = errorEl.closest('.mb-6, .mb-4') || errorEl;
+                        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        container.classList.remove('highlight-flash');
+                        void container.offsetWidth;
+                        container.classList.add('highlight-flash');
                     }
                     btnSubmit.innerHTML = originalBtnHtml;
                     btnSubmit.disabled = false;
