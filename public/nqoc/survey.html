@@ -2408,13 +2408,7 @@
                         showToast('error', '请填写完整的必填项信息');
                         Tracking.send('validation_error', currentStep, 0, 'missing_required');
                         if (firstInvalidEl) {
-                            const headerOffset = 100;
-                            const elementPosition = firstInvalidEl.getBoundingClientRect().top;
-                            const offsetPosition = elementPosition + window.scrollY - headerOffset;
-                            window.scrollTo({
-                                top: offsetPosition,
-                                behavior: "smooth"
-                            });
+                            firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                             // Trigger reflow to restart animation
                             firstInvalidEl.classList.remove('highlight-flash');
                             void firstInvalidEl.offsetWidth;
@@ -2520,13 +2514,7 @@
                     showToast('error', '请填写完整的必填项信息');
                     Tracking.send('validation_error', currentStep, 0, 'missing_required_step4');
                     if (firstInvalidEl) {
-                        const headerOffset = 100;
-                        const elementPosition = firstInvalidEl.getBoundingClientRect().top;
-                        const offsetPosition = elementPosition + window.scrollY - headerOffset;
-                        window.scrollTo({
-                            top: offsetPosition,
-                            behavior: "smooth"
-                        });
+                        firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         // Trigger reflow to restart animation
                         firstInvalidEl.classList.remove('highlight-flash');
                         void firstInvalidEl.offsetWidth;
@@ -2574,14 +2562,8 @@
                     Tracking.send('validation_error', currentStep, 0, 'limit_exceeded_' + errorKey);
                     const errorEl = document.querySelector(`input[name="${errorKey}"]`);
                     if (errorEl) {
-                        const container = errorEl.closest('.space-y-2, .mb-4, .mb-6, .form-section, [class*="bg-white/5"]') || errorEl;
-                        const headerOffset = 100;
-                        const elementPosition = container.getBoundingClientRect().top;
-                        const offsetPosition = elementPosition + window.scrollY - headerOffset;
-                        window.scrollTo({
-                            top: offsetPosition,
-                            behavior: "smooth"
-                        });
+                        const container = errorEl.closest('.mb-4, .space-y-2, .space-y-4, .form-section, [class*="bg-white/5"]') || errorEl;
+                        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         container.classList.remove('highlight-flash');
                         void container.offsetWidth;
                         container.classList.add('highlight-flash');
