@@ -134,13 +134,14 @@
         }
 
         @keyframes flashInvalid {
-            0%, 100% { background-color: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.8); box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
-            50% { background-color: transparent; border-color: rgba(239, 68, 68, 0.4); box-shadow: none; }
+            0%, 100% { background-color: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.8); box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
+            50% { background-color: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 1); box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
         }
         .highlight-flash {
-            animation: flashInvalid 0.8s ease-in-out 3;
+            animation: flashInvalid 1s ease-in-out 3;
             border: 1px solid rgba(239, 68, 68, 0.8) !important;
-            border-radius: 0.75rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
         }
     </style>
 <script> 
@@ -2356,14 +2357,14 @@
                     let firstInvalidEl = null;
 
                     inputs.forEach(input => {
-                        if (!input.value || (input.type === 'radio' && !currentStepEl.querySelector(`input[name="${input.name}"]:checked`))) {
+                        if (!input.value || (input.type === 'radio' && !currentStepEl.querySelector(`input[name="${input.name}"]:checked`)) || (input.type === 'checkbox' && !currentStepEl.querySelector(`input[name="${input.name}"]:checked`))) {
                             isValid = false;
                             
                             // Highlight logic
-                            let container = input.type !== 'radio' ? input : input.closest('.space-y-2, .mb-4, .mb-6, [class*="bg-white/5"]');
+                            let container = (input.type === 'radio' || input.type === 'checkbox') ? input.closest('.space-y-2, .mb-4, .mb-6, .form-section, [class*="bg-white/5"]') : input;
                             if (container) {
                                 container.classList.add('border-red-500');
-                                if (input.type === 'radio') {
+                                if (input.type === 'radio' || input.type === 'checkbox') {
                                     container.classList.add('border', 'rounded-lg');
                                 }
                             }
@@ -2373,10 +2374,10 @@
                             }
                         } else {
                             // Remove highlight
-                            let container = input.type !== 'radio' ? input : input.closest('.space-y-2, .mb-4, .mb-6, [class*="bg-white/5"]');
+                            let container = (input.type === 'radio' || input.type === 'checkbox') ? input.closest('.space-y-2, .mb-4, .mb-6, .form-section, [class*="bg-white/5"]') : input;
                             if (container) {
                                 container.classList.remove('border-red-500', 'highlight-flash');
-                                if (input.type === 'radio' && !container.classList.contains('bg-white/5')) {
+                                if ((input.type === 'radio' || input.type === 'checkbox') && !container.classList.contains('bg-white/5')) {
                                     container.classList.remove('border', 'rounded-lg');
                                 }
                             }
@@ -2410,6 +2411,11 @@
                             firstInvalidEl.classList.remove('highlight-flash');
                             void firstInvalidEl.offsetWidth;
                             firstInvalidEl.classList.add('highlight-flash');
+                            
+                            // Remove highlight after 3 seconds
+                            setTimeout(() => {
+                                firstInvalidEl.classList.remove('highlight-flash');
+                            }, 3000);
                         }
                         return;
                     }
@@ -2472,12 +2478,12 @@
                 let firstInvalidEl = null;
 
                 inputs.forEach(input => {
-                    if (!input.value || (input.type === 'radio' && !currentStepEl.querySelector(`input[name="${input.name}"]:checked`))) {
+                    if (!input.value || (input.type === 'radio' && !currentStepEl.querySelector(`input[name="${input.name}"]:checked`)) || (input.type === 'checkbox' && !currentStepEl.querySelector(`input[name="${input.name}"]:checked`))) {
                         isValid = false;
-                        let container = input.type !== 'radio' ? input : input.closest('.space-y-2, .mb-4, .mb-6, [class*="bg-white/5"]');
+                        let container = (input.type === 'radio' || input.type === 'checkbox') ? input.closest('.space-y-2, .mb-4, .mb-6, .form-section, [class*="bg-white/5"]') : input;
                         if (container) {
                             container.classList.add('border-red-500');
-                            if (input.type === 'radio') {
+                            if (input.type === 'radio' || input.type === 'checkbox') {
                                 container.classList.add('border', 'rounded-lg');
                             }
                         }
@@ -2485,10 +2491,10 @@
                             firstInvalidEl = container || input;
                         }
                     } else {
-                        let container = input.type !== 'radio' ? input : input.closest('.space-y-2, .mb-4, .mb-6, [class*="bg-white/5"]');
+                        let container = (input.type === 'radio' || input.type === 'checkbox') ? input.closest('.space-y-2, .mb-4, .mb-6, .form-section, [class*="bg-white/5"]') : input;
                         if (container) {
                             container.classList.remove('border-red-500', 'highlight-flash');
-                            if (input.type === 'radio' && !container.classList.contains('bg-white/5')) {
+                            if ((input.type === 'radio' || input.type === 'checkbox') && !container.classList.contains('bg-white/5')) {
                                 container.classList.remove('border', 'rounded-lg');
                             }
                         }
@@ -2510,6 +2516,11 @@
                         firstInvalidEl.classList.remove('highlight-flash');
                         void firstInvalidEl.offsetWidth;
                         firstInvalidEl.classList.add('highlight-flash');
+                        
+                        // Remove highlight after 3 seconds
+                        setTimeout(() => {
+                            firstInvalidEl.classList.remove('highlight-flash');
+                        }, 3000);
                     }
                     return;
                 }
@@ -2548,7 +2559,7 @@
                     Tracking.send('validation_error', currentStep, 0, 'limit_exceeded_' + errorKey);
                     const errorEl = document.querySelector(`input[name="${errorKey}"]`);
                     if (errorEl) {
-                        const container = errorEl.closest('.space-y-2, .mb-4, .mb-6, [class*="bg-white/5"]') || errorEl;
+                        const container = errorEl.closest('.space-y-2, .mb-4, .mb-6, .form-section, [class*="bg-white/5"]') || errorEl;
                         const headerOffset = 100;
                         const elementPosition = container.getBoundingClientRect().top;
                         const offsetPosition = elementPosition + window.scrollY - headerOffset;
@@ -2559,6 +2570,11 @@
                         container.classList.remove('highlight-flash');
                         void container.offsetWidth;
                         container.classList.add('highlight-flash');
+                        
+                        // Remove highlight after 3 seconds
+                        setTimeout(() => {
+                            container.classList.remove('highlight-flash');
+                        }, 3000);
                     }
                     btnSubmit.innerHTML = originalBtnHtml;
                     btnSubmit.disabled = false;
