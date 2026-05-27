@@ -328,7 +328,8 @@
         function checkLocalVotes() {
             [1, 2].forEach(topicId => {
                 const votes = getLocalVotes(topicId);
-                const isOpen = voteData[topicId]?.isOpen !== false;
+                // Treat undefined/missing voteData as closed or check explicit isOpen flag
+                const isOpen = voteData[topicId] && voteData[topicId].isOpen !== false;
 
                 if (!isOpen) {
                     disableButtonsClosed(topicId);
@@ -372,8 +373,9 @@
         }
 
         async function castVote(topicId, side) {
-            if (voteData[topicId]?.isOpen === false) {
+            if (!voteData[topicId] || voteData[topicId].isOpen === false) {
                 showModal('投票已结束', '该话题的投票环节已经关闭啦！');
+                disableButtonsClosed(topicId);
                 return;
             }
 

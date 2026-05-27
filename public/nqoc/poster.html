@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>邀请函 | 2025-2026中国新质组织研究</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- QRCode for generating the shareable image -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { purple: '#7c4dff', dark: '#0B041C' },
+                        gold: '#FDE047'
+                    },
+                    backgroundImage: {
+                        'poster-gradient': 'linear-gradient(180deg, #1C0A3F 0%, #0B041C 30%, #0B041C 100%)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css');
+        body { background-color: #000; display: flex; justify-content: center; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        #poster-wrapper { width: 100%; max-width: 480px; min-height: 100vh; position: relative; box-shadow: 0 0 50px rgba(124, 77, 255, 0.2); }
+        .glass-panel { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; }
+        .text-gradient { background: linear-gradient(90deg, #fff, #d8b4fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .text-gold { background: linear-gradient(90deg, #FDE047, #D97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .glow-title { text-shadow: 0 0 20px rgba(124, 77, 255, 0.5); }
+    </style>
+</head>
+<body class="text-gray-200">
+
+    <!-- The actual poster area to be converted to image -->
+    <div id="poster-wrapper" class="bg-poster-gradient overflow-hidden flex flex-col">
+        <!-- Abstract Background Orbs -->
+        <div class="absolute top-[-5%] left-[-20%] w-96 h-96 bg-brand-purple rounded-full mix-blend-screen filter blur-[100px] opacity-40"></div>
+        <div class="absolute top-[40%] right-[-20%] w-72 h-72 bg-blue-600 rounded-full mix-blend-screen filter blur-[100px] opacity-20"></div>
+
+        <!-- 1. Header Section -->
+        <div class="relative z-10 px-6 pt-10 pb-2 text-center">
+            <div class="flex justify-center items-center gap-3 mb-6 opacity-80 text-xs font-light tracking-widest">
+                <span>人瑞人才</span>
+                <span class="w-1 h-1 bg-gray-500 rounded-full"></span>
+                <span>瑞华智策</span>
+                <span class="w-1 h-1 bg-gray-500 rounded-full"></span>
+                <span>中国经营报</span>
+            </div>
+        </div>
+
+        <!-- 2. Banner Title Section -->
+        <div class="relative z-10 px-5 text-center mb-6">
+            <div class="text-purple-400 text-sm tracking-[0.2em] mb-3 font-light">AI变革深水区 · 打造新质组织</div>
+            <h1 class="text-[24px] font-bold text-white leading-snug glow-title mb-2">
+                诚挚邀请您参与<br>
+                <span class="text-gradient">《2025-2026中国新质组织研究<br>& 优秀企业案例征集》</span>
+            </h1>
+        </div>
+
+        <!-- 2.5 Invitation Letter Snippet -->
+        <div class="relative z-10 px-5 mb-6">
+            <div class="glass-panel p-5 relative overflow-hidden">
+                <i class="bi bi-quote absolute -top-2 right-2 text-6xl text-white opacity-5"></i>
+                <p class="text-purple-300 text-sm mb-3 font-medium">敬致正在努力探索AI时代组织进化之路的标杆企业：</p>
+                <div class="space-y-2 text-[12px] text-gray-300 leading-relaxed text-justify">
+                    <p>在AI技术快速进化、人机共智持续深化的时代，<strong class="text-white">组织发展</strong>注定会是一个长期、复杂且动态的关键课题！</p>
+                    <p>我们相信：只有<strong class="text-purple-400">“新质组织”</strong>才能承载新质生产力在微观层面的健康落地，兼顾人才、企业乃至社会的和谐共赢。</p>
+                    <p>为此，我们郑重联合权威机构，正式启动“中国新质组织研究”项目。诚挚邀请您参与问卷调研和优秀案例申报，“one for all, all for one”，更多企业的输入与分享终将绘制成中国组织发展的未来！</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Value Proposition Section (Detailed List Layout) -->
+        <div class="relative z-10 px-4 flex-1">
+            <div class="flex items-center justify-center gap-2 mb-4">
+                <div class="h-px w-12 bg-gradient-to-r from-transparent to-gold"></div>
+                <h3 class="text-gold font-bold tracking-widest text-[13px]">深度参与将获得如下价值回报</h3>
+                <div class="h-px w-12 bg-gradient-to-l from-transparent to-gold"></div>
+            </div>
+
+            <div class="space-y-3">
+                <!-- 专业价值回报 -->
+                <div class="glass-panel p-4 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
+                    <h4 class="text-purple-300 font-bold mb-3 flex items-center gap-2 text-xs"><i class="bi bi-gem"></i> 专业价值回报</h4>
+                    <div class="space-y-2.5">
+                        <div class="flex items-start gap-2">
+                            <i class="bi bi-check2-square text-purple-400 mt-0.5 text-xs"></i>
+                            <div class="flex-1">
+                                <div class="text-white font-medium text-[11px]">组织能力深度诊断与评估</div>
+                                <div class="text-gray-400 text-[10px] leading-snug mt-0.5">基于五维模型进行诊断，产出专属《评估报告》或人效体检，为战略决策提供数据支撑。</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <i class="bi bi-check2-square text-purple-400 mt-0.5 text-xs"></i>
+                            <div class="flex-1">
+                                <div class="text-white font-medium text-[11px]">企业专属的组织变革建议</div>
+                                <div class="text-gray-400 text-[10px] leading-snug mt-0.5">获得专家“一对一”解读服务，将评估结果转化为可执行的内部改进方案。</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <i class="bi bi-check2-square text-purple-400 mt-0.5 text-xs"></i>
+                            <div class="flex-1">
+                                <div class="text-white font-medium text-[11px]">顶级专家智力资源对接</div>
+                                <div class="text-gray-400 text-[10px] leading-snug mt-0.5">通过闭门私董会、研讨会等，与资深智库专家深度交流，解决实际难题。</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <i class="bi bi-check2-square text-purple-400 mt-0.5 text-xs"></i>
+                            <div class="flex-1">
+                                <div class="text-white font-medium text-[11px]">高层管理者交流平台</div>
+                                <div class="text-gray-400 text-[10px] leading-snug mt-0.5">链接行业标杆企业“1号位”，通过参访、共创促进经验交流，探索进化之路。</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <i class="bi bi-check2-square text-purple-400 mt-0.5 text-xs"></i>
+                            <div class="flex-1">
+                                <div class="text-white font-medium text-[11px]">参与行业标准共建</div>
+                                <div class="text-gray-400 text-[10px] leading-snug mt-0.5">作为首批核心研究伙伴，将实践经验融入评估标准制定，提升行业话语权。</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 传播价值回报 -->
+                <div class="glass-panel p-4 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-blue-400"></div>
+                    <h4 class="text-blue-300 font-bold mb-3 flex items-center gap-2 text-xs"><i class="bi bi-megaphone"></i> 传播价值回报</h4>
+                    <div class="space-y-2.5">
+                        <div class="flex items-start gap-2">
+                            <i class="bi bi-check2-square text-blue-400 mt-0.5 text-xs"></i>
+                            <div class="flex-1">
+                                <div class="text-white font-medium text-[11px]">高端访谈 IP 联动</div>
+                                <div class="text-gray-400 text-[10px] leading-snug mt-0.5">核心管理层参与《值得看见》栏目录制，全渠道同步推广，提升品牌影响力。</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <i class="bi bi-check2-square text-blue-400 mt-0.5 text-xs"></i>
+                            <div class="flex-1">
+                                <div class="text-white font-medium text-[11px]">标杆案例权威沉淀</div>
+                                <div class="text-gray-400 text-[10px] leading-snug mt-0.5">案例收录于《研究报告》，并有机会纳入联手打造的书籍出版物，强化公信力。</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <i class="bi bi-check2-square text-blue-400 mt-0.5 text-xs"></i>
+                            <div class="flex-1">
+                                <div class="text-white font-medium text-[11px]">权威媒体传播背书</div>
+                                <div class="text-gray-400 text-[10px] leading-snug mt-0.5">有机会获得中国经营报专题深度报道，并在全媒体矩阵同步推广。</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <i class="bi bi-check2-square text-blue-400 mt-0.5 text-xs"></i>
+                            <div class="flex-1">
+                                <div class="text-white font-medium text-[11px]">行业盛典品牌发声</div>
+                                <div class="text-gray-400 text-[10px] leading-snug mt-0.5">受邀出席“新质组织发展论坛暨颁奖盛典”，做主题分享并授予专属奖项。</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Footer & QR Code Section -->
+        <div class="relative z-10 mt-auto pt-8 pb-8 px-6 flex items-center justify-between gap-4">
+            <div class="flex-1">
+                <div class="text-white text-lg font-bold mb-1 tracking-wider">扫码参与调研</div>
+                <div class="text-purple-300 text-xs mb-2">诚邀标杆企业加入</div>
+            </div>
+            
+            <div class="bg-white p-1.5 rounded-xl shadow-[0_0_20px_rgba(124,77,255,0.3)] flex-shrink-0 relative">
+                <div id="qrcode" class="w-[76px] h-[76px]"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Get channel from URL if any
+            const urlParams = new URLSearchParams(window.location.search);
+            const channel = urlParams.get('channel') || 'poster';
+            
+            // 2. Generate Survey URL
+            const baseUrl = window.location.origin;
+            const surveyLink = `${baseUrl}/nqoc/survey.html?channel=${channel}`;
+
+            // 3. Render QR Code
+            new QRCode(document.getElementById("qrcode"), {
+                text: surveyLink,
+                width: 76,
+                height: 76,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.M
+            });
+        });
+    </script>
+</body>
+</html>

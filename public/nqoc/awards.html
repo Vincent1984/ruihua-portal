@@ -27,7 +27,7 @@
         }
     </script>
     <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/nqoc/css/style.css">
 <script> 
  var _hmt = _hmt || []; 
@@ -689,9 +689,16 @@
             const fileInput = document.getElementById('file-upload');
             const channelInput = document.getElementById('channel');
 
-            // Capture channel from URL params
+            // Capture channel from URL params or sessionStorage
             const urlParams = new URLSearchParams(window.location.search);
-            const channel = urlParams.get('channel') || urlParams.get('source') || urlParams.get('utm_source') || 'organic';
+            let channel = urlParams.get('channel') || urlParams.get('source') || urlParams.get('utm_source');
+            
+            if (channel) {
+                sessionStorage.setItem('nqoc_global_channel', channel);
+            } else {
+                channel = sessionStorage.getItem('nqoc_global_channel') || 'organic';
+            }
+
             if (channelInput) {
                 channelInput.value = channel;
             }

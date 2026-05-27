@@ -98,6 +98,7 @@ function renderTable(data) {
 
         tr.innerHTML = `
             <td><div class="fw-bold">${escapeHtml(item.orgName || '-')}</div></td>
+            <td><span class="badge bg-light text-dark border">${item.channel === 'organic' ? '自然流量' : escapeHtml(item.channel || 'organic')}</span></td>
             <td>${escapeHtml(item.contactName || '-')}</td>
             <td>${escapeHtml(item.phone || '-')}</td>
             <td><span class="badge bg-info">${escapeHtml(getAwardName(item.awardCategory))}</span></td>
@@ -248,4 +249,183 @@ function exportData() {
     // Let's create an export endpoint in server.js
     const url = `/api/admin/nqoc/awards/export?${query.toString()}&token=${sessionStorage.getItem('token')}`;
     window.open(url, '_blank');
+}
+
+// --- Channel Management ---
+let channelModal;
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadChannels();
+});
+
+async function loadChannels() {
+    try {
+        const response = await fetch('/api/admin/nqoc/awards/channels', {
+            headers: authHeaders()
+        });
+        const res = await response.json();
+        if (res.success) {
+            renderChannelTable(res.data);
+            populateChannelSelects(res.data);
+        }
+    } catch (e) {
+        console.error('Failed to load channels', e);
+    }
+}
+
+function populateChannelSelects(data) {
+    const dataSelect = document.getElementById('searchChannel');
+    if (!dataSelect) return;
+    
+    const currentVal = dataSelect.value;
+    const optionsHtml = '<option value="">所有渠道 (不限)</option><option value="organic">自然流量 (organic)</option>' + 
+        data.map(item => `<option value="${item.code}">${item.name} (${item.code})</option>`).join('');
+
+    dataSelect.innerHTML = optionsHtml;
+    dataSelect.value = currentVal;
+}
+
+function renderChannelTable(data) {
+    const tbody = document.getElementById('channelTableBody');
+    if (!tbody) return;
+    if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">暂无渠道数据</td></tr>';
+        return;
+    }
+    
+    const baseUrl = window.location.origin;
+    
+    tbody.innerHTML = data.map(item => `
+        <tr>
+            <td class="fw-bold">${item.name}</td>
+            <td><code>${item.code}</code></td>
+            <td>${item.description || '-'}</td>
+            <td>
+                <div class="input-group input-group-sm" style="max-width: 300px;">
+                    <input type="text" class="form-control" value="${baseUrl}/nqoc/awards?channel=${item.code}" readonly id="link-${item.code}">
+                    <button class="btn btn-outline-secondary" onclick="copyLink('link-${item.code}')"><i class="bi bi-clipboard"></i></button>
+                </div>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-outline-info" onclick="showQRCode('${item.name}', '${item.code}')"><i class="bi bi-qr-code"></i></button>
+            </td>
+            <td><span class="badge bg-primary rounded-pill">${item.submissionCount || 0}</span></td>
+            <td class="text-muted small">${new Date(item.createdAt).toLocaleString('zh-CN')}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary me-1" onclick="editChannel('${item._id}', '${item.name}', '${item.code}', '${item.description || ''}')"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteChannel('${item._id}')"><i class="bi bi-trash"></i></button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function copyLink(id) {
+    const input = document.getElementById(id);
+    input.select();
+    document.execCommand('copy');
+    alert('链接已复制到剪贴板');
+}
+
+function showChannelModal() {
+    document.getElementById('channelForm').reset();
+    document.getElementById('channelId').value = '';
+    document.getElementById('channelModalTitle').textContent = '新增渠道';
+    if (!channelModal) channelModal = new bootstrap.Modal(document.getElementById('channelModal'));
+    channelModal.show();
+}
+
+function editChannel(id, name, code, description) {
+    document.getElementById('channelId').value = id;
+    document.getElementById('channelName').value = name;
+    document.getElementById('channelCode').value = code;
+    document.getElementById('channelDescription').value = description;
+    document.getElementById('channelModalTitle').textContent = '编辑渠道';
+    if (!channelModal) channelModal = new bootstrap.Modal(document.getElementById('channelModal'));
+    channelModal.show();
+}
+
+async function saveChannel() {
+    const id = document.getElementById('channelId').value;
+    const name = document.getElementById('channelName').value;
+    const code = document.getElementById('channelCode').value;
+    const description = document.getElementById('channelDescription').value;
+    
+    if (!name || !code) return alert('请填写渠道名称和代码');
+    
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `/api/admin/nqoc/awards/channels/${id}` : '/api/admin/nqoc/awards/channels';
+    
+    try {
+        const response = await fetch(url, {
+            method,
+            headers: {
+                ...authHeaders(),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name, code, description })
+        });
+        const res = await response.json();
+        
+        if (res.success) {
+            channelModal.hide();
+            loadChannels();
+        } else {
+            alert(res.error || '保存失败');
+        }
+    } catch (e) {
+        alert('网络错误');
+    }
+}
+
+async function deleteChannel(id) {
+    if (!confirm('确定要删除此渠道吗？')) return;
+    
+    try {
+        const response = await fetch(`/api/admin/nqoc/awards/channels/${id}`, {
+            method: 'DELETE',
+            headers: authHeaders()
+        });
+        const res = await response.json();
+        if (res.success) {
+            loadChannels();
+        } else {
+            alert('删除失败');
+        }
+    } catch (e) {
+        alert('网络错误');
+    }
+}
+
+// --- QR Code Management ---
+let qrModal;
+function showQRCode(name, code) {
+    const baseUrl = window.location.origin;
+    const link = `${baseUrl}/nqoc/awards?channel=${code}`;
+    
+    document.getElementById('qrChannelName').textContent = `渠道: ${name} (${code})`;
+    const container = document.getElementById('qrCodeContainer');
+    container.innerHTML = ''; // clear old
+
+    if (!qrModal) qrModal = new bootstrap.Modal(document.getElementById('qrCodeModal'));
+    qrModal.show();
+
+    new QRCode(container, {
+        text: link,
+        width: 300,
+        height: 300,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+    });
+}
+
+function downloadQRCode() {
+    const container = document.getElementById('qrCodeContainer');
+    const canvas = container.querySelector('canvas');
+    if (!canvas) return;
+    
+    const link = document.createElement('a');
+    link.download = `NQOC_Awards_QR.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
 }

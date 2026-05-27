@@ -120,7 +120,6 @@ const nqocSurveySubmissionSchema = new mongoose.Schema({
     o4_3: { type: String, default: '' },
     o5_1: { type: String, default: '' },
     o5_2: { type: String, default: '' },
-    o5_3: { type: String, default: '' },
 
     // 第五部分 总体评价与综合反馈
     s1: { type: Number, required: true },

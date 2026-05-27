@@ -58,58 +58,164 @@
         </div>
 
         <div class="page-content">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white py-3">
-                    <div class="row g-3 align-items-center">
-                        <div class="col-md-3">
-                            <input type="text" id="searchKeyword" class="form-control" placeholder="搜索企业名称/姓名/手机号...">
+            <!-- Tabs -->
+            <ul class="nav nav-tabs mb-4" id="awardTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="data-tab" data-bs-toggle="tab" data-bs-target="#data-pane" type="button" role="tab">申报数据</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="channel-tab" data-bs-toggle="tab" data-bs-target="#channel-pane" type="button" role="tab">渠道溯源</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="awardTabsContent">
+                <!-- Data Pane -->
+                <div class="tab-pane fade show active" id="data-pane" role="tabpanel" tabindex="0">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white py-3">
+                            <div class="row g-3 align-items-center">
+                                <div class="col-md-3">
+                                    <input type="text" id="searchKeyword" class="form-control" placeholder="搜索企业名称/姓名/手机号...">
+                                </div>
+                                <div class="col-md-2">
+                                    <select id="searchChannel" class="form-select">
+                                        <option value="">所有渠道 (不限)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="date" id="searchStartDate" class="form-control" placeholder="开始时间">
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="date" id="searchEndDate" class="form-control" placeholder="结束时间">
+                                </div>
+                                <div class="col-md-3 d-flex gap-2">
+                                    <button class="btn btn-primary w-100" onclick="loadData(1)"><i class="bi bi-search"></i> 查询</button>
+                                    <button class="btn btn-success w-100" onclick="exportData()"><i class="bi bi-file-earmark-excel"></i> 导出</button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <input type="text" id="searchChannel" class="form-control" placeholder="搜索来源渠道...">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>企业名称</th>
+                                            <th>渠道来源</th>
+                                            <th>联系人</th>
+                                            <th>手机号</th>
+                                            <th>申报奖项</th>
+                                            <th>提交时间</th>
+                                            <th>附件</th>
+                                            <th>状态</th>
+                                            <th>前端展示</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dataTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <input type="date" id="searchStartDate" class="form-control" placeholder="开始时间">
-                        </div>
-                        <div class="col-md-2">
-                            <input type="date" id="searchEndDate" class="form-control" placeholder="结束时间">
-                        </div>
-                        <div class="col-md-3 d-flex gap-2">
-                            <button class="btn btn-primary w-100" onclick="loadData(1)"><i class="bi bi-search"></i> 查询</button>
-                            <button class="btn btn-success w-100" onclick="exportData()"><i class="bi bi-file-earmark-excel"></i> 导出</button>
+                        <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                            <div class="text-secondary small">
+                                共 <span id="totalCount">0</span> 条记录，当前第 <span id="currentPage">1</span>/<span id="totalPages">1</span> 页
+                            </div>
+                            <nav>
+                                <ul class="pagination pagination-sm mb-0">
+                                    <li class="page-item"><button class="page-link" onclick="changePage(-1)">上一页</button></li>
+                                    <li class="page-item"><button class="page-link" onclick="changePage(1)">下一页</button></li>
+                                </ul>
+                            </nav>
                         </div>
                     </div>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>企业名称</th>
-                                    <th>联系人</th>
-                                    <th>手机号</th>
-                                    <th>申报奖项</th>
-                                    <th>提交时间</th>
-                                    <th>附件</th>
-                                    <th>状态</th>
-                                    <th>前端展示</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody id="dataTableBody">
-                            </tbody>
-                        </table>
+
+                <!-- Channel Pane -->
+                <div class="tab-pane fade" id="channel-pane" role="tabpanel" tabindex="0">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="m-0 text-primary">渠道管理</h5>
+                            <button class="btn btn-primary" onclick="showChannelModal()"><i class="bi bi-plus-lg"></i> 新增渠道</button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>渠道名称</th>
+                                            <th>渠道代码 (code)</th>
+                                            <th>描述说明</th>
+                                            <th>专属链接</th>
+                                            <th>二维码</th>
+                                            <th>申报数</th>
+                                            <th>创建时间</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="channelTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="card-footer bg-white d-flex justify-content-between align-items-center">
-                    <div class="text-secondary small">
-                        共 <span id="totalCount">0</span> 条记录，当前第 <span id="currentPage">1</span>/<span id="totalPages">1</span> 页
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Channel Modal -->
+<div class="modal fade" id="channelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="channelModalTitle">新增渠道</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="channelForm">
+                    <input type="hidden" id="channelId">
+                    <div class="mb-3">
+                        <label class="form-label">渠道名称 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="channelName" required>
                     </div>
-                    <nav>
-                        <ul class="pagination pagination-sm mb-0">
-                            <li class="page-item"><button class="page-link" onclick="changePage(-1)">上一页</button></li>
-                            <li class="page-item"><button class="page-link" onclick="changePage(1)">下一页</button></li>
-                        </ul>
-                    </nav>
+                    <div class="mb-3">
+                        <label class="form-label">渠道代码 (code) <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="channelCode" required placeholder="如: wechat_oa">
+                        <div class="form-text">用于URL参数，需唯一，仅限字母数字下划线。</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">描述说明</label>
+                        <textarea class="form-control" id="channelDescription" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveChannel()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QR Code Modal -->
+<div class="modal fade" id="qrCodeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">专属推广二维码</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center pt-2">
+                <p class="text-muted small mb-4" id="qrChannelName"></p>
+                <div class="d-flex justify-content-center mb-4">
+                    <div id="qrCodeContainer" class="bg-white p-3 rounded-4 shadow-sm border" style="width: fit-content;">
+                        <!-- Canvas will be injected here -->
+                    </div>
+                </div>
+                <div>
+                    <button class="btn btn-primary px-4 rounded-pill" onclick="downloadQRCode()">
+                        <i class="bi bi-download me-1"></i> 下载高质量海报
+                    </button>
                 </div>
             </div>
         </div>
@@ -117,6 +223,7 @@
 </div>
 
 <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="js/utils.js?v=6"></script>
 <script src="/admin/js/unified-admin-sidebar.js?v=6"></script>
 <script src="js/nqoc-awards.js?v=6"></script>

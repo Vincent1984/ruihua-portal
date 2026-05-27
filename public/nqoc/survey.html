@@ -10,27 +10,15 @@
     <meta name="keywords" content="新质组织成熟度调研, 组织能力诊断, 企业管理问卷">
     <meta name="description" content="参与2025-2026中国企业新质组织成熟度调研，获取免费的定制化组织能力诊断报告，明确企业在5大维度上的发展阶段与进阶路径。">
     <link rel="canonical" href="https://www.ruihuaconsulting.com/nqoc/survey">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            500: '#8b5cf6',
-                            600: '#7c3aed'
-                        },
-                        cyber: {
-                            cyan: '#00f0ff',
-                            purple: '#b026ff'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Pre-compiled Tailwind CSS for significantly faster page load -->
+    <link rel="stylesheet" href="/nqoc/css/tailwind-compiled.css">
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <!-- <script>
+        tailwind.config = { ... }
+    </script> -->
     <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://cdn.bootcdn.net" crossorigin>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/nqoc/css/style.css">
 
     <style>
@@ -213,6 +201,19 @@
     </script>
 
 
+    <!-- Immersive Fixed Progress Bar (Hidden by default) -->
+    <div id="immersive-progress-bar" class="fixed top-0 left-0 w-full z-[100] hidden bg-[#080b14]/90 backdrop-blur-md border-b border-white/10 shadow-lg">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+            <span class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fas fa-clipboard-list text-[var(--nqoc-accent-cyan)]"></i> 调研进度
+            </span>
+            <span id="immersive-progress-text" class="text-xs font-mono text-[var(--nqoc-brand-light)] bg-[var(--nqoc-brand)]/20 px-2 py-0.5 rounded-md">0%</span>
+        </div>
+        <div class="w-full h-1 bg-white/5 relative">
+            <div id="immersive-progress-fill" class="absolute top-0 left-0 h-full bg-gradient-to-r from-[var(--nqoc-accent-cyan)] to-[var(--nqoc-brand)] transition-all duration-500 ease-out w-0 shadow-[0_0_10px_rgba(0,240,255,0.5)]"></div>
+        </div>
+    </div>
+
     <!-- Main Content -->
     <main class="flex-grow pt-24 pb-16 relative overflow-hidden">
         <!-- Abstract Decorations -->
@@ -224,18 +225,15 @@
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             
             <!-- 01 Banner -->
-            <div class="text-center mb-16 animate-on-scroll mt-10 hide-in-immersive">
-                <div class="inline-block mb-4 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[var(--nqoc-accent-cyan)] text-sm font-medium tracking-wider uppercase">
-                    参与调研，赢千元大奖
-                </div>
+            <div class="text-center mb-8 md:mb-16 animate-on-scroll mt-10 hide-in-immersive">
                 <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white leading-tight mb-6 tracking-tight">
                     <span class="block mb-2">2025-2026中国企业新质组织</span>
                     <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00f0ff] to-[#b026ff]">成熟度有奖调研</span>
                 </h1>
-                <p class="text-sm text-slate-400 mb-8 max-w-3xl mx-auto leading-relaxed text-left">
+                <p class="text-sm text-slate-400 mb-4 max-w-3xl mx-auto leading-relaxed text-left">
                     本调研由人瑞人才、瑞华智策·新质组织研究中心、中国经营报联合发起，为确保学术严谨性，项目邀请北京大学光华管理学院组织与战略管理系姜铠丰教授作为学术负责人，旨在系统化评估中国企业在 AI 时代向“新质组织”演进的成熟度。
                 </p>
-                <div class="group inline-flex items-start md:items-center gap-3 text-sm text-emerald-400 bg-emerald-400/10 hover:bg-emerald-400/20 border border-emerald-400/20 py-2.5 px-6 rounded-2xl md:rounded-full text-left transition-all duration-300 cursor-pointer mt-4 max-w-full">
+                <div class="group inline-flex items-start md:items-center gap-2 text-xs md:text-sm text-emerald-400 bg-emerald-400/10 hover:bg-emerald-400/20 border border-emerald-400/20 py-2 px-4 md:py-2.5 md:px-6 rounded-2xl md:rounded-full text-left transition-all duration-300 cursor-pointer max-w-full">
                     <i class="fas fa-shield-alt mt-0.5 md:mt-0 shrink-0"></i>
                     <span class="block truncate group-hover:whitespace-normal transition-all duration-300">
                         <strong class="font-bold">数据严格保密承诺：</strong>所有调研数据仅用于学术研究与总体趋势分析，绝不向第三方泄露企业敏感信息。
@@ -247,19 +245,19 @@
             <div class="mb-12 animate-on-scroll hide-in-immersive">
                 
                 <!-- 新增：抽奖福利模块 -->
-                <div class="mb-10 relative p-[1px] rounded-3xl group hover:-translate-y-1 transition-transform duration-500 overflow-hidden bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 shadow-[0_0_40px_rgba(251,191,36,0.15)] mt-8">
+                <div class="mb-10 relative p-[1px] rounded-3xl group hover:-translate-y-1 transition-transform duration-500 overflow-hidden bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 shadow-[0_0_40px_rgba(251,191,36,0.15)] mt-4 md:mt-8">
                     <!-- Top Ribbon -->
                     <div class="absolute top-0 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 text-black font-black text-sm md:text-base px-8 md:px-12 py-1.5 md:py-2 rounded-b-2xl shadow-lg z-20 whitespace-nowrap flex items-center gap-2">
-                        <i class="fas fa-crown"></i> 参与调研，赢千元大奖 <i class="fas fa-crown"></i>
+                        <i class="fas fa-crown"></i> 参与调研，有机会获得 <i class="fas fa-crown"></i>
                     </div>
-                    <div class="relative h-full bg-gradient-to-br from-[#1a1500] to-[#0a0a0f] p-6 md:p-8 pt-12 md:pt-14 rounded-3xl z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
+                    <div class="relative h-full bg-gradient-to-br from-[#1a1500] to-[#0a0a0f] p-6 md:p-8 pt-10 md:pt-14 rounded-3xl z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
                         <div class="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 blur-[80px] rounded-full pointer-events-none"></div>
                         
-                        <div class="flex-1 w-full text-left">
-                            <h4 class="text-lg md:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-500 mb-4 leading-relaxed">
-                                6月15号前完成有效问卷填写的，<br class="hidden md:block">有机会获得千元大奖！
+                        <div class="flex-1 w-full text-left lg:pr-12">
+                            <h4 class="text-[14.5px] sm:text-lg md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-500 mb-2 md:mb-4 leading-relaxed whitespace-nowrap md:whitespace-normal tracking-[-0.07em] md:tracking-normal w-full overflow-hidden text-ellipsis">
+                                6月15日前提交有效问卷，即有机会赢取千元好礼！
                             </h4>
-                            <p class="text-slate-400 text-sm mt-6">
+                            <p class="text-slate-400 text-[11px] md:text-sm mt-2 md:mt-6">
                                 <i class="fas fa-bullhorn text-amber-400/80 mr-1"></i>
                                 6月21日<span class="text-amber-400 font-medium">“人力资本价值经营”</span>公众号公布获奖名单
                             </p>
@@ -311,52 +309,52 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col md:grid md:grid-cols-3 gap-4 md:gap-6">
-                    <div class="relative p-[1px] rounded-3xl group hover:-translate-y-2 transition-transform duration-500 overflow-hidden bg-gradient-to-br from-slate-800 to-black">
+                <div class="grid grid-cols-3 md:grid-cols-3 gap-2 md:gap-6">
+                    <div class="relative p-[1px] rounded-2xl md:rounded-3xl group hover:-translate-y-2 transition-transform duration-500 overflow-hidden bg-gradient-to-br from-slate-800 to-black">
                         <!-- Animated border gradient -->
                         <div class="absolute inset-0 bg-gradient-to-br from-[#7c4dff] via-transparent to-[#c026d3] opacity-50 group-hover:opacity-100 transition-opacity duration-500"></div>
-                        <div class="relative h-full bg-[#0a0a0f] p-6 md:p-8 rounded-3xl text-center flex flex-col items-center z-10">
+                        <div class="relative h-full bg-[#0a0a0f] p-3 md:p-8 rounded-2xl md:rounded-3xl text-center flex flex-col items-center z-10">
                             <!-- Icon Container with Glow -->
-                            <div class="relative w-20 h-20 mb-6">
+                            <div class="relative w-10 h-10 md:w-20 md:h-20 mb-2 md:mb-6">
                                 <div class="absolute inset-0 bg-[#7c4dff] blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-500 rounded-full"></div>
                                 <div class="relative w-full h-full bg-gradient-to-br from-[#7c4dff]/20 to-[#c026d3]/20 border border-[#7c4dff]/30 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-book-open text-3xl text-[#7c4dff]"></i>
+                                    <i class="fas fa-book-open text-lg md:text-3xl text-[#7c4dff]"></i>
                                 </div>
                             </div>
-                            <h4 class="text-xl font-bold text-white mb-3 tracking-wide">免费获得权威报告</h4>
-                            <p class="text-sm text-slate-400 text-left w-full leading-relaxed">获得完整版《2026中国新质组织成熟度研究报告》，深度理解AI时代中国企业组织变革的现状、挑战及专家深度洞察和变革建议。</p>
+                            <h4 class="text-[11px] md:text-xl font-bold text-white mb-1 md:mb-3 tracking-wide leading-tight">免费获得<br class="md:hidden">权威报告</h4>
+                            <p class="hidden md:block text-sm text-slate-400 text-left w-full leading-relaxed">获得完整版《2026中国新质组织成熟度研究报告》，深度理解AI时代中国企业组织变革的现状、挑战及专家深度洞察和变革建议。</p>
                         </div>
                     </div>
                     
-                    <div class="relative p-[1px] rounded-3xl group hover:-translate-y-2 transition-transform duration-500 overflow-hidden bg-gradient-to-br from-slate-800 to-black">
+                    <div class="relative p-[1px] rounded-2xl md:rounded-3xl group hover:-translate-y-2 transition-transform duration-500 overflow-hidden bg-gradient-to-br from-slate-800 to-black">
                         <!-- Animated border gradient -->
                         <div class="absolute inset-0 bg-gradient-to-br from-[#00f0ff] via-transparent to-[#7c4dff] opacity-50 group-hover:opacity-100 transition-opacity duration-500"></div>
-                        <div class="relative h-full bg-[#0a0a0f] p-6 md:p-8 rounded-3xl text-center flex flex-col items-center z-10">
+                        <div class="relative h-full bg-[#0a0a0f] p-3 md:p-8 rounded-2xl md:rounded-3xl text-center flex flex-col items-center z-10">
                             <!-- Icon Container with Glow -->
-                            <div class="relative w-20 h-20 mb-6">
+                            <div class="relative w-10 h-10 md:w-20 md:h-20 mb-2 md:mb-6">
                                 <div class="absolute inset-0 bg-[#00f0ff] blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-500 rounded-full"></div>
                                 <div class="relative w-full h-full bg-gradient-to-br from-[#00f0ff]/20 to-[#7c4dff]/20 border border-[#00f0ff]/30 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-chart-line text-3xl text-[#00f0ff]"></i>
+                                    <i class="fas fa-chart-line text-lg md:text-3xl text-[#00f0ff]"></i>
                                 </div>
                             </div>
-                            <h4 class="text-xl font-bold text-white mb-3 tracking-wide">1对1专属诊断解读</h4>
-                            <p class="text-sm text-slate-400 text-left w-full leading-relaxed">有机会免费获得针对企业自身的个性化组织人效诊断报告和 1 对 1 专家解读。</p>
+                            <h4 class="text-[11px] md:text-xl font-bold text-white mb-1 md:mb-3 tracking-wide leading-tight">1对1专属<br class="md:hidden">诊断解读</h4>
+                            <p class="hidden md:block text-sm text-slate-400 text-left w-full leading-relaxed">有机会免费获得针对企业自身的个性化组织人效诊断报告和 1 对 1 专家解读。</p>
                         </div>
                     </div>
                     
-                    <div class="relative p-[1px] rounded-3xl group hover:-translate-y-2 transition-transform duration-500 overflow-hidden bg-gradient-to-br from-slate-800 to-black">
+                    <div class="relative p-[1px] rounded-2xl md:rounded-3xl group hover:-translate-y-2 transition-transform duration-500 overflow-hidden bg-gradient-to-br from-slate-800 to-black">
                         <!-- Animated border gradient -->
                         <div class="absolute inset-0 bg-gradient-to-br from-amber-400 via-transparent to-[#c026d3] opacity-50 group-hover:opacity-100 transition-opacity duration-500"></div>
-                        <div class="relative h-full bg-[#0a0a0f] p-6 md:p-8 rounded-3xl text-center flex flex-col items-center z-10">
+                        <div class="relative h-full bg-[#0a0a0f] p-3 md:p-8 rounded-2xl md:rounded-3xl text-center flex flex-col items-center z-10">
                             <!-- Icon Container with Glow -->
-                            <div class="relative w-20 h-20 mb-6">
+                            <div class="relative w-10 h-10 md:w-20 md:h-20 mb-2 md:mb-6">
                                 <div class="absolute inset-0 bg-amber-400 blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-500 rounded-full"></div>
                                 <div class="relative w-full h-full bg-gradient-to-br from-amber-400/20 to-[#c026d3]/20 border border-amber-400/30 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-ticket-alt text-3xl text-amber-400"></i>
+                                    <i class="fas fa-ticket-alt text-lg md:text-3xl text-amber-400"></i>
                                 </div>
                             </div>
-                            <h4 class="text-xl font-bold text-white mb-3 tracking-wide">直通年度峰会盛典</h4>
-                            <p class="text-sm text-slate-400 text-left w-full leading-relaxed">受邀出席8月“中国新质组织发展论坛暨优秀新质组织评选颁奖盛典”，与意见领袖、行业大咖共话AI时代组织进化的策略与方案。</p>
+                            <h4 class="text-[11px] md:text-xl font-bold text-white mb-1 md:mb-3 tracking-wide leading-tight">直通年度<br class="md:hidden">峰会盛典</h4>
+                            <p class="hidden md:block text-sm text-slate-400 text-left w-full leading-relaxed">受邀出席8月“中国新质组织发展论坛暨优秀新质组织评选颁奖盛典”，与意见领袖、行业大咖共话AI时代组织进化的策略与方案。</p>
                         </div>
                     </div>
                 </div>
@@ -372,76 +370,57 @@
                         <h3 class="text-base font-bold text-white mb-3 flex items-center gap-2 md:hidden">
                             <i class="fas fa-clipboard-list text-[var(--nqoc-accent-cyan)]"></i> 填写说明
                         </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm text-slate-300 leading-relaxed">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-2 text-xs md:text-sm text-slate-300 leading-relaxed">
                             <p><i class="fas fa-clock text-slate-500 mr-1.5 text-xs"></i> 预计填写时间 <strong>12–15 分钟</strong></p>
-                            <p><i class="fas fa-users text-slate-500 mr-1.5 text-xs"></i> 建议 <strong>CHRO/HRVP</strong> 牵头，协同高管确认</p>
+                            <p><i class="fas fa-users text-slate-500 mr-1.5 text-xs"></i> 建议 <strong>CHRO/HRVP</strong> 牵头</p>
                             <p><i class="fas fa-pen-nib text-slate-500 mr-1.5 text-xs"></i> 基于真实情况作答，<strong>无标准答案</strong></p>
-                            <p><i class="fas fa-lock text-emerald-500/70 mr-1.5 text-xs"></i> 数据<strong>严格保密</strong>，仅用于行业研究分析</p>
+                        </div>
+                        
+                        <!-- FAQ Module -->
+                        <div class="mt-4 pt-4 border-t border-white/10">
+                            <details class="group">
+                                <summary class="flex justify-between items-center font-medium cursor-pointer list-none text-sm text-slate-300 hover:text-white transition-colors outline-none">
+                                    <span class="flex items-center gap-2"><i class="fas fa-question-circle text-[var(--nqoc-accent-cyan)]"></i> 常见问题 (点击展开)</span>
+                                    <span class="transition-transform duration-300 group-open:rotate-180 text-[var(--nqoc-accent-cyan)]">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </span>
+                                </summary>
+                                <div class="text-xs md:text-sm mt-4 space-y-4 animate-fade-in bg-black/20 p-4 rounded-xl border border-white/5">
+                                    <div>
+                                        <div class="font-bold text-white mb-1"><span class="text-[var(--nqoc-accent-cyan)] mr-1">Q1:</span>企业可以只参与问卷调研，不参与优秀案例申报吗？</div>
+                                        <div class="text-slate-400 leading-relaxed"><span class="font-bold mr-1">A:</span>可以。企业自愿参与、灵活选择。但欲申报优秀企业案例的企业，必须先完成问卷调研，这是参评基础门槛。</div>
+                                    </div>
+                                    <div class="h-px w-full bg-white/5"></div>
+                                    <div>
+                                        <div class="font-bold text-white mb-1"><span class="text-[var(--nqoc-accent-cyan)] mr-1">Q2:</span>问卷调研和优秀案例申报，二者核心区别与权益差异是什么？</div>
+                                        <div class="text-slate-400 leading-relaxed"><span class="font-bold mr-1">A:</span>核心差异为参与门槛与专属权益不同。仅完成问卷调研的企业，可免费获得完整版《中国新质组织成熟度研究报告》，同时可以申请企业专属的《新质组织成熟度个性化诊断简报》，直观掌握企业组织转型现状、短板与优化方向，还可以受邀参加项目期间的线下智库专家研讨会。参与优秀案例申报的企业，除享有以上全部权益外，还可角逐行业权威奖项、纳入官方标杆案例库，获得权威媒体的全方位曝光、智库专家深度问诊、高端峰会品牌展示及主题分享等专属权益。</div>
+                                    </div>
+                                    <div class="h-px w-full bg-white/5"></div>
+                                    <div>
+                                        <div class="font-bold text-white mb-1"><span class="text-[var(--nqoc-accent-cyan)] mr-1">Q3:</span>企业如何成功获得新质组织优秀企业奖项？</div>
+                                        <div class="text-slate-400 leading-relaxed"><span class="font-bold mr-1">A:</span>需完成三项核心流程：① 完整参与并提交新质组织专项问卷调研；② 结合五维模型维度，自主选择案例参评方向，按要求提交完整申报材料及佐证资料；③ 配合研究中心专家评审团完成线下/线上专项访谈与深度调研。最终由权威专家评审团统一评审，获奖企业名单将于8月-9月举办的发布会统一公示。</div>
+                                    </div>
+                                    <div class="h-px w-full bg-white/5"></div>
+                                    <div>
+                                        <div class="font-bold text-white mb-1"><span class="text-[var(--nqoc-accent-cyan)] mr-1">Q4:</span>参与本次调研、案例评选是否收费？</div>
+                                        <div class="text-slate-400 leading-relaxed"><span class="font-bold mr-1">A:</span>全程公益免费。本次为产学研媒联合发起的行业研究公益项目，问卷调研、企业诊断、案例申报、专家评审均不收取任何费用。</div>
+                                    </div>
+                                    <div class="h-px w-full bg-white/5"></div>
+                                    <div>
+                                        <div class="font-bold text-white mb-1"><span class="text-[var(--nqoc-accent-cyan)] mr-1">Q5:</span>企业调研数据和申报材料是否保密？</div>
+                                        <div class="text-slate-400 leading-relaxed"><span class="font-bold mr-1">A:</span>严格保密。项目实行数据专属管理，企业个性化数据仅用于专项研究与企业内部诊断，不会对外泄露、单独公开；优秀案例公示内容仅采用企业授权的公开素材，充分保障企业信息安全。</div>
+                                    </div>
+                                    <div class="h-px w-full bg-white/5"></div>
+                                    <div>
+                                        <div class="font-bold text-white mb-1"><span class="text-[var(--nqoc-accent-cyan)] mr-1">Q6:</span>优秀案例的获奖企业还将获得哪些额外价值回报？</div>
+                                        <div class="text-slate-400 leading-relaxed"><span class="font-bold mr-1">A:</span>获奖企业将纳入全国新质组织标杆案例库，获得《值得看见》栏目、中国经营报等主流媒体专题报道曝光，优先受邀参与项目私董会、高端研讨会、调研成果发布会及行业盛典等圈层活动，与学界专家、行业头部企业高层深度交流，共探AI时代组织新范式。</div>
+                                    </div>
+                                </div>
+                            </details>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Collapsible Likert Scale Explanation -->
-                <div class="mt-6 max-w-4xl mx-auto">
-                    <details class="group bg-white/5 border border-white/10 rounded-xl overflow-hidden transition-all duration-300">
-                        <summary class="flex items-center justify-between cursor-pointer p-4 select-none hover:bg-white/5 transition-colors">
-                            <span class="font-bold text-white flex items-center gap-2">
-                                <i class="fas fa-info-circle text-[var(--nqoc-accent-cyan)]"></i>
-                                五点量表解读（点击展开）
-                            </span>
-                            <span class="text-white group-open:rotate-180 transition-transform duration-300">
-                                <i class="fas fa-chevron-down"></i>
-                            </span>
-                        </summary>
-                        <div class="p-4 border-t border-white/10 bg-black/20">
-                            <p class="text-sm text-slate-300 mb-4">本问卷主体题项采用 1-5 级李克特量表。请根据贵企业的真实情况选择最贴近的分值，各分值对应的成熟度阶段如下表：</p>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-sm text-left text-slate-300 border-collapse">
-                                    <thead>
-                                        <tr class="bg-white/5 border-b border-white/10">
-                                            <th class="p-3 font-bold text-white whitespace-nowrap">分值</th>
-                                            <th class="p-3 font-bold text-white whitespace-nowrap">符合程度</th>
-                                            <th class="p-3 font-bold text-white whitespace-nowrap">成熟度阶段</th>
-                                            <th class="p-3 font-bold text-white min-w-[200px]">典型特征</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-white/5">
-                                        <tr class="hover:bg-white/5 transition-colors">
-                                            <td class="p-3 font-bold text-center">1</td>
-                                            <td class="p-3">完全不符合</td>
-                                            <td class="p-3">萌芽期（初）</td>
-                                            <td class="p-3">尚未启动相关实践，或仅处于认知阶段</td>
-                                        </tr>
-                                        <tr class="hover:bg-white/5 transition-colors">
-                                            <td class="p-3 font-bold text-center">2</td>
-                                            <td class="p-3">较不符合</td>
-                                            <td class="p-3">萌芽期</td>
-                                            <td class="p-3">已有零散尝试或局部试验，未形成体系</td>
-                                        </tr>
-                                        <tr class="hover:bg-white/5 transition-colors">
-                                            <td class="p-3 font-bold text-center">3</td>
-                                            <td class="p-3">部分符合</td>
-                                            <td class="p-3">成长期</td>
-                                            <td class="p-3">已在试点推进，初步形成局部能力，效果初显</td>
-                                        </tr>
-                                        <tr class="hover:bg-white/5 transition-colors">
-                                            <td class="p-3 font-bold text-center">4</td>
-                                            <td class="p-3">较为符合</td>
-                                            <td class="p-3">成长期—成熟期</td>
-                                            <td class="p-3">已规模化落地，覆盖核心业务/职能，绩效可观测</td>
-                                        </tr>
-                                        <tr class="hover:bg-white/5 transition-colors">
-                                            <td class="p-3 font-bold text-center">5</td>
-                                            <td class="p-3">完全符合</td>
-                                            <td class="p-3">成熟期</td>
-                                            <td class="p-3">已形成系统化能力与最佳实践，可对外输出与赋能</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </details>
-                </div>
             </div>
 
             <!-- 04 Questionnaire Form -->
@@ -498,15 +477,15 @@
                     
                     <!-- Step 1: 企业基本信息 -->
                     <div id="step-1" class="space-y-6">
-                        <h3 class="text-2xl font-bold text-white mb-6">第一部分 企业基本信息</h3>
+                        <h3 class="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6">第一部分 企业基本信息</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="space-y-2 md:col-span-2">
                                 <label class="block text-sm font-medium text-slate-300">E1. 企业名称 <span class="text-red-500">*</span></label>
                                 <input type="text" name="orgName" required class="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors placeholder-slate-600" placeholder="请输入完整企业名称">
                             </div>
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-slate-300">E2. 所属行业 <span class="text-red-500">*</span></label>
-                                <select name="industry" required class="w-full bg-[#111424] border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors">
+                                <label class="block text-sm font-medium text-slate-300">E2. 所属行业或类型 <span class="text-red-500">*</span></label>
+                                <select name="industry" required class="w-full bg-[#111424] border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors appearance-none pr-10 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px_12px] bg-[position:right_1rem_center] bg-no-repeat">
                                     <option value="" disabled selected>请选择</option>
                                     <option value="智能制造与装备">智能制造与装备</option>
                                     <option value="高科技/TMT">高科技 / TMT（信息技术、互联网、电子）</option>
@@ -524,7 +503,7 @@
                             </div>
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-slate-300">E3. 企业性质 <span class="text-red-500">*</span></label>
-                                <select name="orgNature" required class="w-full bg-[#111424] border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors">
+                                <select name="orgNature" required class="w-full bg-[#111424] border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors appearance-none pr-10 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px_12px] bg-[position:right_1rem_center] bg-no-repeat">
                                     <option value="" disabled selected>请选择</option>
                                     <option value="中央企业/央企控股">中央企业 / 央企控股</option>
                                     <option value="地方国有企业">地方国有企业</option>
@@ -536,8 +515,8 @@
                                 <input type="text" name="orgNature_other" id="orgNature_other" class="mt-2 w-full bg-transparent border-b border-slate-500 focus:border-[var(--nqoc-accent-cyan)] focus:outline-none text-white text-sm px-2 py-1 hidden" placeholder="请补充注明企业性质">
                             </div>
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-slate-300">E4. 员工总人数 <span class="text-red-500">*</span></label>
-                                <select name="employeeCount" required class="w-full bg-[#111424] border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors">
+                                <label class="block text-sm font-medium text-slate-300">E4. 员工总人数（预估） <span class="text-red-500">*</span></label>
+                                <select name="employeeCount" required class="w-full bg-[#111424] border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors appearance-none pr-10 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px_12px] bg-[position:right_1rem_center] bg-no-repeat">
                                     <option value="" disabled selected>请选择</option>
                                     <option value="300人以下">300 人以下</option>
                                     <option value="300-1000人">300–1,000 人</option>
@@ -548,8 +527,8 @@
                                 </select>
                             </div>
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-slate-300">E5. 上一财年营业收入规模 <span class="text-red-500">*</span></label>
-                                <select name="revenue" required class="w-full bg-[#111424] border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors">
+                                <label class="block text-sm font-medium text-slate-300">E5. 上一财年营业收入规模（预估） <span class="text-red-500">*</span></label>
+                                <select name="revenue" required class="w-full bg-[#111424] border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors appearance-none pr-10 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px_12px] bg-[position:right_1rem_center] bg-no-repeat">
                                     <option value="" disabled selected>请选择</option>
                                     <option value="1亿元以下">1 亿元以下</option>
                                     <option value="1-10亿元">1–10 亿元</option>
@@ -561,7 +540,7 @@
                             </div>
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-slate-300">E6. 企业成立年限 <span class="text-red-500">*</span></label>
-                                <select name="establishedYears" required class="w-full bg-[#111424] border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors">
+                                <select name="establishedYears" required class="w-full bg-[#111424] border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors appearance-none pr-10 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px_12px] bg-[position:right_1rem_center] bg-no-repeat">
                                     <option value="" disabled selected>请选择</option>
                                     <option value="5年以内">5 年以内</option>
                                     <option value="5-10年">5–10 年</option>
@@ -572,7 +551,7 @@
                             </div>
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-slate-300">E7. 上市状态 <span class="text-red-500">*</span></label>
-                                <select name="listingStatus" required class="w-full bg-[#111424] border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors">
+                                <select name="listingStatus" required class="w-full bg-[#111424] border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[var(--nqoc-accent-cyan)] transition-colors appearance-none pr-10 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px_12px] bg-[position:right_1rem_center] bg-no-repeat">
                                     <option value="" disabled selected>请选择</option>
                                     <option value="A股上市">A 股上市</option>
                                     <option value="港股上市">港股上市</option>
@@ -601,7 +580,7 @@
 
                     <!-- Step 2: 填答人信息 -->
                     <div id="step-2" class="hidden space-y-6">
-                        <h3 class="text-2xl font-bold text-white mb-6">第二部分 填答人信息</h3>
+                        <h3 class="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6">第二部分 填答人信息</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="space-y-2 md:col-span-2">
                                 <label class="block text-sm font-medium text-slate-300">R1. 您在本企业的职务 <span class="text-red-500">*</span></label>
@@ -655,8 +634,70 @@
 
                     <!-- Step 3: 新质组织成熟度评估 -->
                     <div id="step-3" class="hidden space-y-6">
-                        <h3 class="text-2xl font-bold text-white mb-6">第三部分 新质组织成熟度评估</h3>
-                        <p class="text-slate-400 text-sm mb-6">本部分共 5 个维度、32 个二级指标，请根据贵企业当前实际情况，在 1–5 之间选择。</p>
+                        <h3 class="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6">第三部分 新质组织成熟度评估</h3>
+                        <p class="text-slate-400 text-sm mb-4">本部分共 5 个维度、32 个二级指标，请根据贵企业当前实际情况，在 1–5 之间选择。</p>
+
+                        <!-- Collapsible Likert Scale Explanation -->
+                        <div class="mb-6">
+                            <details class="group bg-white/5 border border-white/10 rounded-xl overflow-hidden transition-all duration-300">
+                                <summary class="flex items-center justify-between cursor-pointer p-3 select-none hover:bg-white/5 transition-colors">
+                                    <span class="text-sm font-bold text-white flex items-center gap-2">
+                                        <i class="fas fa-info-circle text-[var(--nqoc-accent-cyan)]"></i>
+                                        五点量表解读（点击展开）
+                                    </span>
+                                    <span class="text-white group-open:rotate-180 transition-transform duration-300">
+                                        <i class="fas fa-chevron-down text-sm"></i>
+                                    </span>
+                                </summary>
+                                <div class="p-4 border-t border-white/10 bg-black/20">
+                                    <p class="text-sm text-slate-300 mb-4">本问卷主体题项采用 1-5 级李克特量表。请根据贵企业的真实情况选择最贴近的分值，各分值对应的成熟度阶段如下表：</p>
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full text-sm text-left text-slate-300 border-collapse">
+                                            <thead>
+                                                <tr class="bg-white/5 border-b border-white/10">
+                                                    <th class="p-3 font-bold text-white whitespace-nowrap">分值</th>
+                                                    <th class="p-3 font-bold text-white whitespace-nowrap">符合程度</th>
+                                                    <th class="p-3 font-bold text-white whitespace-nowrap">成熟度阶段</th>
+                                                    <th class="p-3 font-bold text-white min-w-[200px]">典型特征</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-white/5">
+                                                <tr class="hover:bg-white/5 transition-colors">
+                                                    <td class="p-3 font-bold text-center">1</td>
+                                                    <td class="p-3">完全不符合</td>
+                                                    <td class="p-3">萌芽期（初）</td>
+                                                    <td class="p-3">尚未启动相关实践，或仅处于认知阶段</td>
+                                                </tr>
+                                                <tr class="hover:bg-white/5 transition-colors">
+                                                    <td class="p-3 font-bold text-center">2</td>
+                                                    <td class="p-3">较不符合</td>
+                                                    <td class="p-3">萌芽期</td>
+                                                    <td class="p-3">已有零散尝试或局部试验，未形成体系</td>
+                                                </tr>
+                                                <tr class="hover:bg-white/5 transition-colors">
+                                                    <td class="p-3 font-bold text-center">3</td>
+                                                    <td class="p-3">部分符合</td>
+                                                    <td class="p-3">成长期</td>
+                                                    <td class="p-3">已在试点推进，初步形成局部能力，效果初显</td>
+                                                </tr>
+                                                <tr class="hover:bg-white/5 transition-colors">
+                                                    <td class="p-3 font-bold text-center">4</td>
+                                                    <td class="p-3">较为符合</td>
+                                                    <td class="p-3">成长期—成熟期</td>
+                                                    <td class="p-3">已规模化落地，覆盖核心业务/职能，绩效可观测</td>
+                                                </tr>
+                                                <tr class="hover:bg-white/5 transition-colors">
+                                                    <td class="p-3 font-bold text-center">5</td>
+                                                    <td class="p-3">完全符合</td>
+                                                    <td class="p-3">成熟期</td>
+                                                    <td class="p-3">已形成系统化能力与最佳实践，可对外输出与赋能</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
 
                         <div class="form-section">
                             <div class="mb-4">
@@ -1599,10 +1640,20 @@
 
                     <!-- Step 4: 客观数据参照 -->
                     <div id="step-4" class="hidden space-y-6">
-                        <h3 class="text-2xl font-bold text-white mb-6">第四部分　客观数据参照</h3>
-                        <div class="mb-6 p-4 bg-[var(--nqoc-brand)]/10 border border-[var(--nqoc-brand)]/30 rounded-lg text-sm text-slate-300">
-                            <p class="mb-2"><i class="fas fa-info-circle text-[var(--nqoc-brand)] mr-2"></i> 本部分共 14 道客观选择题，旨在通过可量化的事实数据，与第三部分的主观成熟度评估形成相互验证。每题均为单选区间，无需提供具体数字。</p>
-                            <p>说明：建议填答前与财务、人力、信息技术、战略等相关部门简要核实数据。如确实不掌握或不便透露，请直接选择对应选项，不影响整体分析。所有数据严格保密，仅作研究汇总分析。</p>
+                        <h3 class="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6">第四部分　客观数据参照</h3>
+                        <div tabindex="0" class="mb-6 p-4 bg-[var(--nqoc-brand)]/10 border border-[var(--nqoc-brand)]/30 rounded-lg text-sm text-slate-300 cursor-pointer group transition-all duration-300 outline-none">
+                            <div class="flex items-start gap-2">
+                                <i class="fas fa-info-circle text-[var(--nqoc-brand)] mt-0.5 shrink-0"></i>
+                                <div class="flex-1">
+                                    <p class="line-clamp-1 group-hover:line-clamp-none group-focus:line-clamp-none transition-all duration-300">
+                                        本部分共 14 道客观选择题，旨在通过可量化的事实数据，与第三部分的主观成熟度评估形成相互验证。每题均为单选区间，无需提供具体数字。
+                                    </p>
+                                    <p class="hidden group-hover:block group-focus:block mt-2 text-slate-400">
+                                        说明：建议填答前与财务、人力、信息技术、战略等相关部门简要核实数据。如确实不掌握或不便透露，请直接选择对应选项，不影响整体分析。所有数据严格保密，仅作研究汇总分析。
+                                    </p>
+                                </div>
+                                <i class="fas fa-chevron-down text-[var(--nqoc-brand)]/70 mt-1 shrink-0 transition-transform duration-300 group-hover:rotate-180 group-focus:rotate-180 ml-2"></i>
+                            </div>
                         </div>
 
                         <div class="form-section mb-8">
@@ -1916,7 +1967,7 @@
 
                     <!-- Step 5: 总体评价与综合反馈 -->
                     <div id="step-5" class="hidden space-y-6">
-                        <h3 class="text-2xl font-bold text-white mb-6">第五部分 总体评价与综合反馈</h3>
+                        <h3 class="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6">第五部分 总体评价与综合反馈</h3>
                         
                         <div class="space-y-6">
                             <div class="bg-white/5 p-6 rounded-xl border border-white/10">
@@ -2061,16 +2112,14 @@
                 <div class="w-20 h-20 md:w-24 md:h-24 mx-auto bg-emerald-500/20 rounded-full flex items-center justify-center mb-6">
                     <i class="fas fa-check text-3xl md:text-5xl text-emerald-400"></i>
                 </div>
-                <h2 class="text-2xl md:text-3xl font-bold text-white mb-4 leading-tight">衷心感谢您的宝贵时间与思考！</h2>
-                <p class="text-base md:text-lg text-slate-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-                    您的填答将汇入《2026 中国企业新质组织成熟度研究报告》，<br class="hidden md:block">并作为未来三年纵向研究的重要基线数据。
-                </p>
+                <h2 class="text-2xl md:text-3xl font-bold text-white mb-8 leading-tight">感谢您的宝贵时间！</h2>
+                
                 <div class="p-5 md:p-6 bg-gradient-to-br from-[#7c4dff]/20 to-transparent border border-[#7c4dff]/30 rounded-2xl max-w-md mx-auto mb-8 shadow-[0_0_30px_rgba(124,77,255,0.15)] relative overflow-hidden">
                     <div class="absolute -right-10 -top-10 w-32 h-32 bg-[#7c4dff] blur-[50px] opacity-20"></div>
                     <h4 class="text-white font-bold mb-3 text-base md:text-lg leading-snug">诚邀您参评年度“新质组织标杆企业”！</h4>
-                    <p class="text-xs md:text-sm text-slate-300 mb-6 leading-relaxed">获取权威智库深度诊断，赢取行业重磅荣誉背书，共同引领中国企业组织创新浪潮。</p>
-                    <a href="/nqoc/awards" class="btn-primary block w-full !bg-transparent border border-[#7c4dff] !text-white hover:!bg-[#7c4dff] hover:shadow-[0_0_20px_rgba(124,77,255,0.4)] transition-all duration-300 text-sm md:text-base py-3">
-                        立刻申请企业评选
+                    <p class="text-xs md:text-sm text-slate-300 mb-6 leading-relaxed">赢取行业重磅荣誉背书，共同引领中国企业组织创新浪潮。</p>
+                    <a href="/nqoc/awards" class="btn-primary block w-full shadow-[0_0_20px_rgba(124,77,255,0.4)] hover:shadow-[0_0_30px_rgba(124,77,255,0.6)] hover:-translate-y-1 transition-all duration-300 text-sm md:text-base py-3.5 font-bold tracking-wide">
+                        立即申请企业评选
                     </a>
                 </div>
                 <a href="/nqoc" class="text-slate-400 hover:text-white underline decoration-slate-600 underline-offset-4 transition-colors">
@@ -2174,12 +2223,12 @@
             // Helper function to get channel from URL or fallback to sessionStorage
             function getTrackingChannel() {
                 const urlParams = new URLSearchParams(window.location.search);
-                const urlChannel = urlParams.get('channel');
+                const urlChannel = urlParams.get('channel') || urlParams.get('source') || urlParams.get('utm_source');
                 if (urlChannel) {
-                    sessionStorage.setItem('survey_channel', urlChannel);
+                    sessionStorage.setItem('nqoc_global_channel', urlChannel);
                     return urlChannel;
                 }
-                return sessionStorage.getItem('survey_channel') || 'organic';
+                return sessionStorage.getItem('nqoc_global_channel') || 'organic';
             }
 
             const Tracking = {
@@ -2454,12 +2503,120 @@
             checkCache();
             // --- CACHE LOGIC END ---
 
+            // --- Auto-Scroll Logic for Likert Scales and Objective Questions ---
+            // Include question blocks from Step 1, 2, 3, 4, 5
+            const questionBlocks = Array.from(document.querySelectorAll('.bg-white\\/5.p-4.rounded-lg, .bg-white\\/5.p-5.rounded-xl, .bg-white\\/5.p-6.rounded-xl, #step-1 > .grid > .space-y-2, #step-2 > .grid > .space-y-2'));
+            questionBlocks.forEach((block, index) => {
+                const radios = block.querySelectorAll('input[type="radio"]');
+                radios.forEach(radio => {
+                    radio.addEventListener('change', () => {
+                        // Delay slightly to let the user see their selection before scrolling
+                        setTimeout(() => {
+                            // Find the next question block
+                            const nextBlock = questionBlocks[index + 1];
+                            const currentStepEl = block.closest('[id^="step-"]');
+                            
+                            // Check if nextBlock exists and is in the same step
+                            if (nextBlock && nextBlock.closest('[id^="step-"]') === currentStepEl && !nextBlock.closest('.hidden')) { 
+                                const headerOffset = 80; // Account for fixed headers
+                                const elementPosition = nextBlock.getBoundingClientRect().top;
+                                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                                
+                                window.scrollTo({
+                                    top: offsetPosition,
+                                    behavior: "smooth"
+                                });
+                            } else if (!nextBlock || nextBlock.closest('[id^="step-"]') !== currentStepEl) {
+                                // If it's the last question in the current step, scroll to the "Next" / "Submit" button
+                                const nextBtn = currentStepEl.querySelector('.btn-next, button[type="submit"]');
+                                if (nextBtn) {
+                                    const headerOffset = 80;
+                                    const elementPosition = nextBtn.getBoundingClientRect().top;
+                                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                                    
+                                    window.scrollTo({
+                                        top: offsetPosition,
+                                        behavior: "smooth"
+                                    });
+                                }
+                            }
+                        }, 350);
+                    });
+                });
+            });
+            // --- Auto-Scroll Logic END ---
+
+            // --- Real-time Immersive Progress Logic ---
+            function updateRealTimeProgress() {
+                if (currentStep === 0) return; // 不在答题环节不计算
+
+                const currentStepEl = steps[currentStep];
+                if (!currentStepEl) return;
+
+                // 找到当前页所有的必填项（单选、多选、文本框）
+                const requiredInputs = Array.from(currentStepEl.querySelectorAll('input[required]'));
+                if (requiredInputs.length === 0) return;
+
+                // 按 name 属性分组，因为 radio button 一组只有一个必填逻辑
+                const uniqueNames = new Set(requiredInputs.map(input => input.name));
+                const totalRequiredFields = uniqueNames.size;
+                let filledFields = 0;
+
+                uniqueNames.forEach(name => {
+                    const inputs = currentStepEl.querySelectorAll(`input[name="${name}"]`);
+                    const type = inputs[0].type;
+                    
+                    if (type === 'radio' || type === 'checkbox') {
+                        const isChecked = currentStepEl.querySelector(`input[name="${name}"]:checked`);
+                        if (isChecked) filledFields++;
+                    } else {
+                        if (inputs[0].value.trim() !== '') filledFields++;
+                    }
+                });
+
+                // 计算总体进度：已完成页数的权重 + 当前页的完成比例权重
+                // 假设每个 step 权重相等
+                const previousStepsWeight = (currentStep - 1) / (steps.length - 2); // -2 因为 step 0 是引导，最后一个是提交
+                const currentStepWeight = (filledFields / totalRequiredFields) * (1 / (steps.length - 2));
+                
+                let totalPercentage = (previousStepsWeight + currentStepWeight) * 100;
+                
+                // 确保在 0-100 之间，最后一页允许达到 100%
+                if (currentStep === steps.length - 1) totalPercentage = 100;
+                if (totalPercentage > 100) totalPercentage = 100;
+                if (totalPercentage < 0) totalPercentage = 0;
+
+                const immersiveFill = document.getElementById('immersive-progress-fill');
+                const immersiveText = document.getElementById('immersive-progress-text');
+                if (immersiveFill && immersiveText) {
+                    immersiveFill.style.width = `${totalPercentage}%`;
+                    immersiveText.textContent = `${Math.round(totalPercentage)}%`;
+                }
+            }
+
+            // 监听表单输入变化以实时更新进度
+            form.addEventListener('change', updateRealTimeProgress);
+            form.addEventListener('input', updateRealTimeProgress);
+            // --- Real-time Immersive Progress Logic END ---
+
+            // --- Abandonment Prevention ---
+            let isSubmitting = false;
+            window.addEventListener('beforeunload', function (e) {
+                if (currentStep > 0 && !isSubmitting && successState.classList.contains('hidden')) {
+                    // Modern browsers ignore the custom text, but require a truthy return value or event.returnValue
+                    const confirmationMessage = '您的问卷尚未完成且已自动保存，确认要离开吗？';
+                    e.returnValue = confirmationMessage;
+                    return confirmationMessage;
+                }
+            });
+            // --- Abandonment Prevention END ---
+
             // --- Multi-step Logic ---
             function updateProgressUI(targetStep) {
                 // Update Line
                 const percentage = (targetStep / (steps.length - 1)) * 100;
                 progressLine.style.width = `${percentage}%`;
-
+                
                 // Update Indicators
                 indicators.forEach((indicator, index) => {
                     const div = indicator.querySelector('div');
@@ -2557,6 +2714,7 @@
                 // Toggle immersive mode if not on step 0
                 if (targetStep > 0 && currentStep === 0) {
                     document.querySelector('nav').style.display = 'none';
+                    document.getElementById('immersive-progress-bar').classList.remove('hidden');
                     const footer = document.querySelector('footer');
                     if (footer) footer.style.display = 'none';
                     document.querySelectorAll('.hide-in-immersive').forEach(el => el.style.display = 'none');
@@ -2564,6 +2722,7 @@
                     document.querySelector('main').classList.add('pt-8');
                 } else if (targetStep === 0 && currentStep > 0) {
                     document.querySelector('nav').style.display = '';
+                    document.getElementById('immersive-progress-bar').classList.add('hidden');
                     const footer = document.querySelector('footer');
                     if (footer) footer.style.display = '';
                     document.querySelectorAll('.hide-in-immersive').forEach(el => el.style.display = '');
@@ -2578,6 +2737,7 @@
                 Tracking.recordStepChange(currentStep, targetStep);
                 
                 currentStep = targetStep;
+                updateRealTimeProgress(); // 确保翻页时也计算一次进度
                 saveDraft();
             }
 
@@ -2659,6 +2819,7 @@
                 const originalBtnHtml = btnSubmit.innerHTML;
                 btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> 提交中...';
                 btnSubmit.disabled = true;
+                isSubmitting = true;
                 
                 // Add limits to s2, s3, s4, s5, s6
                 const limits = { s2: 2, s3: 2, s4: 3, s5: 3, s6: 3 };
@@ -2702,6 +2863,7 @@
                     }
                     btnSubmit.innerHTML = originalBtnHtml;
                     btnSubmit.disabled = false;
+                    isSubmitting = false;
                     return;
                 }
 
@@ -2717,17 +2879,27 @@
                         Tracking.send('submit_success', currentStep, Date.now() - Tracking.stepEnterTime);
                         localStorage.removeItem(CACHE_KEY);
                         formContainer.classList.add('hidden');
+                        document.getElementById('immersive-progress-bar').classList.add('hidden');
+                        
+                        // Append tracking channel to the award link
+                        const awardLink = document.querySelector('#success-state a[href="/nqoc/awards"]');
+                        if (awardLink && channel !== 'organic') {
+                            awardLink.href = `/nqoc/awards?channel=${encodeURIComponent(channel)}`;
+                        }
+                        
                         successState.classList.remove('hidden');
                         window.scrollTo(0, 0);
                     } else {
                         alert(result.error || '提交失败');
                         btnSubmit.innerHTML = originalBtnHtml;
                         btnSubmit.disabled = false;
+                        isSubmitting = false;
                     }
                 } catch (err) {
                     alert('网络异常，请重试');
                     btnSubmit.innerHTML = originalBtnHtml;
                     btnSubmit.disabled = false;
+                    isSubmitting = false;
                 }
             });
         });

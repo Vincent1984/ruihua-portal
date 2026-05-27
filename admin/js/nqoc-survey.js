@@ -466,8 +466,7 @@ function showDetails(id) {
             <div class="col-md-6 mb-2"><strong>${m['O4.2'] || 'O4.2. 跨职能团队成员比例'}：</strong> <br> ${getVal(item.o4_2)}</div>
             <div class="col-md-6 mb-2"><strong>${m['O4.3'] || 'O4.3. AI/数据岗位员工比例'}：</strong> <br> ${getVal(item.o4_3)}</div>
             <div class="col-md-6 mb-2"><strong>${m['O5.1'] || 'O5.1. 生态共同收入比例'}：</strong> <br> ${getVal(item.o5_1)}</div>
-            <div class="col-md-6 mb-2"><strong>${m['O5.2'] || 'O5.2. 开放核心能力数量'}：</strong> <br> ${getVal(item.o5_2)}</div>
-            <div class="col-md-6 mb-2"><strong>${m['O5.3'] || 'O5.3. 联合创新项目数量'}：</strong> <br> ${getVal(item.o5_3)}</div>
+            <div class="col-md-6 mb-2"><strong>${m['O5.2'] || 'O5.2. 联合创新项目数量'}：</strong> <br> ${getVal(item.o5_2)}</div>
         </div>
 
         <h6 class="text-primary border-bottom pb-2 mb-3 mt-4">第五部分 总体评价与综合反馈</h6>

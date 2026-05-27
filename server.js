@@ -448,7 +448,7 @@ app.get('/nqoc', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/nqoc/index.html'));
 });
 
-const nqocPages = ['survey', 'awards', 'cases', 'insights', 'events', 'whitepaper', 'about', 'debate-vote', 'flyer'];
+const nqocPages = ['survey', 'awards', 'cases', 'insights', 'events', 'whitepaper', 'about', 'debate-vote', 'flyer', 'poster'];
 nqocPages.forEach(page => {
     app.get(`/nqoc/${page}`, (req, res) => {
         res.sendFile(path.join(__dirname, `public/nqoc/${page}.html`));
@@ -2673,6 +2673,7 @@ app.delete('/api/sidebar/modules/:id', authRequired, requirePerm('sidebar:manage
 const NqocAwardApplication = require('./models/NqocAwardApplication');
 const NqocDebateConfig = require('./models/NqocDebateConfig');
 const NqocSurveyChannel = require('./models/NqocSurveyChannel');
+const NqocAwardChannel = require('./models/NqocAwardChannel');
 const NqocSurveySubmission = require('./models/NqocSurveySubmission');
 const SurveyTrackingLog = require('./models/SurveyTrackingLog');
 const TrainingApplication = require('./models/TrainingApplication');
@@ -2829,6 +2830,58 @@ app.post('/api/nqoc/awards/apply', nqocUpload.single('file'), async (req, res) =
     } catch (e) {
         console.error('NQOC Award Submit Error:', e);
         res.status(500).json({ success: false, error: '服务器内部错误，请稍后重试' });
+    }
+});
+
+// Admin: NQOC Award Channels CRUD
+app.get('/api/admin/nqoc/awards/channels', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const channels = await NqocAwardChannel.find().sort({ createdAt: -1 }).lean();
+        for (let ch of channels) {
+            ch.submissionCount = await NqocAwardApplication.countDocuments({ channel: ch.code });
+        }
+        res.json({ success: true, data: channels });
+    } catch (e) {
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+app.post('/api/admin/nqoc/awards/channels', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const { name, code, description } = req.body;
+        if (!name || !code) return res.status(400).json({ success: false, error: '渠道名称和代码为必填' });
+        
+        const exists = await NqocAwardChannel.findOne({ code });
+        if (exists) return res.status(400).json({ success: false, error: '渠道代码已存在' });
+
+        const channel = new NqocAwardChannel({ name, code, description });
+        await channel.save();
+        res.json({ success: true, data: channel });
+    } catch (e) {
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+app.put('/api/admin/nqoc/awards/channels/:id', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const { name, code, description } = req.body;
+        const exists = await NqocAwardChannel.findOne({ code, _id: { $ne: req.params.id } });
+        if (exists) return res.status(400).json({ success: false, error: '渠道代码已存在' });
+
+        const channel = await NqocAwardChannel.findByIdAndUpdate(req.params.id, { name, code, description }, { new: true });
+        if (!channel) return res.status(404).json({ success: false, error: '渠道不存在' });
+        res.json({ success: true, data: channel });
+    } catch (e) {
+        res.status(500).json({ success: false, error: '服务器内部错误' });
+    }
+});
+
+app.delete('/api/admin/nqoc/awards/channels/:id', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        await NqocAwardChannel.findByIdAndDelete(req.params.id);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ success: false, error: '服务器内部错误' });
     }
 });
 
@@ -3448,7 +3501,7 @@ app.get('/api/admin/nqoc/survey/submissions/export', authRequired, requirePerm('
             getLabel('P3.1.1'), getLabel('P3.1.2'), getLabel('P3.2.1'), getLabel('P3.2.2'), getLabel('P3.3.1'), getLabel('P3.3.2'), getLabel('P3.4.1'), getLabel('P3.4.2'), getLabel('P3.5.1'), getLabel('P3.5.2'), getLabel('P3.6.1'), getLabel('P3.6.2'), getLabel('P3.7.1'), getLabel('P-O1'), getLabel('P-O1') + '(其他)',
             getLabel('M4.1.1'), getLabel('M4.1.2'), getLabel('M4.2.1'), getLabel('M4.2.2'), getLabel('M4.3.1'), getLabel('M4.3.2'), getLabel('M4.4.1'), getLabel('M4.4.2'), getLabel('M4.5.1'), getLabel('M4.5.2'), getLabel('M4.5.3'), getLabel('M4.5.4'), getLabel('M4.6.1'), getLabel('M4.6.2'), getLabel('M4.6.3'), getLabel('M4.7.1'), getLabel('M-O1'), getLabel('M-O1') + '(其他)',
             getLabel('E5.1.1'), getLabel('E5.1.2'), getLabel('E5.2.1'), getLabel('E5.2.2'), getLabel('E5.3.1'), getLabel('E5.3.2'), getLabel('E5.4.1'), getLabel('E5.4.2'), getLabel('E5.5.1'), getLabel('E5.5.2'), getLabel('E5.6.1'), getLabel('E-O1'), getLabel('E-O1') + '(其他)',
-            getLabel('O1.1'), getLabel('O1.2'), getLabel('O2.1'), getLabel('O2.2'), getLabel('O2.3'), getLabel('O3.1'), getLabel('O3.2'), getLabel('O3.3'), getLabel('O4.1'), getLabel('O4.2'), getLabel('O4.3'), getLabel('O5.1'), getLabel('O5.2'), getLabel('O5.3'),
+            getLabel('O1.1'), getLabel('O1.2'), getLabel('O2.1'), getLabel('O2.2'), getLabel('O2.3'), getLabel('O3.1'), getLabel('O3.2'), getLabel('O3.3'), getLabel('O4.1'), getLabel('O4.2'), getLabel('O4.3'), getLabel('O5.1'), getLabel('O5.2'),
             getLabel('S1'), getLabel('S2'), getLabel('S3'), getLabel('S4'), getLabel('S4') + '(其他)', getLabel('S5'), getLabel('S5') + '(其他)', getLabel('S6'), getLabel('S6') + '(其他)', getLabel('S7')
         ];
 
@@ -3473,7 +3526,7 @@ app.get('/api/admin/nqoc/survey/submissions/export', authRequired, requirePerm('
                 getOptionLabel('p3_1_1', sub.p3_1_1), getOptionLabel('p3_1_2', sub.p3_1_2), getOptionLabel('p3_2_1', sub.p3_2_1), getOptionLabel('p3_2_2', sub.p3_2_2), getOptionLabel('p3_3_1', sub.p3_3_1), getOptionLabel('p3_3_2', sub.p3_3_2), getOptionLabel('p3_4_1', sub.p3_4_1), getOptionLabel('p3_4_2', sub.p3_4_2), getOptionLabel('p3_5_1', sub.p3_5_1), getOptionLabel('p3_5_2', sub.p3_5_2), getOptionLabel('p3_6_1', sub.p3_6_1), getOptionLabel('p3_6_2', sub.p3_6_2), getOptionLabel('p3_7_1', sub.p3_7_1), getOptionLabel('p_o1', sub.p_o1), sub.p_o1_other,
                 getOptionLabel('m4_1_1', sub.m4_1_1), getOptionLabel('m4_1_2', sub.m4_1_2), getOptionLabel('m4_2_1', sub.m4_2_1), getOptionLabel('m4_2_2', sub.m4_2_2), getOptionLabel('m4_3_1', sub.m4_3_1), getOptionLabel('m4_3_2', sub.m4_3_2), getOptionLabel('m4_4_1', sub.m4_4_1), getOptionLabel('m4_4_2', sub.m4_4_2), getOptionLabel('m4_5_1', sub.m4_5_1), getOptionLabel('m4_5_2', sub.m4_5_2), getOptionLabel('m4_5_3', sub.m4_5_3), getOptionLabel('m4_5_4', sub.m4_5_4), getOptionLabel('m4_6_1', sub.m4_6_1), getOptionLabel('m4_6_2', sub.m4_6_2), getOptionLabel('m4_6_3', sub.m4_6_3), getOptionLabel('m4_7_1', sub.m4_7_1), getOptionLabel('m_o1', sub.m_o1), sub.m_o1_other,
                 getOptionLabel('e5_1_1', sub.e5_1_1), getOptionLabel('e5_1_2', sub.e5_1_2), getOptionLabel('e5_2_1', sub.e5_2_1), getOptionLabel('e5_2_2', sub.e5_2_2), getOptionLabel('e5_3_1', sub.e5_3_1), getOptionLabel('e5_3_2', sub.e5_3_2), getOptionLabel('e5_4_1', sub.e5_4_1), getOptionLabel('e5_4_2', sub.e5_4_2), getOptionLabel('e5_5_1', sub.e5_5_1), getOptionLabel('e5_5_2', sub.e5_5_2), getOptionLabel('e5_6_1', sub.e5_6_1), getOptionLabel('e_o1', sub.e_o1), sub.e_o1_other,
-                getOptionLabel('o1_1', sub.o1_1), getOptionLabel('o1_2', sub.o1_2), getOptionLabel('o2_1', sub.o2_1), getOptionLabel('o2_2', sub.o2_2), getOptionLabel('o2_3', sub.o2_3), getOptionLabel('o3_1', sub.o3_1), getOptionLabel('o3_2', sub.o3_2), getOptionLabel('o3_3', sub.o3_3), getOptionLabel('o4_1', sub.o4_1), getOptionLabel('o4_2', sub.o4_2), getOptionLabel('o4_3', sub.o4_3), getOptionLabel('o5_1', sub.o5_1), getOptionLabel('o5_2', sub.o5_2), getOptionLabel('o5_3', sub.o5_3),
+                getOptionLabel('o1_1', sub.o1_1), getOptionLabel('o1_2', sub.o1_2), getOptionLabel('o2_1', sub.o2_1), getOptionLabel('o2_2', sub.o2_2), getOptionLabel('o2_3', sub.o2_3), getOptionLabel('o3_1', sub.o3_1), getOptionLabel('o3_2', sub.o3_2), getOptionLabel('o3_3', sub.o3_3), getOptionLabel('o4_1', sub.o4_1), getOptionLabel('o4_2', sub.o4_2), getOptionLabel('o4_3', sub.o4_3), getOptionLabel('o5_1', sub.o5_1), getOptionLabel('o5_2', sub.o5_2),
                 getOptionLabel('s1', sub.s1), getOptionLabel('s2', sub.s2), getOptionLabel('s3', sub.s3), getOptionLabel('s4', sub.s4), sub.s4_other, getOptionLabel('s5', sub.s5), sub.s5_other, getOptionLabel('s6', sub.s6), sub.s6_other, getOptionLabel('s7', sub.s7)
             ].map(escapeCsv);
             
