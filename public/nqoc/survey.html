@@ -2055,6 +2055,29 @@
             window.requestAnimationFrame(step);
         }
 
+        function showToast(type, message) {
+            const toast = document.createElement('div');
+            toast.className = `fixed top-24 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full text-white font-medium text-sm z-[9999] transition-all duration-300 shadow-xl flex items-center gap-2 ${type === 'error' || type === 'warning' ? 'bg-red-500/90 backdrop-blur-md' : 'bg-emerald-500/90 backdrop-blur-md'}`;
+            toast.style.opacity = '0';
+            toast.style.transform = 'translate(-50%, -20px)';
+            
+            const icon = type === 'error' || type === 'warning' ? '<i class="fas fa-exclamation-circle"></i>' : '<i class="fas fa-check-circle"></i>';
+            toast.innerHTML = `${icon} <span>${message}</span>`;
+            
+            document.body.appendChild(toast);
+            
+            requestAnimationFrame(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translate(-50%, 0)';
+            });
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translate(-50%, -20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('survey-form');
             const formContainer = document.getElementById('survey-form-container');
