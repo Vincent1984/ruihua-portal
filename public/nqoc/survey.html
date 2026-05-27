@@ -422,7 +422,7 @@
                 </div>
 
                 <!-- Form -->
-                <form id="survey-form">
+                <form id="survey-form" novalidate>
                     
                     <!-- Step 1: 企业基本信息 -->
                     <div id="step-1" class="space-y-6">
@@ -2360,7 +2360,7 @@
                             isValid = false;
                             
                             // Highlight logic
-                            let container = input.type !== 'radio' ? input : input.closest('.mb-4, .space-y-2, .space-y-4, .form-section');
+                            let container = input.type !== 'radio' ? input : input.closest('.space-y-2, .mb-4, .mb-6, [class*="bg-white/5"]');
                             if (container) {
                                 container.classList.add('border-red-500');
                                 if (input.type === 'radio') {
@@ -2373,7 +2373,7 @@
                             }
                         } else {
                             // Remove highlight
-                            let container = input.type !== 'radio' ? input : input.closest('.mb-4, .space-y-2, .space-y-4, .form-section');
+                            let container = input.type !== 'radio' ? input : input.closest('.space-y-2, .mb-4, .mb-6, [class*="bg-white/5"]');
                             if (container) {
                                 container.classList.remove('border-red-500', 'highlight-flash');
                                 if (input.type === 'radio' && !container.classList.contains('bg-white/5')) {
@@ -2399,20 +2399,17 @@
                         showToast('error', '请填写完整的必填项信息');
                         Tracking.send('validation_error', currentStep, 0, 'missing_required');
                         if (firstInvalidEl) {
-                            firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            const headerOffset = 100;
+                            const elementPosition = firstInvalidEl.getBoundingClientRect().top;
+                            const offsetPosition = elementPosition + window.scrollY - headerOffset;
+                            window.scrollTo({
+                                top: offsetPosition,
+                                behavior: "smooth"
+                            });
                             // Trigger reflow to restart animation
                             firstInvalidEl.classList.remove('highlight-flash');
                             void firstInvalidEl.offsetWidth;
                             firstInvalidEl.classList.add('highlight-flash');
-                            
-                            // Try to focus the actual input for better accessibility/experience
-                            const inputToFocus = firstInvalidEl.tagName === 'INPUT' || firstInvalidEl.tagName === 'SELECT' ? 
-                                                 firstInvalidEl : 
-                                                 firstInvalidEl.querySelector('input, select, textarea');
-                            if (inputToFocus) {
-                                // use setTimeout to allow smooth scroll to start before focusing
-                                setTimeout(() => inputToFocus.focus({ preventScroll: true }), 300);
-                            }
                         }
                         return;
                     }
@@ -2477,7 +2474,7 @@
                 inputs.forEach(input => {
                     if (!input.value || (input.type === 'radio' && !currentStepEl.querySelector(`input[name="${input.name}"]:checked`))) {
                         isValid = false;
-                        let container = input.type !== 'radio' ? input : input.closest('.mb-4, .space-y-2, .space-y-4, .form-section');
+                        let container = input.type !== 'radio' ? input : input.closest('.space-y-2, .mb-4, .mb-6, [class*="bg-white/5"]');
                         if (container) {
                             container.classList.add('border-red-500');
                             if (input.type === 'radio') {
@@ -2488,7 +2485,7 @@
                             firstInvalidEl = container || input;
                         }
                     } else {
-                        let container = input.type !== 'radio' ? input : input.closest('.mb-4, .space-y-2, .space-y-4, .form-section');
+                        let container = input.type !== 'radio' ? input : input.closest('.space-y-2, .mb-4, .mb-6, [class*="bg-white/5"]');
                         if (container) {
                             container.classList.remove('border-red-500', 'highlight-flash');
                             if (input.type === 'radio' && !container.classList.contains('bg-white/5')) {
@@ -2502,18 +2499,17 @@
                     showToast('error', '请填写完整的必填项信息');
                     Tracking.send('validation_error', currentStep, 0, 'missing_required_step4');
                     if (firstInvalidEl) {
-                        firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        const headerOffset = 100;
+                        const elementPosition = firstInvalidEl.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.scrollY - headerOffset;
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: "smooth"
+                        });
                         // Trigger reflow to restart animation
                         firstInvalidEl.classList.remove('highlight-flash');
                         void firstInvalidEl.offsetWidth;
                         firstInvalidEl.classList.add('highlight-flash');
-                        
-                        const inputToFocus = firstInvalidEl.tagName === 'INPUT' || firstInvalidEl.tagName === 'SELECT' ? 
-                                             firstInvalidEl : 
-                                             firstInvalidEl.querySelector('input, select, textarea');
-                        if (inputToFocus) {
-                            setTimeout(() => inputToFocus.focus({ preventScroll: true }), 300);
-                        }
                     }
                     return;
                 }
@@ -2552,8 +2548,14 @@
                     Tracking.send('validation_error', currentStep, 0, 'limit_exceeded_' + errorKey);
                     const errorEl = document.querySelector(`input[name="${errorKey}"]`);
                     if (errorEl) {
-                        const container = errorEl.closest('.mb-6, .mb-4') || errorEl;
-                        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        const container = errorEl.closest('.space-y-2, .mb-4, .mb-6, [class*="bg-white/5"]') || errorEl;
+                        const headerOffset = 100;
+                        const elementPosition = container.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.scrollY - headerOffset;
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: "smooth"
+                        });
                         container.classList.remove('highlight-flash');
                         void container.offsetWidth;
                         container.classList.add('highlight-flash');
