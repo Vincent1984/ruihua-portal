@@ -49,10 +49,6 @@ const legacyRedirects = require('./middleware/legacyRedirects');
 const { requireAdminPagePermission, gatherPermissions } = require('./middleware/adminPageAuth');
 
 const app = express();
-app.use((req, res, next) => {
-    console.log(`[DEBUG GLOBAL] ${req.method} ${req.url}`);
-    next();
-});
 app.disable('x-powered-by');
 app.set('trust proxy', 1); // Trust the first proxy (Kubernetes ingress/load balancer)
 const PORT = process.env.PORT || 3000;
@@ -65,6 +61,12 @@ if (!SECRET_KEY) {
     console.warn('[WARN] JWT_SECRET is missing, using temporary dev secret.');
 }
 const RUNTIME_SECRET_KEY = SECRET_KEY || `dev-secret-${crypto.randomUUID()}`;
+
+// Escape special regex characters in user input for safe $regex queries
+function escapeRegex(str) {
+    return String(str || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function normalizeTosEndpoint(inputEndpoint) {
     const raw = String(inputEndpoint || '').trim();
     if (!raw) return '';
@@ -80,7 +82,8 @@ function resolveTosSecretAccessKey() {
     if (!shouldDecode) return raw;
     try {
         return Buffer.from(raw, 'base64').toString('utf8').trim() || raw;
-    } catch {
+    } catch (e) {
+        console.error('Base64 decode error:', e.message || e);
         return raw;
     }
 }
@@ -225,7 +228,6 @@ app.use('/api/', (req, res, next) => {
     return limiter(req, res, next);
 });
 
-// Disable caching for API routes
 app.use('/api/', (req, res, next) => {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.set('Pragma', 'no-cache');
@@ -277,7 +279,9 @@ function guardPagination(req, res, next) {
             }
             req.query = q;
         }
-    } catch {}
+    } catch (e) {
+        console.error('Query param decode error:', e.message || e);
+    }
     next();
 }
 app.use(guardPagination);
@@ -437,8 +441,7 @@ rootHtmlFiles.forEach(file => {
     app.get('/' + file, (req, res) => renderStaticHtmlWithFooter(res, file));
 });
 
-app.get('/videos/', (req, res) => renderStaticHtmlWithFooter(res, 'videos.html'));
-app.get('/survey/', (req, res) => renderStaticHtmlWithFooter(res, 'survey.html'));
+// 5. survey redirects
 app.get('/survey', (req, res) => res.redirect(301, '/survey/'));
 app.get('/survey.html', (req, res) => res.redirect(301, '/survey/'));
 
@@ -880,6 +883,18 @@ app.get('/solutions-hcvm.html', (req, res) => res.redirect(301, '/solutions-hcvm
 app.get('/solutions-ohcvm/', (req, res) => renderStaticHtmlWithFooter(res, 'solutions-ohcvm.html'));
 app.get('/solutions-ohcvm.html', (req, res) => res.redirect(301, '/solutions-ohcvm/'));
 
+// 8. Root-level standalone pages (not in public/)
+app.get('/diagnostic-result.html', (req, res) => renderStaticHtmlWithFooter(res, 'diagnostic-result.html'));
+app.get('/event-registration.html', (req, res) => renderStaticHtmlWithFooter(res, 'event-registration.html'));
+app.get('/sales-toolkit.html', (req, res) => renderStaticHtmlWithFooter(res, 'sales-toolkit.html'));
+app.get('/nurture.html', (req, res) => renderStaticHtmlWithFooter(res, 'nurture.html'));
+
+// 9. Digital business card
+app.get('/card/wangkun.html', (req, res) => res.sendFile(path.join(__dirname, 'card', 'wangkun.html')));
+
+// 10. robots.txt (in project root, outside public/)
+app.get('/robots.txt', (req, res) => res.sendFile(path.join(__dirname, 'robots.txt')));
+
 // Serve verification txt file
 app.get('/f30f7f41e5fa707ed66d41aeb3791adb.txt', (req, res) => {
     res.sendFile(path.join(__dirname, 'f30f7f41e5fa707ed66d41aeb3791adb.txt'));
@@ -901,11 +916,7 @@ app.get('/baidu_verify_codeva-p4La8BZmYb.html', (req, res) => {
 app.get('/about/', (req, res) => renderStaticHtmlWithFooter(res, 'about.html'));
 app.get('/about.html', (req, res) => res.redirect(301, '/about/'));
 
-// 2. solutions.html -> /solutions/
-app.get('/solutions/', (req, res) => res.sendFile(path.join(__dirname, 'solutions.html')));
-app.get('/solutions.html', (req, res) => res.redirect(301, '/solutions/'));
-
-// 3. training.html -> /training
+// 2. training.html -> /training
 app.get('/training', (req, res) => renderStaticHtmlWithFooter(res, 'training.html'));
 app.get('/training.html', (req, res) => res.redirect(301, '/training'));
 app.get('/training/', (req, res) => res.redirect(301, '/training'));
@@ -1276,7 +1287,9 @@ function authRequired(req, res, next) {
                 const payload = jwt.verify(token, RUNTIME_SECRET_KEY);
                 req.user = payload;
                 return next();
-            } catch {}
+            } catch (e) {
+                console.error('JWT verify error:', e.message || e);
+            }
         }
         return res.status(401).json({ error: 'Invalid token' });
     } catch (e) {
@@ -3298,6 +3311,79 @@ app.delete('/api/admin/nqoc/survey/submissions/:id', authRequired, requirePerm('
     }
 });
 
+// === Survey Admin Alias Routes (match frontend /api/admin/survey/* expectations) ===
+
+app.get('/api/admin/survey/list', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    const { page = 1, limit = 20, orgName, name, phone, channel, startDate, endDate, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = req.query;
+    let query = {};
+    if (orgName) query.orgName = { $regex: orgName, $options: 'i' };
+    if (name) query.respondentName = { $regex: name, $options: 'i' };
+    if (phone) query.respondentContact = { $regex: phone, $options: 'i' };
+    if (channel) query.channel = channel;
+    if (utm_source) query.utm_source = utm_source;
+    if (utm_medium) query.utm_medium = utm_medium;
+    if (utm_campaign) query.utm_campaign = utm_campaign;
+    if (utm_term) query.utm_term = utm_term;
+    if (utm_content) query.utm_content = utm_content;
+    if (startDate && endDate) query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
+    try {
+        const submissions = await NqocSurveySubmission.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(parseInt(limit));
+        const total = await NqocSurveySubmission.countDocuments(query);
+        res.json({ success: true, data: submissions, total, page: parseInt(page), totalPages: Math.ceil(total / limit) });
+    } catch (e) { res.status(500).json({ success: false, error: '服务器内部错误' }); }
+});
+
+app.get('/api/admin/survey/analytics', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const { channel, startDate, endDate } = req.query;
+        let matchQuery = {};
+        if (channel) matchQuery.channel = channel;
+        if (startDate && endDate) { const endOfDay = new Date(endDate); endOfDay.setHours(23, 59, 59, 999); matchQuery.createdAt = { $gte: new Date(startDate), $lte: endOfDay }; }
+        const submissions = await NqocSurveySubmission.find(matchQuery).select('v1_1_1 v1_1_2 v1_2_1 v1_2_2 v1_3_1 v1_3_2 v1_3_3 v1_4_1 v1_4_2 v1_5_1 v1_5_2 b2_1_1 b2_1_2 b2_2_1 b2_2_2 b2_2_3 b2_3_1 b2_3_2 b2_4_1 b2_4_2 b2_5_1 b2_5_2 b2_6_1 b2_6_2 b2_7_1 p3_1_1 p3_1_2 p3_2_1 p3_2_2 p3_3_1 p3_3_2 p3_4_1 p3_4_2 p3_5_1 p3_5_2 p3_6_1 p3_6_2 p3_7_1 m4_1_1 m4_1_2 m4_2_1 m4_2_2 m4_3_1 m4_3_2 m4_4_1 m4_4_2 m4_5_1 m4_5_2 m4_5_3 m4_5_4 m4_6_1 m4_6_2 m4_6_3 m4_7_1 e5_1_1 e5_1_2 e5_2_1 e5_2_2 e5_3_1 e5_3_2 e5_4_1 e5_4_2 e5_5_1 e5_5_2 e5_6_1 s1 orgName industry orgNature employeeCount revenue respondentTitle channel createdAt').lean();
+        const total = submissions.length;
+        const scoreAvg = (prefix, count) => {
+            let sum = 0, n = 0;
+            submissions.forEach(s => { for (let i = 1; i <= count; i++) { for (let j = 1; j <= 4; j++) { const key = `${prefix}${i}_${j}`; if (s[key]) { sum += s[key]; n++; } } } });
+            return n > 0 ? sum / n : 0;
+        };
+        const stageCount = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 };
+        submissions.forEach(s => { if (s.s1) stageCount[String(s.s1)] = (stageCount[String(s.s1)] || 0) + 1; });
+        res.json({ success: true, data: { total, scores: { v1: scoreAvg('v', 5), b2: scoreAvg('b', 7), p3: scoreAvg('p', 7), m4: scoreAvg('m', 7), e5: scoreAvg('e', 6) }, stageCount } });
+    } catch (e) { res.status(500).json({ success: false, error: '服务器内部错误' }); }
+});
+
+app.get('/api/admin/survey/export', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const { channel, startDate, endDate } = req.query;
+        let query = {};
+        if (channel) query.channel = channel;
+        if (startDate && endDate) { const endOfDay = new Date(endDate); endOfDay.setHours(23, 59, 59, 999); query.createdAt = { $gte: new Date(startDate), $lte: endOfDay }; }
+        const submissions = await NqocSurveySubmission.find(query).sort({ createdAt: -1 }).lean();
+        const rows = submissions.map(s => ({ '组织名称': s.orgName, '行业': s.industry, '企业性质': s.orgNature, '员工数': s.employeeCount, '营收': s.revenue, '成立年限': s.establishedYears, '上市情况': s.listingStatus, '职位': s.respondentTitle, '姓名': s.respondentName, '联系电话': s.respondentContact, '邮箱': s.respondentEmail, '渠道': s.channel || '', '提交时间': s.createdAt }));
+        const header = Object.keys(rows[0] || {}).join(',');
+        const csv = rows.map(r => Object.values(r).map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8'); res.setHeader('Content-Disposition', 'attachment; filename=survey-export.csv');
+        res.send('\uFEFF' + header + '\n' + csv);
+    } catch (e) { res.status(500).json({ success: false, error: '服务器内部错误' }); }
+});
+
+app.delete('/api/admin/survey/:id', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const deleted = await NqocSurveySubmission.findByIdAndDelete(req.params.id);
+        if (!deleted) return res.status(404).json({ success: false, error: '记录不存在' });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ success: false, error: '服务器内部错误' }); }
+});
+
+app.post('/api/admin/survey/batch-delete', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    try {
+        const { ids } = req.body;
+        if (!ids || !Array.isArray(ids)) return res.status(400).json({ success: false, error: '请提供要删除的ID' });
+        await NqocSurveySubmission.deleteMany({ _id: { $in: ids } });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ success: false, error: '服务器内部错误' }); }
+});
+
 // Admin: Survey Stats
 app.get('/api/admin/nqoc/survey/stats', authRequired, requirePerm('appointment:list'), async (req, res) => {
     try {
@@ -4304,11 +4390,11 @@ function generateVerificationCode() {
 
 // 发送短信验证码
 const smsLimiter = rateLimit({ 
-    windowMs: 10 * 60 * 1000, 
-    max: 5, // Allow 5 per 10 mins globally per IP
+    windowMs: 60 * 1000, 
+    max: 20, // Allow 20 per minute per IP
     standardHeaders: true, 
     legacyHeaders: false,
-    message: { error: '请求过于频繁，请稍后再试' }
+    message: { error: '验证码请求过于频繁，请稍后再试' }
 });
 
 const https = require('https');

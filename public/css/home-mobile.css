@@ -3,7 +3,6 @@
     .home-hero__title {
         text-align: center;
     }
-}
     /* 2. Dual Engine Description No-wrap */
     .home-dual-engine__desc {
         font-size: 11px;
@@ -57,7 +56,7 @@
     }
     .home-cta__highlight {
         font-weight: bold;
-        color: #4f46e5; /* Primary brand color equivalent */
+        color: #4f46e5;
     }
 
     /* 7. Drive Inline (override flex-col/wrap) */
