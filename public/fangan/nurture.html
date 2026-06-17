@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>瑞华智策 · 线索培育规划 (Official Release)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        rh: {
+                            purple: '#7c4dff',
+                            light: '#b388ff',
+                            dark: '#651fff',
+                            text: '#1f2329',
+                            muted: '#6e6b8a',
+                            border: '#e5e7eb',
+                            bg: '#f8f9fa'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans SC"', 'sans-serif'],
+                        serif: ['"Noto Serif SC"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { -webkit-font-smoothing: antialiased; }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .nav-link {
+            position: relative;
+            color: #6e6b8a;
+            transition: color 0.3s;
+        }
+        .nav-link:hover { color: #7c4dff; }
+        .nav-link::after {
+            content: ''; position: absolute; width: 0; height: 2px;
+            bottom: -4px; left: 50%; background-color: #7c4dff;
+            transition: all 0.3s ease; transform: translateX(-50%);
+        }
+        .nav-link:hover::after { width: 100%; }
+        
+        .hover-card {
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            will-change: transform, box-shadow;
+        }
+        .hover-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(124, 77, 255, 0.15);
+        }
+        
+        .tl-item::before {
+            content: ''; position: absolute; left: -11px; top: 6px; width: 12px; height: 12px; 
+            border-radius: 50%; background: #7c4dff; box-shadow: 0 0 0 4px rgba(124, 77, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-rh-bg text-rh-text font-sans selection:bg-rh-purple/20 selection:text-rh-dark">
+
+    <div class="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 bg-[radial-gradient(circle_at_80%_20%,rgba(124,77,255,0.05)_0%,transparent_40%),radial-gradient(circle_at_20%_80%,rgba(124,77,255,0.03)_0%,transparent_40%)]"></div>
+
+    <nav class="glass-nav fixed top-0 w-full z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="font-serif text-xl font-bold flex items-center gap-2 text-rh-text">
+                RUIHUA <span class="text-rh-purple font-black">ZHICE</span>
+            </a>
+            <ul class="hidden md:flex gap-8 list-none font-medium">
+                <li><a href="#tiers" class="nav-link text-sm font-bold tracking-wide">线索分层</a></li>
+                <li><a href="#calendar" class="nav-link text-sm font-bold tracking-wide">执行日历</a></li>
+                <li><a href="#scripts" class="nav-link text-sm font-bold tracking-wide">策略话术</a></li>
+                <li><a href="#monitor" class="nav-link text-sm font-bold tracking-wide">监测体系</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="pt-40 pb-20 px-6 max-w-7xl mx-auto relative">
+        <div class="inline-flex items-center px-4 py-1.5 bg-rh-purple/10 border border-rh-purple/20 rounded-full text-xs font-bold text-rh-purple tracking-widest uppercase mb-8">
+            Nurture Lobster · 2026 Strategy
+        </div>
+        <h1 class="font-serif text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 text-rh-text">
+            瑞华智策<br>
+            <span class="bg-gradient-to-r from-rh-purple to-rh-light bg-clip-text text-transparent">线索培育执行规划</span>
+        </h1>
+        <p class="text-xl text-rh-muted max-w-3xl mb-12 font-light leading-relaxed">
+            从 1,194 条初始线索到 15–31 个高价值 SQL 商机转换。本规划涵盖 30 天全链路分步执行方案，通过 A/B 测试驱动 B2B 全域触达。
+        </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="hover-card bg-white border border-rh-border p-8 rounded-2xl">
+                <div class="font-serif text-5xl font-black text-rh-purple mb-2">1,194</div>
+                <div class="text-sm font-bold text-rh-text">全量线索总数</div>
+                <div class="text-xs text-rh-muted mt-2">5个来源 · 6级温度矩阵</div>
+            </div>
+            <div class="hover-card bg-white border border-rh-border p-8 rounded-2xl">
+                <div class="font-serif text-5xl font-black text-rh-purple mb-2">67–112</div>
+                <div class="text-sm font-bold text-rh-text">预期 A 类线索</div>
+                <div class="text-xs text-rh-muted mt-2">高意向 · 进入1v1深聊</div>
+            </div>
+            <div class="hover-card bg-white border border-rh-border p-8 rounded-2xl">
+                <div class="font-serif text-5xl font-black text-rh-purple mb-2">15–31</div>
+                <div class="text-sm font-bold text-rh-text">预期 SQL 产出</div>
+                <div class="text-xs text-rh-muted mt-2">B2B 高客单价商机</div>
+            </div>
+        </div>
+    </header>
+
+    <section class="py-20 px-6 max-w-7xl mx-auto" id="goals">
+        <div class="mb-16 relative">
+            <span class="text-xs font-bold text-rh-purple tracking-[4px] mb-4 block">01 / OVERVIEW</span>
+            <h2 class="font-serif text-4xl font-bold mb-4">核心转化指标</h2>
+            <p class="text-rh-muted max-w-2xl text-lg">基于历史数据建模，设定各触达节点的关键转化目标。</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="hover-card bg-white border border-rh-border p-10 rounded-2xl">
+                <span class="text-3xl block mb-6">🎯</span>
+                <div class="font-serif text-4xl font-black text-rh-text mb-3">8%–38%</div>
+                <div class="text-sm text-rh-muted leading-relaxed">平均建联率（微信通过）。OD论坛最高，ABM撞库最低。</div>
+            </div>
+            <div class="hover-card bg-white border border-rh-border p-10 rounded-2xl">
+                <span class="text-3xl block mb-6">⚡</span>
+                <div class="font-serif text-4xl font-black text-rh-text mb-3">67–112</div>
+                <div class="text-sm text-rh-muted leading-relaxed">A类线索产出目标。定于5月14日完成首次全量分层。</div>
+            </div>
+            <div class="hover-card bg-white border border-rh-border p-10 rounded-2xl">
+                <span class="text-3xl block mb-6">💎</span>
+                <div class="font-serif text-4xl font-black text-rh-text mb-3">1.3%–2.6%</div>
+                <div class="text-sm text-rh-muted leading-relaxed">最终商机转化率（Lead to SQL）。符合B2B咨询行业标准。</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 px-6 max-w-7xl mx-auto" id="tiers">
+        <div class="mb-16 relative">
+            <span class="text-xs font-bold text-rh-purple tracking-[4px] mb-4 block">02 / SEGMENTATION</span>
+            <h2 class="font-serif text-4xl font-bold mb-4">全量线索分层矩阵</h2>
+            <p class="text-rh-muted max-w-2xl text-lg">1,194条线索按温度和来源进行精细化分层，匹配差异化信任锚点。</p>
+        </div>
+        <div class="w-full overflow-x-auto bg-white border border-rh-border rounded-2xl shadow-sm">
+            <table class="w-full min-w-[800px] text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-rh-border">
+                        <th class="p-6 text-xs font-bold text-rh-muted uppercase tracking-wider">优先级</th>
+                        <th class="p-6 text-xs font-bold text-rh-muted uppercase tracking-wider">来源</th>
+                        <th class="p-6 text-xs font-bold text-rh-muted uppercase tracking-wider">数量</th>
+                        <th class="p-6 text-xs font-bold text-rh-muted uppercase tracking-wider">温度</th>
+                        <th class="p-6 text-xs font-bold text-rh-muted uppercase tracking-wider">信任锚点</th>
+                        <th class="p-6 text-xs font-bold text-rh-muted uppercase tracking-wider">启动时间</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-rh-border">
+                    <tr class="bg-rh-purple/5 border-l-4 border-l-rh-purple hover:bg-rh-purple/10 transition-colors">
+                        <td class="p-6 font-bold text-rh-text">P0</td>
+                        <td class="p-6 text-rh-text">智享会 · OD论坛</td>
+                        <td class="p-6 text-rh-text">21</td>
+                        <td class="p-6"><span class="px-3 py-1 rounded bg-red-100 text-red-600 text-xs font-bold">最热</span></td>
+                        <td class="p-6 text-rh-text">高燕总演讲+展位签到</td>
+                        <td class="p-6 text-rh-text">4/28 下午</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition-colors border-l-4 border-l-transparent">
+                        <td class="p-6 font-bold text-rh-text">P1</td>
+                        <td class="p-6 text-rh-text">智享会 · AI论坛</td>
+                        <td class="p-6 text-rh-text">53</td>
+                        <td class="p-6"><span class="px-3 py-1 rounded bg-orange-100 text-orange-600 text-xs font-bold">热</span></td>
+                        <td class="p-6 text-rh-text">1号展位扫码签到</td>
+                        <td class="p-6 text-rh-text">4/28 下午</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition-colors border-l-4 border-l-transparent">
+                        <td class="p-6 font-bold text-rh-text">P2</td>
+                        <td class="p-6 text-rh-text">HR领袖论坛 · 深圳</td>
+                        <td class="p-6 text-rh-text">167</td>
+                        <td class="p-6"><span class="px-3 py-1 rounded bg-gray-100 text-gray-600 text-xs font-bold">温</span></td>
+                        <td class="p-6 text-rh-text">论坛交流（4月前）</td>
+                        <td class="p-6 text-rh-text">4/29 上午</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition-colors border-l-4 border-l-transparent">
+                        <td class="p-6 font-bold text-rh-text">P3</td>
+                        <td class="p-6 text-rh-text">HR领袖论坛 · 上海</td>
+                        <td class="p-6 text-rh-text">363</td>
+                        <td class="p-6"><span class="px-3 py-1 rounded bg-gray-100 text-gray-600 text-xs font-bold">温</span></td>
+                        <td class="p-6 text-rh-text">论坛交流（5月前）</td>
+                        <td class="p-6 text-rh-text">4/29 下午</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition-colors border-l-4 border-l-transparent">
+                        <td class="p-6 font-bold text-rh-text">P4</td>
+                        <td class="p-6 text-rh-text">HR领袖论坛 · 北京</td>
+                        <td class="p-6 text-rh-text">162</td>
+                        <td class="p-6"><span class="px-3 py-1 rounded bg-blue-100 text-blue-600 text-xs font-bold">偏冷</span></td>
+                        <td class="p-6 text-rh-text">论坛交流（5月前）</td>
+                        <td class="p-6 text-rh-text">4/30 上午</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition-colors border-l-4 border-l-transparent">
+                        <td class="p-6 font-bold text-rh-text">P5</td>
+                        <td class="p-6 text-rh-text">ABM撞库</td>
+                        <td class="p-6 text-rh-text">428</td>
+                        <td class="p-6"><span class="px-3 py-1 rounded bg-amber-100 text-amber-700 text-xs font-bold">冷</span></td>
+                        <td class="p-6 text-rh-text">零记忆 · 无任何互动</td>
+                        <td class="p-6 text-rh-text">5/6 节后</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="py-20 px-6 max-w-7xl mx-auto" id="calendar">
+        <div class="mb-16 relative">
+            <span class="text-xs font-bold text-rh-purple tracking-[4px] mb-4 block">03 / EXECUTION</span>
+            <h2 class="font-serif text-4xl font-bold mb-4">30天执行路线图</h2>
+        </div>
+        <div class="mt-8 border-l-2 border-rh-border pl-8 relative ml-4">
+            <div class="tl-item relative mb-12">
+                <span class="font-bold text-rh-purple mb-2 block text-lg">第一周：五一前冲刺 (4/28–4/30)</span>
+                <div class="text-rh-text text-base leading-relaxed bg-white p-5 rounded-xl border border-rh-border shadow-sm inline-block">
+                    全量P0-P4线索微信+邮件首轮破冰。4/30完成初步数据复盘，为节后分层做准备。
+                </div>
+            </div>
+            <div class="tl-item relative mb-12">
+                <span class="font-bold text-rh-purple mb-2 block text-lg">第二至三周：规模化启动 (5/6–5/13)</span>
+                <div class="text-rh-text text-base leading-relaxed bg-white p-5 rounded-xl border border-rh-border shadow-sm inline-block">
+                    启动ABM(P5)批量触达。针对OD/AI线索发送第二封价值邮件。完成首轮数据汇总。
+                </div>
+            </div>
+            <div class="tl-item relative mb-12">
+                <span class="font-bold text-rh-purple mb-2 block text-lg">第四周：全量分层节点 (5/14)</span>
+                <div class="text-rh-text text-base leading-relaxed bg-white p-5 rounded-xl border border-rh-border shadow-sm inline-block border-l-4 border-l-rh-purple">
+                    <b class="text-rh-purple">核心节点：全线索 → A/B/C。</b> A类正式开启1v1深度沟通与需求诊断。
+                </div>
+            </div>
+            <div class="tl-item relative mb-12">
+                <span class="font-bold text-rh-purple mb-2 block text-lg">第五周：转化与捞回 (5/25–5/31)</span>
+                <div class="text-rh-text text-base leading-relaxed bg-white p-5 rounded-xl border border-rh-border shadow-sm inline-block">
+                    A类深聊跟进、方案输出。5/28针对C类进行一次性集中捞回。产出月度数据报告。
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 px-6 max-w-7xl mx-auto" id="scripts">
+        <div class="mb-16 relative">
+            <span class="text-xs font-bold text-rh-purple tracking-[4px] mb-4 block">04 / STRATEGY</span>
+            <h2 class="font-serif text-4xl font-bold mb-4">分来源话术策略</h2>
+            <p class="text-rh-muted max-w-2xl text-lg">针对不同信任锚点设计的 A/B 测试话术与邮件模板。</p>
+        </div>
+
+        <h3 class="mt-16 mb-6 text-2xl font-bold text-rh-purple flex items-center gap-3">
+            <span class="w-8 h-8 rounded-full bg-rh-purple/10 flex items-center justify-center text-sm">P0</span> 
+            OD论坛策略
+        </h3>
+        
+        <div class="border border-rh-border rounded-2xl overflow-hidden mb-10 bg-white shadow-sm">
+            <div class="px-8 py-5 bg-gray-50 font-bold text-sm text-rh-text border-b border-rh-border flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-rh-purple"></span>
+                微信好友申请 A/B 测试：验证「自评表回忆」vs「诊断工具直给」
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-rh-border">
+                <div class="p-8 bg-white">
+                    <span class="text-xs font-bold text-rh-muted mb-4 block uppercase tracking-wider bg-gray-100 inline-block px-3 py-1 rounded">方案 A：情感锚点版</span>
+                    <p class="text-rh-text text-base leading-relaxed mb-6 bg-gray-50 p-4 rounded-lg border border-gray-100">某总您好，智享会OD论坛1号展位扫码见过的Adam。高燕总会上时间不够、没来得及带大家做那个自评——您要有兴趣，我帮您走一遍？</p>
+                    <span class="text-sm font-bold text-rh-purple">预期通过率: 28%–38%</span>
+                </div>
+                <div class="p-8 bg-white">
+                    <span class="text-xs font-bold text-rh-muted mb-4 block uppercase tracking-wider bg-gray-100 inline-block px-3 py-1 rounded">方案 B：价值钩子版</span>
+                    <p class="text-rh-text text-base leading-relaxed mb-6 bg-gray-50 p-4 rounded-lg border border-gray-100">某总您好，智享会OD论坛1号展位的Adam。高燕总课上跳过的那个自评表，我们还有个配套的诊断工具，发您试试？</p>
+                    <span class="text-sm font-bold text-rh-purple">预期通过率: 22%–32%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border border-rh-border rounded-2xl p-10 mb-16 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1 h-full bg-rh-purple"></div>
+            <div class="font-bold mb-6 text-rh-text text-lg border-b border-rh-border pb-4 flex items-center gap-3">
+                <svg class="w-5 h-5 text-rh-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                邮件E1：高燕总没来得及带大家做的那个自评，我帮您补上
+            </div>
+            <div class="whitespace-pre-line text-rh-text text-base leading-loose font-medium">某总，您好。
+
+我是瑞华智策的Adam，两周前在智享会OD论坛的1号展位上，感谢您扫码签到。
+
+高燕总分享《迎接新质组织》时，有一个环节很多朋友会后都在问——课件第8页的「新质组织成熟度自评表」。高燕总本来想带大家一起做，但因为时间关系跳过了。
+
+如果您对这个自评感兴趣，我可以帮您走一遍：
+<span class="font-bold text-rh-purple">5个维度，5分钟：</span>
+1. 治理价值观 —— "人机共智"是否纳入战略价值观？
+2. 商业模式 —— AI是否在重构价值创造方式？
+3. 生产方式 —— AI在核心流程中的嵌入深度？
+4. 管理范式 —— 组织架构&流程机制是否适配人机共智？
+5. 生态嵌入度 —— 在AI技术生态中的位置如何？
+
+做完后我会帮您快速解读优势与盲区。回复本邮件，我发您自评表。
+
+<span class="text-rh-muted">Adam
+瑞华智策 | 新质组织研究中心</span></div>
+        </div>
+
+        <h3 class="mt-16 mb-4 text-2xl font-bold text-rh-purple flex items-center gap-3">
+            <span class="w-8 h-8 rounded-full bg-rh-purple/10 flex items-center justify-center text-sm">P1</span> 
+            AI论坛策略 (53条)
+        </h3>
+        <div class="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-3 rounded-lg mb-8 text-sm font-bold border border-red-100">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            🚨 关键禁忌：严禁使用“高燕总”或“聊过AI落地”等话术，客户仅有展位扫码记忆。
+        </div>
+        
+        <div class="border border-rh-border rounded-2xl overflow-hidden mb-16 bg-white shadow-sm">
+            <div class="px-8 py-5 bg-gray-50 font-bold text-sm text-rh-text border-b border-rh-border flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-rh-purple"></span>
+                微信通过率 A/B 测试：验证「案例数据冲击力」
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-rh-border">
+                <div class="p-8 bg-white">
+                    <span class="text-xs font-bold text-rh-muted mb-4 block uppercase tracking-wider bg-gray-100 inline-block px-3 py-1 rounded">方案 A：活动记忆版</span>
+                    <p class="text-rh-text text-base leading-relaxed mb-6 bg-gray-50 p-4 rounded-lg border border-gray-100">某总您好，4/15智享会1号展位扫码签到见过您的Adam。当时展位人多没来得及聊，我们针对那场HR人工智能论坛整理了一份落地资料，加您发一下？</p>
+                    <span class="text-sm font-bold text-rh-purple">预期通过率: 12%–20%</span>
+                </div>
+                <div class="p-8 bg-white relative">
+                    <div class="absolute top-0 right-0 bg-rh-purple text-white text-xs font-bold px-3 py-1 rounded-bl-lg shadow">推荐</div>
+                    <span class="text-xs font-bold text-rh-muted mb-4 block uppercase tracking-wider bg-gray-100 inline-block px-3 py-1 rounded">方案 B：价值直给版</span>
+                    <p class="text-rh-text text-base leading-relaxed mb-6 bg-rh-purple/5 p-4 rounded-lg border border-rh-purple/20">某总您好，4/15智享会1号展位的Adam。那场HR人工智能论坛后我们整理了真实的企业AI落地案例——2周的人才画像流程被压缩到2天。加您看看？</p>
+                    <span class="text-sm font-bold text-rh-purple flex items-center gap-1">⭐ 预期通过率: 13%–22% (数据冲击更强)</span>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="mt-16 mb-6 text-2xl font-bold text-rh-purple flex items-center gap-3">
+            <span class="w-8 h-8 rounded-full bg-rh-purple/10 flex items-center justify-center text-sm">P5</span> 
+            ABM 撞库策略 (428条)
+        </h3>
+        <div class="border border-rh-border rounded-2xl overflow-hidden mb-10 bg-white shadow-sm">
+            <div class="px-8 py-5 bg-gray-50 font-bold text-sm text-rh-text border-b border-rh-border flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-rh-purple"></span>
+                微信申请测试：验证「痛点共鸣」vs「工具免费」
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-rh-border">
+                <div class="p-8 bg-white">
+                    <span class="text-xs font-bold text-rh-muted mb-4 block uppercase tracking-wider bg-gray-100 inline-block px-3 py-1 rounded">方案 A：非裁员式提效</span>
+                    <p class="text-rh-text text-base leading-relaxed mb-6 bg-gray-50 p-4 rounded-lg border border-gray-100">某总您好，瑞华智策Adam。最近帮几家高科技企业做组织效能诊断，发现"非裁员式提效"是个共性难题。我这有份简版诊断框架，发您参考？</p>
+                </div>
+                <div class="p-8 bg-white relative">
+                    <div class="absolute top-0 right-0 bg-rh-purple text-white text-xs font-bold px-3 py-1 rounded-bl-lg shadow">推荐</div>
+                    <span class="text-xs font-bold text-rh-muted mb-4 block uppercase tracking-wider bg-gray-100 inline-block px-3 py-1 rounded">方案 B：免费诊断Agent</span>
+                    <p class="text-rh-text text-base leading-relaxed mb-6 bg-rh-purple/5 p-4 rounded-lg border border-rh-purple/20">某总您好，瑞华智策Adam。冒昧联系——我们有一个免费的组织效能诊断Agent，输入企业数据，3分钟出行业对标诊断。有兴趣试试？</p>
+                    <span class="text-sm font-bold text-rh-purple flex items-center gap-1">⭐ 优先建议 (降低决策门槛)</span>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="mt-16 mb-6 text-2xl font-bold text-rh-purple flex items-center gap-3" id="survey-edm">
+            <span class="w-8 h-8 rounded-full bg-rh-purple/10 flex items-center justify-center text-sm">SP</span> 
+            专项行动：新质组织成熟度调研邀约 (EDM & 微信)
+        </h3>
+        <p class="text-rh-muted mb-8 text-lg">基于《中国企业新质组织成熟度调研问卷_V1.5_Kaifeng Jiang》的核心学术框架，我们设计了三版差异化的邀约方案，通过 A/B/C 测试寻找最佳转化路径，将单纯的“填问卷”转化为高价值的“诊断咨询”触点。</p>
+
+        <!-- 方案A -->
+        <div class="bg-white border border-rh-border rounded-2xl p-8 mb-8 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1 h-full bg-rh-purple"></div>
+            <div class="font-bold mb-6 text-rh-text text-lg border-b border-rh-border pb-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="bg-gray-100 text-rh-muted px-3 py-1 rounded text-xs uppercase tracking-wider">方案 A</span>
+                    痛点反差与好奇心 (激发疑问，用“诊断工具”包装问卷)
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-sm font-bold text-rh-muted mb-3 flex items-center gap-2"><i class="bi bi-envelope"></i> EDM 邮件设计</h4>
+                    <div class="bg-gray-50 p-5 rounded-xl border border-gray-100 h-full">
+                        <div class="mb-4 text-sm"><span class="font-bold text-rh-text">邮件标题：</span><span class="text-rh-purple">为什么引入了大量AI工具，团队人效依然没有明显提升？</span></div>
+                        <div class="text-sm leading-relaxed text-rh-text whitespace-pre-line">某总，您好。
+
+近期我们在与众多企业交流时发现一个普遍痛点：花重金引入了AI工具，但真实的业务效能并没有如期爆发。
+
+背后的根本原因在于：**技术的进化，与底层的“组织成熟度”出现了严重脱节。**
+
+为了帮企业看清问题所在，瑞华智策联合北大光华资深学者，将复杂的学术模型转化为了一个轻量级的【新质组织成熟度自测问卷】。
+
+👉 [点击这里，仅需5分钟完成自测问卷]
+
+提交问卷后，系统将立即为您生成一份专属的《组织效能雷达图》，帮您精准定位阻碍效能提升的“隐形瓶颈”。
+
+Adam | 瑞华智策研究中心</div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-rh-muted mb-3 flex items-center gap-2"><i class="bi bi-chat-dots"></i> 微信互动话术</h4>
+                    <div class="bg-rh-purple/5 p-5 rounded-xl border border-rh-purple/20 h-full">
+                        <div class="mb-2"><span class="font-bold text-rh-purple text-sm">好友申请：</span></div>
+                        <div class="text-sm text-rh-text mb-6 bg-white p-3 rounded shadow-sm">某总您好，最近发现很多企业引入AI后人效依然卡壳，想和您交流下内部的组织效能诊断。</div>
+                        <div class="mb-2"><span class="font-bold text-rh-purple text-sm">通过后破冰：</span></div>
+                        <div class="text-sm text-rh-text bg-white p-3 rounded shadow-sm">某总感谢通过！我们联合北大光华做了一个“新质组织成熟度”的调研问卷，专门测算企业在AI时代转型中的“效能漏斗”。只需占用您5分钟勾选一下，我就能给您导出一份专属的诊断雷达图。测一下看看咱们目前的短板卡在哪了？</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 方案B -->
+        <div class="bg-white border border-rh-border rounded-2xl p-8 mb-8 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+            <div class="font-bold mb-6 text-rh-text text-lg border-b border-rh-border pb-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="bg-gray-100 text-rh-muted px-3 py-1 rounded text-xs uppercase tracking-wider">方案 B</span>
+                    同行对标与FOMO心理 (激发胜负欲，用“行业占位”吸引填答)
+                </div>
+                <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">⭐ 转化率最高预测</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-sm font-bold text-rh-muted mb-3 flex items-center gap-2"><i class="bi bi-envelope"></i> EDM 邮件设计</h4>
+                    <div class="bg-gray-50 p-5 rounded-xl border border-gray-100 h-full">
+                        <div class="mb-4 text-sm"><span class="font-bold text-rh-text">邮件标题：</span><span class="text-blue-600">【定向邀请】您的企业在“AI时代组织进化”中，处于什么行业梯队？</span></div>
+                        <div class="text-sm leading-relaxed text-rh-text whitespace-pre-line">某总，您好。
+
+您的同行正在悄悄重塑他们的组织架构与人才模型。在这一波新质生产力的浪潮中，贵司目前处于领跑、跟随，还是亟待转型的梯队？
+
+目前，瑞华智策正联合《中国经营报》进行一项面向行业标杆的“新质组织成熟度摸底调研”。我们诚挚邀请您花几分钟时间，提供真实的业务反馈。
+
+作为参与调研的核心回报，您将免费获取：
+1. **梯队对标：** 一份与同行业、同规模企业的详细对标数据报告。
+2. **高管圈层：** 优先获邀加入由各行业“1号位”组成的闭门私董会。
+
+👉 [点击进入调研问卷，解锁您的行业对标数据]
+
+您的输入，将直接决定行业标准的刻度。
+
+Adam | 瑞华智策</div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-rh-muted mb-3 flex items-center gap-2"><i class="bi bi-chat-dots"></i> 微信互动话术</h4>
+                    <div class="bg-blue-50 p-5 rounded-xl border border-blue-100 h-full">
+                        <div class="mb-2"><span class="font-bold text-blue-600 text-sm">好友申请：</span></div>
+                        <div class="text-sm text-rh-text mb-6 bg-white p-3 rounded shadow-sm">某总您好，我们正在汇总同行业的“组织进化”标杆数据，想定向邀请贵司参与同行对标。</div>
+                        <div class="mb-2"><span class="font-bold text-blue-600 text-sm">通过后破冰：</span></div>
+                        <div class="text-sm text-rh-text bg-white p-3 rounded shadow-sm">某总您好！我们正联合《中国经营报》做标杆企业的组织成熟度摸底。想邀请您花5分钟填个调研问卷，作为回报，我们会给您出一份与同梯队企业的详细对标报告，看看咱们在行业里处于什么水位，同时还能优先进我们的高管私董会。问卷链接我发您试试？</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 方案C -->
+        <div class="bg-white border border-rh-border rounded-2xl p-8 mb-10 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+            <div class="font-bold mb-6 text-rh-text text-lg border-b border-rh-border pb-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="bg-gray-100 text-rh-muted px-3 py-1 rounded text-xs uppercase tracking-wider">方案 C</span>
+                    利益前置与超值回报 (激发获得感，用“免费专家体检”驱动)
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-sm font-bold text-rh-muted mb-3 flex items-center gap-2"><i class="bi bi-envelope"></i> EDM 邮件设计</h4>
+                    <div class="bg-gray-50 p-5 rounded-xl border border-gray-100 h-full">
+                        <div class="mb-4 text-sm"><span class="font-bold text-rh-text">邮件标题：</span><span class="text-emerald-600">仅需5分钟，为您免费出具一份企业专属的《组织效能体检报告》</span></div>
+                        <div class="text-sm leading-relaxed text-rh-text whitespace-pre-line">某总，您好。
+
+岁末年初，正是企业内部做管理复盘的最佳时机。
+
+为了帮助大中型企业快速摸清自身的组织健康度，瑞华智策特别开放了基于最新学术研究的“新质组织测评工具”。
+
+这不是一份普通的调研问卷，而是一次高价值的“轻量级咨询”。只需您抽出5分钟时间完成线上问卷，我们将为您免费提供：
+
+1. **深度体检：** 系统自动生成的定制化《新质组织成熟度体检报告》。
+2. **专家解读：** 资深咨询专家的一对一报告解读服务。
+3. **案例曝光：** 测评数据表现优异的企业，将作为优秀案例入选即将出版的权威专著。
+
+👉 [点击开始答卷，即刻获取您的体检报告]
+
+期待为您的组织管理复盘提供有力的抓手。
+
+Adam | 瑞华智策研究中心</div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-rh-muted mb-3 flex items-center gap-2"><i class="bi bi-chat-dots"></i> 微信互动话术</h4>
+                    <div class="bg-emerald-50 p-5 rounded-xl border border-emerald-100 h-full">
+                        <div class="mb-2"><span class="font-bold text-emerald-600 text-sm">好友申请：</span></div>
+                        <div class="text-sm text-rh-text mb-6 bg-white p-3 rounded shadow-sm">某总您好，我们刚上线了一个基于最新学术研究的“组织成熟度”快速体检问卷，想邀请您体验下。</div>
+                        <div class="mb-2"><span class="font-bold text-emerald-600 text-sm">通过后破冰：</span></div>
+                        <div class="text-sm text-rh-text bg-white p-3 rounded shadow-sm">某总感谢通过！这是我们联合学术界研发的组织调研问卷，很多高管测完都觉得对内部复盘极有启发。您花5分钟顺手测一下，我立马帮您导出一份专属的“组织体检报告”，后续还能安排专家免费一对一解读。如果数据亮眼，还能入选我们的官方标杆案例库。您看现在方便点开填一下吗？</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <section class="py-20 px-6 max-w-7xl mx-auto" id="monitor">
+        <div class="mb-16 relative">
+            <span class="text-xs font-bold text-rh-purple tracking-[4px] mb-4 block">05 / MONITORING</span>
+            <h2 class="font-serif text-4xl font-bold mb-4">数据监测机制</h2>
+        </div>
+        <div class="w-full overflow-x-auto bg-white border border-rh-border rounded-2xl shadow-sm">
+            <table class="w-full min-w-[800px] text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-rh-border">
+                        <th class="p-6 text-xs font-bold text-rh-muted uppercase tracking-wider w-1/3">维度</th>
+                        <th class="p-6 text-xs font-bold text-rh-muted uppercase tracking-wider w-1/3">追踪指标</th>
+                        <th class="p-6 text-xs font-bold text-rh-muted uppercase tracking-wider w-1/3">记录频次</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-rh-border">
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="p-6 font-bold text-rh-text flex items-center gap-3"><span class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-lg">📤</span> 发送层</td>
+                        <td class="p-6 text-rh-text">微信/邮件发送数、发送时间段</td>
+                        <td class="p-6 text-rh-muted"><span class="px-3 py-1 bg-gray-100 rounded text-xs font-bold">每日更新</span></td>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="p-6 font-bold text-rh-text flex items-center gap-3"><span class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-lg">👀</span> 触达层</td>
+                        <td class="p-6 text-rh-text">微信通过率、邮件打开率</td>
+                        <td class="p-6 text-rh-muted"><span class="px-3 py-1 bg-gray-100 rounded text-xs font-bold">每日更新</span></td>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="p-6 font-bold text-rh-text flex items-center gap-3"><span class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-lg">💬</span> 互动层</td>
+                        <td class="p-6 text-rh-text">首轮回复率、深度互动(自评/Agent使用)</td>
+                        <td class="p-6 text-rh-muted"><span class="px-3 py-1 bg-gray-100 rounded text-xs font-bold">每日更新</span></td>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition-colors bg-rh-purple/5">
+                        <td class="p-6 font-bold text-rh-purple flex items-center gap-3"><span class="w-8 h-8 rounded-full bg-rh-purple/10 flex items-center justify-center text-lg">📈</span> 转化层</td>
+                        <td class="p-6 text-rh-text font-medium">预约交流数、SQL商机产出数</td>
+                        <td class="p-6 text-rh-muted"><span class="px-3 py-1 bg-rh-purple text-white rounded text-xs font-bold">持续追踪</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer class="border-t border-rh-border py-16 text-center text-sm text-rh-muted mt-10">
+        <p class="mb-2">&copy; 2026 <b class="text-rh-text">瑞华智策 RUIHUA ZHICE</b> · 培育龙虾 Nurture Lobster V3.0</p>
+        <p class="opacity-70">执行手册: ceying-lobster/nurture/execution-plan-2026-04.md</p>
+    </footer>
+
+</body>
+</html>

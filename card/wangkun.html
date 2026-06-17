@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>王坤 · 瑞华智策数字名片</title>
+<meta name="description" content="瑞华智策 AI 企业落地咨询 · 王坤｜管理咨询 + Agent落地 + 陪跑服务，助力成长型与转型期企业进化为 AI 时代的新质组织。">
+<link rel="icon" href="https://ruihua-portal.tos-cn-shanghai.volces.com/page/LOGO-%E5%8F%8D%E7%99%BD.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="瑞华智策">
+<meta property="og:title" content="王坤 · 瑞华智策数字名片">
+<meta property="og:description" content="AI企业落地顾问｜管理咨询 + Agent落地 + 陪跑服务，助力企业进化为AI时代的新质组织">
+<meta property="og:image" content="https://ruihua-portal.tos-cn-shanghai.volces.com/mingpian/wangkun.jpg">
+<meta property="og:image:width" content="1242">
+<meta property="og:image:height" content="1244">
+<meta property="og:url" content="https://163.7.11.217/wangkun/">
+<style>
+    @font-face {
+      font-family: "MiSans Latin";
+      src: url('https://cdn.jsdelivr.net/npm/misans-webfont@4.3.1/misans/misans-normal/0.woff2') format("woff2");
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    :root {
+    --brand: #7c4dff;
+    --brand-strong: #4b22b8;
+    --brand-soft: #efe8ff;
+    --brand-pale: #f8f5ff;
+    --ink: #1f1740;
+    --muted: #756c8f;
+    --line: rgba(124, 77, 255, 0.14);
+    --card: rgba(255, 255, 255, 0.86);
+    --shadow: 0 18px 45px rgba(55, 32, 116, 0.12);
+    --radius: 18px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "MiSans Latin", -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    min-height: 100vh;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 16% -8%, rgba(124,77,255,0.22), transparent 34%),
+      radial-gradient(circle at 92% 8%, rgba(38,166,154,0.14), transparent 30%),
+      linear-gradient(180deg, #fbf9ff 0%, #f1eef8 100%);
+  }
+
+  a, button, input, textarea { font: inherit; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  .icon { width: 19px; height: 19px; display: inline-block; vertical-align: -4px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .page-wrap { max-width: 430px; margin: 0 auto; min-height: 100vh; padding: 14px 14px calc(86px + env(safe-area-inset-bottom)); }
+  .page { display: none; animation: fadeIn 0.24s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .brand-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 342px;
+    padding: 22px 20px;
+    border-radius: 28px;
+    color: #fff;
+    background:
+      linear-gradient(135deg, rgba(31,23,64,0.18), rgba(31,23,64,0)),
+      linear-gradient(140deg, #3b1c88 0%, var(--brand) 52%, #9f7bff 100%);
+    box-shadow: 0 26px 60px rgba(92, 53, 177, 0.34);
+  }
+  .brand-card::before,
+  .brand-card::after { content: ""; position: absolute; border-radius: 999px; background: rgba(255,255,255,0.11); }
+  .brand-card::before { width: 190px; height: 190px; right: -72px; top: -48px; }
+  .brand-card::after { width: 120px; height: 120px; left: -44px; bottom: -34px; }
+  .brand-top, .profile, .hero-slogan, .hero-actions, .hero-meta { position: relative; z-index: 1; }
+  .brand-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand-lockup { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .brand-logo { height: 38px; max-width: 188px; object-fit: contain; display: block; border-radius: 10px; background: rgba(255,255,255,0.08); }
+  .brand-name { font-size: 13px; font-weight: 700; letter-spacing: 0.4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .brand-sub { margin-top: 2px; font-size: 10px; color: rgba(255,255,255,0.72); }
+  .status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border-radius: 999px; background: rgba(255,255,255,0.14); font-size: 11px; white-space: nowrap; cursor: default; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #69f0ae; box-shadow: 0 0 0 5px rgba(105,240,174,0.14); }
+
+  .profile { display: grid; grid-template-columns: 84px 1fr; gap: 16px; align-items: center; margin-top: 28px; }
+  .avatar { position: relative; width: 84px; height: 84px; border-radius: 26px; display: grid; place-items: center; overflow: hidden; color: #fff; font-size: 36px; font-weight: 800; background: rgba(255,255,255,0.16); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.28); }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .profile h1 { font-size: 27px; line-height: 1.15; letter-spacing: 2px; }
+  .profile .role { margin-top: 8px; font-size: 13px; line-height: 1.55; color: rgba(255,255,255,0.8); }
+  .profile .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .profile .tags span { padding: 5px 8px; border-radius: 999px; background: rgba(255,255,255,0.14); font-size: 10px; color: rgba(255,255,255,0.88); }
+  .hero-slogan { margin-top: 18px; padding-left: 12px; border-left: 3px solid rgba(255,255,255,0.55); font-size: 16px; font-weight: 850; line-height: 1.5; }
+  .hero-slogan em { font-style: normal; color: #ffe7a8; }
+  .hero-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 22px; }
+  .metric { padding: 10px 8px; border-radius: 16px; background: rgba(255,255,255,0.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12); }
+  .metric strong { display: block; font-size: 16px; }
+  .metric span { display: block; margin-top: 3px; color: rgba(255,255,255,0.72); font-size: 10px; }
+  .hero-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+
+  .btn {
+    min-height: 46px;
+    border: 0;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    text-decoration: none;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { color: var(--brand-strong); background: #fff; box-shadow: 0 10px 22px rgba(39,23,83,0.18); }
+  .btn-ghost { color: #fff; background: rgba(255,255,255,0.15); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18); }
+  .btn-brand { color: #fff; background: linear-gradient(135deg, var(--brand), #9f7bff); box-shadow: 0 14px 30px rgba(124,77,255,0.26); }
+  .btn-soft { color: var(--brand-strong); background: var(--brand-soft); }
+
+  .section-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 24px 2px 12px; }
+  .section-title h2 { font-size: 18px; line-height: 1.2; }
+  .section-title span { font-size: 11px; color: var(--muted); }
+  .card { background: rgba(255,255,255,0.95); border: 1px solid rgba(255,255,255,0.72); border-radius: var(--radius); box-shadow: var(--shadow); }
+  @supports (backdrop-filter: blur(1px)) {
+    .card { background: var(--card); backdrop-filter: blur(18px); }
+  }
+  .home-layout { margin-top: 18px; }
+  .intro-card { padding: 18px; line-height: 1.8; color: #51486d; font-size: 13px; }
+  .intro-card strong { display: block; margin-bottom: 6px; color: var(--brand-strong); font-size: 14px; }
+  .core-method-card { margin-top: 12px; padding: 15px; border-radius: 18px; background: linear-gradient(135deg, #fff, #f7f2ff); border: 1px solid var(--line); box-shadow: 0 14px 32px rgba(55,32,116,.08); }
+  .core-method-card .method-label { display: block; color: var(--muted); font-size: 11px; font-weight: 800; }
+  .method-formula { display: block; margin-top: 8px; color: var(--brand-strong); font-size: 17px; line-height: 1.45; font-weight: 900; }
+  .method-formula em { font-style: normal; color: var(--brand); font-size: 0.78em; vertical-align: 2px; margin-right: 1px; }
+  .core-method-card p { margin-top: 8px; color: #6f6490; font-size: 11px; line-height: 1.6; }
+  .quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+  .quick-action { min-height: 88px; padding: 12px 8px; border: 1px solid rgba(112, 78, 205, .12); border-radius: 16px; background: linear-gradient(180deg, #fff, #fbf9ff); color: var(--ink); text-align: center; text-decoration: none; cursor: pointer; }
+  .quick-action .icon-wrap { position: relative; width: 42px; height: 42px; margin: 0 auto 8px; border-radius: 14px; color: var(--brand-strong); background: linear-gradient(145deg, #f5f0ff, #ffffff); box-shadow: inset 0 0 0 1px rgba(112, 78, 205, .14), 0 8px 18px rgba(79, 49, 160, .08); }
+  .quick-action .icon-wrap::after { content: ""; position: absolute; right: 7px; bottom: 7px; width: 7px; height: 7px; border-radius: 999px; background: #7c4dff; box-shadow: 0 0 0 3px rgba(124,77,255,.12); }
+  .quick-action:nth-child(2) .icon-wrap::after { background: #ff9f1c; box-shadow: 0 0 0 3px rgba(255,159,28,.14); }
+  .quick-action:nth-child(3) .icon-wrap::after { background: #18b59f; box-shadow: 0 0 0 3px rgba(24,181,159,.14); }
+  .feature-strip .quick-action .icon-wrap::after { background: #5f38d7; box-shadow: 0 0 0 3px rgba(95,56,215,.14); }
+  .quick-action strong { display: block; font-size: 12px; }
+  .quick-action span { display: block; margin-top: 4px; font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .icon-wrap { width: 36px; height: 36px; border-radius: 12px; display: inline-grid; place-items: center; color: var(--brand); background: linear-gradient(135deg, #f5f0ff, #fff); box-shadow: inset 0 0 0 1px var(--line); }
+
+  .feature-strip { display: grid; grid-template-columns: repeat(1, 1fr); gap: 10px; margin-top: 12px; }
+  .service-suite { display: grid; gap: 12px; }
+  .service-cta { width: 100%; margin-top: 16px; }
+  .service-pairs { display: grid; gap: 12px; }
+  .advantage-grid, .start-grid { display: grid; gap: 10px; }
+  .advantage-card, .start-card { padding: 14px; border-radius: 16px; background: #fff; border: 1px solid var(--line); box-shadow: 0 12px 28px rgba(55,32,116,.07); }
+  .advantage-card strong, .start-card strong { display: block; color: var(--brand-strong); font-size: 13px; }
+  .advantage-card p, .start-card p { margin-top: 8px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+  .advantage-card { background: linear-gradient(180deg, #fff, #fbf9ff); }
+  .advantage-card strong::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 7px; border-radius: 50%; background: var(--brand); vertical-align: 1px; }
+  .start-card { position: relative; overflow: hidden; }
+  .start-card::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: linear-gradient(90deg, var(--brand), #26a69a); }
+  .start-card strong { position: relative; }
+  .service-block { position: relative; overflow: hidden; padding: 16px; border-radius: 18px; background: linear-gradient(180deg, #fff, #fbf9ff); color: var(--ink); border: 1px solid rgba(124,77,255,.14); box-shadow: var(--shadow); }
+  .service-block::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, var(--brand), #26a69a); pointer-events: none; }
+  .service-block > * { position: relative; z-index: 1; }
+  .service-block.major { background: linear-gradient(135deg, #fff, #f7f2ff); border-color: rgba(124,77,255,.2); }
+  .service-block.business { background: linear-gradient(145deg, #faf5ff 0%, #f3edff 30%, #ffffff 100%); border-color: rgba(124,77,255,.22); }
+  .service-block.business::before { height: 5px; background: linear-gradient(90deg, #4f46e5, #7c3aed, #a855f7); border-radius: 3px 3px 0 0; }
+  .service-block.business::after { content: ""; position: absolute; top: -40px; right: -30px; width: 120px; height: 120px; border-radius: 999px; background: radial-gradient(circle, rgba(124,77,255,.06), transparent 70%); pointer-events: none; }
+  .service-block.business:hover { transform: translateY(-2px); box-shadow: 0 18px 40px rgba(124,77,255,.14); transition: transform 0.22s ease, box-shadow 0.22s ease; }
+  .service-block.business .service-title h3 { background: linear-gradient(135deg, #4f46e5, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .service-block.business .service-title span { animation: businessBadgePulse 2.4s ease-in-out infinite; }
+  @keyframes businessBadgePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(124,77,255,.25); } 50% { box-shadow: 0 0 0 8px rgba(124,77,255,0); } }
+  .service-block.organization::before { background: linear-gradient(90deg, #26a69a, #66d6b8); }
+  .service-title { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+  .service-title h3 { color: var(--ink); font-size: 17px; line-height: 1.35; }
+  .service-title h3 small { display: inline-block; margin-top: 3px; color: var(--muted); font-size: 11px; font-weight: 750; }
+  .service-title span { width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--brand), #9f7bff); font-size: 13px; font-weight: 900; }
+  .service-block.organization .service-title span { background: linear-gradient(135deg, #18a999, #26a69a); }
+  .service-title span .icon { width: 20px; height: 20px; vertical-align: 0; }
+  .service-main-offer { margin-top: 12px; padding: 12px; border-radius: 13px; color: var(--brand-strong); background: var(--brand-pale); border: 1px solid var(--line); font-size: 13px; line-height: 1.55; font-weight: 850; }
+  .service-main-offer.purple { color: #4b22b8; background: #f3edff; }
+  .service-main-offer.magenta { color: #0b756d; background: #eefbf8; border-color: rgba(38,166,154,.18); }
+  .service-main-offer small { display: block; margin-top: 6px; font-size: 11px; font-weight: 600; opacity: .72; }
+  .service-pain { margin-top: 12px; padding: 12px; border-radius: 13px; background: #fff; border: 1px solid rgba(124,77,255,.12); color: #5f5578; font-size: 12px; line-height: 1.6; }
+  .service-pain strong { display: block; margin-bottom: 5px; color: var(--brand-strong); font-size: 12px; }
+  .service-block.organization .service-pain strong { color: #0b756d; }
+  .service-pills { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 12px; }
+  .service-pill { min-height: 48px; padding: 11px 12px; border-radius: 13px; color: #4c3a7c; background: #fff; border: 1px solid var(--line); font-size: 12px; line-height: 1.45; font-weight: 760; }
+  .service-pill::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 7px; border-radius: 50%; background: var(--brand); vertical-align: 1px; }
+  .service-pill span { display: block; margin-top: 4px; font-size: 10px; font-weight: 600; line-height: 1.4; color: var(--muted); }
+  .service-block.organization .service-pill::before { background: #26a69a; }
+  .delivery-stack { display: grid; gap: 12px; }
+  .delivery-card { overflow: hidden; border-radius: 18px; background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow); }
+  .delivery-head { display: grid; grid-template-columns: auto 1fr; gap: 11px; align-items: center; padding: 15px; background: linear-gradient(135deg, #fff, #f7f2ff); border-bottom: 1px solid var(--line); }
+  .delivery-num { width: 38px; height: 38px; border-radius: 13px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--brand), #9f7bff); font-size: 14px; font-weight: 900; }
+  .delivery-card:nth-child(2) .delivery-num { background: linear-gradient(135deg, #5f6ce8, #7c4dff); }
+  .delivery-card:nth-child(3) .delivery-num { background: linear-gradient(135deg, #18a999, #26a69a); }
+  .delivery-num .icon { width: 21px; height: 21px; vertical-align: 0; }
+  .delivery-head h3 { color: var(--ink); font-size: 17px; line-height: 1.25; }
+  .delivery-body { padding: 15px; }
+  .delivery-desc { color: #453765; font-size: 13px; line-height: 1.75; font-weight: 760; }
+  .delivery-fit { margin-top: 12px; padding: 12px; border-radius: 14px; color: #4c3a7c; background: var(--brand-pale); border: 1px solid var(--line); font-size: 12px; line-height: 1.65; }
+  .delivery-fit strong { color: var(--brand-strong); }
+  .delivery-summary { padding: 15px; border-radius: 18px; color: #fff; background: linear-gradient(135deg, var(--brand), #5f38d7 58%, #26a69a); box-shadow: 0 16px 36px rgba(75,34,184,.18); font-size: 13px; line-height: 1.75; font-weight: 800; text-align: center; }
+
+  .contact-hero { padding: 18px; color: #fff; background: linear-gradient(135deg, #301574, var(--brand) 58%, #a574ff); position: relative; overflow: hidden; }
+  .contact-hero::after { content: ""; position: absolute; inset: auto 0 0; height: 48px; background: linear-gradient(to bottom, transparent, rgba(48,21,116,0.15)); pointer-events: none; z-index: 0; border-radius: 0 0 var(--radius) var(--radius); }
+  .contact-hero > * { position: relative; z-index: 1; }
+  .contact-hero h3 { font-size: 19px; }
+  .contact-hero p { margin-top: 8px; color: rgba(255,255,255,0.78); font-size: 12px; line-height: 1.7; }
+  /* P1: 诊断承诺卡片组 */
+  .diagnosis-promise-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+  .diagnosis-promise {
+    padding: 12px 8px; border-radius: 14px; text-align: center;
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.14);
+    transition: background 0.25s ease, transform 0.2s ease;
+  }
+  .diagnosis-promise .promise-icon { width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 10px; display: grid; place-items: center; background: rgba(255,255,255,0.18); color: #fff; }
+  .diagnosis-promise .promise-icon .icon { width: 20px; height: 20px; flex-shrink: 0; }
+  .diagnosis-promise strong { display: block; font-size: 11px; color: #ffe7a8; margin-bottom: 3px; }
+  .diagnosis-promise span { display: block; font-size: 10px; color: rgba(255,255,255,0.65); line-height: 1.45; }
+  .diagnosis-promise:hover { background: rgba(255,255,255,0.17); transform: translateY(-1px); }
+  
+  .contact-quick { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 14px; }
+  .contact-quick a, .contact-quick button { min-height: 42px; border: 0; border-radius: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; color: var(--brand-strong); background: #fff; text-decoration: none; font-weight: 800; cursor: pointer; transition: transform 0.16s ease, box-shadow 0.16s ease; }
+  .contact-quick a:hover, .contact-quick button:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,0.1); }
+  .contact-quick a:active, .contact-quick button:active { transform: scale(0.96); }
+  .contact-layout { display: grid; gap: 12px; }
+  .contact-list { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  
+  /* P2: 联系方式主次分层 */
+  .contact-row { width: 100%; display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; align-items: center; justify-items: start; min-height: 82px; padding: 16px; color: inherit; text-align: left; text-decoration: none; background: linear-gradient(180deg, #fff, #fbf9ff); border-color: rgba(124,77,255,.10); transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
+  .contact-row .icon-wrap { width: 44px; height: 44px; border-radius: 15px; color: var(--brand-strong); transition: transform 0.25s ease; }
+  .contact-row:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(55,32,116,0.06); }
+  .contact-row:hover .icon-wrap { transform: scale(1.06); }
+  .contact-row:active { transform: scale(0.98); }
+  .contact-row.primary { background: linear-gradient(135deg, #faf5ff, #f3edff); border-left: 3px solid var(--brand); border-color: rgba(124,77,255,0.16); }
+  .contact-row.primary .contact-value { color: var(--brand-strong); }
+  .contact-text { min-width: 0; text-align: left; }
+  .contact-label { font-size: 11px; color: var(--muted); }
+  .contact-value { margin-top: 3px; font-size: 14px; font-weight: 750; word-break: break-word; }
+  .contact-hint { display: block; margin-top: 2px; font-size: 10px; color: var(--muted); font-weight: 500; }
+  .arrow { color: #b7aed0; transition: transform 0.2s ease; }
+  .contact-row:hover .arrow { transform: translateX(3px); }
+  
+  /* P3: FAQ */
+  .faq-section { margin-top: 6px; }
+  .faq-item { border-bottom: 1px solid rgba(124,77,255,0.06); }
+  .faq-item:last-child { border-bottom: none; }
+  .faq-item summary {
+    padding: 14px 0; font-size: 13px; font-weight: 700; color: var(--ink);
+    cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between;
+    transition: color 0.2s ease;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after { content: "+"; font-size: 16px; color: var(--muted); font-weight: 400; transition: transform 0.25s ease; }
+  .faq-item[open] summary { color: var(--brand-strong); }
+  .faq-item[open] summary::after { transform: rotate(45deg); color: var(--brand); }
+  .faq-item .faq-answer { padding: 0 0 14px; font-size: 12px; color: var(--muted); line-height: 1.7; }
+  
+  /* P6: Trust strip */
+  .trust-strip {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 0; color: var(--muted); font-size: 11px; font-weight: 600;
+    border-top: 1px solid rgba(124,77,255,0.08);
+  }
+  .trust-strip .trust-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--muted); opacity: 0.4; }
+
+  .tab-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); background: rgba(255,255,255,0.84); border-top: 1px solid rgba(124,77,255,0.12); backdrop-filter: blur(20px); }
+  .tab-bar-inner { max-width: 430px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+  .tab-item { border: 0; min-height: 54px; border-radius: 16px; background: transparent; color: #8f86a8; cursor: pointer; }
+  .tab-item:focus { outline: none; }
+  .tab-item:focus-visible { outline: 2px solid #d8ccff; outline-offset: 2px; }
+  .tab-item .icon { width: 22px; height: 22px; }
+  .tab-label { display: block; margin-top: 3px; font-size: 10px; font-weight: 700; }
+  .tab-item.active { color: #fff; background: linear-gradient(135deg, var(--brand), #9f7bff); box-shadow: 0 10px 25px rgba(124,77,255,0.24); }
+
+  .toast { position: fixed; left: 50%; bottom: calc(94px + env(safe-area-inset-bottom)); z-index: 130; transform: translateX(-50%) translateY(10px); min-width: 180px; max-width: calc(100% - 48px); padding: 12px 16px; border-radius: 999px; color: #fff; background: rgba(31,23,64,0.9); text-align: center; font-size: 13px; opacity: 0; pointer-events: none; transition: all 0.22s ease; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (min-width: 700px) {
+    .page-wrap, .tab-bar-inner { max-width: 760px; }
+    .brand-card { min-height: 320px; }
+    .home-layout { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; align-items: start; margin-top: 22px; }
+    .intro-card { min-height: 100%; }
+    .core-method-card { grid-column: 1 / -1; margin-top: 0; order: 3; }
+    .advantage-grid, .start-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .service-pairs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .service-block.major .service-pills { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .delivery-stack { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; }
+    .delivery-summary, .delivery-stack > .section-title, .start-grid { grid-column: 1 / -1; }
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    .brand-card { min-height: auto; padding: 16px 20px; }
+    .profile { margin-top: 16px; }
+    .hero-meta { margin-top: 14px; }
+    .hero-actions { margin-top: 14px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .page { animation: none; }
+    @keyframes businessBadgePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(124,77,255,.25); } }
+  }
+
+  @media (max-width: 360px) {
+    .page-wrap { padding-left: 10px; padding-right: 10px; }
+    .brand-card { border-radius: 22px; padding: 18px 16px; }
+    .profile { grid-template-columns: 70px 1fr; gap: 12px; }
+    .avatar { width: 70px; height: 70px; border-radius: 21px; font-size: 30px; }
+    .profile h1 { font-size: 24px; }
+    .quick-grid, .feature-strip { grid-template-columns: 1fr; }
+    .contact-quick { grid-template-columns: 1fr; }
+    .hero-actions { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-wechat" viewBox="0 0 24 24"><path d="M9.5 17.5c-3.4 0-6-2-6-4.8s2.8-5 6.2-5 6.2 2.2 6.2 5-2.9 4.8-6.4 4.8z"/><path d="M15 10.5c3.1.2 5.5 2 5.5 4.4 0 1.4-.8 2.7-2.1 3.5l.4 2-2.2-1.1c-.7.2-1.5.3-2.3.3-2.3 0-4.3-.9-5.2-2.3"/><path d="M7.5 12h.01M11.5 12h.01"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11.5L12 4l8 7.5"/><path d="M6.5 10.5V20h11v-9.5"/><path d="M10 20v-5h4v5"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L5 13h6l-1 9 9-13h-6z"/></symbol>
+  <symbol id="i-plan" viewBox="0 0 24 24"><path d="M8 4h8l2 3v13H6V7z"/><path d="M8 10h8M8 14h8M8 18h5"/></symbol>
+  <symbol id="i-contact" viewBox="0 0 24 24"><path d="M7 5h10a3 3 0 0 1 3 3v11H7a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3z"/><circle cx="12" cy="11" r="2.2"/><path d="M8.8 17c.7-1.5 5.7-1.5 6.4 0"/></symbol>
+  <symbol id="i-consult-custom" viewBox="0 0 24 24"><path d="M6.5 16.5l-2.3 2 .7-3.1A6.6 6.6 0 0 1 4 12.1C4 8.5 7.2 5.7 11.2 5.7s7.2 2.8 7.2 6.4-3.2 6.4-7.2 6.4c-1.7 0-3.3-.5-4.7-2z"/><path d="M8.1 11h6.2M8.1 13.8h4.2"/><path d="M17 6.1l1.1-1.1 1.1 1.1M18.1 5v3.2"/></symbol>
+  <symbol id="i-demo-custom" viewBox="0 0 24 24"><rect x="4.5" y="5" width="15" height="10.5" rx="2.2"/><path d="M8 19h8M12 15.5V19"/><path d="M10.2 8.8v3.9l3.4-2z"/></symbol>
+  <symbol id="i-solution-custom" viewBox="0 0 24 24"><path d="M7 4.8h7.2L18 8.6v10.6H7z"/><path d="M14 4.8v4h4"/><path d="M9.8 12h5M9.8 15h3.4"/><path d="M14.4 16.2l1.2 1.2 2.3-2.8"/></symbol>
+  <symbol id="i-vcard-custom" viewBox="0 0 24 24"><rect x="4.5" y="6" width="15" height="12" rx="2.5"/><circle cx="9.5" cy="11" r="1.8"/><path d="M6.8 15.4c.8-1.7 4.6-1.7 5.4 0"/><path d="M14.2 10h2.8M14.2 13h3.5"/></symbol>
+  <symbol id="i-svc-1" viewBox="0 0 24 24"><path d="M4 17a8 8 0 0 1 16 0"/><path d="M12 17l4.6-5"/><circle cx="12" cy="17" r="1.4"/><path d="M4.4 17H5.6M18.4 17h1.2M12 6.4v1.2"/></symbol>
+  <symbol id="i-svc-2" viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M7.5 20v-4M12 20v-7.5M16.5 20v-11"/><path d="M14.4 11.1l2.1-2.1 2.1 2.1"/></symbol>
+  <symbol id="i-svc-3" viewBox="0 0 24 24"><circle cx="9" cy="8.6" r="3"/><path d="M3.6 19c0-3.2 2.4-5.4 5.4-5.4s5.4 2.2 5.4 5.4"/><circle cx="17.4" cy="9" r="2.1"/><path d="M16 14.3c2.5.2 4.4 2.1 4.4 4.7"/></symbol>
+  <symbol id="i-dlv-1" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="11" rx="2"/><path d="M12 15.5V19M8.5 19h7"/><path d="M7 11.5l2.6-2.6 2 2 3.4-3.8"/></symbol>
+  <symbol id="i-dlv-2" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l4.5 4.5"/><path d="M10.5 8v5M8 10.5h5"/></symbol>
+  <symbol id="i-dlv-3" viewBox="0 0 24 24"><path d="M18.6 7.6A7 7 0 1 0 19 12"/><path d="M19 4.5V8h-3.5"/><circle cx="12" cy="12" r="2.2"/></symbol>
+
+  <!-- Contact page custom icons -->
+  <symbol id="i-chat-promise" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="3"/><path d="M7 15l-2 3 4-1"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="12" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/></symbol>
+  <symbol id="i-chart-promise" viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 20v-7M10 20V8m4 12V5m4 15v-4"/><circle cx="10" cy="5.5" r="3" fill="none"/><path d="M8.5 4.5L10 3l1.5 1.5"/></symbol>
+  <symbol id="i-target-promise" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></symbol>
+  <symbol id="i-phone-ring" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/><path d="M8 5h8v10H8z" opacity="0.35"/><path d="M8 5h8v10H8z"/><path d="M12 10c-1.6 0-3 1.3-3 3h1c0-1.1.9-2 2-2V9z"/><path d="M12 7c-3.3 0-6 2.7-6 6h1c0-2.8 2.2-5 5-5V6z"/></symbol>
+  <symbol id="i-mail-send" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="13" rx="2.5"/><path d="M3.5 6l7.8 5.8a1 1 0 0 0 1.2 0L20.5 6"/><path d="M12 12v6m-3-3l3 3 3-3"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3.5 12h17M12 3c2.5 2.5 3.6 5.5 3.6 9S14.5 18.5 12 21M12 3c-2.5 2.5-3.6 5.5-3.6 9S9.5 18.5 12 21"/><circle cx="12" cy="12" r="2"/></symbol>
+  <symbol id="i-contacts-book" viewBox="0 0 24 24"><rect x="5" y="3" width="6" height="18" rx="1"/><path d="M12 5h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5"/><circle cx="8" cy="9" r="1.6"/><path d="M6.2 13.5c.6-1.2 3-1.2 3.6 0"/><path d="M14 8h3M14 11h3M14 14h2"/></symbol>
+</svg>
+
+<div class="toast" id="toast"></div>
+<div class="page-wrap">
+  <div class="page active" id="page-0">
+    <section class="brand-card">
+      <div class="brand-top">
+        <div class="brand-lockup">
+          <img class="brand-logo" src="https://ruihua-portal.tos-cn-shanghai.volces.com/page/LOGO-%E5%8F%8D%E7%99%BD.png" alt="瑞华智策">
+          <div>
+            <div class="brand-name">瑞华智策</div>
+            <div class="brand-sub">ruihuaconsulting.com</div>
+          </div>
+        </div>
+        <div class="status-pill"><span class="status-dot"></span>可预约沟通</div>
+      </div>
+      <div class="profile">
+        <div class="avatar">
+          <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/mingpian/wangkun.jpg" alt="王坤头像" width="84" height="84">
+        </div>
+        <div>
+          <h1>王坤</h1>
+          <div class="role">AI 企业落地顾问 · 瑞华智策商务负责人</div>
+          <div class="tags"><span>管理咨询</span><span>Agent落地</span><span>陪跑服务</span></div>
+        </div>
+      </div>
+      <p class="hero-slogan">把模糊的经营难题，<em>变成可优化的指标</em></p>
+      <div class="hero-meta">
+        <div class="metric"><strong>2025</strong><span>AI原生咨询机构</span></div>
+        <div class="metric"><strong>6919.HK</strong><span>人瑞人才旗下</span></div>
+        <div class="metric"><strong>R=B×O</strong><span>原创方法论</span></div>
+      </div>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="tel:17629276817"><svg class="icon"><use href="#i-phone-ring"></use></svg>立即拨打</a>
+        <button class="btn btn-ghost" onclick="copyText('17629276817','微信号已复制')"><svg class="icon"><use href="#i-wechat"></use></svg>加微信</button>
+      </div>
+    </section>
+
+    <div class="home-layout">
+      <section class="card intro-card">
+        <strong>AI 原生的经营效能咨询机构</strong>
+        人瑞人才（6919.HK）旗下全资子公司，核心业务之一是帮助成长型与转型期企业，构建人机共智的动态经营效能管理体系，以经营成果的诊断归因驱动组织与业务协同优化，支撑可持续的人效提升与利润增长。
+        <br><br>
+        <strong>使命</strong>
+        助力中国企业进化为 AI 时代的新质组织，实现客户商业成功、企业健康增长与人才价值跃升的共赢目标。
+      </section>
+      <section class="core-method-card">
+        <span class="method-label">核心方法论</span>
+        <strong class="method-formula"><em>R</em>经营成果 = <em>B</em>业务价值潜力 × <em>O</em>组织转化能力</strong>
+        <p>用业务价值与组织能力两个维度诊断经营结果，找到真正影响增长与利润的短板。</p>
+      </section>
+      <section>
+        <div class="quick-grid">
+          <button class="quick-action" type="button" onclick="showPage('3')"><span class="icon-wrap"><svg class="icon"><use href="#i-consult-custom"></use></svg></span><strong>免费诊断</strong><span>轻量级人效诊断 · 快速识别关键问题</span></button>
+          <button class="quick-action" type="button" onclick="showPage('3')"><span class="icon-wrap"><svg class="icon"><use href="#i-demo-custom"></use></svg></span><strong>预约沟通</strong><span>线上一对一沟通 · 快速了解落地价值</span></button>
+          <button class="quick-action" type="button" onclick="showPage('2')"><span class="icon-wrap"><svg class="icon"><use href="#i-solution-custom"></use></svg></span><strong>了解交付</strong><span>匹配企业阶段 · 选择合适交付形式</span></button>
+        </div>
+        <div class="feature-strip">
+          <a class="quick-action" href="wangkun.vcf" onclick="handleVcfClick(event)"><span class="icon-wrap"><svg class="icon"><use href="#i-vcard-custom"></use></svg></span><strong>保存通讯录</strong><span>一键导入手机通讯录</span></a>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="page" id="page-1">
+    <div class="section-title"><h2>服务产品</h2><span>经营效能 + 业务增长 + 组织效能</span></div>
+    <div class="service-suite">
+      <section class="service-block major">
+        <div class="service-title">
+          <span><svg class="icon"><use href="#i-svc-1"></use></svg></span>
+          <h3>经营效能系统性提升服务<br><small>for 经营决策层、CEO</small></h3>
+        </div>
+        <div class="service-pain"><strong>典型挑战：利润健康 & 资本效率</strong>当营收增长遇到瓶颈、人工成本持续攀升、利润空间被挤压时，帮助经营层看清经营成果背后的真实短板。</div>
+        <div class="service-main-offer">动态经营效能体系建设一体化解决方案<small>看清利润背后的真短板，让经营决策从经验决策走向数据驱动</small></div>
+        <div class="service-pills">
+          <div class="service-pill">企业AI转型战略设计<span>明确企业 AI 转型的方向与路线图</span></div>
+          <div class="service-pill">企业AI战略解码<span>把 AI 战略拆成各部门可执行的目标</span></div>
+          <div class="service-pill">CEO教练<span>一对一陪伴一把手做关键经营决策</span></div>
+        </div>
+      </section>
+
+      <div class="service-pairs">
+        <section class="service-block business">
+          <div class="service-title">
+            <span><svg class="icon"><use href="#i-svc-2"></use></svg></span>
+            <h3>AI赋能业务增长服务<br><small>for 业务负责人</small></h3>
+          </div>
+          <div class="service-pain"><strong>典型挑战：业务增长 & 运营提效</strong>当自然增速放缓、新业务拓展不及预期、团队产能触顶时，重构增长链路与业务协同效率。</div>
+          <div class="service-main-offer purple">动态业务价值管理体系建设一体化解决方案<small>重建从线索到成交的增长链路，突破团队产能天花板</small></div>
+          <div class="service-pills">
+            <div class="service-pill">基于全价值链的 B2B 业务增长体系打造<span>打通从线索到成交的完整增长链路</span></div>
+            <div class="service-pill">Agentic 营销数字化体系升级<span>用 AI Agent 重构营销获客流程</span></div>
+            <div class="service-pill">营销Agent部署 & 战队训练<span>部署营销 Agent 并培训团队用起来</span></div>
+          </div>
+        </section>
+
+        <section class="service-block organization">
+          <div class="service-title">
+            <span><svg class="icon"><use href="#i-svc-3"></use></svg></span>
+            <h3>AI赋能组织效能服务<br><small>for CHO</small></h3>
+          </div>
+          <div class="service-pain"><strong>典型挑战：组织健康 & 人效提升</strong>当组织能力是否匹配战略、人才结构是否合理、人均产出是否落后行业变得不清晰时，用量化诊断找到优化抓手。</div>
+          <div class="service-main-offer magenta">动态人效管理体系建设一体化解决方案<small>量化诊断组织与人效短板，让人才结构真正匹配战略</small></div>
+          <div class="service-pills">
+            <div class="service-pill">组织AI转型方案设计<span>设计组织引入 AI 的落地路径</span></div>
+            <div class="service-pill">“AI+人”混合劳动力规划<span>规划哪些岗位用 AI、哪些用人</span></div>
+            <div class="service-pill">超级Agent养成（关键个体赋能）<span>把骨干打造成被 AI 放大的“超级个体”</span></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="section-title"><h2>核心优势</h2><span>AI原生 · 原创方法 · 结果导向</span></div>
+      <div class="advantage-grid">
+        <section class="advantage-card">
+          <strong>AI原生，数据驱动</strong>
+          <p>自研 AI Agent 嵌入诊断、归因、推演流程，打通人、业、财数据，让经营决策从经验驱动走向数据驱动。</p>
+        </section>
+        <section class="advantage-card">
+          <strong>原创方法，深度归因</strong>
+          <p>基于 R = B × O 方法论与指标体系，将经营结果归因到业务价值与组织转化能力两类短板。</p>
+        </section>
+        <section class="advantage-card">
+          <strong>三位一体，结果导向</strong>
+          <p>用“管理咨询 + Agent落地 + 陪跑服务”承接变革，不只给方案，更帮助企业沉淀内部能力。</p>
+        </section>
+        <section class="advantage-card">
+          <strong>长期主义，变革发生</strong>
+          <p>不管从哪里开始合作，我们的目标都是把专业能力转移给客户，持续陪伴客户完成系统性组织变革，进化为 AI 时代的新质组织。</p>
+        </section>
+      </div>
+      <a class="btn btn-brand service-cta" onclick="showPage('3')"><svg class="icon"><use href="#i-consult-custom"></use></svg>预约一次免费诊断</a>
+    </div>
+  </div>
+
+  <div class="page" id="page-2">
+    <div class="section-title"><h2>交付形式</h2><span>灵活组合 · 陪伴成长</span></div>
+    <div class="delivery-stack">
+      <section class="delivery-card">
+        <div class="delivery-head">
+          <span class="delivery-num"><svg class="icon"><use href="#i-dlv-1"></use></svg></span>
+          <h3>内训 / 工作坊</h3>
+        </div>
+        <div class="delivery-body">
+          <p class="delivery-desc">聚焦 1-2 天集中赋能，通过方法导入与团队对齐，快速统一语言与认知，激发团队活力。</p>
+          <div class="delivery-fit"><strong>适配场景：</strong>适合需要快速认知提升、团队统一理念的组织，追求短平快的效果转化。</div>
+        </div>
+      </section>
+
+      <section class="delivery-card">
+        <div class="delivery-head">
+          <span class="delivery-num"><svg class="icon"><use href="#i-dlv-2"></use></svg></span>
+          <h3>轻咨询 / 咨询</h3>
+        </div>
+        <div class="delivery-body">
+          <p class="delivery-desc">历时 4 周+ 的专项诊断，针对关键业务问题进行深度剖析，输出定制化解决方案与实施路径。</p>
+          <div class="delivery-fit"><strong>适配场景：</strong>适合有明确课题痛点、需要专家介入解决具体问题，追求针对性突破的企业。</div>
+        </div>
+      </section>
+
+      <section class="delivery-card">
+        <div class="delivery-head">
+          <span class="delivery-num"><svg class="icon"><use href="#i-dlv-3"></use></svg></span>
+          <h3>一体化解决方案 / 年度陪跑</h3>
+        </div>
+        <div class="delivery-body">
+          <p class="delivery-desc">6 个月+ 的系统性服务，覆盖诊断归因、方案设计、落地执行以及 AI 平台定制的全闭环，还可以通过顾问陪跑保障变革顺利推进。</p>
+          <div class="delivery-fit"><strong>适配场景：</strong>适合面临系统性变革、复杂转型挑战，需要长期辅导与过程把控的成长型组织。</div>
+        </div>
+      </section>
+
+      <div class="delivery-summary">根据企业当前发展阶段与核心诉求，灵活组合交付形式，确保每一份投入都能持续陪伴组织成长。</div>
+
+      <div class="section-title"><h2>如何开始合作</h2><span>从轻量诊断到长期共建</span></div>
+      <div class="start-grid">
+        <section class="start-card">
+          <strong>一次培训 / 一次诊断</strong>
+          <p>适合刚开始关注高质量增长和经营成果优化的企业，用较小投入获得专业诊断与专家建议。</p>
+        </section>
+        <section class="start-card">
+          <strong>年度陪跑服务</strong>
+          <p>面向成长型或转型期企业，为经营班子、业务负责人、CHO 提供持续专家赋能和复盘机制。</p>
+        </section>
+        <section class="start-card">
+          <strong>一体化解决方案</strong>
+          <p>适合希望通过咨询服务与平台落地共同推进体系建设的企业，围绕诊断、设计、执行全流程共建。</p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-3">
+    <div class="section-title"><h2>联系我们</h2><span>免费诊断 · 快速沟通</span></div>
+    <section class="card contact-hero">
+      <h3>先聊 15 分钟，为你提供一次免费诊断</h3>
+      <p>不确定从哪种方式开始？可以先做一次线上沟通，为企业免费提供一次轻量级人效诊断。</p>
+      <div class="diagnosis-promise-grid">
+        <div class="diagnosis-promise">
+          <div class="promise-icon"><svg class="icon"><use href="#i-chat-promise"></use></svg></div>
+          <strong>30分钟线上沟通</strong>
+          <span>了解你的经营现状</span>
+        </div>
+        <div class="diagnosis-promise">
+          <div class="promise-icon"><svg class="icon"><use href="#i-chart-promise"></use></svg></div>
+          <strong>一份人效快照</strong>
+          <span>量化对比行业水平</span>
+        </div>
+        <div class="diagnosis-promise">
+          <div class="promise-icon"><svg class="icon"><use href="#i-target-promise"></use></svg></div>
+          <strong>3个优先优化点</strong>
+          <span>明确下一步行动路径</span>
+        </div>
+      </div>
+      <div class="contact-quick">
+        <a href="tel:17629276817"><svg class="icon"><use href="#i-phone-ring"></use></svg>立即拨打</a>
+        <button type="button" onclick="copyText('17629276817','微信号已复制')"><svg class="icon"><use href="#i-wechat"></use></svg>加微信</button>
+      </div>
+    </section>
+    <div class="contact-layout">
+      <div class="contact-list">
+        <a class="card contact-row primary" href="tel:17629276817"><span class="icon-wrap"><svg class="icon"><use href="#i-phone-ring"></use></svg></span><div class="contact-text"><div class="contact-label">电话 / 微信 · 首选</div><div class="contact-value">176 2927 6817</div><span class="contact-hint">正在等你来电</span></div><span class="arrow">›</span></a>
+        <button class="card contact-row" type="button" onclick="copyText('wangkun1@renruihr.com','邮箱已复制')"><span class="icon-wrap"><svg class="icon"><use href="#i-mail-send"></use></svg></span><div class="contact-text"><div class="contact-label">邮箱</div><div class="contact-value">wangkun1@renruihr.com</div><span class="contact-hint">通常 2 小时内回复</span></div><span class="arrow">›</span></button>
+        <a class="card contact-row" href="https://www.ruihuaconsulting.com" target="_blank" rel="noopener"><span class="icon-wrap"><svg class="icon"><use href="#i-globe"></use></svg></span><div class="contact-text"><div class="contact-label">官网</div><div class="contact-value">www.ruihuaconsulting.com</div></div><span class="arrow">›</span></a>
+        <a class="card contact-row" href="wangkun.vcf" onclick="handleVcfClick(event)"><span class="icon-wrap"><svg class="icon"><use href="#i-contacts-book"></use></svg></span><div class="contact-text"><div class="contact-label">保存联系人</div><div class="contact-value">一键导入手机通讯录</div></div><span class="arrow">›</span></a>
+      </div>
+
+      <div class="faq-section">
+        <details class="faq-item">
+          <summary>免费诊断真的免费吗？有什么附加条件？</summary>
+          <p class="faq-answer">完全免费，没有套路。如果你觉得诊断有价值，我们再聊后续合作。如果你觉得不合适，也完全没关系。</p>
+        </details>
+        <details class="faq-item">
+          <summary>诊断之前我需要准备什么？</summary>
+          <p class="faq-answer">不需要特别准备。只要你对当前经营或人效有困惑，我们聊 30 分钟就能帮你快速定位关键问题。</p>
+        </details>
+        <details class="faq-item">
+          <summary>你们服务过哪些类型的企业？</summary>
+          <p class="faq-answer">我们主要服务 200-5000 人规模的成长型与转型期企业，覆盖制造、科技、零售、专业服务等行业。</p>
+        </details>
+      </div>
+
+      <div class="trust-strip">
+        <span>瑞华智策</span><span class="trust-dot"></span><span>人瑞人才（6919.HK）旗下</span><span class="trust-dot"></span><span>AI原生的经营效能咨询机构</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-bar-inner">
+    <button class="tab-item active" data-page="0" aria-label="切换到名片页"><svg class="icon"><use href="#i-home"></use></svg><span class="tab-label">名片</span></button>
+    <button class="tab-item" data-page="1" aria-label="切换到服务页"><svg class="icon"><use href="#i-bolt"></use></svg><span class="tab-label">服务</span></button>
+    <button class="tab-item" data-page="2" aria-label="切换到交付页"><svg class="icon"><use href="#i-plan"></use></svg><span class="tab-label">交付</span></button>
+    <button class="tab-item" data-page="3" aria-label="切换到联系页"><svg class="icon"><use href="#i-contact"></use></svg><span class="tab-label">联系</span></button>
+  </div>
+</div>
+
+
+<script>
+document.querySelectorAll('.tab-item').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    showPage(this.getAttribute('data-page'));
+  });
+});
+
+function showPage(idx) {
+  var page = document.getElementById('page-' + idx);
+  if (!page) return;
+  document.querySelectorAll('.tab-item').forEach(function(b){
+    b.classList.toggle('active', b.getAttribute('data-page') === String(idx));
+  });
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  page.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  trackAction('tab-' + idx);
+}
+
+function copyText(text, msg) {
+  function fallbackCopy() {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '0';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, ta.value.length);
+    var copied = false;
+    try {
+      copied = document.execCommand('copy');
+    } catch (err) {}
+    document.body.removeChild(ta);
+    showToast(copied ? (msg || '已复制') : ('请手动复制：' + text));
+  }
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(function(){ showToast(msg || '已复制'); }).catch(fallbackCopy);
+  } else {
+    fallbackCopy();
+  }
+}
+
+function bindPhoneLinks() {
+  document.querySelectorAll('a[href^="tel:"]').forEach(function(link) {
+    link.addEventListener('click', function() {
+      trackAction('call');
+    });
+  });
+}
+
+function trackAction(name) {
+  try {
+    var key = 'ruihua_card_actions';
+    var actions = JSON.parse(localStorage.getItem(key) || '[]');
+    actions.push({ name: name, time: Date.now() });
+    if (actions.length > 80) actions = actions.slice(actions.length - 80);
+    localStorage.setItem(key, JSON.stringify(actions));
+  } catch (e) { /* localStorage 不可用，静默降级 */ }
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+}
+
+function handleVcfClick(event) {
+  var inWeChat = /micromessenger/i.test(navigator.userAgent);
+  if (inWeChat) {
+    event.preventDefault();
+    showToast('请点右上角"···"，在浏览器中打开后再保存');
+    trackAction('save-vcard-wx-blocked');
+  } else {
+    trackAction('save-vcard');
+  }
+}
+
+bindPhoneLinks();
+</script>
+</body>
+</html>

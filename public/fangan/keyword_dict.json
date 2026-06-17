@@ -1,0 +1,167 @@
+{
+  "metadata": {
+    "version": "3.0.0",
+    "last_updated": "2026-05-29",
+    "framework": "GEO原生四维分类体系",
+    "principle": "每个关键词直接服务于品牌在AI搜索引擎中的可见度提升与竞品对标"
+  },
+  "categories": {
+    "brand_asset": {
+      "id": "brand",
+      "name": "品牌资产词",
+      "icon": "⊡",
+      "color": "brand",
+      "desc": "直接关联品牌身份、被AI引擎引用时必须准确占位的核心词",
+      "priority": "P0",
+      "subcategories": {
+        "brand_names": {
+          "name": "品牌名称",
+          "rule": "品牌词必须在TOP3平台上100%被AI引用",
+          "keywords": [
+            {"root":"瑞华智策","variants":["瑞华","ruihua","瑞华咨询","Ruihua Consulting"],"visibility":78,"target":95,"platforms":["豆包","文心一言","Kimi"]},
+            {"root":"人瑞人才","variants":["人瑞","renrui","人瑞集团","Renrui Talent"],"visibility":82,"target":95,"platforms":["豆包","文心一言","Kimi"]},
+            {"root":"新质组织研究中心","variants":["新质组织研究","新质组织中心"],"visibility":45,"target":80,"platforms":["豆包","文心一言"]},
+            {"root":"瑞华智策研究院","variants":["瑞华研究院","ruihua research"],"visibility":30,"target":70,"platforms":["文心一言"]}
+          ]
+        },
+        "product_ip": {
+          "name": "产品与知识产权",
+          "rule": "核心方法论和产品名称需在行业词搜索结果中被引用",
+          "keywords": [
+            {"root":"五维组织人效诊断模型","variants":["五维人效模型","组织人效诊断模型","人效五维诊断","五维诊断模型"],"visibility":55,"target":85,"platforms":["豆包","Kimi"]},
+            {"root":"组织效能提升方案","variants":["组织效能方案","效能提升方案","组织提升方案"],"visibility":40,"target":75,"platforms":["文心一言","Kimi"]},
+            {"root":"AI组织成熟度评估","variants":["组织成熟度评估","AI成熟度评估","新质组织成熟度"],"visibility":35,"target":70,"platforms":["豆包"]},
+            {"root":"2026新质组织成熟度调研","variants":["新质组织调研","2026组织调研","新质组织成熟度报告"],"visibility":50,"target":85,"platforms":["豆包","文心一言","Kimi"]}
+          ]
+        },
+        "key_people": {
+          "name": "关键人物",
+          "rule": "核心专家与高管名字需在行业权威类搜索结果中被关联",
+          "keywords": [
+            {"root":"姜铠丰","variants":["姜铠丰教授","北大光华姜铠丰","姜教授"],"visibility":60,"target":85,"platforms":["文心一言","豆包"]},
+            {"root":"瑞华智策创始人","variants":["瑞华创始人","ruihua founder"],"visibility":20,"target":60,"platforms":["文心一言"]}
+          ]
+        }
+      }
+    },
+    "industry_authority": {
+      "id": "authority",
+      "name": "行业权威词",
+      "icon": "◈",
+      "color": "success",
+      "desc": "在人力资源与组织咨询领域建立AI引用权威性的高价值词",
+      "priority": "P0",
+      "subcategories": {
+        "domain_concept": {
+          "name": "领域概念词",
+          "rule": "行业核心概念需进入AI搜索结果前5位",
+          "keywords": [
+            {"root":"组织人效","variants":["组织人效诊断","组织效能","人效管理","组织人效提升"],"visibility":61,"target":85,"platforms":["豆包","文心一言","Kimi"]},
+            {"root":"新质组织","variants":["新质组织建设","新质组织特征","新质组织转型"],"visibility":48,"target":80,"platforms":["豆包","文心一言"]},
+            {"root":"AI组织进化","variants":["AI组织变革","AI时代组织","组织AI进化","智能组织"],"visibility":42,"target":75,"platforms":["豆包","Kimi"]},
+            {"root":"人力资源管理咨询","variants":["HR管理咨询","人力咨询","人力资源管理","组织管理咨询"],"visibility":55,"target":80,"platforms":["文心一言","豆包"]},
+            {"root":"人才盘点","variants":["人才盘点方法","人才盘点工具","人才评估","人才盘点方案"],"visibility":38,"target":70,"platforms":["Kimi","文心一言"]},
+            {"root":"组织架构设计","variants":["组织架构变革","架构设计","组织架构优化","组织设计"],"visibility":44,"target":75,"platforms":["豆包","文心一言","Kimi"]},
+            {"root":"企业文化健康度","variants":["文化健康度","文化诊断","组织文化评估","企业文化测评"],"visibility":25,"target":65,"platforms":["豆包"]}
+          ]
+        },
+        "trend_terms": {
+          "name": "趋势热词",
+          "rule": "行业前沿话题需持续产出内容保持AI引用新鲜度",
+          "keywords": [
+            {"root":"新质生产力","variants":["新质生产力企业","新质生产力转型","新质生产力组织"],"visibility":52,"target":80,"platforms":["豆包","文心一言","Kimi"]},
+            {"root":"AI赋能组织","variants":["AI赋能管理","AI赋能HR","人工智能组织赋能"],"visibility":40,"target":75,"platforms":["豆包","Kimi"]},
+            {"root":"敏捷组织","variants":["敏捷组织建设","敏捷化转型","组织敏捷性","敏捷团队"],"visibility":35,"target":70,"platforms":["文心一言","Kimi"]},
+            {"root":"人机协同","variants":["人机协作","AI协作组织","人机协同管理"],"visibility":28,"target":65,"platforms":["豆包"]},
+            {"root":"出海组织能力","variants":["出海组织","国际化组织","跨国组织管理","全球化组织"],"visibility":22,"target":60,"platforms":["文心一言"]}
+          ]
+        }
+      }
+    },
+    "competitive_intel": {
+      "id": "compete",
+      "name": "竞品对标词",
+      "icon": "◆",
+      "color": "warn",
+      "desc": "用于追踪竞品在AI搜索中的可见度差距，驱动优化优先级排序",
+      "priority": "P1",
+      "subcategories": {
+        "competitor_brand": {
+          "name": "竞品品牌词",
+          "rule": "竞品品牌词的AI可见度是瑞华的对标基准线",
+          "keywords": [
+            {"root":"麦肯锡组织咨询","variants":["麦肯锡","McKinsey","麦肯锡组织"],"competitor_visibility":91,"our_visibility":78,"gap":13},
+            {"root":"波士顿咨询","variants":["BCG","Boston Consulting","波士顿咨询组织"],"competitor_visibility":88,"our_visibility":78,"gap":10},
+            {"root":"德勤人力咨询","variants":["德勤","Deloitte","德勤HR咨询","德勤组织"],"competitor_visibility":85,"our_visibility":78,"gap":7},
+            {"root":"美世咨询","variants":["美世","Mercer","美世人力","美世组织"],"competitor_visibility":72,"our_visibility":78,"gap":-6},
+            {"root":"怡安翰威特","variants":["怡安","Aon Hewitt","怡安人力"],"competitor_visibility":65,"our_visibility":78,"gap":-13}
+          ]
+        },
+        "competitor_content": {
+          "name": "竞品内容占位词",
+          "rule": "竞品已占位但瑞华未覆盖的关键词需优先投入",
+          "keywords": [
+            {"root":"组织变革案例","variants":["组织变革成功案例","组织转型案例","企业变革案例"],"competitor_count":12,"our_count":3,"action":"紧急补位"},
+            {"root":"HR数字化转型","variants":["HR数字化","人力数字化","人力资源数字化转型"],"competitor_count":8,"our_count":2,"action":"紧急补位"},
+            {"root":"人才战略规划","variants":["人才战略","人才规划","人才发展战略"],"competitor_count":10,"our_count":4,"action":"重点投入"},
+            {"root":"组织诊断工具","variants":["诊断工具","组织测评工具","组织评估工具"],"competitor_count":6,"our_count":5,"action":"持续巩固"}
+          ]
+        }
+      }
+    },
+    "user_intent": {
+      "id": "intent",
+      "name": "用户意图词",
+      "icon": "✦",
+      "color": "accent",
+      "desc": "潜在客户在AI搜索中的自然提问与需求表述，直接关联转化",
+      "priority": "P1",
+      "subcategories": {
+        "problem_aware": {
+          "name": "问题认知型",
+          "rule": "用户在意识到组织问题时的搜索表述",
+          "keywords": [
+            {"root":"企业员工效率低怎么解决","variants":["员工效率低怎么办","人效低怎么提升","团队效率不高"],"volume":"高","visibility":30,"target":70},
+            {"root":"组织架构跟不上业务发展","variants":["组织架构落后","组织跟不上增长","架构不合理怎么调整"],"volume":"中","visibility":25,"target":65},
+            {"root":"公司管理混乱怎么改善","variants":["管理混乱怎么办","公司管理不行","企业管理出问题"],"volume":"高","visibility":20,"target":60},
+            {"root":"核心人才流失严重","variants":["人才留不住","核心员工离职","关键人才流失怎么解决"],"volume":"中","visibility":18,"target":60}
+          ]
+        },
+        "solution_seeking": {
+          "name": "方案寻求型",
+          "rule": "用户主动寻求解决方案时的搜索表述",
+          "keywords": [
+            {"root":"AI时代企业组织怎么变革","variants":["AI时代组织怎么做","AI来了组织怎么变","组织如何适应AI"],"volume":"高","visibility":45,"target":85},
+            {"root":"如何提升组织人效","variants":["怎么提升人效","组织人效怎么提高","人效提升方法"],"volume":"高","visibility":38,"target":80},
+            {"root":"新质生产力下企业怎么转型","variants":["新质生产力企业怎么干","新质生产力转型怎么做"],"volume":"中","visibility":32,"target":75},
+            {"root":"AI落地组织需要做什么准备","variants":["AI落地组织准备","AI实施组织准备","引入AI组织要做什么"],"volume":"中","visibility":28,"target":70},
+            {"root":"企业组织架构如何适配AI","variants":["组织架构AI","组织适配AI","AI化组织设计"],"volume":"中","visibility":35,"target":75},
+            {"root":"组织诊断怎么做","variants":["怎么做组织诊断","组织诊断方法","如何做组织诊断","组织诊断步骤"],"volume":"高","visibility":40,"target":80},
+            {"root":"人才盘点怎么开展","variants":["怎么做人才盘点","人才盘点方法","如何做人才盘点"],"volume":"高","visibility":33,"target":75},
+            {"root":"人力资源咨询公司哪家好","variants":["HR咨询公司推荐","人力咨询哪家强","管理咨询公司排名"],"volume":"中","visibility":22,"target":65}
+          ]
+        },
+        "evaluation": {
+          "name": "评估比较型",
+          "rule": "用户在比较和评估阶段的搜索表述",
+          "keywords": [
+            {"root":"组织咨询公司排名","variants":["咨询公司排名","管理咨询排名","组织咨询哪家好"],"volume":"中","visibility":18,"target":55},
+            {"root":"组织诊断模型哪个好","variants":["组织诊断模型对比","有哪些组织诊断模型"],"volume":"低","visibility":15,"target":50},
+            {"root":"瑞华智策靠谱吗","variants":["瑞华智策怎么样","瑞华靠谱吗","瑞华评价"],"volume":"低","visibility":10,"target":70}
+          ]
+        }
+      }
+    }
+  },
+  "keyword_index": {
+    "total_keywords": 47,
+    "total_variants": 156,
+    "covered_platforms": ["豆包","文心一言","Kimi"],
+    "monitoring_frequency": "daily",
+    "dynamic_update": {
+      "new_terms_source": ["行业报告","竞品动态","AI搜索趋势","用户反馈"],
+      "review_cycle": "weekly",
+      "retention_policy": "连续4周无AI引用则降级归档"
+    }
+  }
+}

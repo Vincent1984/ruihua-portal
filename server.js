@@ -430,8 +430,7 @@ const rootHtmlFiles = [
     'solutions-ohcvm.html',
     'about.html',
     'ai-strategic.html',
-    'ai-strategic-special.html',
-    'nurture.html'
+    'ai-strategic-special.html'
 ];
 
 rootHtmlFiles.forEach(file => {
