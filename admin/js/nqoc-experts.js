@@ -177,34 +177,31 @@ function viewDetail(id) {
         : '<span class="text-muted">-</span>';
     const validPhoto = item.photoUrl && item.photoUrl.length > 5 && !item.photoUrl.includes('undefined');
     const photo = validPhoto
-        ? `<img src="${escapeHtml(item.photoUrl)}" class="detail-photo" onerror="this.style.display='none'" alt="照片">`
-        : '';
-    const rows = [
-        ['常驻地', item.location],
-        ['职位名称', item.position],
-        ['工作单位', item.company],
-        ['电子邮箱', item.email],
-        ['研究领域', item.researchFields],
-        ['个人专业著作', item.publications],
-        ['来源/联系人', item.referrer],
-        ['照片URL', item.photoUrl],
-        ['隐私说明', item.privacyConsent ? '同意公开' : '不同意公开'],
-        ['提交时间', formatDate(item.createdAt)]
-    ];
-    let html = `<div class="mb-3">${photo}<h5 class="mb-1">${escapeHtml(item.name || '-')}</h5><div class="text-muted">${escapeHtml([item.position, item.company].filter(Boolean).join(' · '))}</div></div>`;
-    html += `<div class="mb-3"><div class="fw-bold mb-1">意向活动</div>${activities}</div>`;
-    // 简介和课题需求包含富文本HTML，使用 innerHTML 渲染
-    if (item.bio) {
-        html += `<div class="mb-3"><div class="fw-bold small text-muted mb-1">个人官方简介</div><div class="rich-content">${item.bio}</div></div>`;
-    }
-    if (item.topicNeeds) {
-        html += `<div class="mb-3"><div class="fw-bold small text-muted mb-1">课题需求</div><div class="rich-content">${item.topicNeeds}</div></div>`;
-    }
-    html += '<table class="table table-bordered table-sm"><tbody>';
-    rows.forEach(([k, v]) => {
-        html += `<tr><th style="width:120px;background:#f9fafb">${k}</th><td>${escapeHtml(v || '-')}</td></tr>`;
-    });
+        ? `<a href="${escapeHtml(item.photoUrl)}" target="_blank"><img src="${escapeHtml(item.photoUrl)}" class="detail-photo" style="max-width:120px; height:auto; border-radius:8px;" onerror="this.style.display='none'" alt="照片"></a>`
+        : '<span class="text-muted">未上传照片</span>';
+
+    const renderRow = (label, content) => {
+        return `<tr><th style="width:140px;background:#f9fafb;vertical-align:middle;">${label}</th><td style="vertical-align:middle;">${content}</td></tr>`;
+    };
+
+    let html = '<table class="table table-bordered table-sm mb-0"><tbody>';
+    html += renderRow('01 姓名', escapeHtml(item.name || '-'));
+    html += renderRow('02 活动选择', activities);
+    html += renderRow('03 常驻地', escapeHtml(item.location || '-'));
+    html += renderRow('04 职位名称', escapeHtml(item.position || '-'));
+    html += renderRow('05 工作单位', escapeHtml(item.company || '-'));
+    html += renderRow('06 电子邮箱', escapeHtml(item.email || '-'));
+    html += renderRow('07 个人官方简介', item.bio ? `<div class="rich-content" style="margin:0">${item.bio}</div>` : '-');
+    html += renderRow('08 研究领域', escapeHtml(item.researchFields || '-'));
+    html += renderRow('09 个人专业著作', escapeHtml(item.publications || '-'));
+    html += renderRow('10 课题需求', item.topicNeeds ? `<div class="rich-content" style="margin:0">${item.topicNeeds}</div>` : '-');
+    html += renderRow('11 来源/联系人', escapeHtml(item.referrer || '-'));
+    html += renderRow('12 个人官方照片', photo);
+    html += renderRow('13 隐私说明', item.privacyConsent ? '是 (同意公开)' : '否 (不同意公开)');
+    html += renderRow('14 其他声明', escapeHtml(item.otherDeclaration || '-'));
+    html += renderRow('提交时间', `<span class="text-muted">${formatDate(item.createdAt)}</span>`);
     html += '</tbody></table>';
+
     document.getElementById('detailBody').innerHTML = html;
     new bootstrap.Modal(document.getElementById('detailModal')).show();
 }
