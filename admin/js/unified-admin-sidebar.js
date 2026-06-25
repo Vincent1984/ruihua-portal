@@ -4,50 +4,50 @@
       title: '总览',
       icon: 'bi-speedometer2',
       items: [
-        { label: '数据看板', icon: 'bi-speedometer2', href: '/admin/dashboard.html' }
+        { label: '数据看板', icon: 'bi-speedometer2', href: '/admin/dashboard.html', perm: 'dashboard:view' }
       ]
     },
     {
       title: '内容管理',
       icon: 'bi-house',
       items: [
-        { label: 'Banner 管理', icon: 'bi-image', href: '/admin/dashboard.html', section: 'banner' },
-        { label: 'FAQ 管理', icon: 'bi-question-circle', href: '/admin/dashboard.html', section: 'faq' },
-        { label: '文章管理', icon: 'bi-file-text', href: '/admin/dashboard.html', section: 'article' },
-        { label: '专家管理', icon: 'bi-people', href: '/admin/dashboard.html', section: 'authors' },
-        { label: '侧边栏配置', icon: 'bi-layout-sidebar', href: '/admin/dashboard.html', section: 'sidebar' },
-        { label: '视频管理', icon: 'bi-camera-reels', href: '/admin/video-management.html' }
+        { label: 'Banner 管理', icon: 'bi-image', href: '/admin/dashboard.html', section: 'banner', perm: 'banner:manage' },
+        { label: 'FAQ 管理', icon: 'bi-question-circle', href: '/admin/dashboard.html', section: 'faq', perm: 'faq:list' },
+        { label: '文章管理', icon: 'bi-file-text', href: '/admin/dashboard.html', section: 'article', perm: 'article:list' },
+        { label: '专家管理', icon: 'bi-people', href: '/admin/dashboard.html', section: 'authors', perm: 'article:list' },
+        { label: '侧边栏配置', icon: 'bi-layout-sidebar', href: '/admin/dashboard.html', section: 'sidebar', perm: 'sidebar:manage' },
+        { label: '视频管理', icon: 'bi-camera-reels', href: '/admin/video-management.html', perm: 'video:list' }
       ]
     },
     {
       title: '线索与活动',
       icon: 'bi-database',
       items: [
-        { label: '预约表单', icon: 'bi-list-check', href: '/admin/dashboard.html', section: 'appointments' },
+        { label: '预约表单', icon: 'bi-list-check', href: '/admin/dashboard.html', section: 'appointments', perm: 'appointment:list' },
         { label: '课程咨询', icon: 'bi-mortarboard', href: '/admin/training-applications.html', perm: 'appointment:list' },
         { label: '调研问卷', icon: 'bi-clipboard-data', href: '/admin/survey.html', i18nKey: 'nav.survey', perm: 'appointment:list' },
-        { label: '资源下载记录', icon: 'bi-file-earmark-arrow-down', href: '/admin/whitepaper-submissions.html' },
-        { label: '诊断评测数据', icon: 'bi-bar-chart-steps', href: '/admin/maturity.html' },
-        { label: '经营分析报告', icon: 'bi-graph-up-arrow', href: '/admin/efficiency.html' }
+        { label: '资源下载记录', icon: 'bi-file-earmark-arrow-down', href: '/admin/whitepaper-submissions.html', perm: 'appointment:list' },
+        { label: '诊断评测数据', icon: 'bi-bar-chart-steps', href: '/admin/maturity.html', perm: 'appointment:list' },
+        { label: '经营分析报告', icon: 'bi-graph-up-arrow', href: '/admin/efficiency.html', perm: 'appointment:list' }
       ]
     },
     {
       title: '新质组织',
       icon: 'bi-stars',
       items: [
-        { label: '申报数据', icon: 'bi-trophy', href: '/admin/nqoc-awards.html', perm: 'appointment:list' },
-        { label: '调研问卷', icon: 'bi-clipboard-data', href: '/admin/nqoc-survey.html', perm: 'appointment:list' },
-        { label: '在线投票', icon: 'bi-bar-chart-steps', href: '/admin/nqoc-debate.html', perm: 'appointment:list' },
-        { label: '专家申请', icon: 'bi-person-check', href: '/admin/nqoc-experts.html', perm: 'appointment:list' },
-        { label: '白皮书', icon: 'bi-file-earmark-text', href: '/admin/nqoc-whitepaper.html', perm: 'appointment:list' }
+        { label: '申报数据', icon: 'bi-trophy', href: '/admin/nqoc-awards.html', perm: ['nqoc:list', 'nqoc:manage'] },
+        { label: '调研问卷', icon: 'bi-clipboard-data', href: '/admin/nqoc-survey.html', perm: ['nqoc:list', 'nqoc:manage'] },
+        { label: '在线投票', icon: 'bi-bar-chart-steps', href: '/admin/nqoc-debate.html', perm: ['nqoc:list', 'nqoc:manage'] },
+        { label: '专家申请', icon: 'bi-person-check', href: '/admin/nqoc-experts.html', perm: ['nqoc:list', 'nqoc:manage'] },
+        { label: '白皮书', icon: 'bi-file-earmark-text', href: '/admin/nqoc-whitepaper.html', perm: ['nqoc:list', 'nqoc:manage'] }
       ]
     },
     {
       title: '活动管理',
       icon: 'bi-calendar2-event',
       items: [
-        { label: '报名模板管理', icon: 'bi-ui-checks-grid', href: '/admin/template-management.html' },
-        { label: '活动报名管理', icon: 'bi-calendar2-event', href: '/admin/activity-management.html' }
+        { label: '报名模板管理', icon: 'bi-ui-checks-grid', href: '/admin/template-management.html', perm: 'appointment:list' },
+        { label: '活动报名管理', icon: 'bi-calendar2-event', href: '/admin/activity-management.html', perm: 'appointment:list' }
       ]
     },
     {
@@ -61,8 +61,8 @@
       title: '系统设置',
       icon: 'bi-gear',
       items: [
-        { label: '权限管理', icon: 'bi-shield-lock', href: '/admin/dashboard.html', section: 'permissions' },
-        { label: '退出登录', icon: 'bi-box-arrow-right', href: '/admin/index.html', danger: true }
+        { label: '权限管理', icon: 'bi-shield-lock', href: '/admin/dashboard.html', section: 'permissions', perm: 'all' },
+        { label: '退出登录', icon: 'bi-box-arrow-right', href: '/admin/index.html?logout=1', danger: true }
       ]
     }
   ];
@@ -103,9 +103,14 @@
   }
 
   function canSeeItem(item, permSet) {
-    if (!item.perm) return true;
+    // Super admins see everything
     if (permSet.has('all')) return true;
-    return permSet.has(item.perm);
+    // Danger items (e.g., 退出登录) always visible
+    if (item.danger) return true;
+    // Items without explicit perm require admin ('all') access
+    if (!item.perm) return false;
+    const perms = Array.isArray(item.perm) ? item.perm : [item.perm];
+    return perms.some(perm => permSet.has(perm));
   }
 
   function hasActiveItem(items) {
@@ -204,10 +209,27 @@
     bindGroupCollapse(sidebar);
   }
 
+  async function refreshCurrentUserPermissions() {
+    if (typeof fetch !== 'function') return;
+    try {
+      const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken') || '';
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await fetch('/api/auth/verify', { headers, credentials: 'same-origin' });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data || !data.success || !data.user) return;
+      sessionStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('adminUser', JSON.stringify(data.user));
+    } catch (e) {
+      // Use the cached permissions if the refresh fails.
+    }
+  }
+
   function init() {
     if (typeof document === 'undefined') return;
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', renderSidebar);
-    else renderSidebar();
+    const start = () => refreshCurrentUserPermissions().finally(renderSidebar);
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+    else start();
   }
 
   init();

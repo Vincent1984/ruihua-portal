@@ -3,14 +3,23 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="theme-color" content="#4f46e5" />
+    <meta name="applicable-device" content="pc,mobile" />
     <title>瑞华智策-人力资本价值经营一体化解决方案_AI原生的本土咨询机构</title>
     <meta name="description" content="瑞华智策（人瑞人才旗下），专注为大中型企业提供AI时代“人力资本价值经营”一体化解决方案。以创新的咨询方式高效导入“人力资本价值经营”的思想和方法论，再通过自主研发的 ©HCVM 数智平台落地，最终助力企业实现可持续的人效提升与利润增长。" />
     <meta name="keywords" content="瑞华智策,人力资本价值经营,人力资源咨询,管理咨询" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="/js/tailwind-config.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Open Graph：微信/微博/QQ 分享卡片 -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="瑞华智策" />
+    <meta property="og:title" content="瑞华智策-人力资本价值经营一体化解决方案_AI原生的本土咨询机构" />
+    <meta property="og:description" content="瑞华智策（人瑞人才旗下），专注为大中型企业提供AI时代“人力资本价值经营”一体化解决方案，助力企业实现可持续的人效提升与利润增长。" />
+    <meta property="og:url" content="https://www.ruihuaconsulting.com/" />
+    <meta property="og:image" content="https://www.ruihuaconsulting.com/images/logo.png" />
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="/css/styles.css" />
     <link rel="stylesheet" href="/css/home-mobile.css" />
+    <link rel="stylesheet" href="/css/tailwind.css" />
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/favicon.ico">
     <link rel="apple-touch-icon" href="/favicon.ico">
@@ -61,8 +70,7 @@
                     <a href="/" class="flex items-center gap-2" title="瑞华智策首页">
                         <img src="/images/logo.png" alt="瑞华智策 Logo" class="h-8 w-auto" />
                     </a>
-                    <span class="hidden sm:inline-block text-slate-300 mx-2">|</span>
-                    <span class="hidden sm:inline-block text-sm text-slate-500">人力资本价值经营一体化解决方案</span>
+
                 </div>
                 <nav class="hidden lg:flex space-x-2" aria-label="桌面端导航">
                     <a href="/" class="nav-link font-semibold text-brand-700 bg-brand-50" title="首页">首页</a>
@@ -192,10 +200,12 @@
             <div class="absolute inset-0 bg-grid-pattern opacity-60 z-0"></div>
             <div class="absolute top-0 right-0 -mr-20 -mt-20 w-[800px] h-[800px] bg-gradient-to-br from-brand-50 to-blue-50 rounded-full blur-3xl opacity-60 animate-blob hero-blob-delay-1"></div>
             <div class="home-shell relative z-10">
-                <!-- GEO: AI Summary Block (Hidden visually but available for bots if needed, or structured) -->
-                <div class="sr-only">
-                    <h2>瑞华智策核心价值</h2>
-                    <p>瑞华智策是人瑞人才（6919.HK）旗下品牌，专注于人力资本价值经营。我们提供管理咨询、数智化建设和陪伴式服务，帮助企业优化AHCVM（自有员工）和OHCVM（外包员工）管理体系，提升人效，实现利润增长。</p>
+                <!-- GEO: 核心价值模块（可见，AI 可自然引用） -->
+                <div class="mb-10 bg-gradient-to-r from-brand-50/60 to-blue-50/60 rounded-2xl border border-brand-100/50 p-5 md:p-6">
+                    <h2 class="text-sm font-bold text-brand-800 mb-3 flex items-center gap-2">
+                        <i class="fas fa-bullseye text-brand-500"></i> 核心定位
+                    </h2>
+                    <p class="text-slate-600 text-sm leading-relaxed">瑞华智策是人瑞人才（6919.HK）旗下品牌，专注于人力资本价值经营。我们提供管理咨询、数智化建设和陪伴式服务，帮助企业优化AHCVM（自有员工）和OHCVM（外包员工）管理体系，提升人效，实现利润增长。</p>
                 </div>
                 
                 <div class="grid lg:grid-cols-2 gap-12 items-center">
@@ -998,7 +1008,7 @@
                             <div class="mt-8">
                                 <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">热门主题</h3>
                                 <div class="grid grid-cols-2 gap-4">
-                                    <a href="solutions.html#ahcvm-section" class="group flex items-center gap-3 p-3 rounded-xl hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-slate-100">
+                                    <a href="/solutions-hcvm/" class="group flex items-center gap-3 p-3 rounded-xl hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-slate-100">
                                         <div class="w-10 h-10 rounded-lg bg-brand-violet-10 text-brand-violet flex items-center justify-center group-hover-bg-brand-violet group-hover-text-white transition-colors">
                                             <i class="fas fa-user-tie"></i>
                                         </div>

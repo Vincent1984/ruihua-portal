@@ -2,8 +2,10 @@
 // ================= Permissions Management (Users & Roles) =================
 
 // Permission Dictionary
-const PERMISSION_DICT = [
+let PERMISSION_DICT = [
     { code: 'all', name: '全部权限 (超级管理员)' },
+    { code: 'dashboard:view', name: '查看数据看板' },
+    { code: 'system:manage', name: '系统/SEO/GEO 管理' },
     { code: 'article:list', name: '查看文章' },
     { code: 'article:create', name: '发布文章' },
     { code: 'article:edit', name: '编辑文章' },
@@ -14,10 +16,59 @@ const PERMISSION_DICT = [
     { code: 'faq:delete', name: '删除FAQ' },
     { code: 'banner:manage', name: 'Banner管理' },
     { code: 'sidebar:manage', name: '侧边栏配置' },
+    { code: 'upload:write', name: '上传文件/图片' },
+    { code: 'ai:use', name: '使用AI/SEO/GEO工具' },
     { code: 'appointment:list', name: '查看预约' },
     { code: 'appointment:edit', name: '处理预约' },
-    { code: 'appointment:delete', name: '删除预约' }
+    { code: 'appointment:delete', name: '删除预约' },
+    { code: 'appointment:export', name: '导出预约/线索数据' },
+    { code: 'nqoc:manage', name: '新质组织管理（兼容旧权限）' },
+    { code: 'nqoc:list', name: '查看新质组织数据' },
+    { code: 'nqoc:edit', name: '编辑新质组织数据' },
+    { code: 'nqoc:delete', name: '删除新质组织数据' },
+    { code: 'nqoc:export', name: '导出新质组织数据' },
+    { code: 'video:list', name: '查看视频' },
+    { code: 'video:create', name: '新增视频' },
+    { code: 'video:edit', name: '编辑视频' },
+    { code: 'video:delete', name: '删除视频' }
 ];
+
+let permissionDictLoaded = false;
+
+async function loadPermissionDict() {
+    if (permissionDictLoaded) return PERMISSION_DICT;
+    try {
+        const res = await fetch('/api/permissions/dictionary', { headers: authHeaders() });
+        const data = await res.json();
+        if (res.ok && data.success && Array.isArray(data.groups)) {
+            PERMISSION_DICT = data.groups.flatMap(group =>
+                (group.permissions || []).map(permission => ({
+                    code: permission.code,
+                    name: permission.name || permission.code
+                }))
+            ).filter(permission => permission.code);
+        }
+    } catch (err) {
+        console.warn('Load permission dictionary failed, using local fallback:', err);
+    } finally {
+        permissionDictLoaded = true;
+    }
+    return PERMISSION_DICT;
+}
+
+function escapeHTML(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[ch]));
+}
+
+function permInputId(code) {
+    return `perm_${String(code).replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+}
 
 function switchPermTab(tab) {
     // UI update
@@ -58,9 +109,9 @@ function loadUsers() {
 
             tbody.innerHTML = users.map(u => `
                 <tr>
-                    <td>${u.username}</td>
-                    <td>${u.name || '-'}</td>
-                    <td>${u.roles && u.roles.length ? u.roles.map(r => `<span class="badge bg-info me-1">${r.name}</span>`).join('') : '<span class="badge bg-secondary">无角色</span>'}</td>
+                    <td>${escapeHTML(u.username)}</td>
+                    <td>${escapeHTML(u.name || '-')}</td>
+                    <td>${u.roles && u.roles.length ? u.roles.map(r => `<span class="badge bg-info me-1">${escapeHTML(r.name)}</span>`).join('') : '<span class="badge bg-secondary">无角色</span>'}</td>
                     <td>${u.isActive ? '<span class="text-success">正常</span>' : '<span class="text-danger">禁用</span>'}</td>
                     <td>${u.lastLogin ? new Date(u.lastLogin).toLocaleString() : '-'}</td>
                     <td>
@@ -93,7 +144,7 @@ function openUserModal(id = null) {
                 return;
             }
             const select = document.getElementById('userRole');
-            select.innerHTML = roles.map(r => `<option value="${r._id}">${r.name}</option>`).join('');
+            select.innerHTML = roles.map(r => `<option value="${escapeHTML(r._id)}">${escapeHTML(r.name)}</option>`).join('');
             
             if (id) {
                 // Fetch user details or find in list (here we fetch list again for simplicity)
@@ -208,10 +259,10 @@ function loadRoles() {
 
             tbody.innerHTML = roles.map(r => `
                 <tr>
-                    <td>${r.name}</td>
-                    <td><code>${r.code}</code></td>
-                    <td>${r.description || '-'}</td>
-                    <td class="text-truncate" style="max-width: 200px;">${r.permissions ? r.permissions.join(', ') : ''}</td>
+                    <td>${escapeHTML(r.name)}</td>
+                    <td><code>${escapeHTML(r.code)}</code></td>
+                    <td>${escapeHTML(r.description || '-')}</td>
+                    <td class="text-truncate" style="max-width: 200px;">${r.permissions ? r.permissions.map(escapeHTML).join(', ') : ''}</td>
                     <td>
                         <button class="btn btn-sm btn-outline-primary" onclick="openRoleModal('${r._id}')">编辑</button>
                         <button class="btn btn-sm btn-outline-danger" onclick="deleteRole('${r._id}')">删除</button>
@@ -226,19 +277,20 @@ function loadRoles() {
         .finally(() => toggleLoading(false));
 }
 
-function openRoleModal(id = null) {
+async function openRoleModal(id = null) {
     document.getElementById('roleId').value = '';
     document.getElementById('roleName').value = '';
     document.getElementById('roleCode').value = '';
     document.getElementById('roleDesc').value = '';
+    await loadPermissionDict();
     
     // Render permission checkboxes
     const container = document.getElementById('permCheckboxes');
     if (container) {
         container.innerHTML = PERMISSION_DICT.map(p => `
             <div class="form-check">
-                <input class="form-check-input perm-check" type="checkbox" value="${p.code}" id="perm_${p.code}">
-                <label class="form-check-label" for="perm_${p.code}">${p.name}</label>
+                <input class="form-check-input perm-check" type="checkbox" value="${escapeHTML(p.code)}" id="${permInputId(p.code)}">
+                <label class="form-check-label" for="${permInputId(p.code)}">${escapeHTML(p.name)}</label>
             </div>
         `).join('');
     }
@@ -255,7 +307,7 @@ function openRoleModal(id = null) {
                     document.getElementById('roleDesc').value = role.description || '';
                     if (role.permissions) {
                         role.permissions.forEach(p => {
-                            const cb = document.getElementById(`perm_${p}`);
+                            const cb = document.getElementById(permInputId(p));
                             if (cb) cb.checked = true;
                         });
                     }

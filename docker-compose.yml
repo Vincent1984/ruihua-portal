@@ -16,15 +16,15 @@ services:
       - DB_NAME=ruihua_cms
       - MONGODB_URL=mongodb://mongodb:27017/ruihua_cms
       - PORT=3000
-      - ADMIN_USERNAME=zhice
-      - ADMIN_PASSWORD=zhiceruihua123
-      - DINGTALK_WEBHOOK_URL=https://oapi.dingtalk.com/robot/send?access_token=862cc9da41b5779bbdb9d3c967e9da553ae0ea59e45f9e67cf3e3dd0af48e77f
-      - DINGTALK_SECRET=SECed8d93cf0a8a5fb61938069393315e4074109958ea40da68657a913b21d9d5f9
-      - SMS_API_URL=https://rcs.uninets.com.cn/uninetsOutInterface/domesticSmsSend
-      - SMS_USERNAME=rrxt
-      - SMS_PASSWORD=Renrui123
-      - JWT_SECRET=ruihua_secret_key_change_this_in_production
-      - NODE_TLS_REJECT_UNAUTHORIZED=0
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - DINGTALK_WEBHOOK_URL=${DINGTALK_WEBHOOK_URL}
+      - DINGTALK_SECRET=${DINGTALK_SECRET}
+      - SMS_API_URL=${SMS_API_URL}
+      - SMS_USERNAME=${SMS_USERNAME}
+      - SMS_PASSWORD=${SMS_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - NODE_TLS_REJECT_UNAUTHORIZED=1
     volumes:
       - ./public/uploads:/app/public/uploads
       - ./logs:/app/logs

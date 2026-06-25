@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国新质组织研究项目专家填写资料 - 瑞华智策</title>
+    <meta name="description" content="中国新质组织研究项目专家申请表，您的所有信息仅用于智库内部备案，会完全对第三方保密。" />
+    <link rel="icon" href="/images/logo.png">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.bootcdn.net/ajax/libs/quill/1.3.7/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/quill/1.3.7/quill.min.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #6366f1;
+            --border: #d1d5db;
+            --error: #ef4444;
+            --text: #1f2937;
+            --muted: #6b7280;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif; background: #f9fafb; color: var(--text); margin: 0; }
+        .nav { background: #fff; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 50; }
+        .nav-inner { max-width: 1024px; margin: 0 auto; padding: 0 16px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { height: 36px; }
+        .nav-back { color: var(--muted); font-size: 14px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+        .nav-back:hover { color: var(--primary); }
+        .container { max-width: 800px; margin: 0 auto; padding: 24px 16px 80px; }
+        .page-header { text-align: center; margin-bottom: 32px; padding: 56px 20px 48px; border-radius: 20px; position: relative; overflow: hidden; isolation: isolate;
+            background: #0a0826;
+            background-image:
+                /* micro dot pattern */
+                radial-gradient(circle, rgba(139,92,246,0.15) 1px, transparent 1px),
+                /* soft gradient sweep */
+                linear-gradient(160deg, #0a0826 0%, #15103a 30%, #1c1252 50%, #241466 70%, #15103a 100%);
+            background-size: 24px 24px, 100% 100%;
+            background-position: 0 0, 0 0;
+        }
+        /* blurred glow orbs — Feishu-style glass-morphism */
+        .page-header::before { content: ''; position: absolute; z-index: 0; pointer-events: none;
+            background:
+                /* top-left pink-purple orb */
+                radial-gradient(circle at 20% 15%, rgba(168,85,247,0.45) 0%, rgba(168,85,247,0.1) 35%, transparent 60%),
+                /* top-right blue orb */
+                radial-gradient(circle at 75% 10%, rgba(59,130,246,0.4) 0%, rgba(59,130,246,0.08) 40%, transparent 65%),
+                /* center-bottom purple glow */
+                radial-gradient(circle at 55% 80%, rgba(139,92,246,0.5) 0%, rgba(139,92,246,0.1) 35%, transparent 55%),
+                /* left-mid indigo accent */
+                radial-gradient(circle at 10% 55%, rgba(99,102,241,0.35) 0%, rgba(99,102,241,0.06) 40%, transparent 60%);
+            filter: blur(20px);
+            width: 120%; height: 120%; top: -10%; left: -10%;
+            animation: feishuOrb 12s ease-in-out infinite alternate;
+        }
+        @keyframes feishuOrb {
+            0% { transform: translate(0,0) scale(1); opacity: 0.85; }
+            33% { transform: translate(3%,-2%) scale(1.04); opacity: 1; }
+            66% { transform: translate(-1%,3%) scale(0.97); opacity: 0.9; }
+            100% { transform: translate(2%,-1%) scale(1.02); opacity: 0.95; }
+        }
+        /* tech-circuit line pattern overlay */
+        .page-header::after { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0.4;
+            background-image:
+                /* horizontal fine lines */
+                repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(139,92,246,0.06) 39px, rgba(139,92,246,0.06) 40px),
+                /* vertical fine lines */
+                repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(139,92,246,0.04) 59px, rgba(139,92,246,0.04) 60px),
+                /* diagonal accent */
+                url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 200L200 0' stroke='rgba(139,92,246,0.06)' stroke-width='1'/%3E%3Ccircle cx='100' cy='100' r='80' fill='none' stroke='rgba(139,92,246,0.04)' stroke-width='0.5' stroke-dasharray='4 6'/%3E%3Ccircle cx='100' cy='100' r='50' fill='none' stroke='rgba(139,92,246,0.06)' stroke-width='0.5' stroke-dasharray='2 8'/%3E%3Cline x1='100' y1='0' x2='100' y2='200' stroke='rgba(139,92,246,0.03)' stroke-width='0.5'/%3E%3Cline x1='0' y1='100' x2='200' y2='100' stroke='rgba(139,92,246,0.03)' stroke-width='0.5'/%3E%3C/svg%3E");
+            background-size: 40px 40px, 60px 60px, 200px 200px;
+            background-position: 0 0, 0 0, center;
+        }
+        .page-header > * { position: relative; z-index: 2; }
+        .page-header h1 { font-size: clamp(16px, 4.5vw, 28px); font-weight: 700; margin: 0 0 10px; color: #fff; letter-spacing: 0.5px; text-shadow: 0 0 40px rgba(139,92,246,0.5), 0 2px 4px rgba(0,0,0,0.3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .page-header .sub { font-size: clamp(13px, 2vw, 15px); color: rgba(196,181,253,0.9); letter-spacing: 0.5px; }
+        /* decorative gold line */
+        .banner-accent { width: 48px; height: 3px; background: linear-gradient(90deg, transparent, #c4b5fd, #a78bfa, #c4b5fd, transparent); border-radius: 2px; margin: 0 auto 14px; position: relative; z-index: 2; }
+        .card { background: #fff; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04); padding: 32px 28px; margin-bottom: 20px; }
+        @media (max-width: 640px) { .card { padding: 24px 16px; border-radius: 12px; } }
+        .field { margin-bottom: 28px; }
+        .field:last-child { margin-bottom: 0; }
+        .field-label { display: flex; align-items: baseline; gap: 4px; font-size: 16px; font-weight: 600; color: #111827; margin-bottom: 10px; }
+        .field-num { color: #a78bfa; font-weight: 700; margin-right: 4px; }
+        .field-required { color: var(--error); font-size: 14px; }
+        .field-hint { font-size: 13px; color: var(--muted); margin-top: -4px; margin-bottom: 8px; }
+        .field-error { font-size: 12px; color: var(--error); margin-top: 6px; min-height: 16px; display: none; }
+        .field.error .field-error { display: block; }
+        .field.error input, .field.error textarea, .field.error select { border-color: var(--error); }
+        input[type=text], input[type=tel], input[type=email], textarea, select {
+            width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px;
+            font-size: 15px; font-family: inherit; color: var(--text); background: #fff; transition: border-color .15s;
+            outline: none;
+        }
+        input:focus, textarea:focus, select:focus { border-color: var(--primary); }
+        input::placeholder, textarea::placeholder { color: #9ca3af; }
+        textarea { resize: vertical; min-height: 140px; line-height: 1.6; }
+        .checkbox-group { display: flex; flex-direction: column; gap: 10px; }
+        .checkbox-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all .15s; background: #fff; }
+        .checkbox-item:hover { border-color: #c7d2fe; background: #f5f3ff; }
+        .checkbox-item input[type=checkbox] { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--primary); cursor: pointer; flex-shrink: 0; }
+        .checkbox-item span { font-size: 14px; line-height: 1.5; }
+        .radio-group { display: flex; flex-direction: column; gap: 10px; }
+        .radio-item { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border: 1.5px solid var(--border); border-radius: 999px; cursor: pointer; transition: all .15s; font-size: 15px; }
+        .radio-item:hover { border-color: #c7d2fe; }
+        .radio-item.selected { border-color: var(--primary); background: #eef2ff; }
+        .radio-item input[type=radio] { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
+        .drop-zone { border: 2px dashed #c4b5fd; border-radius: 12px; padding: 40px 16px; text-align: center; cursor: pointer; transition: all .25s; background: #faf5ff; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .drop-zone:hover, .drop-zone.dragover { border-color: var(--primary); background: #ede9fe; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(124,58,237,0.12); }
+        .drop-zone i { font-size: 36px; color: #a78bfa; }
+        .drop-zone .dz-text { font-size: 14px; color: #6b7280; }
+        .drop-zone .dz-sub { font-size: 12px; color: #9ca3af; }
+        .preview-wrapper { position: relative; display: inline-block; margin-top: 12px; }
+        .preview-wrapper img { max-width: 200px; max-height: 200px; border-radius: 12px; border: 2px solid #e5e7eb; object-fit: cover; }
+        .preview-wrapper .remove { position: absolute; top: -10px; right: -10px; width: 26px; height: 26px; border-radius: 50%; background: var(--error); color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+        .submit-btn { width: 100%; max-width: 320px; margin: 20px auto 0; display: block; padding: 16px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: #fff; border: none; border-radius: 999px; font-size: 18px; font-weight: 700; cursor: pointer; transition: all .25s; box-shadow: 0 4px 16px rgba(124,58,237,0.3), 0 0 0 0 rgba(124,58,237,0.4); letter-spacing: 2px; position: relative; overflow: hidden; }
+        .submit-btn::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0) 40%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 60%); transform: translateX(-100%); transition: transform .6s; }
+        .submit-btn:hover::after { transform: translateX(100%); }
+        .submit-btn:hover { background: linear-gradient(135deg, #5b52f0 0%, #8b5cf6 100%); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,58,237,0.45), 0 0 0 4px rgba(124,58,237,0.1); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { box-shadow: 0 8px 24px rgba(124,58,237,0.45), 0 0 0 4px rgba(124,58,237,0.1); } 50% { box-shadow: 0 8px 24px rgba(124,58,237,0.45), 0 0 0 10px rgba(124,58,237,0.05); } }
+        .submit-btn:active { transform: translateY(0); }
+        .submit-btn:disabled { background: #c7d2fe; cursor: not-allowed; transform: none; box-shadow: none; animation: none; letter-spacing: 1px; }
+        .submit-btn:disabled::after { display: none; }
+        .footer { text-align: center; padding: 32px 16px; color: var(--muted); font-size: 13px; border-top: 1px solid #e5e7eb; margin-top: 24px; background: #fff; }
+        .toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-80px); background: #111; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 14px; z-index: 999; opacity: 0; transition: all .3s; pointer-events: none; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast.success { background: #10b981; }
+        .toast.error { background: var(--error); }
+        .success-screen { display: none; text-align: center; padding: 60px 20px; }
+        .success-screen.show { display: block; }
+        .success-screen-inner { background: #fff; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04); padding: 56px 40px; max-width: 520px; margin: 0 auto; }
+        @media (max-width: 640px) { .success-screen-inner { padding: 40px 24px; border-radius: 12px; } }
+        .success-screen i.fa-check-circle { font-size: 72px; color: #10b981; margin-bottom: 24px; display: block; }
+        .success-screen h2 { font-size: 26px; margin: 0 0 12px; color: #111827; font-weight: 700; }
+        .success-screen p { color: var(--muted); margin: 0 0 28px; font-size: 15px; line-height: 1.7; }
+        .success-screen a { display: inline-flex; align-items: center; gap: 6px; color: var(--primary); text-decoration: none; font-weight: 500; font-size: 15px; padding: 10px 24px; border: 1.5px solid var(--primary); border-radius: 999px; transition: all .15s; }
+        .success-screen a:hover { background: #eef2ff; }
+        .form-wrap.done { display: none; }
+        .char-count { font-size: 12px; color: var(--muted); text-align: right; margin-top: 4px; }
+        /* ===== Quill Editor ===== */
+        .editor-wrapper { border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; transition: border-color .15s; }
+        .editor-wrapper:focus-within { border-color: var(--primary); }
+        .field.error .editor-wrapper { border-color: var(--error); }
+        .editor-wrapper .ql-toolbar { border: none; border-bottom: 1px solid #e5e7eb; background: #fafafa; }
+        .editor-wrapper .ql-container { border: none; font-size: 15px; font-family: inherit; }
+        .editor-wrapper .ql-editor { min-height: 140px; line-height: 1.6; }
+        .editor-wrapper .ql-editor.ql-blank::before { color: #9ca3af; font-style: normal; }
+        .editor-wrapper-sm .ql-editor { min-height: 120px; }
+    </style>
+    <link rel="stylesheet" href="/css/tailwind.css" />
+</head>
+<body>
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="/nqoc"><img src="/images/logo.png" alt="瑞华智策" class="nav-logo"></a>
+        <a href="/nqoc" class="nav-back"><i class="fas fa-arrow-left"></i> 返回活动页</a>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="page-header">
+        <h1>中国新质组织研究项目专家填写资料</h1>
+        <div class="banner-accent"></div>
+        <div class="sub">您的所有信息仅用于智库内部备案，会完全对第三方保密。</div>
+    </div>
+
+    <!-- Success Screen -->
+    <div class="success-screen" id="successScreen">
+        <div class="success-screen-inner">
+            <i class="fas fa-check-circle"></i>
+            <h2>提交成功</h2>
+            <p>感谢您申请加入中国新质组织研究项目智库专家，我们会尽快与您联系。</p>
+            <a href="/nqoc"><i class="fas fa-arrow-left"></i> 返回活动首页</a>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="form-wrap card" id="formWrap">
+        <form id="expertForm" onsubmit="handleSubmit(event)" novalidate>
+
+            <!-- 01 姓名 -->
+            <div class="field" data-field="name">
+                <div class="field-label"><span class="field-num">01</span>姓名<span class="field-required">*</span></div>
+                <input type="text" id="name" name="name" placeholder="请输入内容" maxlength="30" required>
+                <div class="field-error">请填写姓名</div>
+            </div>
+
+            <!-- 02 活动选择 -->
+            <div class="field" data-field="activities">
+                <div class="field-label"><span class="field-num">02</span>活动选择<span class="field-required">*</span></div>
+                <div class="checkbox-group">
+                    <label class="checkbox-item"><input type="checkbox" name="activities" value="speaker"><span>担任研讨会/私董会/论坛等专业活动分享嘉宾</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="activities" value="video_interview"><span>参与《值得看见》栏目录制，与项目发起人高燕老师进行深度对谈（录制时长1-1.5小时）</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="activities" value="case_review"><span>参与《中国新质组织研究项目优秀案例》评审</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="activities" value="standard_making"><span>参与《中国新质组织模型标准》制定</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="activities" value="host_visits"><span>可以接待其他企业到本企业参观、学习和研讨</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="activities" value="writing"><span>可以接受约稿，撰写与自己研究领域相关的内容</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="activities" value="general_events"><span>以上内容都无法支持，但愿意以参加中国新质组织研究项目相关的专业活动</span></label>
+                </div>
+                <div class="field-error">请至少选择一项</div>
+            </div>
+
+            <!-- 03 常驻地 -->
+            <div class="field" data-field="location">
+                <div class="field-label"><span class="field-num">03</span>常驻地<span class="field-required">*</span></div>
+                <input type="text" id="location" name="location" placeholder="请输入内容，如：上海" maxlength="20">
+                <div class="field-error">请填写常驻地</div>
+            </div>
+
+            <!-- 04 职位名称 -->
+            <div class="field" data-field="position">
+                <div class="field-label"><span class="field-num">04</span>职位名称<span class="field-required">*</span></div>
+                <input type="text" id="position" name="position" placeholder="请输入内容，如：CEO / 首席专家" maxlength="50">
+                <div class="field-error">请填写职位名称</div>
+            </div>
+
+            <!-- 05 工作单位 -->
+            <div class="field" data-field="company">
+                <div class="field-label"><span class="field-num">05</span>工作单位<span class="field-required">*</span></div>
+                <input type="text" id="company" name="company" placeholder="请输入内容" maxlength="80">
+                <div class="field-error">请填写工作单位</div>
+            </div>
+
+            <!-- 06 电子邮箱 -->
+            <div class="field" data-field="email">
+                <div class="field-label"><span class="field-num">06</span>电子邮箱<span class="field-required">*</span></div>
+                <div class="field-hint">方便您接收一些书面材料</div>
+                <input type="email" id="email" name="email" placeholder="请输入内容">
+                <div class="field-error">请填写有效的邮箱地址</div>
+                <div class="field-hint" style="margin-top:6px">涉及隐私信息，请核实分享者身份</div>
+            </div>
+
+            <!-- 07 个人官方简介 -->
+            <div class="field" data-field="bio">
+                <div class="field-label"><span class="field-num">07</span>个人官方简介<span class="field-required">*</span></div>
+                <div class="field-hint">200字以内</div>
+                <div class="editor-wrapper" id="bioEditorWrapper">
+                    <div id="bioEditor"></div>
+                </div>
+                <input type="hidden" id="bio" name="bio">
+                <div class="field-error">请填写个人官方简介</div>
+                <div class="char-count"><span id="bioCount">0</span>/200</div>
+            </div>
+
+            <!-- 08 研究领域 -->
+            <div class="field" data-field="researchFields">
+                <div class="field-label"><span class="field-num">08</span>研究领域<span class="field-required">*</span></div>
+                <input type="text" id="researchFields" name="researchFields" placeholder="请列出1-3个您个人专注研究的专业领域，如：组织发展、AI转型等" maxlength="100">
+                <div class="field-error">请填写研究领域</div>
+            </div>
+
+            <!-- 09 个人专业著作 -->
+            <div class="field" data-field="publications">
+                <div class="field-label"><span class="field-num">09</span>个人专业著作<span class="field-required">*</span></div>
+                <div class="field-hint">如果有出版书籍、知名媒体的文章，欢迎提供名称</div>
+                <input type="text" id="publications" name="publications" placeholder="请输入内容" maxlength="200">
+                <div class="field-error">请填写个人专业著作</div>
+            </div>
+
+            <!-- 10 课题需求 -->
+            <div class="field" data-field="topicNeeds">
+                <div class="field-label"><span class="field-num">10</span>课题需求<span class="field-required">*</span></div>
+                <div class="editor-wrapper" id="topicNeedsEditorWrapper">
+                    <div id="topicNeedsEditor"></div>
+                </div>
+                <input type="hidden" id="topicNeeds" name="topicNeeds">
+                <div class="field-error">请填写课题需求</div>
+            </div>
+
+            <!-- 11 来源/联系人 -->
+            <div class="field" data-field="referrer">
+                <div class="field-label"><span class="field-num">11</span>来源/联系人<span class="field-required">*</span></div>
+                <div class="field-hint">邀请您成为智库专家的联系人姓名</div>
+                <input type="text" id="referrer" name="referrer" placeholder="请输入内容" maxlength="20">
+                <div class="field-error">请填写来源/联系人</div>
+            </div>
+
+            <!-- 12 个人官方照片 -->
+            <div class="field" data-field="photo">
+                <div class="field-label"><span class="field-num">12</span>个人官方照片<span class="field-required">*</span></div>
+                <div class="field-hint">建议1M以上</div>
+                <input type="file" id="photo" name="photo" accept="image/*" style="display:none;">
+                <label class="drop-zone" for="photo" id="dropZone">
+                    <i class="fas fa-cloud-arrow-up"></i>
+                    <div class="dz-text">粘贴、拖拽文件到这里或浏览本地文件</div>
+                    <div class="dz-sub">支持 JPG / PNG 格式，建议 1M 以上</div>
+                </label>
+                <div id="photoPreview" class="preview-wrapper" style="display:none">
+                    <img id="previewImg" alt="预览">
+                    <button type="button" class="remove" onclick="removePhoto()" aria-label="移除照片"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="field-error">请上传个人官方照片</div>
+            </div>
+
+            <!-- 13 隐私说明 -->
+            <div class="field" data-field="privacyConsent">
+                <div class="field-label"><span class="field-num">13</span>隐私说明<span class="field-required">*</span></div>
+                <div class="field-hint">您的个人信息是否能够出现在"中国新质组织研究项目"的官方网站和活动介绍中</div>
+                <div class="radio-group">
+                    <label class="radio-item selected" onclick="selectPrivacy(true,this)"><input type="radio" name="privacyConsent" value="true" checked>是</label>
+                    <label class="radio-item" onclick="selectPrivacy(false,this)"><input type="radio" name="privacyConsent" value="false">否</label>
+                </div>
+                <div class="field-error">请选择隐私说明</div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">立即加入</button>
+        </form>
+    </div>
+</div>
+
+<div class="footer">
+    &copy; 2026 瑞华智策 Ruihua Consulting. 人瑞人才 (6919.HK) 旗下全资子公司
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+    // ===== Quill Editors =====
+    const toolbarOptions = [
+        [{ 'header': [2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'color': [] }, { 'background': [] }],
+        ['blockquote'],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'align': [] }],
+        ['link'],
+        ['clean']
+    ];
+
+    const bioQuill = new Quill('#bioEditor', {
+        theme: 'snow',
+        placeholder: '请输入内容',
+        modules: {
+            toolbar: toolbarOptions
+        }
+    });
+    const topicNeedsQuill = new Quill('#topicNeedsEditor', {
+        theme: 'snow',
+        placeholder: '您希望通过智库解决或回答个人感兴趣的哪些课题？',
+        modules: {
+            toolbar: toolbarOptions
+        }
+    });
+
+    // ===== sync helpers =====
+    const bioHidden = document.getElementById('bio');
+    const topicNeedsHidden = document.getElementById('topicNeeds');
+    const bioCount = document.getElementById('bioCount');
+
+    function getBioText() {
+        const text = bioQuill.getText().trim();
+        return text;
+    }
+    function getBioHTML() {
+        const html = bioQuill.root.innerHTML;
+        // if only empty paragraph, return empty
+        if (html === '<p><br></p>' || html === '<p></p>') return '';
+        return html;
+    }
+    function getTopicHTML() {
+        const html = topicNeedsQuill.root.innerHTML;
+        if (html === '<p><br></p>' || html === '<p></p>') return '';
+        return html;
+    }
+    function syncHiddenFields() {
+        bioHidden.value = getBioHTML();
+        topicNeedsHidden.value = getTopicHTML();
+    }
+
+    // char count for bio
+    bioQuill.on('text-change', () => {
+        const len = getBioText().length;
+        bioCount.textContent = len > 200 ? '200+' : len;
+        bioCount.style.color = len > 200 ? 'var(--error)' : '';
+    });
+
+    // ===== draft autosave =====
+    const DRAFT_KEY = 'nqoc_expert_apply_draft';
+    const form = document.getElementById('expertForm');
+
+    function saveDraft() {
+        try {
+            syncHiddenFields();
+            const fd = new FormData(form);
+            const data = {
+                name: fd.get('name') || '',
+                location: fd.get('location') || '',
+                position: fd.get('position') || '',
+                company: fd.get('company') || '',
+                email: fd.get('email') || '',
+                bio: fd.get('bio') || '',
+                researchFields: fd.get('researchFields') || '',
+                publications: fd.get('publications') || '',
+                topicNeeds: fd.get('topicNeeds') || '',
+                referrer: fd.get('referrer') || '',
+                privacyConsent: document.querySelector('input[name=privacyConsent]:checked')?.value || 'true',
+                activities: Array.from(document.querySelectorAll('input[name=activities]:checked')).map(i => i.value)
+            };
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+        } catch(e) {}
+    }
+
+    function loadDraft() {
+        try {
+            const raw = localStorage.getItem(DRAFT_KEY);
+            if (!raw) return;
+            const d = JSON.parse(raw);
+            if (d.name) document.getElementById('name').value = d.name;
+            if (d.location) document.getElementById('location').value = d.location;
+            if (d.position) document.getElementById('position').value = d.position;
+            if (d.company) document.getElementById('company').value = d.company;
+            if (d.email) document.getElementById('email').value = d.email;
+            if (d.bio) { bioHidden.value = d.bio; bioQuill.root.innerHTML = d.bio; bioCount.textContent = d.bio.replace(/<[^>]*>/g, '').trim().length; }
+            if (d.researchFields) document.getElementById('researchFields').value = d.researchFields;
+            if (d.publications) document.getElementById('publications').value = d.publications;
+            if (d.topicNeeds) { topicNeedsHidden.value = d.topicNeeds; topicNeedsQuill.root.innerHTML = d.topicNeeds; }
+            if (d.referrer) document.getElementById('referrer').value = d.referrer;
+            if (d.privacyConsent === 'false') selectPrivacy(false, document.querySelectorAll('.radio-item')[1]);
+            if (Array.isArray(d.activities)) {
+                document.querySelectorAll('input[name=activities]').forEach(cb => {
+                    cb.checked = d.activities.includes(cb.value);
+                });
+            }
+        } catch(e) {}
+    }
+
+    // autosave on change
+    let saveTimer = null;
+    form.addEventListener('input', () => {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(saveDraft, 1500);
+    });
+    bioQuill.on('text-change', () => {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(saveDraft, 1500);
+    });
+    topicNeedsQuill.on('text-change', () => {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(saveDraft, 1500);
+    });
+    document.querySelectorAll('input[type=checkbox], input[type=radio]').forEach(el => {
+        el.addEventListener('change', saveDraft);
+    });
+
+    // ===== file upload =====
+    const fileInput = document.getElementById('photo');
+    const dropZone = document.getElementById('dropZone');
+    const previewWrap = document.getElementById('photoPreview');
+    const previewImg = document.getElementById('previewImg');
+    let currentFile = null;
+    const MAX_SIZE = 10 * 1024 * 1024;
+
+    fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+    ['dragenter','dragover'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('dragover'); }));
+    ['dragleave','drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove('dragover'); }));
+    dropZone.addEventListener('drop', e => { if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+
+    function handleFile(file) {
+        if (!file.type.startsWith('image/')) { showToast('请上传图片文件', 'error'); return; }
+        if (file.size > MAX_SIZE) { showToast('图片不能超过10MB', 'error'); return; }
+        currentFile = file;
+        const reader = new FileReader();
+        reader.onload = e => { previewImg.src = e.target.result; previewWrap.style.display = 'inline-block'; dropZone.style.display = 'none'; };
+        reader.readAsDataURL(file);
+    }
+    window.removePhoto = function() {
+        currentFile = null;
+        fileInput.value = '';
+        previewWrap.style.display = 'none';
+        dropZone.style.display = 'block';
+    };
+    window.handleFile = handleFile;
+
+    // ===== radio =====
+    window.selectPrivacy = function(val, el) {
+        document.querySelectorAll('.radio-item').forEach(i => i.classList.remove('selected'));
+        el.classList.add('selected');
+        el.querySelector('input').checked = true;
+    };
+
+    // ===== validation =====
+    const FIELD_LABELS = {
+        name: '姓名', activities: '活动选择', location: '常驻地',
+        position: '职位名称', company: '工作单位', email: '电子邮箱',
+        bio: '个人官方简介', researchFields: '研究领域', publications: '个人专业著作',
+        topicNeeds: '课题需求', referrer: '来源/联系人', photo: '个人官方照片',
+        privacyConsent: '隐私说明'
+    };
+    function clearErrors() {
+        document.querySelectorAll('.field.error').forEach(f => f.classList.remove('error'));
+    }
+    function showError(name, msg) {
+        const f = document.querySelector(`[data-field="${name}"]`);
+        if (!f) return;
+        f.classList.add('error');
+        if (msg) {
+            const errEl = f.querySelector('.field-error');
+            if (errEl) errEl.textContent = msg;
+        }
+    }
+    function validate() {
+        clearErrors();
+        const missing = [];
+        const checks = [
+            ['name', () => { const v = document.getElementById('name').value.trim(); return v ? '' : '请填写姓名'; }],
+            ['activities', () => { return document.querySelectorAll('input[name=activities]:checked').length > 0 ? '' : '请至少选择一项活动'; }],
+            ['location', () => { const v = document.getElementById('location').value.trim(); return v ? '' : '请填写常驻地'; }],
+            ['position', () => { const v = document.getElementById('position').value.trim(); return v ? '' : '请填写职位名称'; }],
+            ['company', () => { const v = document.getElementById('company').value.trim(); return v ? '' : '请填写工作单位'; }],
+            ['email', () => {
+                const v = document.getElementById('email').value.trim();
+                if (!v) return '请填写电子邮箱';
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return '请填写有效的邮箱地址';
+                return '';
+            }],
+            ['bio', () => {
+                const text = getBioText();
+                if (!text) return '请填写个人官方简介';
+                if (text.length > 200) return '个人简介不能超过200字';
+                return '';
+            }],
+            ['researchFields', () => { const v = document.getElementById('researchFields').value.trim(); return v ? '' : '请填写研究领域'; }],
+            ['publications', () => { const v = document.getElementById('publications').value.trim(); return v ? '' : '请填写个人专业著作'; }],
+            ['topicNeeds', () => {
+                const html = getTopicHTML();
+                if (!html) return '请填写课题需求';
+                return '';
+            }],
+            ['referrer', () => { const v = document.getElementById('referrer').value.trim(); return v ? '' : '请填写来源/联系人'; }],
+            ['photo', () => { return currentFile ? '' : '请上传个人官方照片'; }],
+            ['privacyConsent', () => {
+                const v = document.querySelector('input[name=privacyConsent]:checked');
+                return v ? '' : '请选择隐私说明';
+            }]
+        ];
+        checks.forEach(([name, fn]) => {
+            const err = fn();
+            if (err) { showError(name, err); missing.push(FIELD_LABELS[name]); }
+        });
+        if (missing.length > 0) {
+            const firstEl = document.querySelector('.field.error');
+            if (firstEl) firstEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return missing.length === 0;
+    }
+
+    // ===== submit =====
+    const submitBtn = document.getElementById('submitBtn');
+    window.handleSubmit = async function(e) {
+        e.preventDefault();
+        syncHiddenFields();
+        const missing = [];
+        // run validate again to collect missing labels
+        const checks = [
+            ['name', () => { const v = document.getElementById('name').value.trim(); return v ? '' : '请填写姓名'; }],
+            ['activities', () => { return document.querySelectorAll('input[name=activities]:checked').length > 0 ? '' : '请至少选择一项活动'; }],
+            ['location', () => { const v = document.getElementById('location').value.trim(); return v ? '' : '请填写常驻地'; }],
+            ['position', () => { const v = document.getElementById('position').value.trim(); return v ? '' : '请填写职位名称'; }],
+            ['company', () => { const v = document.getElementById('company').value.trim(); return v ? '' : '请填写工作单位'; }],
+            ['email', () => { const v = document.getElementById('email').value.trim(); if (!v) return '请填写电子邮箱'; if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return '请填写有效的邮箱地址'; return ''; }],
+            ['bio', () => { const text = getBioText(); if (!text) return '请填写个人官方简介'; if (text.length > 200) return '个人简介不能超过200字'; return ''; }],
+            ['researchFields', () => { const v = document.getElementById('researchFields').value.trim(); return v ? '' : '请填写研究领域'; }],
+            ['publications', () => { const v = document.getElementById('publications').value.trim(); return v ? '' : '请填写个人专业著作'; }],
+            ['topicNeeds', () => { const html = getTopicHTML(); return html ? '' : '请填写课题需求'; }],
+            ['referrer', () => { const v = document.getElementById('referrer').value.trim(); return v ? '' : '请填写来源/联系人'; }],
+            ['photo', () => { return currentFile ? '' : '请上传个人官方照片'; }],
+            ['privacyConsent', () => { const v = document.querySelector('input[name=privacyConsent]:checked'); return v ? '' : '请选择隐私说明'; }]
+        ];
+        checks.forEach(([name, fn]) => { if (fn()) missing.push(FIELD_LABELS[name]); });
+        if (missing.length > 0) {
+            const msg = missing.length <= 3
+                ? `请完善：${missing.join('、')}`
+                : `还有 ${missing.length} 项未填写，滚动到红色区域查看`;
+            showToast(msg, 'error');
+            clearErrors();
+            checks.forEach(([name, fn]) => { const err = fn(); if (err) showError(name, err); });
+            const firstEl = document.querySelector('.field.error');
+            if (firstEl) firstEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+        submitBtn.disabled = true;
+        submitBtn.textContent = '正在提交...';
+        try {
+            const fd = new FormData(form);
+            if (currentFile) fd.set('photo', currentFile);
+            fd.set('privacyConsent', document.querySelector('input[name=privacyConsent]:checked').value === 'true' ? 'true' : 'false');
+            fd.set('activities', JSON.stringify(Array.from(document.querySelectorAll('input[name=activities]:checked')).map(i => i.value)));
+            const resp = await fetch('/api/nqoc/experts/apply', { method: 'POST', body: fd });
+            const data = await resp.json();
+            if (data.success) {
+                localStorage.removeItem(DRAFT_KEY);
+                document.getElementById('formWrap').classList.add('done');
+                document.getElementById('successScreen').classList.add('show');
+                window.scrollTo({top:0, behavior:'smooth'});
+            } else {
+                showToast(data.message || '提交失败', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '立即加入';
+            }
+        } catch(err) {
+            showToast('网络错误，请重试', 'error');
+            submitBtn.disabled = false;
+            submitBtn.textContent = '立即加入';
+        }
+    };
+
+    // ===== toast =====
+    const toastEl = document.getElementById('toast');
+    let toastTimer = null;
+    function showToast(msg, type) {
+        toastEl.textContent = msg;
+        toastEl.className = 'toast show ' + (type || '');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { toastEl.className = 'toast'; }, 2500);
+    }
+
+    loadDraft();
+})();
+</script>
+</body>
+</html>

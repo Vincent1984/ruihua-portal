@@ -4,24 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>邀请函 | 2025-2026中国新质组织研究</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <!-- QRCode for generating the shareable image -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: { purple: '#7c4dff', dark: '#0B041C' },
-                        gold: '#FDE047'
-                    },
-                    backgroundImage: {
-                        'poster-gradient': 'linear-gradient(180deg, #1C0A3F 0%, #0B041C 30%, #0B041C 100%)',
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css');
         body { background-color: #000; display: flex; justify-content: center; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
@@ -31,6 +15,7 @@
         .text-gold { background: linear-gradient(90deg, #FDE047, #D97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .glow-title { text-shadow: 0 0 20px rgba(124, 77, 255, 0.5); }
     </style>
+<link rel="stylesheet" href="/nqoc/css/tailwind-poster.css"/>
 </head>
 <body class="text-gray-200">
 
@@ -184,7 +169,7 @@
             
             // 2. Generate Survey URL
             const baseUrl = window.location.origin;
-            const surveyLink = `${baseUrl}/nqoc/survey.html?channel=${channel}`;
+            const surveyLink = `${baseUrl}/nqoc/survey?channel=${channel}`;
 
             // 3. Render QR Code
             new QRCode(document.getElementById("qrcode"), {

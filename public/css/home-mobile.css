@@ -3,6 +3,14 @@
     .home-hero__title {
         text-align: center;
     }
+    .home-hero__title-main {
+        font-size: clamp(1.25rem, 5.5vw, 3.75rem) !important;
+        white-space: nowrap;
+    }
+    .home-hero__title-sub {
+        font-size: clamp(0.875rem, 3.5vw, 2.25rem) !important;
+        white-space: nowrap;
+    }
     /* 2. Dual Engine Description No-wrap */
     .home-dual-engine__desc {
         font-size: 11px;
@@ -19,7 +27,7 @@
     }
     /* 4. FAQ Styling */
     .home-faq__btn {
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 500;
         line-height: 1.4;
     }

@@ -8,6 +8,10 @@ const ActivityTemplate = require('../models/ActivityTemplate');
 const Channel = require('../models/Channel');
 const Registration = require('../models/Registration');
 const VerificationCode = require('../models/VerificationCode');
+
+function escapeRegex(str) {
+    return String(str || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 const { maskPhone, maskEmail, validateByFormSchema } = require('../utils/activityTemplateUtils');
 
 const DEFAULT_TEMPLATES = ['HR领袖活动模板', '城市沙龙模板', '闭门研讨会模板'];
@@ -170,7 +174,7 @@ module.exports = function registerActivityRoutes(app, authRequired, requirePerm,
     }
   });
 
-  app.delete('/api/activity/channels/:id', authRequired, requirePerm('appointment:edit'), async (req, res) => {
+  app.delete('/api/activity/channels/:id', authRequired, requirePerm('appointment:delete'), async (req, res) => {
     const item = await Channel.findById(req.params.id);
     if (!item) return res.status(404).json({ success: false, error: '渠道不存在' });
     const usedInAct = await Activity.countDocuments({ channels: req.params.id });
@@ -187,10 +191,10 @@ module.exports = function registerActivityRoutes(app, authRequired, requirePerm,
     const { month, theme, city, location, organizer, page = 1, limit = 20 } = req.query;
     const query = {};
     if (month) query.month = month;
-    if (theme) query.theme = new RegExp(theme, 'i');
-    if (city) query.city = new RegExp(city, 'i');
-    if (location) query.location = new RegExp(location, 'i');
-    if (organizer) query.organizer = new RegExp(organizer, 'i');
+    if (theme && theme.length <= 100) query.theme = new RegExp(escapeRegex(theme), 'i');
+    if (city && city.length <= 100) query.city = new RegExp(escapeRegex(city), 'i');
+    if (location && location.length <= 200) query.location = new RegExp(escapeRegex(location), 'i');
+    if (organizer && organizer.length <= 100) query.organizer = new RegExp(escapeRegex(organizer), 'i');
 
     const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
     const total = await Activity.countDocuments(query);
@@ -305,9 +309,9 @@ module.exports = function registerActivityRoutes(app, authRequired, requirePerm,
     const query = {};
     if (channelId) query.channelId = channelId;
     if (activityId) query.activityId = activityId;
-    if (city) query.city = new RegExp(city, 'i');
-    if (keyword) {
-      const regex = new RegExp(keyword, 'i');
+    if (city && city.length <= 100) query.city = new RegExp(escapeRegex(city), 'i');
+    if (keyword && keyword.length <= 200) {
+      const regex = new RegExp(escapeRegex(keyword), 'i');
       query.$or = [{ name: regex }, { phone: regex }, { company: regex }];
     }
 
@@ -328,14 +332,14 @@ module.exports = function registerActivityRoutes(app, authRequired, requirePerm,
     res.json({ success: true, data: safeData, pagination: { total, page: parseInt(page, 10), pages: Math.ceil(total / limit) } });
   });
 
-  app.get('/api/activity/registrations/export', authRequired, requirePerm('appointment:list'), async (req, res) => {
+  app.get('/api/activity/registrations/export', authRequired, requirePerm('appointment:export'), async (req, res) => {
     const { keyword = '', channelId = '', activityId = '', city = '' } = req.query;
     const query = {};
     if (channelId) query.channelId = channelId;
     if (activityId) query.activityId = activityId;
-    if (city) query.city = new RegExp(city, 'i');
-    if (keyword) {
-      const regex = new RegExp(keyword, 'i');
+    if (city && city.length <= 100) query.city = new RegExp(escapeRegex(city), 'i');
+    if (keyword && keyword.length <= 200) {
+      const regex = new RegExp(escapeRegex(keyword), 'i');
       query.$or = [{ name: regex }, { phone: regex }, { company: regex }];
     }
     const list = await Registration.find(query)
@@ -378,7 +382,7 @@ module.exports = function registerActivityRoutes(app, authRequired, requirePerm,
     }
   });
 
-  app.delete('/api/activity/registrations/:id', authRequired, requirePerm('appointment:edit'), async (req, res) => {
+  app.delete('/api/activity/registrations/:id', authRequired, requirePerm('appointment:delete'), async (req, res) => {
     try {
       const r = await Registration.findByIdAndDelete(req.params.id);
       if (!r) return res.status(404).json({ success: false, error: '记录不存在' });

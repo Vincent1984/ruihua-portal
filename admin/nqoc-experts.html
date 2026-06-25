@@ -23,13 +23,27 @@
     <link rel="stylesheet" href="/admin/admin-sidebar.css">
     <style>
         .loading-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.7);
-            z-index: 9999;
-            display: none;
-            justify-content: center;
-            align-items: center;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.7); z-index: 9999;
+            display: none; justify-content: center; align-items: center;
+        }
+        .detail-modal .modal-body { max-height: 70vh; overflow-y: auto; font-size: 13px; }
+        .detail-modal .modal-body th { font-size: 12px; }
+        .detail-modal .modal-body td { font-size: 13px; }
+        .table-photo { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e5e7eb; }
+        .detail-photo { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #e5e7eb; margin-bottom: 10px; display: block; }
+        .photo-placeholder { width: 40px; height: 40px; border-radius: 50%; background: #f3f4f6; display: inline-flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 14px; }
+        .activity-tag { display: inline-block; background: #eef2ff; color: #4f46e5; font-size: 11px; padding: 1px 7px; border-radius: 999px; margin: 1px; }
+        .privacy-badge { font-size: 11px; }
+        .table { font-size: 13px; }
+        .table th { font-size: 12px; font-weight: 600; }
+        .table td { font-size: 13px; }
+        .form-select-sm, .btn-sm { font-size: 12px; }
+        .card-header .form-control, .card-header .form-select, .card-header .btn { font-size: 13px; }
+        .rich-content { font-size: 13px; line-height: 1.6; padding: 10px 14px; background: #f9fafb; border-radius: 8px; border: 1px solid #f0f0f0; }
+        .rich-content p { margin-bottom: 6px; }
+        @media (max-width: 768px) {
+            .table-responsive { font-size: 13px; }
         }
     </style>
 </head>
@@ -45,7 +59,8 @@
     <div class="main-content">
         <div class="header">
             <h4 class="m-0">NQOC 智库专家申请</h4>
-            <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-success" onclick="exportCSV()"><i class="bi bi-download"></i> 导出CSV</button>
                 <div class="dropdown">
                     <button class="btn btn-outline border-0 dropdown-toggle" type="button" data-bs-toggle="dropdown">
                         <i class="bi bi-person-circle me-1"></i> 管理员
@@ -61,8 +76,8 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white py-3">
                     <div class="row g-3 align-items-center">
-                        <div class="col-md-4">
-                            <input type="text" id="searchKeyword" class="form-control" placeholder="搜索姓名/手机号...">
+                        <div class="col-md-3">
+                            <input type="text" id="searchKeyword" class="form-control" placeholder="搜索姓名/手机/邮箱/单位/城市...">
                         </div>
                         <div class="col-md-2">
                             <select id="statusFilter" class="form-select">
@@ -74,13 +89,21 @@
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <input type="date" id="searchStartDate" class="form-control" placeholder="开始时间">
+                            <input type="date" id="searchStartDate" class="form-control">
                         </div>
                         <div class="col-md-2">
-                            <input type="date" id="searchEndDate" class="form-control" placeholder="结束时间">
+                            <input type="date" id="searchEndDate" class="form-control">
                         </div>
-                        <div class="col-md-2 d-flex gap-2">
-                            <button class="btn btn-primary w-100" onclick="loadData(1)"><i class="bi bi-search"></i> 查询</button>
+                        <div class="col-md-3 d-flex gap-2">
+                            <button class="btn btn-primary flex-grow-1" onclick="loadData(1)"><i class="bi bi-search"></i> 查询</button>
+                            <button class="btn btn-outline-secondary" onclick="resetFilter()"><i class="bi bi-arrow-counterclockwise"></i></button>
+                        </div>
+                    </div>
+                    <div class="row mt-3" id="batchBar" style="display:none">
+                        <div class="col-12">
+                            <span class="text-secondary me-3">已选 <strong id="selectedCount">0</strong> 条</span>
+                            <button class="btn btn-danger btn-sm" onclick="batchDelete()"><i class="bi bi-trash"></i> 批量删除</button>
+                            <button class="btn btn-outline-secondary btn-sm ms-2" onclick="clearSelection()">取消选择</button>
                         </div>
                     </div>
                 </div>
@@ -89,20 +112,24 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
+                                    <th style="width:40px"><input type="checkbox" id="selectAll" class="form-check-input" onclick="toggleSelectAll(this)"></th>
+                                    <th style="width:60px">照片</th>
                                     <th>姓名</th>
-                                    <th>手机号</th>
-                                    <th style="max-width: 300px;">申请描述</th>
+                                    <th>活动类型</th>
+                                    <th>城市</th>
+                                    <th>职位/单位</th>
+                                    <th>工作单位</th>
+                                    <th>隐私</th>
                                     <th>状态</th>
                                     <th>提交时间</th>
-                                    <th>操作</th>
+                                    <th style="width:140px">操作</th>
                                 </tr>
                             </thead>
-                            <tbody id="dataTableBody">
-                            </tbody>
+                            <tbody id="dataTableBody"></tbody>
                         </table>
                     </div>
                 </div>
-                <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <div class="text-secondary small">
                         共 <span id="totalCount">0</span> 条记录，当前第 <span id="currentPage">1</span>/<span id="totalPages">1</span> 页
                     </div>
@@ -118,9 +145,25 @@
     </div>
 </div>
 
+<!-- Detail Modal -->
+<div class="modal fade detail-modal" id="detailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">专家申请详情</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="detailBody"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 <script src="js/utils.js?v=6"></script>
 <script src="/admin/js/unified-admin-sidebar.js?v=6"></script>
-<script src="js/nqoc-experts.js?v=7"></script>
+<script src="js/nqoc-experts.js?v=8"></script>
 </body>
 </html>

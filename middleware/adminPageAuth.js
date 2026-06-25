@@ -23,6 +23,14 @@ function sendDenied(req, res, statusCode, message) {
         .send(`<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=${redirectTo}"></head><body><script>window.location.replace(${JSON.stringify(redirectTo)});</script></body></html>`);
 }
 
+function setNoStore(res) {
+    res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+    });
+}
+
 function getToken(req) {
     const auth = req.headers.authorization || '';
     const headerToken = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
@@ -49,11 +57,13 @@ function requireAdminPagePermission({ AdminModel, secretKey, requiredPerm }) {
             if (!admin || !admin.isActive) return sendDenied(req, res, 403, 'Account disabled or not found');
 
             const perms = gatherPermissions(admin);
-            if (perms.has('all') || perms.has(requiredPerm)) {
+            const requiredPerms = Array.isArray(requiredPerm) ? requiredPerm : [requiredPerm].filter(Boolean);
+            if (perms.has('all') || requiredPerms.length === 0 || requiredPerms.some((perm) => perms.has(perm))) {
                 req.user = payload;
+                setNoStore(res);
                 return next();
             }
-            return sendDenied(req, res, 403, `Permission denied: ${requiredPerm}`);
+            return sendDenied(req, res, 403, `Permission denied: ${requiredPerms.join(' or ')}`);
         } catch (err) {
             return sendDenied(req, res, 401, 'Invalid token');
         }

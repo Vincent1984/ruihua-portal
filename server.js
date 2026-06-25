@@ -15,6 +15,7 @@ const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const axios = require('axios');
 const crypto = require('crypto');
+const dns = require('dns');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const mongoSanitize = require('express-mongo-sanitize');
 const helmet = require('helmet');
@@ -46,7 +47,8 @@ const FileNameMap = require('./models/FileNameMap');
 const { renderInsightCard, renderFaqItem } = require('./utils/homeContentRenderer');
 const domainNormalizer = require('./middleware/domainNormalizer');
 const legacyRedirects = require('./middleware/legacyRedirects');
-const { requireAdminPagePermission, gatherPermissions } = require('./middleware/adminPageAuth');
+const { gatherPermissions } = require('./middleware/adminPageAuth');
+const { PERMISSION_GROUPS, PERMISSION_CODES, validatePermissions, normalizePermissions } = require('./config/permissions');
 
 const app = express();
 app.disable('x-powered-by');
@@ -116,15 +118,25 @@ function sendInternalError(res, logLabel, err) {
     return res.status(500).json({ error: '服务器内部错误，请稍后重试' });
 }
 
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 const articleHtmlSanitizer = new xss.FilterXSS({
     whiteList: {
         ...xss.whiteList,
         h1: ['class'], h2: ['class'], h3: ['class'], h4: ['class'], h5: ['class'], h6: ['class'],
-        p: ['class', 'style'],
-        span: ['class', 'style'],
-        div: ['class', 'style'],
+        p: ['class'],
+        span: ['class'],
+        div: ['class'],
         a: ['href', 'title', 'target', 'rel', 'class'],
-        img: ['src', 'alt', 'title', 'width', 'height', 'class', 'style'],
+        img: ['src', 'alt', 'title', 'width', 'height', 'class'],
         ul: ['class'], ol: ['class'], li: ['class'],
         blockquote: ['class'],
         code: ['class'], pre: ['class'],
@@ -132,7 +144,20 @@ const articleHtmlSanitizer = new xss.FilterXSS({
         iframe: ['src', 'width', 'height', 'allow', 'allowfullscreen', 'frameborder']
     },
     stripIgnoreTag: true,
-    stripIgnoreTagBody: ['script']
+    stripIgnoreTagBody: ['script'],
+    onTagAttr: function(tag, name, value) {
+        // Only allow iframe src from whitelisted domains
+        if (tag === 'iframe' && name === 'src') {
+            try {
+                const url = new URL(value);
+                const allowedHosts = ['player.bilibili.com', 'www.youtube.com', 'youtube.com', 'v.qq.com'];
+                if (allowedHosts.some(h => url.hostname === h || url.hostname.endsWith('.' + h))) {
+                    return name + '="' + xss.safeAttrValue(value) + '"';
+                }
+            } catch(e) {}
+            return '';
+        }
+    }
 });
 
 function sanitizeArticlePayload(body = {}) {
@@ -185,7 +210,7 @@ const injectFooterHTML = (document) => {
                     <span class="hidden md:inline text-slate-700">|</span>
                     <a href="https://beian.miit.gov.cn/" target="_blank" class="hover:text-white transition">沪ICP备12042344号-24</a>
                 </div>
-                <div class="flex gap-6 text-sm text-slate-500"><a href="/privacy.html" class="hover:text-white transition">隐私政策</a></div>
+                <div class="flex gap-6 text-sm text-slate-500"><a href="/privacy/" class="hover:text-white transition">隐私政策</a></div>
             </div>
         </div>
     </footer>
@@ -223,7 +248,6 @@ const limiter = rateLimit({
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 app.use('/api/', (req, res, next) => {
-    if (req.path === '/send-verification-code' || req.path === '/api/send-verification-code') return next();
     if (req.path.startsWith('/public/activity/register/') || req.path.startsWith('/api/public/activity/register/')) return next();
     return limiter(req, res, next);
 });
@@ -405,26 +429,119 @@ app.use(express.static(path.join(__dirname, 'public'), {
         }
     }
 }));
-app.get('/admin/survey.html',
-    requireAdminPagePermission({ AdminModel: Admin, secretKey: RUNTIME_SECRET_KEY, requiredPerm: 'appointment:list' }),
-    (req, res) => res.sendFile(path.join(__dirname, 'admin/survey.html'))
-);
-app.get('/admin/training-applications.html',
-    requireAdminPagePermission({ AdminModel: Admin, secretKey: RUNTIME_SECRET_KEY, requiredPerm: 'appointment:list' }),
-    (req, res) => res.sendFile(path.join(__dirname, 'admin/training-applications.html'))
-);
-app.get('/admin/nqoc-debate.html',
-    requireAdminPagePermission({ AdminModel: Admin, secretKey: RUNTIME_SECRET_KEY, requiredPerm: 'appointment:list' }),
-    (req, res) => res.sendFile(path.join(__dirname, 'admin/nqoc-debate.html'))
-);
+const ADMIN_STATIC_PAGE_PERMS = {
+    '/admin/dashboard.html': [
+        'dashboard:view',
+        'article:list',
+        'article:create',
+        'article:edit',
+        'faq:list',
+        'banner:manage',
+        'sidebar:manage',
+        'system:manage'
+    ],
+    '/admin/activity-management.html': 'appointment:list',
+    '/admin/efficiency.html': 'appointment:list',
+    '/admin/maturity.html': 'appointment:list',
+    '/admin/nqoc-awards.html': ['nqoc:list', 'nqoc:manage'],
+    '/admin/nqoc-debate.html': ['nqoc:list', 'nqoc:manage'],
+    '/admin/nqoc-experts.html': ['nqoc:list', 'nqoc:manage'],
+    '/admin/nqoc-survey.html': ['nqoc:list', 'nqoc:manage'],
+    '/admin/nqoc-whitepaper.html': ['nqoc:list', 'nqoc:manage'],
+    '/admin/survey.html': 'appointment:list',
+    '/admin/template-management.html': 'appointment:list',
+    '/admin/training-applications.html': 'appointment:list',
+    '/admin/video-management.html': 'video:list',
+    '/admin/whitepaper-submissions.html': 'appointment:list'
+};
+
+const ADMIN_AUTH_COOKIE_OPTIONS = {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production'
+};
+
+function clearAdminAuthCookie(res) {
+    res.clearCookie('admin_token', ADMIN_AUTH_COOKIE_OPTIONS);
+}
+
+function setAdminHtmlNoCache(res) {
+    res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+    });
+}
+
+function redirectToAdminLogin(req, res, statusCode = 401) {
+    const redirectTo = `/admin/index.html?redirect=${encodeURIComponent(req.originalUrl || '/admin/dashboard.html')}`;
+    return res
+        .status(statusCode)
+        .set('Location', redirectTo)
+        .send(`<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=${redirectTo}"></head><body><script>window.location.replace(${JSON.stringify(redirectTo)});</script></body></html>`);
+}
+
+app.get(['/admin', '/admin/', '/admin/index.html'], (req, res) => {
+    if (req.query.logout === '1') {
+        clearAdminAuthCookie(res);
+    }
+    setAdminHtmlNoCache(res);
+    res.sendFile(path.join(__dirname, 'admin/index.html'));
+});
+
+async function requireAdminStaticHtmlPage(req, res, next) {
+    try {
+        if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+        if (req.path === '/' || req.path === '/index.html' || !req.path.endsWith('.html')) return next();
+
+        const fullPath = `/admin${req.path}`;
+        if (!Object.prototype.hasOwnProperty.call(ADMIN_STATIC_PAGE_PERMS, fullPath)) {
+            return res.status(404).sendFile(path.join(__dirname, '404.html'));
+        }
+        const requiredPerm = ADMIN_STATIC_PAGE_PERMS[fullPath];
+
+        const auth = req.headers.authorization || '';
+        const headerToken = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
+        const cookieToken = req.cookies?.admin_token ? String(req.cookies.admin_token).trim() : '';
+        const tokens = [headerToken, cookieToken].filter(Boolean).filter(t => t !== 'null' && t !== 'undefined');
+        if (!tokens.length) return redirectToAdminLogin(req, res, 401);
+
+        let payload = null;
+        for (const token of tokens) {
+            try {
+                payload = jwt.verify(token, RUNTIME_SECRET_KEY);
+                break;
+            } catch {}
+        }
+        if (!payload) return redirectToAdminLogin(req, res, 401);
+
+        const admin = await Admin.findById(payload.id).populate('roles');
+        if (!admin || !admin.isActive) return redirectToAdminLogin(req, res, 403);
+        setAdminHtmlNoCache(res);
+        if (!requiredPerm) return next();
+
+        const perms = gatherPermissions(admin);
+        const requiredPerms = Array.isArray(requiredPerm) ? requiredPerm : [requiredPerm];
+        if (perms.has('all') || requiredPerms.some(perm => perms.has(perm))) return next();
+        return redirectToAdminLogin(req, res, 403);
+    } catch (err) {
+        return redirectToAdminLogin(req, res, 401);
+    }
+}
+
+app.use('/admin', requireAdminStaticHtmlPage);
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
+
+// Google site verification file
+app.get('/googled5b214b19ca84994.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'googled5b214b19ca84994.html'));
+});
 
 // Apply Rate Limiter AFTER static files
 // Rate limiter removed
 
 // Serve specific HTML files from root
 const rootHtmlFiles = [
-    'form.html', 'form2.html',
     'efficiency-diagnostic.html',
     'video-detail.html',
     'videos.html',
@@ -450,9 +567,16 @@ app.get('/nqoc', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/nqoc/index.html'));
 });
 
-const nqocPages = ['survey', 'awards', 'cases', 'insights', 'events', 'whitepaper', 'about', 'debate-vote', 'flyer', 'poster'];
+const nqocPages = ['survey', 'awards', 'cases', 'insights', 'events', 'whitepaper', 'about', 'debate-vote', 'flyer', 'poster', 'expert-apply'];
 nqocPages.forEach(page => {
     app.get(`/nqoc/${page}`, (req, res) => {
+        // expert-apply is a form page, should not be indexed
+        if (page === 'expert-apply') {
+            const fsSync = require('fs');
+            const html = fsSync.readFileSync(path.join(__dirname, `public/nqoc/${page}.html`), 'utf8');
+            const modified = html.replace('<head>', '<head><meta name="robots" content="noindex, nofollow" />');
+            return res.send(modified);
+        }
         res.sendFile(path.join(__dirname, `public/nqoc/${page}.html`));
     });
 });
@@ -513,35 +637,59 @@ async function renderArticlePage(req, res, article) {
                 document.head.appendChild(canonical);
             }
             const SITE_URL = process.env.SITE_URL || 'https://www.ruihuaconsulting.com';
-            canonical.href = `${SITE_URL}/article/${article.slug || article._id}.html`;
+            const articleUrl = `${SITE_URL}/article/${article.slug || article._id}.html`;
+            canonical.href = articleUrl;
 
-            if (article.summary) {
+            const cleanSummary = article.summary ? article.summary.replace(/\r?\n/g, ' ') : '';
+            if (cleanSummary) {
                 let metaDesc = document.querySelector('meta[name="description"]');
                 if (!metaDesc) {
                     metaDesc = document.createElement('meta');
                     metaDesc.name = 'description';
                     document.head.appendChild(metaDesc);
                 }
-                metaDesc.content = article.summary.replace(/\r?\n/g, ' ');
+                metaDesc.content = cleanSummary;
             }
 
-            // --- GEO: Inject Article Schema ---
-            let schemaScript = document.querySelector('script[type="application/ld+json"]');
-            if (!schemaScript) {
-                schemaScript = document.createElement('script');
-                schemaScript.type = 'application/ld+json';
-                document.head.appendChild(schemaScript);
-            }
+            // --- Social/分享: Open Graph 标签（微信/微博/QQ 分享卡片）---
+            const ogImage = article.coverImage
+                ? (article.coverImage.startsWith('http') ? article.coverImage : `${SITE_URL}${article.coverImage}`)
+                : `${SITE_URL}/images/logo.png`;
+            const ogTags = [
+                ['og:type', 'article'],
+                ['og:site_name', '瑞华智策'],
+                ['og:title', titleText],
+                ['og:description', cleanSummary],
+                ['og:url', articleUrl],
+                ['og:image', ogImage]
+            ];
+            ogTags.forEach(([prop, content]) => {
+                if (!content) return;
+                let tag = document.querySelector(`meta[property="${prop}"]`);
+                if (!tag) {
+                    tag = document.createElement('meta');
+                    tag.setAttribute('property', prop);
+                    document.head.appendChild(tag);
+                }
+                tag.setAttribute('content', content);
+            });
+
+            // --- GEO: Inject Article Schema (always create a dedicated node to avoid clobbering existing JSON-LD) ---
+            const schemaScript = document.createElement('script');
+            schemaScript.type = 'application/ld+json';
+            document.head.appendChild(schemaScript);
             const articleSchema = {
                 "@context": "https://schema.org",
                 "@type": "Article",
                 "headline": article.title,
-                "image": article.coverImage ? [article.coverImage] : [],
+                "mainEntityOfPage": { "@type": "WebPage", "@id": articleUrl },
+                "image": article.coverImage ? [article.coverImage.startsWith('http') ? article.coverImage : `${SITE_URL}${article.coverImage}`] : [],
                 "datePublished": article.publishDate,
                 "dateModified": article.updatedAt || article.publishDate,
                 "author": {
                     "@type": "Person",
-                    "name": resolvedAuthor.name || "瑞华智策"
+                    "name": resolvedAuthor.name || "瑞华智策",
+                    ...(resolvedAuthor.url ? { "url": resolvedAuthor.url } : {})
                 },
                 "publisher": {
                     "@type": "Organization",
@@ -549,9 +697,16 @@ async function renderArticlePage(req, res, article) {
                     "logo": {
                         "@type": "ImageObject",
                         "url": "https://www.ruihuaconsulting.com/images/logo.png"
-                    }
+                    },
+                    "sameAs": [
+                        "https://www.ruihuaconsulting.com/"
+                    ]
                 },
-                "description": article.summary || ""
+                "description": article.summary || "",
+                "inLanguage": "zh-CN",
+                "wordCount": article.content ? article.content.replace(/<[^>]*>?/gm, '').length : 0,
+                ...(article.seoKeywords && article.seoKeywords.length ? { "keywords": article.seoKeywords.join(',') } : {}),
+                ...(article.tags && article.tags.length ? { "articleSection": article.tags[0] } : {})
             };
             schemaScript.textContent = JSON.stringify(articleSchema);
 
@@ -609,11 +764,11 @@ async function renderArticlePage(req, res, article) {
                         qaHtml += `
                             <div class="bg-slate-50 rounded-xl p-5 border border-slate-100">
                                 <h4 class="font-bold text-slate-800 mb-2 flex items-start gap-2">
-                                    <span class="text-brand-600">Q:</span> ${qa.question}
+                                    <span class="text-brand-600">Q:</span> ${escapeHtml(qa.question)}
                                 </h4>
                                 <div class="text-slate-600 text-sm leading-relaxed flex items-start gap-2">
                                     <span class="text-brand-600 font-bold">A:</span> 
-                                    <div>${qa.answer}</div>
+                                    <div>${escapeHtml(qa.answer)}</div>
                                 </div>
                             </div>
                         `;
@@ -661,7 +816,7 @@ async function renderArticlePage(req, res, article) {
                     
                     for (const mod of activeModules) {
                         if (mod.rule === 'custom_html') {
-                            modulesHtml += `<div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mt-6">${mod.customHtml || ''}</div>`;
+                            modulesHtml += `<div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mt-6">${escapeHtml(mod.customHtml || '')}</div>`;
                         } else if (mod.rule === 'efficiency_agent') {
                             const conf = mod.effConfig || {};
                             const eTitle = conf.title || '组织人效智能体检Agent';
@@ -889,6 +1044,10 @@ app.get('/event-registration.html', (req, res) => renderStaticHtmlWithFooter(res
 app.get('/sales-toolkit.html', (req, res) => renderStaticHtmlWithFooter(res, 'sales-toolkit.html'));
 app.get('/nurture.html', (req, res) => renderStaticHtmlWithFooter(res, 'nurture.html'));
 
+// Efficiency Diagnostic clean URL
+app.get('/efficiency-diagnostic/', (req, res) => renderStaticHtmlWithFooter(res, 'efficiency-diagnostic.html'));
+app.get('/efficiency-diagnostic', (req, res) => res.redirect(301, '/efficiency-diagnostic/'));
+
 // 9. Digital business card
 app.get('/card/wangkun.html', (req, res) => res.sendFile(path.join(__dirname, 'card', 'wangkun.html')));
 
@@ -1029,6 +1188,26 @@ async function renderResourcesPage(req, res) {
         // Inject SEO
         await injectSeoTags(document, '/resources.html');
 
+        // Inject ItemList Schema for resources page
+        if (articles && articles.length > 0) {
+            const SITE_URL = process.env.SITE_URL || 'https://www.ruihuaconsulting.com';
+            const itemListScript = document.createElement('script');
+            itemListScript.type = 'application/ld+json';
+            itemListScript.textContent = JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "ItemList",
+                "itemListElement": articles.slice(0, 20).map((art, i) => ({
+                    "@type": "ListItem",
+                    "position": i + 1,
+                    "url": `${SITE_URL}/article/${art.slug || art._id}.html`,
+                    "name": art.title,
+                    "description": (art.summary || '').substring(0, 200),
+                    "datePublished": art.publishDate
+                }))
+            });
+            document.head.appendChild(itemListScript);
+        }
+
         // Inject Footer
         try {
             injectFooterHTML(document);
@@ -1046,6 +1225,58 @@ async function renderResourcesPage(req, res) {
 // 3. resources.html -> /resources/
 app.get('/resources/', renderResourcesPage);
 app.get('/resources.html', (req, res) => res.redirect(301, '/resources/'));
+
+function injectBreadcrumbSchema(document, filename) {
+    const SITE_URL = process.env.SITE_URL || 'https://www.ruihuaconsulting.com';
+    const breadcrumbMap = {
+        'solutions-hcvm.html': [
+            { name: '首页', url: SITE_URL },
+            { name: '解决方案', url: `${SITE_URL}/solutions/` },
+            { name: 'AHCVM 自有员工管理' }
+        ],
+        'solutions-ohcvm.html': [
+            { name: '首页', url: SITE_URL },
+            { name: '解决方案', url: `${SITE_URL}/solutions/` },
+            { name: 'OHCVM 外包员工管理' }
+        ],
+        'solutions.html': [
+            { name: '首页', url: SITE_URL },
+            { name: '解决方案' }
+        ],
+        'resources.html': [
+            { name: '首页', url: SITE_URL },
+            { name: '文章资源' }
+        ],
+        'videos.html': [
+            { name: '首页', url: SITE_URL },
+            { name: '视频中心' }
+        ],
+        'training.html': [
+            { name: '首页', url: SITE_URL },
+            { name: '培训认证' }
+        ],
+        'diagnostic.html': [
+            { name: '首页', url: SITE_URL },
+            { name: '组织诊断' }
+        ]
+    };
+    const items = breadcrumbMap[filename];
+    if (!items) return;
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": items.map((item, i) => ({
+            "@type": "ListItem",
+            "position": i + 1,
+            "name": item.name,
+            ...(item.url ? { "item": item.url } : {})
+        }))
+    });
+    document.head.appendChild(script);
+}
 
 async function injectSeoTags(document, pagePath) {
     try {
@@ -1091,8 +1322,9 @@ const renderStaticHtmlWithFooter = async (res, filename) => {
         if (filename === 'index.html') {
             await injectHomeDynamicContent(document, { insightsLimit: 3, faqLimit: 5 });
         }
-        
+
         await injectSeoTags(document, `/${filename}`);
+        injectBreadcrumbSchema(document, filename);
         injectFooterHTML(document);
         
         res.send(dom.serialize());
@@ -1195,15 +1427,21 @@ app.get('/sitemap.xml', async (req, res) => {
     try {
         const SITE_URL = process.env.SITE_URL || 'https://www.ruihuaconsulting.com';
         
-        // Static Pages
+        // Static Pages (file = 用于读取真实修改时间作为 lastmod，避免每天伪造"全站更新"信号)
         const staticPages = [
-            { url: '', priority: 1.0, changefreq: 'weekly' },
-            { url: 'solutions/', priority: 0.9, changefreq: 'weekly' },
-            { url: 'resources/', priority: 0.9, changefreq: 'weekly' },
-            { url: 'productivity.html', priority: 0.8, changefreq: 'weekly' },
-            { url: 'diagnostic.html', priority: 0.8, changefreq: 'weekly' },
-            { url: 'about/', priority: 0.7, changefreq: 'monthly' },
-            { url: 'privacy.html', priority: 0.3, changefreq: 'yearly' }
+            { url: '', file: 'index.html', priority: 1.0, changefreq: 'weekly' },
+            { url: 'solutions/', file: 'solutions.html', priority: 0.9, changefreq: 'weekly' },
+            { url: 'solutions-hcvm/', file: 'solutions-hcvm.html', priority: 0.8, changefreq: 'monthly' },
+            { url: 'solutions-ohcvm/', file: 'solutions-ohcvm.html', priority: 0.8, changefreq: 'monthly' },
+            { url: 'resources/', file: 'resources.html', priority: 0.9, changefreq: 'weekly' },
+            { url: 'productivity/', file: 'productivity.html', priority: 0.8, changefreq: 'weekly' },
+            { url: 'diagnostic/', file: 'diagnostic.html', priority: 0.8, changefreq: 'weekly' },
+            { url: 'videos/', file: 'videos.html', priority: 0.7, changefreq: 'weekly' },
+            { url: 'training/', file: 'training.html', priority: 0.7, changefreq: 'monthly' },
+            { url: 'ai-strategic/', file: 'ai-strategic.html', priority: 0.7, changefreq: 'monthly' },
+            { url: 'about/', file: 'about.html', priority: 0.7, changefreq: 'monthly' },
+            { url: 'nqoc/', file: 'public/nqoc/index.html', priority: 0.7, changefreq: 'weekly' },
+            { url: 'privacy/', file: 'privacy.html', priority: 0.3, changefreq: 'yearly' }
         ];
 
         let xml = '<?xml version="1.0" encoding="UTF-8"?>';
@@ -1212,25 +1450,31 @@ app.get('/sitemap.xml', async (req, res) => {
         // Add Static Pages
         const today = new Date().toISOString().split('T')[0];
         staticPages.forEach(page => {
+            let lastmod = today;
+            try {
+                if (page.file) {
+                    lastmod = fs.statSync(path.join(__dirname, page.file)).mtime.toISOString().split('T')[0];
+                }
+            } catch (e) { /* fallback to today */ }
             xml += `
     <url>
         <loc>${SITE_URL}/${page.url}</loc>
-        <lastmod>${today}</lastmod>
+        <lastmod>${lastmod}</lastmod>
         <changefreq>${page.changefreq}</changefreq>
         <priority>${page.priority}</priority>
     </url>`;
         });
 
-        // Add Dynamic Articles
-        const articles = await Article.find({}, 'slug publishDate updatedAt');
+        // Add Dynamic Articles（仅收录已发布且有 slug 的文章；无 slug 的文章路由无法解析会 404）
+        const articles = await Article.find({ status: 'published', slug: { $exists: true, $nin: [null, ''] } }, 'slug publishDate updatedAt');
         articles.forEach(article => {
+            if (!article.slug) return;
             const date = article.updatedAt || article.publishDate || new Date();
             const lastmod = new Date(date).toISOString().split('T')[0];
-            const slug = article.slug || article._id;
-            
+
             xml += `
     <url>
-        <loc>${SITE_URL}/article/${slug}.html</loc>
+        <loc>${SITE_URL}/article/${article.slug}.html</loc>
         <lastmod>${lastmod}</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.6</priority>
@@ -1279,8 +1523,7 @@ function authRequired(req, res, next) {
         const auth = req.headers.authorization || '';
         const headerToken = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
         const cookieToken = req.cookies?.admin_token || '';
-        const queryToken = req.query.token || '';
-        const candidates = [headerToken, cookieToken, queryToken].filter(Boolean).filter(t => t !== 'null' && t !== 'undefined');
+        const candidates = [headerToken, cookieToken].filter(Boolean).filter(t => t !== 'null' && t !== 'undefined');
         if (candidates.length === 0) return res.status(401).json({ error: 'Unauthorized' });
         for (const token of candidates) {
             try {
@@ -1302,7 +1545,11 @@ console.log('Environment MONGODB_URL:', process.env.MONGODB_URL);
 const mongoUrl = process.env.MONGODB_URL || 'mongodb://127.0.0.1:27017/ruihua_cms';
 console.log('Using MongoDB URL:', mongoUrl);
 mongoose.connect(mongoUrl)
-    .then(() => console.log('MongoDB Connected to:', mongoUrl))
+    .then(async () => {
+        console.log('MongoDB Connected to:', mongoUrl);
+        // Rebuild llms.txt on startup
+        try { await rebuildLLMsTxt(); } catch {}
+    })
     .catch(err => {
         console.error('MongoDB Connection Error:', err);
         process.exit(1);
@@ -1482,12 +1729,13 @@ async function checkPerm(req, res, next, requiredPerm) {
         if (allPerms.has('all')) {
             return next();
         }
-        
-        if (allPerms.has(requiredPerm)) {
+
+        const requiredPerms = Array.isArray(requiredPerm) ? requiredPerm : [requiredPerm];
+        if (requiredPerms.some(perm => allPerms.has(perm))) {
             return next();
         }
-        
-        return res.status(403).json({ error: 'Permission denied: ' + requiredPerm });
+
+        return res.status(403).json({ error: 'Permission denied: ' + requiredPerms.join(' or ') });
     } catch (e) {
         console.error('Perm Check Error:', e);
         res.status(500).json({ error: 'Internal Error' });
@@ -1497,6 +1745,46 @@ async function checkPerm(req, res, next, requiredPerm) {
 const requirePerm = (perm) => {
     return (req, res, next) => checkPerm(req, res, next, perm);
 };
+
+const requireAnyPerm = (perms) => {
+    return (req, res, next) => checkPerm(req, res, next, perms);
+};
+
+function normalizeRoleIds(roleIds) {
+    if (!Array.isArray(roleIds)) return [];
+    return [...new Set(roleIds.map(id => String(id || '').trim()).filter(Boolean))];
+}
+
+async function validateAdminRoleIds(roleIds) {
+    const normalized = normalizeRoleIds(roleIds);
+    if (normalized.length === 0) {
+        return { ok: false, error: '至少需要分配一个角色' };
+    }
+    const invalidId = normalized.find(id => !mongoose.Types.ObjectId.isValid(id));
+    if (invalidId) {
+        return { ok: false, error: `无效的角色ID: ${invalidId}` };
+    }
+    const roles = await Role.find({ _id: { $in: normalized }, isActive: { $ne: false } });
+    if (roles.length !== normalized.length) {
+        return { ok: false, error: '存在不存在或已停用的角色' };
+    }
+    return { ok: true, roleIds: normalized, roles };
+}
+
+function rolesHaveAll(roles) {
+    return Array.isArray(roles) && roles.some(role => Array.isArray(role.permissions) && role.permissions.includes('all'));
+}
+
+async function countActiveSuperAdmins(excludeAdminId = null) {
+    const allRoles = await Role.find({ permissions: 'all', isActive: { $ne: false } }).select('_id');
+    if (allRoles.length === 0) return 0;
+    const query = {
+        isActive: { $ne: false },
+        roles: { $in: allRoles.map(role => role._id) }
+    };
+    if (excludeAdminId) query._id = { $ne: excludeAdminId };
+    return Admin.countDocuments(query);
+}
 
 // --- Auth Routes ---
 const loginLimiter = rateLimit({ windowMs: 10 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
@@ -1537,9 +1825,7 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         const permissionSet = gatherPermissions(admin);
         const permissions = Array.from(permissionSet);
         res.cookie('admin_token', token, {
-            httpOnly: true,
-            sameSite: 'lax',
-            secure: process.env.NODE_ENV === 'production',
+            ...ADMIN_AUTH_COOKIE_OPTIONS,
             maxAge: 24 * 60 * 60 * 1000
         });
         
@@ -1551,6 +1837,11 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         console.error('Login Error:', e);
         res.status(500).json({ success: false, message: '服务器内部错误，请稍后重试' });
     }
+});
+
+app.post('/api/logout', (req, res) => {
+    clearAdminAuthCookie(res);
+    res.json({ success: true });
 });
 
 // Token verify
@@ -1567,6 +1858,10 @@ app.get('/api/auth/verify', authRequired, async (req, res) => {
             permissions: Array.from(permissionSet)
         }
     });
+});
+
+app.get('/api/permissions/dictionary', authRequired, requirePerm('all'), (req, res) => {
+    res.json({ success: true, groups: PERMISSION_GROUPS, permissions: PERMISSION_CODES });
 });
 
 // --- SEO Config API ---
@@ -1636,7 +1931,7 @@ app.post('/api/admin/seo', authRequired, requirePerm('system:manage'), async (re
 });
 
 // --- Dashboard Stats API (Restored) ---
-app.get('/api/dashboard/stats', authRequired, async (req, res) => {
+app.get('/api/dashboard/stats', authRequired, requirePerm('dashboard:view'), async (req, res) => {
     try {
         let { startDate, endDate } = req.query;
         let start, end;
@@ -1755,8 +2050,8 @@ app.get('/api/articles', async (req, res) => {
         const { keyword, category, featured, page, limit, status, tag } = req.query;
         let query = {};
         
-        if (keyword) {
-            const regex = new RegExp(keyword, 'i');
+        if (keyword && keyword.length <= 200) {
+            const regex = new RegExp(escapeRegex(keyword), 'i');
             query.$or = [{ title: regex }, { content: regex }, { summary: regex }];
         }
         
@@ -1802,12 +2097,12 @@ app.get('/api/articles', async (req, res) => {
     }
 });
 
-app.get('/api/admin/articles', authRequired, requirePerm('article:edit'), async (req, res) => {
+app.get('/api/admin/articles', authRequired, requirePerm('article:list'), async (req, res) => {
     try {
         const { keyword, category, featured, page, limit, status, tag } = req.query;
         let query = {};
-        if (keyword) {
-            const regex = new RegExp(keyword, 'i');
+        if (keyword && keyword.length <= 200) {
+            const regex = new RegExp(escapeRegex(keyword), 'i');
             query.$or = [{ title: regex }, { content: regex }, { summary: regex }];
         }
         if (category && category !== 'all') {
@@ -1875,7 +2170,7 @@ app.get('/api/articles/:id', async (req, res) => {
     }
 });
 
-app.get('/api/admin/articles/:id', authRequired, requirePerm('article:edit'), async (req, res) => {
+app.get('/api/admin/articles/:id', authRequired, requirePerm('article:list'), async (req, res) => {
     try {
         const { id } = req.params;
         if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -2049,35 +2344,53 @@ app.delete('/api/authors/:id', authRequired, requirePerm('article:delete'), asyn
 });
 
 // --- llms.txt Sync Logic ---
-async function syncLLMsTxt(article) {
+async function rebuildLLMsTxt() {
     try {
-        if (article.status !== 'published') return;
-        
         const fs = require('fs').promises;
-        const filePath = path.join(__dirname, 'llms.txt'); // Serve from root logic, physically here? 
-        // Actually server serves static from root via specific routes, or public folder. 
-        // Let's put it in public/llms.txt or root and route it. 
-        // User asked for "root directory /llms.txt". Let's assume physical root of project or where server.js is.
-        // But serving static files usually comes from public. Let's put it in public for ease.
         const publicPath = path.join(__dirname, 'public/llms.txt');
-        
         const SITE_URL = process.env.SITE_URL || 'https://www.ruihuaconsulting.com';
-        const link = `${SITE_URL}/article/${article.slug || article._id}.html`;
-        const entry = `\n\n## ${article.title}\n- Link: ${link}\n- Summary: ${article.summary || 'No summary available.'}`;
-        
-        // Check if file exists, if not create header
-        try {
-            await fs.access(publicPath);
-        } catch {
-            await fs.writeFile(publicPath, '# Ruihua Consulting Knowledge Base\n\n');
+
+        // Fetch all published articles with slugs, deduplicated
+        const articles = await Article.find({ status: 'published', slug: { $exists: true, $nin: [null, ''] } })
+            .sort({ publishDate: -1 })
+            .lean();
+
+        // Deduplicate by slug
+        const seen = new Set();
+        const unique = articles.filter(a => {
+            if (seen.has(a.slug)) return false;
+            seen.add(a.slug);
+            return true;
+        });
+
+        let content = '# Ruihua Consulting Knowledge Base\n\n';
+        content += `> 最后更新：${new Date().toISOString().split('T')[0]}\n`;
+        content += `> 文章总数：${unique.length}\n\n`;
+
+        for (const article of unique) {
+            const canonicalUrl = `${SITE_URL}/article/${article.slug}.html`;
+            const summary = (article.summary || '').replace(/\r?\n/g, ' ').substring(0, 200);
+            const tags = (article.tags || []).slice(0, 5).filter(Boolean);
+            const date = article.publishDate ? new Date(article.publishDate).toISOString().split('T')[0] : '';
+
+            content += `## ${article.title}\n`;
+            content += `- URL: ${canonicalUrl}\n`;
+            content += `- Date: ${date}\n`;
+            if (tags.length) content += `- Tags: ${tags.join(', ')}\n`;
+            content += `- Summary: ${summary || '暂无摘要'}\n\n`;
         }
-        
-        // Append
-        await fs.appendFile(publicPath, entry);
-        console.log('Appended to llms.txt:', article.title);
+
+        await fs.writeFile(publicPath, content);
+        console.log(`llms.txt rebuilt: ${unique.length} articles`);
     } catch (e) {
-        console.error('llms.txt sync failed:', e);
+        console.error('llms.txt rebuild failed:', e);
     }
+}
+
+// Rebuild on article create/update if published
+async function syncLLMsTxt(article) {
+    if (article && article.status !== 'published') return;
+    await rebuildLLMsTxt();
 }
 
 // Route to serve llms.txt from root
@@ -2424,13 +2737,20 @@ app.post('/api/admins', authRequired, requirePerm('all'), async (req, res) => {
             return res.status(400).json({ error: '密码必须包含字母和数字，且至少8位' });
         }
 
+        const roleValidation = await validateAdminRoleIds(roles);
+        if (!roleValidation.ok) {
+            return res.status(400).json({ error: roleValidation.error });
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
         
         const newAdmin = new Admin({
             username,
             password: hashedPassword,
             name,
-            roles: roles || [],
+            roles: roleValidation.roleIds,
+            createdBy: req.user.username,
+            lastPasswordChangedAt: new Date(),
             isActive: true
         });
         
@@ -2446,12 +2766,50 @@ app.post('/api/admins', authRequired, requirePerm('all'), async (req, res) => {
 app.put('/api/admins/:id', authRequired, requirePerm('all'), async (req, res) => {
     try {
         const { username, password, roles, name, isActive } = req.body;
-        const updates = { username, name, roles: roles || [], isActive };
+        const target = await Admin.findById(req.params.id).populate('roles');
+        if (!target) return res.status(404).json({ error: '用户不存在' });
+        const isSelf = String(req.user.id) === String(req.params.id);
+        const updates = { username, name, updatedBy: req.user.username };
 
         // Check if username exists (if changed)
         if (username) {
             const existing = await Admin.findOne({ username, _id: { $ne: req.params.id } });
             if (existing) return res.status(400).json({ error: '用户名已存在' });
+        }
+
+        let nextRoles = target.roles || [];
+        if (roles !== undefined) {
+            const roleValidation = await validateAdminRoleIds(roles);
+            if (!roleValidation.ok) {
+                return res.status(400).json({ error: roleValidation.error });
+            }
+            nextRoles = roleValidation.roles;
+            updates.roles = roleValidation.roleIds;
+        }
+
+        if (isActive !== undefined) {
+            const nextActive = Boolean(isActive);
+            if (isSelf && !nextActive) {
+                return res.status(400).json({ error: '不能禁用当前登录用户' });
+            }
+            if (target.isActive && !nextActive && rolesHaveAll(target.roles)) {
+                const remainingSuperAdmins = await countActiveSuperAdmins(req.params.id);
+                if (remainingSuperAdmins < 1) {
+                    return res.status(400).json({ error: '不能禁用最后一个超级管理员' });
+                }
+            }
+            updates.isActive = nextActive;
+        }
+
+        if (isSelf && !rolesHaveAll(nextRoles)) {
+            return res.status(400).json({ error: '不能移除当前用户的超级管理员权限' });
+        }
+
+        if (target.isActive && rolesHaveAll(target.roles) && !rolesHaveAll(nextRoles)) {
+            const remainingSuperAdmins = await countActiveSuperAdmins(req.params.id);
+            if (remainingSuperAdmins < 1) {
+                return res.status(400).json({ error: '不能移除最后一个超级管理员权限' });
+            }
         }
 
         // Handle password update
@@ -2462,6 +2820,7 @@ app.put('/api/admins/:id', authRequired, requirePerm('all'), async (req, res) =>
                 return res.status(400).json({ error: '密码必须包含字母和数字，且至少8位' });
             }
             updates.password = await bcrypt.hash(password, 10);
+            updates.lastPasswordChangedAt = new Date();
         }
 
         await Admin.findByIdAndUpdate(req.params.id, updates);
@@ -2474,6 +2833,17 @@ app.put('/api/admins/:id', authRequired, requirePerm('all'), async (req, res) =>
 
 app.delete('/api/admins/:id', authRequired, requirePerm('all'), async (req, res) => {
     try {
+        if (String(req.user.id) === String(req.params.id)) {
+            return res.status(400).json({ error: '不能删除当前登录用户' });
+        }
+        const target = await Admin.findById(req.params.id).populate('roles');
+        if (!target) return res.status(404).json({ error: '用户不存在' });
+        if (target.isActive && rolesHaveAll(target.roles)) {
+            const remainingSuperAdmins = await countActiveSuperAdmins(req.params.id);
+            if (remainingSuperAdmins < 1) {
+                return res.status(400).json({ error: '不能删除最后一个超级管理员' });
+            }
+        }
         await Admin.findByIdAndDelete(req.params.id);
         await logOp('delete', 'Admin', `Deleted user: ${req.params.id}`, req.user.username);
         res.json({ success: true });
@@ -2491,16 +2861,6 @@ app.get('/api/roles', authRequired, requirePerm('all'), async (req, res) => {
         return sendInternalError(res, null, e);
     }
 });
-
-const ALLOWED_PERMS = [
-    'all',
-    'article:list','article:create','article:edit','article:delete',
-    'faq:list','faq:create','faq:edit','faq:delete',
-    'banner:manage','sidebar:manage',
-    'appointment:list', 'appointment:delete', 'appointment:edit', // Added appointment perms
-    // Video permissions
-    'video:list', 'video:create', 'video:edit', 'video:delete'
-];
 
 app.post('/api/roles', authRequired, requirePerm('all'), async (req, res) => {
     try {
@@ -2531,11 +2891,10 @@ app.post('/api/roles', authRequired, requirePerm('all'), async (req, res) => {
         }
 
         // Permissions validation
-        const perms = Array.isArray(permissions) ? permissions : [];
-        const invalid = perms.filter(p => !ALLOWED_PERMS.includes(p));
+        const { permissions: perms, invalid } = validatePermissions(permissions);
         if (invalid.length > 0) return res.status(400).json({ error: '无效的权限项: ' + invalid.join(', ') });
 
-        const newRole = new Role({ name, code: roleCode, permissions: perms, description });
+        const newRole = new Role({ name, code: roleCode, permissions: perms, description, createdBy: req.user.username });
         await newRole.save();
         await logOp('create', 'Role', `Created role: ${name}`, req.user.username);
         res.json({ success: true, data: newRole });
@@ -2547,6 +2906,11 @@ app.post('/api/roles', authRequired, requirePerm('all'), async (req, res) => {
 app.put('/api/roles/:id', authRequired, requirePerm('all'), async (req, res) => {
     try {
         const { name, code, permissions, description } = req.body;
+        const roleBefore = await Role.findById(req.params.id);
+        if (!roleBefore) return res.status(404).json({ error: '角色不存在' });
+        if (roleBefore.isSystem && permissions !== undefined) {
+            return res.status(400).json({ error: '系统角色的权限不能直接修改' });
+        }
         if (name) {
              const existing = await Role.findOne({ name, _id: { $ne: req.params.id } });
              if (existing) return res.status(400).json({ error: '角色名称已存在' });
@@ -2555,13 +2919,24 @@ app.put('/api/roles/:id', authRequired, requirePerm('all'), async (req, res) => 
              const existingCode = await Role.findOne({ code, _id: { $ne: req.params.id } });
              if (existingCode) return res.status(400).json({ error: '角色代码已存在' });
         }
-        if (permissions) {
-             const perms = Array.isArray(permissions) ? permissions : [];
-             const invalid = perms.filter(p => !ALLOWED_PERMS.includes(p));
+        const updates = { name, code, description, updatedBy: req.user.username };
+        if (permissions !== undefined) {
+             const { permissions: perms, invalid } = validatePermissions(permissions);
              if (invalid.length > 0) return res.status(400).json({ error: '无效的权限项: ' + invalid.join(', ') });
+             const oldPerms = Array.isArray(roleBefore.permissions) ? roleBefore.permissions : [];
+             if (oldPerms.includes('all') && !perms.includes('all')) {
+                const otherAllRoles = await Role.find({ _id: { $ne: roleBefore._id }, permissions: 'all', isActive: { $ne: false } }).select('_id');
+                const adminsWithOtherAllRole = otherAllRoles.length
+                    ? await Admin.countDocuments({ isActive: { $ne: false }, roles: { $in: otherAllRoles.map(role => role._id) } })
+                    : 0;
+                if (adminsWithOtherAllRole < 1) {
+                    return res.status(400).json({ error: '不能移除最后一个超级角色的全部权限' });
+                }
+             }
+             updates.permissions = perms;
         }
         
-        const role = await Role.findByIdAndUpdate(req.params.id, { name, code, permissions, description }, { new: true });
+        const role = await Role.findByIdAndUpdate(req.params.id, updates, { new: true });
         res.json({ success: true, data: role });
     } catch (e) {
         return sendInternalError(res, null, e);
@@ -2570,6 +2945,17 @@ app.put('/api/roles/:id', authRequired, requirePerm('all'), async (req, res) => 
 
 app.delete('/api/roles/:id', authRequired, requirePerm('all'), async (req, res) => {
     try {
+        const role = await Role.findById(req.params.id);
+        if (!role) return res.status(404).json({ error: '角色不存在' });
+        if (role.isSystem) return res.status(400).json({ error: '系统角色不能删除' });
+        const usersUsingRole = await Admin.countDocuments({ roles: req.params.id });
+        if (usersUsingRole > 0) {
+            return res.status(400).json({ error: '该角色仍有关联用户，不能删除' });
+        }
+        if (Array.isArray(role.permissions) && role.permissions.includes('all')) {
+            const remainingAllRoles = await Role.countDocuments({ _id: { $ne: role._id }, permissions: 'all', isActive: { $ne: false } });
+            if (remainingAllRoles < 1) return res.status(400).json({ error: '不能删除最后一个超级角色' });
+        }
         await Role.findByIdAndDelete(req.params.id);
         await logOp('delete', 'Role', `Deleted role: ${req.params.id}`, req.user.username);
         res.json({ success: true });
@@ -2724,16 +3110,14 @@ app.post('/api/training/apply', async (req, res) => {
             return res.status(400).json({ success: false, message: '请填写所有必填字段并输入验证码' });
         }
 
-        // SMS Verification check
-        const smsRecord = await VerificationCode.findOne({ phone: phone }).sort({ createdAt: -1 });
-        if (!smsRecord) {
-            return res.status(400).json({ success: false, message: '请先获取验证码' });
+        if (!/^1[3-9]\d{9}$/.test(phone)) {
+            return res.status(400).json({ success: false, message: '请输入有效的11位手机号码' });
         }
 
-        // Check if code matches and is not expired (3 minutes TTL)
-        const isExpired = Date.now() - smsRecord.createdAt.getTime() > 3 * 60 * 1000;
-        if (smsRecord.code !== verifyCode || isExpired) {
-            return res.status(400).json({ success: false, message: '验证码不正确或已过期' });
+        // SMS Verification check (validates expiry + single-use, marks code as used)
+        const codeCheck = await verifyCode(phone, verifyCode);
+        if (!codeCheck.valid) {
+            return res.status(400).json({ success: false, message: codeCheck.message || '验证码不正确或已过期' });
         }
 
         const newApp = new TrainingApplication({
@@ -2763,9 +3147,9 @@ app.get('/api/admin/training-applications', authRequired, requirePerm('appointme
         const query = {};
         if (search) {
             query.$or = [
-                { name: { $regex: search, $options: 'i' } },
-                { phone: { $regex: search, $options: 'i' } },
-                { company: { $regex: search, $options: 'i' } }
+                { name: { $regex: escapeRegex(search), $options: 'i' } },
+                { phone: { $regex: escapeRegex(search), $options: 'i' } },
+                { company: { $regex: escapeRegex(search), $options: 'i' } }
             ];
         }
         if (status) {
@@ -2793,7 +3177,7 @@ app.get('/api/admin/training-applications', authRequired, requirePerm('appointme
 });
 
 // Admin: Update Training Application Status
-app.put('/api/admin/training-applications/:id/status', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.put('/api/admin/training-applications/:id/status', authRequired, requirePerm('appointment:edit'), async (req, res) => {
     try {
         const { status, remarks } = req.body;
         const application = await TrainingApplication.findById(req.params.id);
@@ -2846,7 +3230,7 @@ app.post('/api/nqoc/awards/apply', nqocUpload.single('file'), async (req, res) =
 });
 
 // Admin: NQOC Award Channels CRUD
-app.get('/api/admin/nqoc/awards/channels', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.get('/api/admin/nqoc/awards/channels', authRequired, requireAnyPerm(['nqoc:list', 'nqoc:manage']), async (req, res) => {
     try {
         const channels = await NqocAwardChannel.find().sort({ createdAt: -1 }).lean();
         for (let ch of channels) {
@@ -2858,7 +3242,7 @@ app.get('/api/admin/nqoc/awards/channels', authRequired, requirePerm('appointmen
     }
 });
 
-app.post('/api/admin/nqoc/awards/channels', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.post('/api/admin/nqoc/awards/channels', authRequired, requireAnyPerm(['nqoc:edit', 'nqoc:manage']), async (req, res) => {
     try {
         const { name, code, description } = req.body;
         if (!name || !code) return res.status(400).json({ success: false, error: '渠道名称和代码为必填' });
@@ -2874,7 +3258,7 @@ app.post('/api/admin/nqoc/awards/channels', authRequired, requirePerm('appointme
     }
 });
 
-app.put('/api/admin/nqoc/awards/channels/:id', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.put('/api/admin/nqoc/awards/channels/:id', authRequired, requireAnyPerm(['nqoc:edit', 'nqoc:manage']), async (req, res) => {
     try {
         const { name, code, description } = req.body;
         const exists = await NqocAwardChannel.findOne({ code, _id: { $ne: req.params.id } });
@@ -2888,7 +3272,7 @@ app.put('/api/admin/nqoc/awards/channels/:id', authRequired, requirePerm('appoin
     }
 });
 
-app.delete('/api/admin/nqoc/awards/channels/:id', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.delete('/api/admin/nqoc/awards/channels/:id', authRequired, requireAnyPerm(['nqoc:delete', 'nqoc:manage']), async (req, res) => {
     try {
         await NqocAwardChannel.findByIdAndDelete(req.params.id);
         res.json({ success: true });
@@ -2898,16 +3282,16 @@ app.delete('/api/admin/nqoc/awards/channels/:id', authRequired, requirePerm('app
 });
 
 // Admin API for NQOC Awards
-app.get('/api/admin/nqoc/awards', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.get('/api/admin/nqoc/awards', authRequired, requireAnyPerm(['nqoc:list', 'nqoc:manage']), async (req, res) => {
     try {
         const { page = 1, limit = 20, keyword, channel, startDate, endDate } = req.query;
         let query = {};
         
         if (keyword) {
             query.$or = [
-                { orgName: { $regex: keyword, $options: 'i' } },
-                { contactName: { $regex: keyword, $options: 'i' } },
-                { phone: { $regex: keyword, $options: 'i' } }
+                { orgName: { $regex: escapeRegex(keyword), $options: 'i' } },
+                { contactName: { $regex: escapeRegex(keyword), $options: 'i' } },
+                { phone: { $regex: escapeRegex(keyword), $options: 'i' } }
             ];
         }
         if (channel) {
@@ -2937,7 +3321,7 @@ app.get('/api/admin/nqoc/awards', authRequired, requirePerm('appointment:list'),
     }
 });
 
-app.delete('/api/admin/nqoc/awards/:id', authRequired, requirePerm('appointment:delete'), async (req, res) => {
+app.delete('/api/admin/nqoc/awards/:id', authRequired, requireAnyPerm(['nqoc:delete', 'nqoc:manage']), async (req, res) => {
     try {
         const deleted = await NqocAwardApplication.findByIdAndDelete(req.params.id);
         if (!deleted) return res.status(404).json({ success: false, error: '记录不存在' });
@@ -2949,7 +3333,7 @@ app.delete('/api/admin/nqoc/awards/:id', authRequired, requirePerm('appointment:
 });
 
 // Update NQOC Award Display Status & Details
-app.put('/api/admin/nqoc/awards/:id/display', authRequired, requirePerm('appointment:edit'), async (req, res) => {
+app.put('/api/admin/nqoc/awards/:id/display', authRequired, requireAnyPerm(['nqoc:edit', 'nqoc:manage']), async (req, res) => {
     try {
         const { showOnFrontend, description, voteCount, status } = req.body;
         const updateData = {};
@@ -3021,16 +3405,16 @@ app.post('/api/nqoc/whitepaper/apply', async (req, res) => {
 });
 
 // Admin API for NQOC Whitepaper Requests
-app.get('/api/admin/nqoc/whitepaper', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.get('/api/admin/nqoc/whitepaper', authRequired, requireAnyPerm(['nqoc:list', 'nqoc:manage']), async (req, res) => {
     try {
         const { page = 1, limit = 20, keyword } = req.query;
         let query = {};
 
-        if (keyword) {
+        if (keyword && keyword.length <= 200) {
             query.$or = [
-                { name: new RegExp(keyword, 'i') },
-                { phone: new RegExp(keyword, 'i') },
-                { company: new RegExp(keyword, 'i') }
+                { name: new RegExp(escapeRegex(keyword), 'i') },
+                { phone: new RegExp(escapeRegex(keyword), 'i') },
+                { company: new RegExp(escapeRegex(keyword), 'i') }
             ];
         }
 
@@ -3050,7 +3434,7 @@ app.get('/api/admin/nqoc/whitepaper', authRequired, requirePerm('appointment:lis
     }
 });
 
-app.delete('/api/admin/nqoc/whitepaper/:id', authRequired, requirePerm('appointment:delete'), async (req, res) => {
+app.delete('/api/admin/nqoc/whitepaper/:id', authRequired, requireAnyPerm(['nqoc:delete', 'nqoc:manage']), async (req, res) => {
     try {
         const deleted = await NqocWhitepaperRequest.findByIdAndDelete(req.params.id);
         if (!deleted) return res.status(404).json({ success: false, error: '记录不存在' });
@@ -3061,25 +3445,15 @@ app.delete('/api/admin/nqoc/whitepaper/:id', authRequired, requirePerm('appointm
     }
 });
 
-app.get('/api/admin/nqoc/whitepaper/export', async (req, res) => {
+app.get('/api/admin/nqoc/whitepaper/export', authRequired, requireAnyPerm(['nqoc:export', 'nqoc:manage']), async (req, res) => {
     try {
-        const token = req.query.token;
-        if (!token) return res.status(401).send('未授权访问');
-        
-        let decoded;
-        try {
-            decoded = jwt.verify(token, JWT_SECRET);
-        } catch (err) {
-            return res.status(401).send('Token无效');
-        }
-
         const { keyword } = req.query;
         let query = {};
-        if (keyword) {
+        if (keyword && keyword.length <= 200) {
             query.$or = [
-                { name: new RegExp(keyword, 'i') },
-                { phone: new RegExp(keyword, 'i') },
-                { company: new RegExp(keyword, 'i') }
+                { name: new RegExp(escapeRegex(keyword), 'i') },
+                { phone: new RegExp(escapeRegex(keyword), 'i') },
+                { company: new RegExp(escapeRegex(keyword), 'i') }
             ];
         }
 
@@ -3104,27 +3478,16 @@ app.get('/api/admin/nqoc/whitepaper/export', async (req, res) => {
 
 // CSV Export for NQOC Awards
 // Use JWT authentication via query string since it's accessed via window.open
-app.get('/api/admin/nqoc/awards/export', async (req, res) => {
+app.get('/api/admin/nqoc/awards/export', authRequired, requireAnyPerm(['nqoc:export', 'nqoc:manage']), async (req, res) => {
     try {
-        // Authenticate via token in query
-        const token = req.query.token;
-        if (!token) return res.status(401).send('未授权访问');
-        
-        let decoded;
-        try {
-            decoded = jwt.verify(token, JWT_SECRET);
-        } catch (err) {
-            return res.status(401).send('Token无效');
-        }
-
         const { keyword, channel, startDate, endDate } = req.query;
         let query = {};
         
         if (keyword) {
             query.$or = [
-                { orgName: { $regex: keyword, $options: 'i' } },
-                { contactName: { $regex: keyword, $options: 'i' } },
-                { phone: { $regex: keyword, $options: 'i' } }
+                { orgName: { $regex: escapeRegex(keyword), $options: 'i' } },
+                { contactName: { $regex: escapeRegex(keyword), $options: 'i' } },
+                { phone: { $regex: escapeRegex(keyword), $options: 'i' } }
             ];
         }
         if (channel) {
@@ -3215,7 +3578,7 @@ app.post('/api/nqoc/survey/submit', async (req, res) => {
 });
 
 // Admin: Channels CRUD
-app.get('/api/admin/nqoc/survey/channels', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.get('/api/admin/nqoc/survey/channels', authRequired, requireAnyPerm(['nqoc:list', 'nqoc:manage']), async (req, res) => {
     try {
         const channels = await NqocSurveyChannel.find().sort({ createdAt: -1 }).lean();
         // Calculate submission count for each channel
@@ -3228,7 +3591,7 @@ app.get('/api/admin/nqoc/survey/channels', authRequired, requirePerm('appointmen
     }
 });
 
-app.post('/api/admin/nqoc/survey/channels', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.post('/api/admin/nqoc/survey/channels', authRequired, requireAnyPerm(['nqoc:edit', 'nqoc:manage']), async (req, res) => {
     try {
         const { name, code, description } = req.body;
         if (!name || !code) return res.status(400).json({ success: false, error: '渠道名称和代码为必填' });
@@ -3244,7 +3607,7 @@ app.post('/api/admin/nqoc/survey/channels', authRequired, requirePerm('appointme
     }
 });
 
-app.put('/api/admin/nqoc/survey/channels/:id', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.put('/api/admin/nqoc/survey/channels/:id', authRequired, requireAnyPerm(['nqoc:edit', 'nqoc:manage']), async (req, res) => {
     try {
         const { name, code, description } = req.body;
         const exists = await NqocSurveyChannel.findOne({ code, _id: { $ne: req.params.id } });
@@ -3258,7 +3621,7 @@ app.put('/api/admin/nqoc/survey/channels/:id', authRequired, requirePerm('appoin
     }
 });
 
-app.delete('/api/admin/nqoc/survey/channels/:id', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.delete('/api/admin/nqoc/survey/channels/:id', authRequired, requireAnyPerm(['nqoc:delete', 'nqoc:manage']), async (req, res) => {
     try {
         await NqocSurveyChannel.findByIdAndDelete(req.params.id);
         res.json({ success: true });
@@ -3268,14 +3631,14 @@ app.delete('/api/admin/nqoc/survey/channels/:id', authRequired, requirePerm('app
 });
 
 // Admin: Survey Submissions List
-app.get('/api/admin/nqoc/survey/submissions', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.get('/api/admin/nqoc/survey/submissions', authRequired, requireAnyPerm(['nqoc:list', 'nqoc:manage']), async (req, res) => {
     try {
         const { page = 1, limit = 20, orgName, name, phone, channel, startDate, endDate } = req.query;
         let query = {};
         
-        if (orgName) query.orgName = { $regex: orgName, $options: 'i' };
-        if (name) query.respondentName = { $regex: name, $options: 'i' };
-        if (phone) query.respondentContact = { $regex: phone, $options: 'i' };
+        if (orgName) query.orgName = { $regex: escapeRegex(orgName), $options: 'i' };
+        if (name) query.respondentName = { $regex: escapeRegex(name), $options: 'i' };
+        if (phone) query.respondentContact = { $regex: escapeRegex(phone), $options: 'i' };
         if (channel) query.channel = channel;
         if (startDate && endDate) {
             query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
@@ -3301,7 +3664,7 @@ app.get('/api/admin/nqoc/survey/submissions', authRequired, requirePerm('appoint
     }
 });
 
-app.delete('/api/admin/nqoc/survey/submissions/:id', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.delete('/api/admin/nqoc/survey/submissions/:id', authRequired, requireAnyPerm(['nqoc:delete', 'nqoc:manage']), async (req, res) => {
     try {
         const deleted = await NqocSurveySubmission.findByIdAndDelete(req.params.id);
         if (!deleted) return res.status(404).json({ success: false, error: '记录不存在' });
@@ -3316,9 +3679,9 @@ app.delete('/api/admin/nqoc/survey/submissions/:id', authRequired, requirePerm('
 app.get('/api/admin/survey/list', authRequired, requirePerm('appointment:list'), async (req, res) => {
     const { page = 1, limit = 20, orgName, name, phone, channel, startDate, endDate, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = req.query;
     let query = {};
-    if (orgName) query.orgName = { $regex: orgName, $options: 'i' };
-    if (name) query.respondentName = { $regex: name, $options: 'i' };
-    if (phone) query.respondentContact = { $regex: phone, $options: 'i' };
+    if (orgName) query.orgName = { $regex: escapeRegex(orgName), $options: 'i' };
+    if (name) query.respondentName = { $regex: escapeRegex(name), $options: 'i' };
+    if (phone) query.respondentContact = { $regex: escapeRegex(phone), $options: 'i' };
     if (channel) query.channel = channel;
     if (utm_source) query.utm_source = utm_source;
     if (utm_medium) query.utm_medium = utm_medium;
@@ -3352,7 +3715,7 @@ app.get('/api/admin/survey/analytics', authRequired, requirePerm('appointment:li
     } catch (e) { res.status(500).json({ success: false, error: '服务器内部错误' }); }
 });
 
-app.get('/api/admin/survey/export', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.get('/api/admin/survey/export', authRequired, requirePerm('appointment:export'), async (req, res) => {
     try {
         const { channel, startDate, endDate } = req.query;
         let query = {};
@@ -3367,7 +3730,7 @@ app.get('/api/admin/survey/export', authRequired, requirePerm('appointment:list'
     } catch (e) { res.status(500).json({ success: false, error: '服务器内部错误' }); }
 });
 
-app.delete('/api/admin/survey/:id', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.delete('/api/admin/survey/:id', authRequired, requirePerm('appointment:delete'), async (req, res) => {
     try {
         const deleted = await NqocSurveySubmission.findByIdAndDelete(req.params.id);
         if (!deleted) return res.status(404).json({ success: false, error: '记录不存在' });
@@ -3375,7 +3738,7 @@ app.delete('/api/admin/survey/:id', authRequired, requirePerm('appointment:list'
     } catch (e) { res.status(500).json({ success: false, error: '服务器内部错误' }); }
 });
 
-app.post('/api/admin/survey/batch-delete', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.post('/api/admin/survey/batch-delete', authRequired, requirePerm('appointment:delete'), async (req, res) => {
     try {
         const { ids } = req.body;
         if (!ids || !Array.isArray(ids)) return res.status(400).json({ success: false, error: '请提供要删除的ID' });
@@ -3385,7 +3748,7 @@ app.post('/api/admin/survey/batch-delete', authRequired, requirePerm('appointmen
 });
 
 // Admin: Survey Stats
-app.get('/api/admin/nqoc/survey/stats', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.get('/api/admin/nqoc/survey/stats', authRequired, requireAnyPerm(['nqoc:list', 'nqoc:manage']), async (req, res) => {
     try {
         const { channel, startDate, endDate } = req.query;
         let matchQuery = {};
@@ -3461,7 +3824,7 @@ app.get('/api/admin/nqoc/survey/stats', authRequired, requirePerm('appointment:l
 });
 
 // Admin: Tracking Stats for Funnel
-app.get('/api/admin/nqoc/survey/tracking-stats', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.get('/api/admin/nqoc/survey/tracking-stats', authRequired, requireAnyPerm(['nqoc:list', 'nqoc:manage']), async (req, res) => {
     try {
         const { channel, startDate, endDate } = req.query;
         let matchQuery = {};
@@ -3554,13 +3917,13 @@ app.get('/api/admin/nqoc/survey/tracking-stats', authRequired, requirePerm('appo
 });
 
 // Admin: Export Survey Submissions
-app.get('/api/admin/nqoc/survey/submissions/export', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.get('/api/admin/nqoc/survey/submissions/export', authRequired, requireAnyPerm(['nqoc:export', 'nqoc:manage']), async (req, res) => {
     try {
         const { orgName, name, phone, channel, startDate, endDate } = req.query;
         let query = {};
-        if (orgName) query.orgName = { $regex: orgName, $options: 'i' };
-        if (name) query.respondentName = { $regex: name, $options: 'i' };
-        if (phone) query.respondentContact = { $regex: phone, $options: 'i' };
+        if (orgName) query.orgName = { $regex: escapeRegex(orgName), $options: 'i' };
+        if (name) query.respondentName = { $regex: escapeRegex(name), $options: 'i' };
+        if (phone) query.respondentContact = { $regex: escapeRegex(phone), $options: 'i' };
         if (channel) query.channel = channel;
         if (startDate && endDate) query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
 
@@ -3687,7 +4050,7 @@ app.post('/api/nqoc/debate/vote', express.json(), async (req, res) => {
 });
 
 // Admin: Get debate config
-app.get('/api/admin/nqoc/debate/config', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.get('/api/admin/nqoc/debate/config', authRequired, requireAnyPerm(['nqoc:list', 'nqoc:manage']), async (req, res) => {
     try {
         const config = await getDebateConfig();
         res.json({ success: true, data: config });
@@ -3698,7 +4061,7 @@ app.get('/api/admin/nqoc/debate/config', authRequired, requirePerm('appointment:
 });
 
 // Admin: Update debate config
-app.post('/api/admin/nqoc/debate/config', authRequired, requirePerm('appointment:list'), express.json(), async (req, res) => {
+app.post('/api/admin/nqoc/debate/config', authRequired, requireAnyPerm(['nqoc:edit', 'nqoc:manage']), express.json(), async (req, res) => {
     try {
         const config = await getDebateConfig();
         Object.assign(config, req.body);
@@ -3715,26 +4078,99 @@ app.post('/api/admin/nqoc/debate/config', authRequired, requirePerm('appointment
 // NQOC Expert Application APIs
 // ==========================================
 
-// Public API to submit expert application
-app.post('/api/nqoc/experts/apply', express.json(), async (req, res) => {
-    console.log("HIT /api/nqoc/experts/apply");
+// Public API to submit expert application (supports multipart for photo upload)
+app.post('/api/nqoc/experts/apply', nqocUpload.single('photo'), async (req, res) => {
     try {
-        const { name, phone, smsCode, description } = req.body;
-        
-        if (!name || !phone || !description || !smsCode) {
-            return res.status(400).json({ success: false, message: '请填写所有必填项及验证码' });
+        const fields = req.body || {};
+        // Parse arrays sent as JSON string or comma-separated
+        let activities = [];
+        if (fields.activities) {
+            try { activities = typeof fields.activities === 'string' ? JSON.parse(fields.activities) : fields.activities; }
+            catch { activities = fields.activities.split(',').map(s => s.trim()).filter(Boolean); }
         }
-        
-        // 验证短信验证码
-        const verifyResult = await verifyCode(phone, smsCode);
-        if (!verifyResult.valid) {
-            return res.status(400).json({ success: false, message: verifyResult.message || '验证码无效或已过期' });
+
+        const {
+            name,
+            location, position, company, email,
+            bio, researchFields, publications, topicNeeds, referrer,
+            privacyConsent
+        } = fields;
+
+        // 必填校验：所有字段均为必填
+        const requiredFields = [
+            ['name', '姓名'],
+            ['location', '常驻地'],
+            ['position', '职位名称'],
+            ['company', '工作单位'],
+            ['email', '电子邮箱'],
+            ['bio', '个人官方简介'],
+            ['researchFields', '研究领域'],
+            ['publications', '个人专业著作'],
+            ['topicNeeds', '课题需求'],
+            ['referrer', '来源/联系人']
+        ];
+        for (const [key, label] of requiredFields) {
+            if (!fields[key] || !String(fields[key]).trim()) {
+                return res.status(400).json({ success: false, message: `"${label}"为必填项` });
+            }
+        }
+        if (!Array.isArray(activities) || activities.length === 0) {
+            return res.status(400).json({ success: false, message: '"活动选择"为必填项' });
+        }
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return res.status(400).json({ success: false, message: '请填写有效的邮箱地址' });
+        }
+        if (String(bio).length > 2000) {
+            return res.status(400).json({ success: false, message: '个人简介不能超过200字' });
+        }
+        if (topicNeeds && String(topicNeeds).length > 5000) {
+            return res.status(400).json({ success: false, message: '课题需求过长' });
+        }
+        if (privacyConsent !== 'true' && privacyConsent !== true) {
+            return res.status(400).json({ success: false, message: '请同意隐私授权' });
+        }
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: '"个人官方照片"为必填项' });
+        }
+
+        // 处理照片上传 - 上传至火山引擎TOS: nqoc/zhuanjia/
+        let photoUrl = '';
+        if (req.file) {
+            if (useTosUpload) {
+                try {
+                    const filePath = path.join(__dirname, 'public', 'uploads', 'nqoc', req.file.filename);
+                    const objectKey = 'nqoc/zhuanjia/' + req.file.filename;
+                    const tosUrl = await uploadLocalFileToTos(filePath, objectKey, req.file.mimetype || 'image/jpeg');
+                    if (tosUrl) {
+                        photoUrl = tosUrl;
+                        // 上传成功后删除本地文件
+                        try { fs.unlinkSync(filePath); } catch {}
+                    } else {
+                        photoUrl = '/uploads/nqoc/' + req.file.filename;
+                    }
+                } catch (tosErr) {
+                    console.error('专家照片上传TOS失败，退回本地存储:', tosErr.message);
+                    photoUrl = '/uploads/nqoc/' + req.file.filename;
+                }
+            } else {
+                photoUrl = '/uploads/nqoc/' + req.file.filename;
+            }
         }
 
         const newApplication = new NqocExpertApplication({
             name,
-            phone,
-            description,
+            activities: Array.isArray(activities) ? activities : [],
+            location: location || '',
+            position: position || '',
+            company: company || '',
+            email: email || '',
+            bio: bio || '',
+            researchFields: researchFields || '',
+            publications: publications || '',
+            topicNeeds: topicNeeds || '',
+            referrer: referrer || '',
+            photoUrl,
+            privacyConsent: privacyConsent === 'true' || privacyConsent === true,
             status: 'pending'
         });
         
@@ -3747,7 +4183,7 @@ app.post('/api/nqoc/experts/apply', express.json(), async (req, res) => {
 });
 
 // Admin API to get applications list
-app.get('/api/admin/nqoc/experts', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.get('/api/admin/nqoc/experts', authRequired, requireAnyPerm(['nqoc:list', 'nqoc:manage']), async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
@@ -3755,14 +4191,16 @@ app.get('/api/admin/nqoc/experts', authRequired, requirePerm('appointment:list')
         
         let query = {};
         if (req.query.search) {
+            const kw = { $regex: escapeRegex(req.query.search), $options: 'i' };
             query = {
                 $or: [
-                    { name: { $regex: req.query.search, $options: 'i' } },
-                    { phone: { $regex: req.query.search, $options: 'i' } }
+                    { name: kw }, { email: kw },
+                    { company: kw }, { position: kw }, { location: kw },
+                    { researchFields: kw }
                 ]
             };
         }
-        
+
         if (req.query.status) {
             query.status = req.query.status;
         }
@@ -3801,7 +4239,7 @@ app.get('/api/admin/nqoc/experts', authRequired, requirePerm('appointment:list')
 });
 
 // Admin API to update application status
-app.put('/api/admin/nqoc/experts/:id/status', authRequired, requirePerm('appointment:list'), express.json(), async (req, res) => {
+app.put('/api/admin/nqoc/experts/:id/status', authRequired, requireAnyPerm(['nqoc:edit', 'nqoc:manage']), express.json(), async (req, res) => {
     try {
         const { status } = req.body;
         const application = await NqocExpertApplication.findByIdAndUpdate(
@@ -3822,7 +4260,7 @@ app.put('/api/admin/nqoc/experts/:id/status', authRequired, requirePerm('appoint
 });
 
 // Admin API to delete application
-app.delete('/api/admin/nqoc/experts/:id', authRequired, requirePerm('appointment:delete'), async (req, res) => {
+app.delete('/api/admin/nqoc/experts/:id', authRequired, requireAnyPerm(['nqoc:delete', 'nqoc:manage']), async (req, res) => {
     try {
         const deleted = await NqocExpertApplication.findByIdAndDelete(req.params.id);
         if (!deleted) {
@@ -3835,42 +4273,102 @@ app.delete('/api/admin/nqoc/experts/:id', authRequired, requirePerm('appointment
     }
 });
 
-// Admin API to export expert applications
-app.get('/api/admin/nqoc/experts/export', async (req, res) => {
+// Admin API: batch delete expert applications
+app.post('/api/admin/nqoc/experts/batch-delete', authRequired, requireAnyPerm(['nqoc:delete', 'nqoc:manage']), express.json(), async (req, res) => {
     try {
-        const applications = await NqocExpertApplication.find().sort({ createdAt: -1 });
-        
+        const { ids } = req.body;
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ success: false, message: '请提供要删除的记录ID' });
+        }
+        const result = await NqocExpertApplication.deleteMany({ _id: { $in: ids } });
+        res.json({ success: true, deletedCount: result.deletedCount, message: `成功删除 ${result.deletedCount} 条记录` });
+    } catch (error) {
+        console.error('Batch delete expert applications error:', error);
+        res.status(500).json({ success: false, message: '批量删除失败' });
+    }
+});
+
+// Admin API to export expert applications
+app.get('/api/admin/nqoc/experts/export', authRequired, requireAnyPerm(['nqoc:export', 'nqoc:manage']), async (req, res) => {
+    try {
+
+        let query = {};
+        if (req.query.search) {
+            const kw = { $regex: escapeRegex(req.query.search), $options: 'i' };
+            query.$or = [
+                { name: kw }, { email: kw },
+                { company: kw }, { position: kw }, { location: kw }
+            ];
+        }
+        if (req.query.status) query.status = req.query.status;
+        if (req.query.startDate || req.query.endDate) {
+            query.createdAt = {};
+            if (req.query.startDate) query.createdAt.$gte = new Date(req.query.startDate);
+            if (req.query.endDate) {
+                let ed = new Date(req.query.endDate); ed.setDate(ed.getDate() + 1);
+                query.createdAt.$lt = ed;
+            }
+        }
+
+        const applications = await NqocExpertApplication.find(query).sort({ createdAt: -1 });
+
         const ExcelJS = require('exceljs');
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('智库专家申请');
-        
-        worksheet.columns = [
-            { header: '提交时间', key: 'createdAt', width: 20 },
-            { header: '姓名', key: 'name', width: 15 },
-            { header: '手机号', key: 'phone', width: 15 },
-            { header: '专家描述', key: 'description', width: 50 },
-            { header: '状态', key: 'status', width: 15 }
-        ];
-        
-        const statusMap = {
-            'pending': '待处理',
-            'contacted': '已联系',
-            'rejected': '已拒绝',
-            'approved': '已通过'
+
+        const ACT_LABELS = {
+            speaker: '研讨会/私董会/论坛分享嘉宾',
+            video_interview: '《值得看见》栏目录制',
+            case_review: '优秀案例评审',
+            standard_making: '新质组织模型标准制定',
+            host_visits: '接待企业参观学习研讨',
+            writing: '接受约稿撰写',
+            general_events: '参加其他相关专业活动'
         };
-        
+
+        worksheet.columns = [
+            { header: '姓名', key: 'name', width: 12 },
+            { header: '意向活动', key: 'activities', width: 40 },
+            { header: '常驻地', key: 'location', width: 12 },
+            { header: '职位名称', key: 'position', width: 18 },
+            { header: '工作单位', key: 'company', width: 22 },
+            { header: '电子邮箱', key: 'email', width: 22 },
+            { header: '个人官方简介', key: 'bio', width: 40 },
+            { header: '研究领域', key: 'researchFields', width: 25 },
+            { header: '个人专业著作', key: 'publications', width: 30 },
+            { header: '课题需求', key: 'topicNeeds', width: 30 },
+            { header: '来源/联系人', key: 'referrer', width: 15 },
+            { header: '照片URL', key: 'photoUrl', width: 40 },
+            { header: '隐私说明', key: 'privacy', width: 10 },
+            { header: '状态', key: 'status', width: 10 },
+            { header: '提交时间', key: 'createdAt', width: 20 }
+        ];
+
+        const statusMap = { pending: '待处理', contacted: '已联系', rejected: '已拒绝', approved: '已通过' };
+
         applications.forEach(app => {
+            const acts = Array.isArray(app.activities) ? app.activities.map(k => ACT_LABELS[k] || k).join('；') : '';
             worksheet.addRow({
                 createdAt: new Date(app.createdAt).toLocaleString('zh-CN'),
                 name: app.name,
-                phone: app.phone,
-                description: app.description,
+                email: app.email || '',
+                location: app.location || '',
+                position: app.position || '',
+                company: app.company || '',
+                researchFields: app.researchFields || '',
+                activities: acts,
+                bio: app.bio || '',
+                publications: app.publications || '',
+                topicNeeds: app.topicNeeds || '',
+                referrer: app.referrer || '',
+                photoUrl: app.photoUrl || '',
+                privacy: app.privacyConsent ? '是' : '否',
                 status: statusMap[app.status] || app.status
             });
         });
-        
+
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', 'attachment; filename=expert-applications.xlsx');
+        res.setHeader('Content-Disposition', 'attachment; filename=nqoc-expert-applications.xlsx');
         
         await workbook.xlsx.write(res);
         res.end();
@@ -3886,7 +4384,7 @@ app.get('/api/admin/nqoc/experts/export', async (req, res) => {
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 async function generateDeepseekSlug(title) {
-    const API_KEY = 'sk-ba4fcc924d5d48b5850326e5fe044a4d';
+    const API_KEY = process.env.DEEPSEEK_API_KEY;
     const API_URL = 'https://api.deepseek.com/chat/completions';
     
     try {
@@ -3930,7 +4428,7 @@ async function generateDeepseekSlug(title) {
 }
 
 async function generateDeepseekText(systemPrompt, userPrompt) {
-    const API_KEY = process.env.DEEPSEEK_API_KEY || 'sk-ba4fcc924d5d48b5850326e5fe044a4d';
+    const API_KEY = process.env.DEEPSEEK_API_KEY;
     const API_URL = 'https://api.deepseek.com/chat/completions';
     const response = await fetch(API_URL, {
         method: 'POST',
@@ -3958,7 +4456,7 @@ async function generateDeepseekText(systemPrompt, userPrompt) {
 }
 
 // --- Tools API ---
-app.post('/api/tools/slug', authRequired, async (req, res) => {
+app.post('/api/tools/slug', authRequired, requirePerm('ai:use'), async (req, res) => {
     try {
         const { text, forceAi } = req.body;
         if (!text) return res.status(400).json({ error: 'Text is required' });
@@ -4010,7 +4508,7 @@ app.post('/api/tools/slug', authRequired, async (req, res) => {
     }
 });
 
-app.post('/api/tools/tags', authRequired, async (req, res) => {
+app.post('/api/tools/tags', authRequired, requirePerm('ai:use'), async (req, res) => {
     try {
         const { title, content } = req.body;
         if (!title && !content) return res.status(400).json({ error: 'Title or content required' });
@@ -4027,7 +4525,7 @@ app.post('/api/tools/tags', authRequired, async (req, res) => {
     }
 });
 
-app.post('/api/tools/summary', authRequired, async (req, res) => {
+app.post('/api/tools/summary', authRequired, requirePerm('ai:use'), async (req, res) => {
     try {
         const { title, content, type } = req.body;
         if (!content) return res.status(400).json({ error: 'Content required' });
@@ -4050,7 +4548,7 @@ app.post('/api/tools/summary', authRequired, async (req, res) => {
     }
 });
 
-app.post('/api/tools/qa', authRequired, async (req, res) => {
+app.post('/api/tools/qa', authRequired, requirePerm('ai:use'), async (req, res) => {
     try {
         const { title, content } = req.body;
         if (!content) return res.status(400).json({ error: 'Content required' });
@@ -4078,7 +4576,7 @@ Do not output any markdown formatting or other text.`;
     }
 });
 
-app.post('/api/tools/geo-analysis', authRequired, async (req, res) => {
+app.post('/api/tools/geo-analysis', authRequired, requirePerm('ai:use'), async (req, res) => {
     try {
         const { title, content, metaTitle, metaDescription } = req.body;
         if (!title) return res.status(400).json({ error: 'Title required' });
@@ -4229,7 +4727,7 @@ app.post('/api/upload/author/:userId', authRequired, requirePerm('article:edit')
     });
 });
 
-app.post('/api/upload', authRequired, uploadLimiter, (req, res) => {
+app.post('/api/upload', authRequired, requirePerm('upload:write'), uploadLimiter, (req, res) => {
     upload.single('file')(req, res, async (uploadErr) => {
         if (uploadErr) {
             const parsed = parseUploadError(uploadErr);
@@ -4243,6 +4741,29 @@ app.post('/api/upload', authRequired, uploadLimiter, (req, res) => {
                 return res.status(400).json({ success: false, error: '未检测到上传文件' });
             }
             const uploadedAbs = path.join(__dirname, 'public/uploads', req.file.filename);
+            
+            // Magic number validation for non-image files
+            if (!(req.file.mimetype && req.file.mimetype.startsWith('image/'))) {
+                const header = Buffer.alloc(8);
+                try {
+                    const fd = fs.openSync(uploadedAbs, 'r');
+                    fs.readSync(fd, header, 0, 8, 0);
+                    fs.closeSync(fd);
+                } catch { /* file just written; fall through */ }
+                const hex = header.toString('hex').toUpperCase();
+                // PDF: %PDF  |  DOCX/XLSX/PPTX: PK (ZIP)  |  plain text: no binary marker
+                const allowedDocs = ['PDF', 'ZIP', 'TEXT'];
+                let magicType = null;
+                if (hex.startsWith('25504446')) magicType = 'PDF';
+                else if (hex.startsWith('504B0304') || hex.startsWith('504B0506') || hex.startsWith('504B0708')) magicType = 'ZIP';
+                else if (!hex.match(/^(00|FF|[89A-F][0A-F])/)) magicType = 'TEXT'; // likely text file (not binary)
+                
+                if (!magicType) {
+                    try { fs.unlinkSync(uploadedAbs); } catch {}
+                    return res.status(400).json({ success: false, error: '不支持的文件格式，仅允许 PDF、Office 文档和图片' });
+                }
+            }
+            
             // If image, do local processing: convert to webp + thumbnail, store in date-based directory
             if (req.file.mimetype && req.file.mimetype.startsWith('image/')) {
                 const now = new Date();
@@ -4333,17 +4854,65 @@ app.post('/api/upload', authRequired, uploadLimiter, (req, res) => {
     });
 });
 
-app.post('/api/upload/fetch-url', authRequired, async (req, res) => {
+app.post('/api/upload/fetch-url', authRequired, requirePerm('upload:write'), async (req, res) => {
     try {
         const { url } = req.body;
         if (!url) {
             return res.status(400).json({ error: 'No URL provided' });
         }
 
+        // SSRF protection: validate URL
+        let parsedUrl;
+        try {
+            parsedUrl = new URL(url);
+        } catch { return res.status(400).json({ error: 'Invalid URL' }); }
+        
+        if (parsedUrl.protocol !== 'https:') {
+            return res.status(400).json({ error: 'Only HTTPS URLs are allowed' });
+        }
+
+        // Block internal / private IP resolution (hostname-level)
+        const { hostname } = parsedUrl;
+        if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]' ||
+            hostname.match(/^10\./) || hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./) || hostname.match(/^192\.168\./) ||
+            hostname.match(/^169\.254\./) || hostname === '0.0.0.0' || hostname === '[::]' ||
+            hostname.endsWith('.local') || hostname.endsWith('.internal')) {
+            return res.status(400).json({ error: 'Internal URLs are not allowed' });
+        }
+
+        // DNS-level SSRF check: resolve A + AAAA records, validate not private
+        try {
+            const [ipv4, ipv6] = await Promise.all([
+                new Promise((ok, fail) => dns.resolve4(hostname, (e, a) => (e ? fail(e) : ok(a)))).catch(() => []),
+                new Promise((ok, fail) => dns.resolve6(hostname, (e, a) => (e ? fail(e) : ok(a)))).catch(() => [])
+            ]);
+            const allAddrs = [...ipv4, ...ipv6];
+            if (allAddrs.length === 0) {
+                return res.status(400).json({ error: 'DNS resolution produced no addresses' });
+            }
+            const privateRE = /^(10\.|127\.|0\.)|(^172\.(1[6-9]|2[0-9]|3[0-1])\.)|(^192\.168\.)|(^169\.254\.)|(^fc00:|^fd00:|^fe80:)|(^::1$)|(^::$)/;
+            for (const addr of allAddrs) {
+                if (privateRE.test(addr)) {
+                    return res.status(400).json({ error: 'URL resolves to a private IP address' });
+                }
+            }
+        } catch (_) {
+            return res.status(400).json({ error: 'DNS resolution failed for the given URL' });
+        }
+
         const fetch = (await import('node-fetch')).default;
-        const response = await fetch(url);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        const response = await fetch(url, { signal: controller.signal, redirect: 'error' });
+        clearTimeout(timeout);
         if (!response.ok) {
             return res.status(400).json({ error: 'Failed to fetch image from URL' });
+        }
+
+        // Limit response size: max 10MB
+        const contentLength = parseInt(response.headers.get('content-length'), 10);
+        if (contentLength && contentLength > 10 * 1024 * 1024) {
+            return res.status(400).json({ error: 'Image file exceeds maximum size of 10MB' });
         }
 
         const contentType = response.headers.get('content-type');
@@ -4363,13 +4932,30 @@ app.post('/api/upload/fetch-url', authRequired, async (req, res) => {
         ensureDirSync(dir);
         
         const filepath = path.join(dir, filename);
-        const dest = fs.createWriteStream(filepath);
+        
+        // Stream with 10MB hard cap (accounts for missing Content-Length)
+        const MAX_BYTES = 10 * 1024 * 1024;
+        let received = 0;
+        const hwm = 64 * 1024;
+        const dest = fs.createWriteStream(filepath, { highWaterMark: hwm });
+        response.body.on('data', (chunk) => {
+            received += chunk.length;
+            if (received > MAX_BYTES) {
+                response.body.destroy();
+                dest.destroy();
+                try { fs.unlinkSync(filepath); } catch {}
+            }
+        });
         response.body.pipe(dest);
 
         await new Promise((resolve, reject) => {
             dest.on('finish', resolve);
             dest.on('error', reject);
         });
+
+        if (received > MAX_BYTES) {
+            return res.status(400).json({ error: 'Image file exceeds maximum size of 10MB' });
+        }
 
         const localUrl = `/uploads/${filename}`;
         
@@ -4480,8 +5066,7 @@ app.post('/api/send-verification-code', smsLimiter, async (req, res) => {
             return res.json({
                 success: true,
                 message: '验证码已发送（模拟模式）',
-                expiresIn: 180,
-                mockCode: code
+                expiresIn: 180
             });
         }
         
@@ -4768,7 +5353,7 @@ app.delete('/api/appointments/:id', authRequired, requirePerm('appointment:delet
 });
 
 // Export appointments (CSV)
-app.get('/api/appointments/export', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.get('/api/appointments/export', authRequired, requirePerm('appointment:export'), async (req, res) => {
     try {
         const status = req.query.status;
         const sortOrder = parseInt(req.query.sort) || -1;
@@ -4882,7 +5467,7 @@ app.get('/api/config/efficiency-quiz', (req, res) => {
 });
 
 // Export Maturity Data
-app.get('/api/maturity/export', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.get('/api/maturity/export', authRequired, requirePerm('appointment:export'), async (req, res) => {
     try {
         const { format = 'xlsx' } = req.query; // 'xlsx' or 'csv'
         
@@ -5020,10 +5605,10 @@ app.get('/api/whitepaper/list', authRequired, requirePerm('appointment:list'), a
         const { page = 1, limit = 20, name, phone, whitepaperName, utm_source } = req.query;
         let query = {};
 
-        if (name) query.name = new RegExp(name, 'i');
-        if (phone) query.phone = new RegExp(phone, 'i');
-        if (whitepaperName) query.whitepaperName = new RegExp(whitepaperName, 'i');
-        if (utm_source) query.utm_source = new RegExp(utm_source, 'i');
+        if (name && name.length <= 100) query.name = new RegExp(escapeRegex(name), 'i');
+        if (phone && phone.length <= 20) query.phone = new RegExp(escapeRegex(phone), 'i');
+        if (whitepaperName && whitepaperName.length <= 100) query.whitepaperName = new RegExp(escapeRegex(whitepaperName), 'i');
+        if (utm_source && utm_source.length <= 50) query.utm_source = new RegExp(escapeRegex(utm_source), 'i');
 
         const skip = (page - 1) * limit;
         const total = await WhitepaperSubmission.countDocuments(query);
@@ -5045,15 +5630,15 @@ app.get('/api/whitepaper/list', authRequired, requirePerm('appointment:list'), a
     }
 });
 
-app.get('/api/whitepaper/export', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.get('/api/whitepaper/export', authRequired, requirePerm('appointment:export'), async (req, res) => {
     try {
         const { name, phone, whitepaperName, utm_source } = req.query;
         let query = {};
 
-        if (name) query.name = new RegExp(name, 'i');
-        if (phone) query.phone = new RegExp(phone, 'i');
-        if (whitepaperName) query.whitepaperName = new RegExp(whitepaperName, 'i');
-        if (utm_source) query.utm_source = new RegExp(utm_source, 'i');
+        if (name && name.length <= 100) query.name = new RegExp(escapeRegex(name), 'i');
+        if (phone && phone.length <= 20) query.phone = new RegExp(escapeRegex(phone), 'i');
+        if (whitepaperName && whitepaperName.length <= 100) query.whitepaperName = new RegExp(escapeRegex(whitepaperName), 'i');
+        if (utm_source && utm_source.length <= 50) query.utm_source = new RegExp(escapeRegex(utm_source), 'i');
 
         const submissions = await WhitepaperSubmission.find(query).sort({ submittedAt: -1 });
         
@@ -5165,7 +5750,7 @@ app.post('/api/efficiency-diagnosis', async (req, res) => {
 });
 
 // Export Efficiency Diagnosis Data
-app.get('/api/efficiency-diagnosis/export', authRequired, requirePerm('appointment:list'), async (req, res) => {
+app.get('/api/efficiency-diagnosis/export', authRequired, requirePerm('appointment:export'), async (req, res) => {
     try {
         const { format = 'xlsx' } = req.query;
         const submissions = await EfficiencySubmission.find().sort({ createdAt: -1 }).limit(1000);
@@ -5300,8 +5885,8 @@ app.get('/api/videos', async (req, res) => {
     try {
         const { keyword, category, featured, page, limit } = req.query;
         const query = {};
-        if (keyword) {
-            const regex = new RegExp(keyword, 'i');
+        if (keyword && keyword.length <= 200) {
+            const regex = new RegExp(escapeRegex(keyword), 'i');
             query.$or = [{ title: regex }, { description: regex }];
         }
         if (category && category !== 'all') {
@@ -5411,27 +5996,86 @@ app.get('/video/:slug/', async (req, res) => {
             document.head.appendChild(metaAi);
         }
 
-        // Schema.org JSON-LD
+        // Schema.org JSON-LD: VideoObject + FAQPage + BreadcrumbList
         let schemaScript = document.createElement('script');
         schemaScript.type = 'application/ld+json';
-        const videoSchema = {
-            "@context": "https://schema.org",
-            "@type": "VideoObject",
-            "name": video.title,
-            "description": video.description || video.title,
-            "thumbnailUrl": video.thumbnail ? (video.thumbnail.startsWith('http') ? video.thumbnail : `${SITE_URL}${video.thumbnail}`) : `${SITE_URL}/images/default-video.jpg`,
-            "uploadDate": video.publishDate,
-            "publisher": {
-                "@type": "Organization",
-                "name": "瑞华智策",
-                "logo": {
-                    "@type": "ImageObject",
-                    "url": `${SITE_URL}/images/logo.png`
+        
+        const thumbnailUrl = video.thumbnail
+            ? (video.thumbnail.startsWith('http') ? video.thumbnail : `${SITE_URL}${video.thumbnail}`)
+            : `${SITE_URL}/images/default-video.jpg`;
+
+        // Gather author info for schema
+        let authorName = video.speakerName || '瑞华智策';
+        if (video.speakers && video.speakers.length > 0 && video.speakers[0].authorId) {
+            authorName = video.speakers[0].authorId.name || authorName;
+        }
+
+        const schemas = [
+            {
+                "@context": "https://schema.org",
+                "@type": "VideoObject",
+                "name": video.title,
+                "description": video.geoSummary || video.description || video.title,
+                "thumbnailUrl": thumbnailUrl,
+                "uploadDate": video.publishDate || video.createdAt,
+                "duration": video.durationSeconds
+                    ? `PT${Math.floor(video.durationSeconds / 3600)}H${Math.floor((video.durationSeconds % 3600) / 60)}M${video.durationSeconds % 60}S`
+                    : undefined,
+                "author": { "@type": "Person", "name": authorName },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "瑞华智策",
+                    "logo": { "@type": "ImageObject", "url": `${SITE_URL}/images/logo.png` }
                 }
+            },
+            {
+                "@context": "https://schema.org",
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    { "@type": "ListItem", "position": 1, "name": "首页", "item": SITE_URL },
+                    { "@type": "ListItem", "position": 2, "name": "视频中心", "item": `${SITE_URL}/videos/` },
+                    { "@type": "ListItem", "position": 3, "name": video.title }
+                ]
             }
-        };
-        schemaScript.textContent = JSON.stringify(videoSchema);
+        ];
+
+        // Filter out undefined duration
+        if (!schemas[0].duration) delete schemas[0].duration;
+
+        // FAQPage if faqs exist
+        if (video.faqs && video.faqs.length > 0) {
+            schemas.push({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": video.faqs.map(f => ({
+                    "@type": "Question",
+                    "name": f.question,
+                    "acceptedAnswer": { "@type": "Answer", "text": f.answer }
+                }))
+            });
+        }
+
+        schemaScript.textContent = JSON.stringify({ "@context": "https://schema.org", "@graph": schemas });
         document.head.appendChild(schemaScript);
+
+        // OG tags for social sharing
+        const ogVideoTags = [
+            ['og:title', titleText],
+            ['og:description', video.geoSummary || video.description || video.title],
+            ['og:image', thumbnailUrl],
+            ['og:type', 'video.other'],
+            ['og:url', `${SITE_URL}/video/${video.slug}/`]
+        ];
+        ogVideoTags.forEach(([prop, content]) => {
+            if (!content) return;
+            let tag = document.querySelector(`meta[property="${prop}"]`);
+            if (!tag) {
+                tag = document.createElement('meta');
+                tag.setAttribute('property', prop);
+                document.head.appendChild(tag);
+            }
+            tag.setAttribute('content', content);
+        });
 
         // Pre-render core visual content
         const titleEl = document.getElementById('video-title');
@@ -5500,7 +6144,7 @@ app.get('/video/:slug/', async (req, res) => {
                             <i class="far fa-lightbulb text-brand-600 text-xs"></i>
                             <h3 class="text-brand-800 font-bold text-xs m-0 leading-none">内容摘要</h3>
                         </div>
-                        <p class="text-slate-700 text-xs leading-relaxed m-0">${video.geoSummary}</p>
+                        <p class="text-slate-700 text-xs leading-relaxed m-0">${escapeHtml(video.geoSummary)}</p>
                     </div>
                 `;
             }
@@ -5520,12 +6164,12 @@ app.get('/video/:slug/', async (req, res) => {
                     return `
                         <div class="border border-slate-200 rounded-xl overflow-hidden bg-white faq-item ${isHidden}">
                             <button class="w-full px-5 py-4 flex items-center justify-between text-left focus:outline-none hover:bg-slate-50 transition-colors" onclick="window.VideoDetail.toggleFaq(this)">
-                                <span class="font-bold text-slate-800 text-[15px] pr-4">${faq.question}</span>
+                                <span class="font-bold text-slate-800 text-[15px] pr-4">${escapeHtml(faq.question)}</span>
                                 <i class="fas fa-chevron-down text-slate-400 transition-transform duration-300 transform"></i>
                             </button>
                             <div class="faq-content overflow-hidden transition-all duration-300 ease-in-out max-h-0">
                                 <div class="p-5 pt-0 text-slate-600 text-sm leading-relaxed prose prose-sm max-w-none prose-slate border-t border-slate-100 mt-2">
-                                    ${faq.answer}
+                                    ${escapeHtml(faq.answer)}
                                 </div>
                             </div>
                         </div>

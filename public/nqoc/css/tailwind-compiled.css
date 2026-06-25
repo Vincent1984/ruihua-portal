@@ -3299,12 +3299,6 @@
   .bg-\[url\(\'https\:\/\/ruihua-portal\.tos-cn-shanghai\.volces\.com\/nqoc\/banner-back\.webp\'\)\] {
     background-image: url('https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/banner-back.webp');
   }
-  .bg-\[url\(\'https\:\/\/www\.transparenttextures\.com\/patterns\/carbon-fibre\.png\'\)\] {
-    background-image: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
-  }
-  .bg-\[url\(\'https\:\/\/www\.transparenttextures\.com\/patterns\/cubes\.png\'\)\] {
-    background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
-  }
   .from-\[\#0b0f19\] {
     --tw-gradient-from: #0b0f19;
     --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));

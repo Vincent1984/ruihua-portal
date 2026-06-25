@@ -6,6 +6,7 @@ const https = require('https');
 const url = require('url');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
+const dns = require('dns');
 
 // Limit config api to 60 requests per minute per IP
 const configLimiter = rateLimit({
@@ -16,39 +17,71 @@ const configLimiter = rateLimit({
 
 function checkVideoUrl(videoUrl) {
     return new Promise((resolve, reject) => {
-        try {
-            const parsedUrl = new url.URL(videoUrl);
-            const options = {
-                method: 'HEAD',
-                hostname: parsedUrl.hostname,
-                path: parsedUrl.pathname + parsedUrl.search,
-                timeout: 5000,
-                rejectUnauthorized: false // Bypass self-signed cert issues for external CDN URLs
-            };
-            const req = https.request(options, (res) => {
-                if (res.statusCode >= 200 && res.statusCode < 400) {
-                    const contentType = res.headers['content-type'] || '';
-                    if (contentType.includes('video/') || contentType.includes('application/x-mpegURL') || contentType.includes('application/vnd.apple.mpegurl')) {
-                        resolve(true);
-                    } else {
-                        reject(new Error('Invalid content type: ' + contentType));
-                    }
-                } else {
-                    reject(new Error('HTTP Status: ' + res.statusCode));
+        const doCheck = async () => {
+            try {
+                const parsedUrl = new url.URL(videoUrl);
+                
+                // Only allow HTTPS
+                if (parsedUrl.protocol !== 'https:') {
+                    return reject(new Error('Only HTTPS URLs are allowed'));
                 }
-            });
-            req.on('error', (e) => reject(e));
-            req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
-            req.end();
-        } catch (e) {
-            reject(e);
-        }
+
+                // Block internal / private IP hostnames
+                const hostname = parsedUrl.hostname;
+                if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]' ||
+                    hostname.match(/^10\./) || hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./) || hostname.match(/^192\.168\./) ||
+                    hostname.match(/^169\.254\./) || hostname === '0.0.0.0' || hostname === '[::]' ||
+                    hostname.endsWith('.local') || hostname.endsWith('.internal')) {
+                    return reject(new Error('Internal URLs are not allowed'));
+                }
+
+                // DNS-level check
+                try {
+                    const [ipv4, ipv6] = await Promise.all([
+                        new Promise((ok, fail) => dns.resolve4(hostname, (e, a) => (e ? fail(e) : ok(a)))).catch(() => []),
+                        new Promise((ok, fail) => dns.resolve6(hostname, (e, a) => (e ? fail(e) : ok(a)))).catch(() => [])
+                    ]);
+                    const allAddrs = [...ipv4, ...ipv6];
+                    const privateRE = /^(10\.|127\.|0\.)|(^172\.(1[6-9]|2[0-9]|3[0-1])\.)|(^192\.168\.)|(^169\.254\.)|(^fc00:|^fd00:|^fe80:)|(^::1$)|(^::$)/;
+                    for (const addr of allAddrs) {
+                        if (privateRE.test(addr)) {
+                            return reject(new Error('URL resolves to a private IP address'));
+                        }
+                    }
+                } catch (_) { /* DNS check best-effort */ }
+
+                const options = {
+                    method: 'HEAD',
+                    hostname: parsedUrl.hostname,
+                    path: parsedUrl.pathname + parsedUrl.search,
+                    timeout: 5000
+                };
+                const req = https.request(options, (res) => {
+                    if (res.statusCode >= 200 && res.statusCode < 400) {
+                        const contentType = res.headers['content-type'] || '';
+                        if (contentType.includes('video/') || contentType.includes('application/x-mpegURL') || contentType.includes('application/vnd.apple.mpegurl')) {
+                            resolve(true);
+                        } else {
+                            reject(new Error('Invalid content type: ' + contentType));
+                        }
+                    } else {
+                        reject(new Error('HTTP Status: ' + res.statusCode));
+                    }
+                });
+                req.on('error', (e) => reject(e));
+                req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
+                req.end();
+            } catch (e) {
+                reject(e);
+            }
+        };
+        doCheck();
     });
 }
 
 // Generate signed script signature to prevent frontend tampering
 function generateSignature(videoId) {
-    const secret = process.env.JWT_SECRET || 'ruihua_secure_key_2026_!@#';
+    const secret = process.env.JWT_SECRET || process.env.SECRET_KEY || crypto.randomUUID();
     const timestamp = Date.now();
     const hash = crypto.createHmac('sha256', secret)
                        .update(`${videoId}:${timestamp}`)

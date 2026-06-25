@@ -15,6 +15,7 @@
     color: #475569; /* slate-600 */
     font-weight: 500;
     transition: all 0.2s;
+    white-space: nowrap;
 }
 
 .nav-link:hover {
@@ -112,3 +113,41 @@
 .tab-content.hidden{display:none !important}
 .tab-content.block{display:block !important}
 [hidden]{display:none !important}
+
+/* Custom Dark Color Variants */
+.bg-dark-lighter {
+    --tw-bg-opacity: 1;
+    background-color: rgb(30 15 65 / var(--tw-bg-opacity, 1));
+}
+.bg-dark-deeper {
+    --tw-bg-opacity: 1;
+    background-color: rgb(8 2 20 / var(--tw-bg-opacity, 1));
+}
+
+/* Pulse Slow Animation */
+@keyframes pulse-slow {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+.animate-pulse-slow {
+    animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Brand Color Opacity Variants (arbitrary opacity modifiers not in pre-built CSS) */
+.bg-brand-800\/10 {
+    background-color: rgb(76 29 149 / 0.1);
+}
+.bg-brand-100\/30 {
+    background-color: rgb(237 233 254 / 0.3);
+}
+.bg-brand-50\/60 {
+    background-color: rgb(245 243 255 / 0.6);
+}
+
+/* Line Clamp Responsive Override */
+.md\:line-clamp-none {
+    overflow: visible;
+    display: block;
+    -webkit-line-clamp: unset;
+}

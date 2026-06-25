@@ -506,8 +506,7 @@ async function deleteRecord(id) {
     }
 }
 
-function exportData() {
-    const token = sessionStorage.getItem('token');
+async function exportData() {
     const orgName = document.getElementById('searchOrgName').value;
     const name = document.getElementById('searchName').value;
     const phone = document.getElementById('searchPhone').value;
@@ -522,13 +521,24 @@ function exportData() {
     if (channel) query.append('channel', channel);
     if (startDate) query.append('startDate', startDate);
     if (endDate) query.append('endDate', endDate);
-    
-    // We append the token to the URL so the browser can download it directly
-    // Note: the backend middleware expects it in the header, but for a direct download link,
-    // we must support token in query params.
-    query.append('token', token);
 
-    window.open(`/api/admin/nqoc/survey/submissions/export?${query.toString()}`, '_blank');
+    const url = `/api/admin/nqoc/survey/submissions/export?${query.toString()}`;
+    try {
+        const response = await fetch(url, { credentials: 'same-origin' });
+        if (!response.ok) {
+            alert('导出失败，请稍后重试');
+            return;
+        }
+        const blob = await response.blob();
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `调查问卷_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(downloadUrl);
+    } catch (e) {
+        alert('导出失败: ' + e.message);
+    }
 }
 
 // --- Channels Management ---

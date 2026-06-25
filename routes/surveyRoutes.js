@@ -200,7 +200,7 @@ module.exports = function(app, authRequired, requirePerm, logOp) {
     });
 
     // 4. Admin: Export to Excel
-    app.get('/api/admin/survey/export', authRequired, requirePerm('appointment:list'), async (req, res) => {
+    app.get('/api/admin/survey/export', authRequired, requirePerm('appointment:export'), async (req, res) => {
         try {
             const filter = {};
             if (req.query.channel) {

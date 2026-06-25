@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const articleSchema = new mongoose.Schema({
   title: String,
   category: String, // 'whitepaper', 'tech', 'ceo', 'industry'
-  slug: { type: String, unique: true }, // 添加slug字段，用于伪静态链接
+  slug: { type: String, unique: true, sparse: true }, // 添加slug字段，用于伪静态链接（sparse 允许多篇无 slug 文章并存）
  summary: String, // 现作为 GEO 摘要 (核心内容快读)
   seoDescription: String, // 新增：SEO 专属摘要 (Meta Description)
   content: String,  // 可以是 HTML 内容

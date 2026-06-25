@@ -7,27 +7,7 @@
 <title>中国新质组织研究项目</title>
     <meta name="keywords" content="新质组织, 新质生产力, 组织变革, 中国新质组织研究项目">
     <meta name="description" content="中国新质组织研究项目由人瑞人才与瑞华智策联合发起，中国经营报联合主办，洞察 AI 时代组织发展趋势，赋能中国企业组织进化。">
-    <!-- Tailwind CSS CDN for Development/Standalone use -->
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            500: '#8b5cf6',
-                            600: '#7c3aed'
-                        },
-                        cyber: {
-                            cyan: '#00f0ff',
-                            purple: '#b026ff'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-<!-- Main Styles -->
+    <!-- Main Styles -->
 <link href="/css/styles.css" rel="stylesheet"/>
 <!-- Font Awesome -->
 <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
@@ -40,8 +20,9 @@
    hm.src = "https://hm.baidu.com/hm.js?3302f271fa7fe8d2ddc6176b39359827"; 
    var s = document.getElementsByTagName("script")[0]; 
    s.parentNode.insertBefore(hm, s); 
- })(); 
+ })();
  </script>
+<link href="/nqoc/css/tailwind-compiled.css" rel="stylesheet"/>
 </head>
 <body class="antialiased">
 <!-- Multi-screen Side Navigation Drawer -->
@@ -81,7 +62,6 @@
 <a class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition" href="/nqoc/cases">案例分享</a>
 <a class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition" href="/nqoc/insights">新质观点</a>
 <a class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition" href="/nqoc/events">研讨活动</a>
-<a class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition" href="/nqoc/whitepaper">研究成果</a>
 <a class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition" href="/nqoc/about">关于我们</a>
 </div>
 <a class="btn-primary ml-6 !py-2 !px-4 !text-sm whitespace-nowrap" href="/nqoc/survey">参与调研</a>
@@ -130,8 +110,8 @@ function toggleNqocMobileMenu() {
                     洞察 AI 时代组织发展趋势，赋能中国企业组织进化
                 </p>
 <div class="flex flex-wrap justify-center md:justify-start gap-4 mb-8 animate-on-scroll" style="animation-delay: 200ms;">
-<a class="btn-shiny" href="/nqoc/survey.html"><span>参与调研</span> <i class="fas fa-arrow-right"></i></a>
-<a class="btn-outline" href="/nqoc/awards.html">评选申报</a>
+<a class="btn-shiny" href="/nqoc/survey"><span>参与调研</span> <i class="fas fa-arrow-right"></i></a>
+<a class="btn-outline" href="/nqoc/awards">评选申报</a>
 </div>
 <div class="grid grid-cols-3 gap-2 md:gap-6 animate-on-scroll text-center md:text-left" style="animation-delay: 300ms;">
     <div class="data-anchor-item">
@@ -175,7 +155,7 @@ function toggleNqocMobileMenu() {
 <!-- 02 Industry Trends -->
 <section class="py-24 relative bg-[#050814] overflow-hidden" id="trends">
 <!-- Abstract Cyber Background -->
-<div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none"></div>
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(99,102,241,0.3) 2px,rgba(99,102,241,0.3) 4px),repeating-linear-gradient(90deg,transparent,transparent 2px,rgba(99,102,241,0.2) 2px,rgba(99,102,241,0.2) 4px);background-size:4px 4px,4px 4px"></div>
 <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-[#7c4dff]/50 to-transparent"></div>
 <div class="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[500px] bg-gradient-to-b from-[#7c4dff]/10 to-transparent blur-[120px] pointer-events-none"></div>
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -414,7 +394,7 @@ function toggleNqocMobileMenu() {
 </section>
 <!-- 06 Research Contribution -->
 <section class="py-24 relative overflow-hidden" id="contribution">
-<div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 pointer-events-none"></div>
+<div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image:repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(99,102,241,0.25) 8px,rgba(99,102,241,0.25) 10px),repeating-linear-gradient(-45deg,transparent,transparent 8px,rgba(99,102,241,0.15) 8px,rgba(99,102,241,0.15) 10px);background-size:14px 14px"></div>
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 <div class="text-center mb-16 animate-on-scroll">
 <h2 class="text-3xl md:text-3xl md:text-4xl font-bold text-white heading-decorative">研究价值</h2>
@@ -986,17 +966,17 @@ function toggleNqocMobileMenu() {
 <div class="glass-panel p-8 max-w-md w-full text-left">
 <h4 class="text-xl font-bold text-white mb-2">参与调研</h4>
 <p class="text-sm text-slate-400 mb-6">5月22日通道开启，获取组织能力深度诊断。</p>
-<a class="btn-primary w-full justify-center" href="/nqoc/survey.html">进入调研入口</a>
+<a class="btn-primary w-full justify-center" href="/nqoc/survey">进入调研入口</a>
 </div>
 <div class="glass-panel p-8 max-w-md w-full text-left">
 <h4 class="text-xl font-bold text-white mb-2">评选申报</h4>
 <p class="text-sm text-slate-400 mb-6">诚邀标杆企业参与优秀案例征集。</p>
-<a class="btn-outline w-full justify-center hover:scale-105 hover:bg-white/10 hover:border-white/50 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300" href="/nqoc/awards.html">提交申报材料</a>
+<a class="btn-outline w-full justify-center hover:scale-105 hover:bg-white/10 hover:border-white/50 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300" href="/nqoc/awards">提交申报材料</a>
 </div>
 <div class="glass-panel p-8 max-w-md w-full text-left">
 <h4 class="text-xl font-bold text-white mb-2">申请智库专家</h4>
 <p class="text-sm text-slate-400 mb-6">加入专家智库，共建新质组织未来生态。</p>
-<button class="btn-outline w-full justify-center hover:scale-105 hover:bg-white/10 hover:border-white/50 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300" onclick="openExpertModal()">立即申请</button>
+<button class="btn-outline w-full justify-center hover:scale-105 hover:bg-white/10 hover:border-white/50 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300" onclick="window.location.href='/nqoc/expert-apply'">立即申请</button>
 </div>
 </div>
 

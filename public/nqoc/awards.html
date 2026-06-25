@@ -7,25 +7,6 @@
     <meta name="keywords" content="新质组织评选, 企业评选, 组织创新">
     <meta name="description" content="参与2025-2026中国企业新质组织评选，展示企业在核心价值观、商业模式、生产方式等维度的组织创新成果，获取行业权威认可与专业诊断。">
     <link rel="canonical" href="https://www.ruihuaconsulting.com/nqoc/awards">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            500: '#8b5cf6',
-                            600: '#7c3aed'
-                        },
-                        cyber: {
-                            cyan: '#00f0ff',
-                            purple: '#b026ff'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/nqoc/css/style.css">
@@ -38,6 +19,9 @@
    s.parentNode.insertBefore(hm, s); 
  })(); 
  </script>
+
+    <link rel="stylesheet" href="/nqoc/css/tailwind-compiled.css">
+
 </head>
 <body class="antialiased bg-[#080b14] text-white min-h-screen flex flex-col">
 
@@ -791,7 +775,7 @@
                         <div class="glass-panel p-6 flex flex-col group border border-white/5 hover:border-[var(--nqoc-brand)]/50 transition-all duration-300">
                             <div class="bg-white/5 rounded-xl p-4 mb-6 flex justify-center items-center h-32 relative overflow-hidden">
                                 <div class="absolute top-2 right-2 bg-[var(--nqoc-brand)]/20 text-[var(--nqoc-brand-light)] text-xs px-2 py-1 rounded border border-[var(--nqoc-brand)]/30">${item.awardCategory}</div>
-                                <img src="https://via.placeholder.com/200x80/111424/ffffff?text=${encodeURIComponent(item.orgName)}" alt="企业LOGO" class="max-h-full object-contain filter grayscale group-hover:grayscale-0 transition-all">
+                                ${item.logo ? `<img src="${item.logo}" alt="${item.orgName} LOGO" loading="lazy" class="max-h-full object-contain filter grayscale group-hover:grayscale-0 transition-all">` : `<div class="max-h-full flex items-center justify-center text-white/80 font-bold text-lg px-2 text-center">${item.orgName}</div>`}
                             </div>
                             <h3 class="text-xl font-bold text-white mb-2">${item.orgName}</h3>
                             <p class="text-sm text-slate-400 mb-6 line-clamp-3 flex-grow">
@@ -808,7 +792,7 @@
                                         <i class="fas fa-qrcode"></i> 投票
                                         <!-- QR Tooltip -->
                                         <div class="absolute bottom-full right-0 mb-2 w-32 p-2 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover/qr:opacity-100 group-hover/qr:visible transition-all z-20">
-                                            <img src="https://via.placeholder.com/100x100/eeeeee/333333?text=QR" alt="投票二维码" class="w-full">
+                                            <div class="w-full aspect-square flex items-center justify-center bg-slate-100 rounded text-slate-400"><i class="fas fa-qrcode text-5xl"></i></div>
                                             <div class="text-[10px] text-center text-slate-800 mt-1 font-bold">微信扫码投票</div>
                                         </div>
                                     </button>

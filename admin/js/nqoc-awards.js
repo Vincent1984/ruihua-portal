@@ -232,7 +232,7 @@ async function updateFrontendDetails(id, description, voteCount) {
     }
 }
 
-function exportData() {
+async function exportData() {
     const keyword = document.getElementById('searchKeyword').value;
     const channel = document.getElementById('searchChannel').value;
     const startDate = document.getElementById('searchStartDate').value;
@@ -245,10 +245,23 @@ function exportData() {
         endDate: endDate || ''
     });
 
-    // We can use window.location.href to trigger download if we have an export endpoint
-    // Let's create an export endpoint in server.js
-    const url = `/api/admin/nqoc/awards/export?${query.toString()}&token=${sessionStorage.getItem('token')}`;
-    window.open(url, '_blank');
+    const url = `/api/admin/nqoc/awards/export?${query.toString()}`;
+    try {
+        const response = await fetch(url, { credentials: 'same-origin' });
+        if (!response.ok) {
+            alert('导出失败，请稍后重试');
+            return;
+        }
+        const blob = await response.blob();
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `申报管理_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(downloadUrl);
+    } catch (e) {
+        alert('导出失败: ' + e.message);
+    }
 }
 
 // --- Channel Management ---

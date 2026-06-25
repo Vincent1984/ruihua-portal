@@ -6,6 +6,10 @@ const { defaultTemplateByType } = require('../utils/activityTemplateUtils');
 
 const TYPES = ['hr_forum', 'city_salon', 'closed_door'];
 
+function escapeRegex(str) {
+    return String(str || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 async function ensureBuiltinTemplates() {
   for (const t of TYPES) {
     const preset = defaultTemplateByType(t);
@@ -45,7 +49,7 @@ module.exports = function registerActivityTemplateRoutes(app, authRequired, requ
     await ensureBuiltinTemplates();
     const { keyword = '', activityType = '', status = '', page = 1, limit = 20 } = req.query;
     const query = {};
-    if (keyword) query.name = new RegExp(keyword, 'i');
+    if (keyword && keyword.length <= 100) query.name = new RegExp(escapeRegex(keyword), 'i');
     if (activityType) query.activityType = activityType;
     if (status) query.status = status;
     const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
@@ -182,7 +186,7 @@ module.exports = function registerActivityTemplateRoutes(app, authRequired, requ
     res.json({ success: true, data: { viewed, submitted, conversionRate, activityCount: activities.length } });
   });
 
-  app.get('/api/activity-template/:id/export', authRequired, requirePerm('appointment:list'), async (req, res) => {
+  app.get('/api/activity-template/:id/export', authRequired, requirePerm('appointment:export'), async (req, res) => {
     const { format = 'xlsx' } = req.query;
     const item = await ActivityTemplate.findById(req.params.id);
     if (!item) return res.status(404).json({ success: false, error: '模板不存在' });

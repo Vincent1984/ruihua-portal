@@ -262,7 +262,7 @@ async function loadVideos(page=1) {
       <tr>
         <td>
           <div class="d-flex align-items-center gap-2">
-            <img src="${v.thumbnail || 'https://placehold.co/80x45'}" alt="" style="width:80px;height:45px;object-fit:cover;border-radius:6px;border:1px solid #eee">
+            <img src="${v.thumbnail || '/img/fallback/video'}" alt="" loading="lazy" style="width:80px;height:45px;object-fit:cover;border-radius:6px;border:1px solid #eee">
             <div>
               <div class="fw-bold">${v.title || ''}</div>
               <div class="text-muted small text-truncate" style="max-width:420px">${v.description || ''}</div>

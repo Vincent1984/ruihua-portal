@@ -6,6 +6,10 @@ const ffmpeg = require('fluent-ffmpeg');
 const path = require('path');
 const fs = require('fs');
 
+function escapeRegex(str) {
+    return String(str || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 module.exports = function(app, authRequired, requirePerm, logOp, generateDeepseekText) {
 
     // ==========================================
@@ -77,7 +81,7 @@ module.exports = function(app, authRequired, requirePerm, logOp, generateDeepsee
     // ==========================================
     // 2. AI Tools API
     // ==========================================
-    app.post('/api/tools/video/slug', authRequired, async (req, res) => {
+    app.post('/api/tools/video/slug', authRequired, requirePerm('ai:use'), async (req, res) => {
         try {
             const { title } = req.body;
             if (!title) return res.status(400).json({ error: '需要提供标题' });
@@ -140,7 +144,7 @@ Output: hr-strategy-forum-video`;
         }
     });
 
-    app.post('/api/tools/video/tags', authRequired, async (req, res) => {
+    app.post('/api/tools/video/tags', authRequired, requirePerm('ai:use'), async (req, res) => {
         try {
             const { title, description } = req.body;
             const systemPrompt = `You are an AI tag generator for videos. Generate exactly 3 highly relevant tags based on the provided title and description. Each tag MUST be exactly 4 Chinese characters long. Return a JSON array of objects with 'name' and 'score' (1-100). Do not use markdown blocks, just the JSON. Format: [{"name":"人工智能", "score":95}]`;
@@ -158,7 +162,7 @@ Output: hr-strategy-forum-video`;
         }
     });
 
-    app.post('/api/tools/video/seo', authRequired, async (req, res) => {
+    app.post('/api/tools/video/seo', authRequired, requirePerm('ai:use'), async (req, res) => {
         try {
             const { title, description, content } = req.body;
             const systemPrompt = `You are an expert in SEO and Generative Engine Optimization (GEO). Based on the video information, generate optimized metadata in JSON format.
@@ -183,7 +187,7 @@ Do not include any markdown, just return the raw JSON object.`;
         }
     });
 
-    app.post('/api/tools/video/score', authRequired, async (req, res) => {
+    app.post('/api/tools/video/score', authRequired, requirePerm('ai:use'), async (req, res) => {
         try {
             const { title, description, content, tags, metaTitle, metaDescription, geoSummary } = req.body;
             const systemPrompt = `你是一个专业的中国生成式搜索引擎优化(GEO)和传统SEO专家。
@@ -239,7 +243,7 @@ Do not include any markdown, just return the raw JSON object.`;
         }
     });
 
-    app.post('/api/tools/video/faq', authRequired, async (req, res) => {
+    app.post('/api/tools/video/faq', authRequired, requirePerm('ai:use'), async (req, res) => {
         try {
             const { title, description, content } = req.body;
             if (!title) return res.status(400).json({ error: '需要提供标题' });
@@ -268,7 +272,7 @@ Do not output any other text or markdown formatting.`;
     // ==========================================
     // 3. Video Metadata API (Duration)
     // ==========================================
-    app.post('/api/tools/video/parse-metadata', authRequired, async (req, res) => {
+    app.post('/api/tools/video/parse-metadata', authRequired, requirePerm('video:edit'), async (req, res) => {
         try {
             const { videoUrl } = req.body;
             if (!videoUrl) return res.status(400).json({ error: 'Missing videoUrl' });
@@ -300,10 +304,10 @@ Do not output any other text or markdown formatting.`;
     // ==========================================
     // 4. Authors / Experts Integration API
     // ==========================================
-    app.get('/api/authors/search', authRequired, async (req, res) => {
+    app.get('/api/authors/search', authRequired, requirePerm('article:list'), async (req, res) => {
         try {
             const { q } = req.query;
-            const query = q ? { name: new RegExp(q, 'i') } : {};
+            const query = q && q.length <= 100 ? { name: new RegExp(escapeRegex(q), 'i') } : {};
             const authors = await Author.find(query).limit(20).select('name desc avatar');
             res.json({ success: true, data: authors });
         } catch (e) {
