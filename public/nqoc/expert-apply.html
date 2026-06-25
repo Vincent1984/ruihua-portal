@@ -27,73 +27,25 @@
         .nav-back { color: var(--muted); font-size: 14px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
         .nav-back:hover { color: var(--primary); }
         .container { max-width: 750px; margin: 0 auto; padding: 24px 16px 80px; }
-        .page-header { text-align: center; margin-bottom: 32px; padding: 72px 24px 64px; border-radius: 20px; position: relative; overflow: hidden; isolation: isolate;
-            background: #090914;
-            background-image:
-                radial-gradient(ellipse 800px 600px at 20% -20%, rgba(99,102,241,0.35), transparent 60%),
-                radial-gradient(ellipse 600px 500px at 80% 120%, rgba(236,72,153,0.25), transparent 60%),
-                radial-gradient(ellipse 500px 400px at 50% 50%, rgba(139,92,246,0.2), transparent 50%),
-                conic-gradient(from 0deg at 50% 50%, rgba(99,102,241,0.08) 0deg, rgba(236,72,153,0.06) 90deg, rgba(139,92,246,0.08) 180deg, rgba(59,130,246,0.06) 270deg, rgba(99,102,241,0.08) 360deg);
+        .page-header { text-align: center; margin-bottom: 32px; padding: 60px 24px 50px; border-radius: 20px; position: relative; overflow: hidden; isolation: isolate;
+            background: linear-gradient(135deg, #f0f4ff 0%, #f8faff 50%, #f3f0ff 100%);
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.02);
         }
-        @keyframes bannerGlow {
-            0%, 100% { opacity: 0.6; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.08); }
-        }
-        @keyframes bannerFloat {
-            0%, 100% { transform: translateY(0) translateX(0); }
-            25% { transform: translateY(-8px) translateX(4px); }
-            50% { transform: translateY(-4px) translateX(-4px); }
-            75% { transform: translateY(-12px) translateX(2px); }
-        }
-        @keyframes bannerShimmer {
-            0% { transform: translateX(-100%) skewX(-15deg); }
-            100% { transform: translateX(200%) skewX(-15deg); }
-        }
-        .page-header::before { content: ''; position: absolute; z-index: 0; pointer-events: none;
-            top: -60%; left: -60%; width: 220%; height: 220%;
-            background:
-                radial-gradient(circle at 25% 35%, rgba(168,85,247,0.3) 0%, transparent 25%),
-                radial-gradient(circle at 75% 25%, rgba(59,130,246,0.35) 0%, transparent 25%),
-                radial-gradient(circle at 40% 60%, rgba(236,72,153,0.25) 0%, transparent 20%),
-                radial-gradient(circle at 60% 45%, rgba(139,92,246,0.3) 0%, transparent 22%);
-            animation: bannerGlow 6s ease-in-out infinite;
-        }
-        .page-header::after { content: ''; position: absolute; z-index: 0; pointer-events: none; inset: 0;
-            background-image:
-                radial-gradient(3px 3px at 15% 25%, rgba(255,255,255,0.9) 50%, transparent 50%),
-                radial-gradient(2px 2px at 25% 55%, rgba(168,85,247,0.8) 50%, transparent 50%),
-                radial-gradient(3px 3px at 45% 15%, rgba(255,255,255,0.7) 50%, transparent 50%),
-                radial-gradient(2px 2px at 55% 75%, rgba(59,130,246,0.8) 50%, transparent 50%),
-                radial-gradient(4px 4px at 70% 30%, rgba(255,255,255,0.85) 50%, transparent 50%),
-                radial-gradient(2px 2px at 80% 65%, rgba(236,72,153,0.7) 50%, transparent 50%),
-                radial-gradient(3px 3px at 90% 20%, rgba(139,92,246,0.8) 50%, transparent 50%),
-                radial-gradient(2px 2px at 35% 85%, rgba(255,255,255,0.6) 50%, transparent 50%),
-                radial-gradient(3px 3px at 10% 70%, rgba(99,102,241,0.75) 50%, transparent 50%),
-                radial-gradient(2px 2px at 60% 10%, rgba(255,255,255,0.7) 50%, transparent 50%);
-            background-size: 250px 250px, 300px 300px, 280px 280px, 320px 320px, 260px 260px, 300px 300px, 280px 280px, 310px 310px, 270px 270px, 290px 290px;
-            background-position: 0% 0%, 20% 40%, 40% 10%, 50% 60%, 70% 20%, 80% 50%, 90% 10%, 30% 80%, 10% 60%, 60% 0%;
-            animation: bannerFloat 8s ease-in-out infinite;
-        }
-        /* shimmer sweep */
-        .page-header .shimmer { position: absolute; z-index: 1; pointer-events: none; top: 0; left: 0; width: 60%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
-            animation: bannerShimmer 5s ease-in-out infinite;
-        }
-        .page-header > * { position: relative; z-index: 3; }
-        .page-header h1 { font-size: clamp(22px, 5vw, 32px); font-weight: 800; margin: 0 0 10px; color: #fff; letter-spacing: 1px;
-            text-shadow: 0 0 60px rgba(139,92,246,0.6), 0 0 120px rgba(99,102,241,0.3), 0 2px 4px rgba(0,0,0,0.5);
-        }
-        .banner-accent { width: 80px; height: 4px; margin: 0 auto 16px; position: relative; z-index: 3;
-            background: linear-gradient(90deg, #818cf8, #c084fc, #ec4899, #c084fc, #818cf8);
-            background-size: 200% 100%;
-            border-radius: 2px;
-            animation: accentShine 3s ease-in-out infinite;
-        }
-        @keyframes accentShine {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-        .page-header .sub { font-size: clamp(13px, 2vw, 15px); color: rgba(199,210,254,0.9); line-height: 1.7; max-width: 420px; margin: 0 auto; }
+        .page-header::before, .page-header::after { content: ''; position: absolute; z-index: 0; pointer-events: none; border-radius: 999px; }
+        .page-header::before { width: 500px; height: 500px; top: -250px; left: -150px; background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%); }
+        .page-header::after { width: 400px; height: 400px; bottom: -200px; right: -100px; background: radial-gradient(circle, rgba(168,85,247,0.12) 0%, transparent 70%); }
+        
+        .banner-graphics { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+        .banner-graphics .shape-1 { position: absolute; right: 10%; top: 15%; width: 70px; height: 70px; border-radius: 16px; background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.1)); transform: rotate(45deg); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.5); }
+        .banner-graphics .shape-2 { position: absolute; left: 8%; bottom: 15%; width: 100px; height: 100px; border-radius: 50%; border: 3px solid rgba(99,102,241,0.1); }
+        .banner-graphics .shape-3 { position: absolute; right: 25%; bottom: 20%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; opacity: 0.4; }
+        .banner-graphics .shape-3 span { width: 4px; height: 4px; border-radius: 50%; background: #6366f1; }
+
+        .page-header > * { position: relative; z-index: 1; }
+        .page-header h1 { font-size: clamp(24px, 5vw, 32px); font-weight: 800; margin: 0 0 16px; color: #1e1b4b; letter-spacing: 0.5px; }
+        .banner-accent { display: none; }
+        .page-header .sub { font-size: clamp(14px, 2vw, 15px); color: #4f46e5; font-weight: 500; line-height: 1.6; max-width: 520px; margin: 0 auto; background: rgba(255,255,255,0.7); padding: 6px 16px; border-radius: 999px; display: inline-block; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
         .card { background: #fff; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04); padding: 32px 28px; margin-bottom: 20px; }
         @media (max-width: 640px) { .card { padding: 24px 16px; border-radius: 12px; } .checkbox-group { grid-template-columns: 1fr; } }
         .field { margin-bottom: 28px; }
@@ -177,9 +129,12 @@
 
 <div class="container">
     <div class="page-header">
-        <div class="shimmer"></div>
+        <div class="banner-graphics">
+            <div class="shape-1"></div>
+            <div class="shape-2"></div>
+            <div class="shape-3"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        </div>
         <h1>中国新质组织研究智库专家申请</h1>
-        <div class="banner-accent"></div>
         <div class="sub">您提交的信息仅用于智库内部备案，严格保密。</div>
     </div>
 
