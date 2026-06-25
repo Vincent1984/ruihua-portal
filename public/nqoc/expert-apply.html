@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中国新质组织研究项目专家填写资料 - 瑞华智策</title>
-    <meta name="description" content="中国新质组织研究项目专家申请表，您的所有信息仅用于智库内部备案，会完全对第三方保密。" />
+    <title>中国新质组织研究智库专家申请 - 瑞华智策</title>
+    <meta name="description" content="中国新质组织研究项目专家申请表，您提交的信息仅用于智库内部备案，严格保密。" />
     <link rel="icon" href="/images/logo.png">
     <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.bootcdn.net/ajax/libs/quill/1.3.7/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/tailwind.css" />
     <script src="https://cdn.bootcdn.net/ajax/libs/quill/1.3.7/quill.min.js"></script>
     <style>
         :root {
@@ -25,57 +26,76 @@
         .nav-logo { height: 36px; }
         .nav-back { color: var(--muted); font-size: 14px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
         .nav-back:hover { color: var(--primary); }
-        .container { max-width: 800px; margin: 0 auto; padding: 24px 16px 80px; }
-        .page-header { text-align: center; margin-bottom: 32px; padding: 56px 20px 48px; border-radius: 20px; position: relative; overflow: hidden; isolation: isolate;
-            background: #0a0826;
+        .container { max-width: 750px; margin: 0 auto; padding: 24px 16px 80px; }
+        .page-header { text-align: center; margin-bottom: 32px; padding: 72px 24px 64px; border-radius: 20px; position: relative; overflow: hidden; isolation: isolate;
+            background: #090914;
             background-image:
-                /* micro dot pattern */
-                radial-gradient(circle, rgba(139,92,246,0.15) 1px, transparent 1px),
-                /* soft gradient sweep */
-                linear-gradient(160deg, #0a0826 0%, #15103a 30%, #1c1252 50%, #241466 70%, #15103a 100%);
-            background-size: 24px 24px, 100% 100%;
-            background-position: 0 0, 0 0;
+                radial-gradient(ellipse 800px 600px at 20% -20%, rgba(99,102,241,0.35), transparent 60%),
+                radial-gradient(ellipse 600px 500px at 80% 120%, rgba(236,72,153,0.25), transparent 60%),
+                radial-gradient(ellipse 500px 400px at 50% 50%, rgba(139,92,246,0.2), transparent 50%),
+                conic-gradient(from 0deg at 50% 50%, rgba(99,102,241,0.08) 0deg, rgba(236,72,153,0.06) 90deg, rgba(139,92,246,0.08) 180deg, rgba(59,130,246,0.06) 270deg, rgba(99,102,241,0.08) 360deg);
         }
-        /* blurred glow orbs — Feishu-style glass-morphism */
+        @keyframes bannerGlow {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.08); }
+        }
+        @keyframes bannerFloat {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            25% { transform: translateY(-8px) translateX(4px); }
+            50% { transform: translateY(-4px) translateX(-4px); }
+            75% { transform: translateY(-12px) translateX(2px); }
+        }
+        @keyframes bannerShimmer {
+            0% { transform: translateX(-100%) skewX(-15deg); }
+            100% { transform: translateX(200%) skewX(-15deg); }
+        }
         .page-header::before { content: ''; position: absolute; z-index: 0; pointer-events: none;
+            top: -60%; left: -60%; width: 220%; height: 220%;
             background:
-                /* top-left pink-purple orb */
-                radial-gradient(circle at 20% 15%, rgba(168,85,247,0.45) 0%, rgba(168,85,247,0.1) 35%, transparent 60%),
-                /* top-right blue orb */
-                radial-gradient(circle at 75% 10%, rgba(59,130,246,0.4) 0%, rgba(59,130,246,0.08) 40%, transparent 65%),
-                /* center-bottom purple glow */
-                radial-gradient(circle at 55% 80%, rgba(139,92,246,0.5) 0%, rgba(139,92,246,0.1) 35%, transparent 55%),
-                /* left-mid indigo accent */
-                radial-gradient(circle at 10% 55%, rgba(99,102,241,0.35) 0%, rgba(99,102,241,0.06) 40%, transparent 60%);
-            filter: blur(20px);
-            width: 120%; height: 120%; top: -10%; left: -10%;
-            animation: feishuOrb 12s ease-in-out infinite alternate;
+                radial-gradient(circle at 25% 35%, rgba(168,85,247,0.3) 0%, transparent 25%),
+                radial-gradient(circle at 75% 25%, rgba(59,130,246,0.35) 0%, transparent 25%),
+                radial-gradient(circle at 40% 60%, rgba(236,72,153,0.25) 0%, transparent 20%),
+                radial-gradient(circle at 60% 45%, rgba(139,92,246,0.3) 0%, transparent 22%);
+            animation: bannerGlow 6s ease-in-out infinite;
         }
-        @keyframes feishuOrb {
-            0% { transform: translate(0,0) scale(1); opacity: 0.85; }
-            33% { transform: translate(3%,-2%) scale(1.04); opacity: 1; }
-            66% { transform: translate(-1%,3%) scale(0.97); opacity: 0.9; }
-            100% { transform: translate(2%,-1%) scale(1.02); opacity: 0.95; }
-        }
-        /* tech-circuit line pattern overlay */
-        .page-header::after { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0.4;
+        .page-header::after { content: ''; position: absolute; z-index: 0; pointer-events: none; inset: 0;
             background-image:
-                /* horizontal fine lines */
-                repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(139,92,246,0.06) 39px, rgba(139,92,246,0.06) 40px),
-                /* vertical fine lines */
-                repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(139,92,246,0.04) 59px, rgba(139,92,246,0.04) 60px),
-                /* diagonal accent */
-                url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 200L200 0' stroke='rgba(139,92,246,0.06)' stroke-width='1'/%3E%3Ccircle cx='100' cy='100' r='80' fill='none' stroke='rgba(139,92,246,0.04)' stroke-width='0.5' stroke-dasharray='4 6'/%3E%3Ccircle cx='100' cy='100' r='50' fill='none' stroke='rgba(139,92,246,0.06)' stroke-width='0.5' stroke-dasharray='2 8'/%3E%3Cline x1='100' y1='0' x2='100' y2='200' stroke='rgba(139,92,246,0.03)' stroke-width='0.5'/%3E%3Cline x1='0' y1='100' x2='200' y2='100' stroke='rgba(139,92,246,0.03)' stroke-width='0.5'/%3E%3C/svg%3E");
-            background-size: 40px 40px, 60px 60px, 200px 200px;
-            background-position: 0 0, 0 0, center;
+                radial-gradient(3px 3px at 15% 25%, rgba(255,255,255,0.9) 50%, transparent 50%),
+                radial-gradient(2px 2px at 25% 55%, rgba(168,85,247,0.8) 50%, transparent 50%),
+                radial-gradient(3px 3px at 45% 15%, rgba(255,255,255,0.7) 50%, transparent 50%),
+                radial-gradient(2px 2px at 55% 75%, rgba(59,130,246,0.8) 50%, transparent 50%),
+                radial-gradient(4px 4px at 70% 30%, rgba(255,255,255,0.85) 50%, transparent 50%),
+                radial-gradient(2px 2px at 80% 65%, rgba(236,72,153,0.7) 50%, transparent 50%),
+                radial-gradient(3px 3px at 90% 20%, rgba(139,92,246,0.8) 50%, transparent 50%),
+                radial-gradient(2px 2px at 35% 85%, rgba(255,255,255,0.6) 50%, transparent 50%),
+                radial-gradient(3px 3px at 10% 70%, rgba(99,102,241,0.75) 50%, transparent 50%),
+                radial-gradient(2px 2px at 60% 10%, rgba(255,255,255,0.7) 50%, transparent 50%);
+            background-size: 250px 250px, 300px 300px, 280px 280px, 320px 320px, 260px 260px, 300px 300px, 280px 280px, 310px 310px, 270px 270px, 290px 290px;
+            background-position: 0% 0%, 20% 40%, 40% 10%, 50% 60%, 70% 20%, 80% 50%, 90% 10%, 30% 80%, 10% 60%, 60% 0%;
+            animation: bannerFloat 8s ease-in-out infinite;
         }
-        .page-header > * { position: relative; z-index: 2; }
-        .page-header h1 { font-size: clamp(16px, 4.5vw, 28px); font-weight: 700; margin: 0 0 10px; color: #fff; letter-spacing: 0.5px; text-shadow: 0 0 40px rgba(139,92,246,0.5), 0 2px 4px rgba(0,0,0,0.3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .page-header .sub { font-size: clamp(13px, 2vw, 15px); color: rgba(196,181,253,0.9); letter-spacing: 0.5px; }
-        /* decorative gold line */
-        .banner-accent { width: 48px; height: 3px; background: linear-gradient(90deg, transparent, #c4b5fd, #a78bfa, #c4b5fd, transparent); border-radius: 2px; margin: 0 auto 14px; position: relative; z-index: 2; }
+        /* shimmer sweep */
+        .page-header .shimmer { position: absolute; z-index: 1; pointer-events: none; top: 0; left: 0; width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+            animation: bannerShimmer 5s ease-in-out infinite;
+        }
+        .page-header > * { position: relative; z-index: 3; }
+        .page-header h1 { font-size: clamp(22px, 5vw, 32px); font-weight: 800; margin: 0 0 10px; color: #fff; letter-spacing: 1px;
+            text-shadow: 0 0 60px rgba(139,92,246,0.6), 0 0 120px rgba(99,102,241,0.3), 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .banner-accent { width: 80px; height: 4px; margin: 0 auto 16px; position: relative; z-index: 3;
+            background: linear-gradient(90deg, #818cf8, #c084fc, #ec4899, #c084fc, #818cf8);
+            background-size: 200% 100%;
+            border-radius: 2px;
+            animation: accentShine 3s ease-in-out infinite;
+        }
+        @keyframes accentShine {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .page-header .sub { font-size: clamp(13px, 2vw, 15px); color: rgba(199,210,254,0.9); line-height: 1.7; max-width: 420px; margin: 0 auto; }
         .card { background: #fff; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04); padding: 32px 28px; margin-bottom: 20px; }
-        @media (max-width: 640px) { .card { padding: 24px 16px; border-radius: 12px; } }
+        @media (max-width: 640px) { .card { padding: 24px 16px; border-radius: 12px; } .checkbox-group { grid-template-columns: 1fr; } }
         .field { margin-bottom: 28px; }
         .field:last-child { margin-bottom: 0; }
         .field-label { display: flex; align-items: baseline; gap: 4px; font-size: 16px; font-weight: 600; color: #111827; margin-bottom: 10px; }
@@ -91,7 +111,7 @@
             outline: none;
         }
         input:focus, textarea:focus, select:focus { border-color: var(--primary); }
-        input::placeholder, textarea::placeholder { color: #9ca3af; }
+        input::placeholder, textarea::placeholder { color: #9ca3af; font-size: 13px; }
         textarea { resize: vertical; min-height: 140px; line-height: 1.6; }
         .checkbox-group { display: flex; flex-direction: column; gap: 10px; }
         .checkbox-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all .15s; background: #fff; }
@@ -145,7 +165,6 @@
         .editor-wrapper .ql-editor.ql-blank::before { color: #9ca3af; font-style: normal; }
         .editor-wrapper-sm .ql-editor { min-height: 120px; }
     </style>
-    <link rel="stylesheet" href="/css/tailwind.css" />
 </head>
 <body>
 
@@ -158,9 +177,10 @@
 
 <div class="container">
     <div class="page-header">
-        <h1>中国新质组织研究项目专家填写资料</h1>
+        <div class="shimmer"></div>
+        <h1>中国新质组织研究智库专家申请</h1>
         <div class="banner-accent"></div>
-        <div class="sub">您的所有信息仅用于智库内部备案，会完全对第三方保密。</div>
+        <div class="sub">您提交的信息仅用于智库内部备案，严格保密。</div>
     </div>
 
     <!-- Success Screen -->
@@ -187,6 +207,7 @@
             <!-- 02 活动选择 -->
             <div class="field" data-field="activities">
                 <div class="field-label"><span class="field-num">02</span>活动选择<span class="field-required">*</span></div>
+                <div class="field-hint">请选择您可以参与的活动（多选）</div>
                 <div class="checkbox-group">
                     <label class="checkbox-item"><input type="checkbox" name="activities" value="speaker"><span>担任研讨会/私董会/论坛等专业活动分享嘉宾</span></label>
                     <label class="checkbox-item"><input type="checkbox" name="activities" value="video_interview"><span>参与《值得看见》栏目录制，与项目发起人高燕老师进行深度对谈（录制时长1-1.5小时）</span></label>
@@ -194,7 +215,7 @@
                     <label class="checkbox-item"><input type="checkbox" name="activities" value="standard_making"><span>参与《中国新质组织模型标准》制定</span></label>
                     <label class="checkbox-item"><input type="checkbox" name="activities" value="host_visits"><span>可以接待其他企业到本企业参观、学习和研讨</span></label>
                     <label class="checkbox-item"><input type="checkbox" name="activities" value="writing"><span>可以接受约稿，撰写与自己研究领域相关的内容</span></label>
-                    <label class="checkbox-item"><input type="checkbox" name="activities" value="general_events"><span>以上内容都无法支持，但愿意以参加中国新质组织研究项目相关的专业活动</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="activities" value="general_events"><span>以上内容均无法参与，但愿意参加中国新质组织研究项目相关的专业活动</span></label>
                 </div>
                 <div class="field-error">请至少选择一项</div>
             </div>
@@ -232,13 +253,13 @@
             <!-- 07 个人官方简介 -->
             <div class="field" data-field="bio">
                 <div class="field-label"><span class="field-num">07</span>个人官方简介<span class="field-required">*</span></div>
-                <div class="field-hint">200字以内</div>
+                <div class="field-hint">300字以内</div>
                 <div class="editor-wrapper" id="bioEditorWrapper">
                     <div id="bioEditor"></div>
                 </div>
                 <input type="hidden" id="bio" name="bio">
                 <div class="field-error">请填写个人官方简介</div>
-                <div class="char-count"><span id="bioCount">0</span>/200</div>
+                <div class="char-count"><span id="bioCount">0</span>/300</div>
             </div>
 
             <!-- 08 研究领域 -->
@@ -269,7 +290,7 @@
             <!-- 11 来源/联系人 -->
             <div class="field" data-field="referrer">
                 <div class="field-label"><span class="field-num">11</span>来源/联系人<span class="field-required">*</span></div>
-                <div class="field-hint">邀请您成为智库专家的联系人姓名</div>
+                <div class="field-hint">邀请您成为智库专家的联系人姓名和单位</div>
                 <input type="text" id="referrer" name="referrer" placeholder="请输入内容" maxlength="20">
                 <div class="field-error">请填写来源/联系人</div>
             </div>
@@ -300,6 +321,13 @@
                     <label class="radio-item" onclick="selectPrivacy(false,this)"><input type="radio" name="privacyConsent" value="false">否</label>
                 </div>
                 <div class="field-error">请选择隐私说明</div>
+            </div>
+
+            <!-- 14 其他声明 -->
+            <div class="field" data-field="otherDeclaration">
+                <div class="field-label"><span class="field-num">14</span>其他声明</div>
+                <div class="field-hint">如有其他需要说明的内容，请在此填写（选填）</div>
+                <textarea id="otherDeclaration" name="otherDeclaration" placeholder="请输入内容（选填）" maxlength="500" style="min-height:100px"></textarea>
             </div>
 
             <button type="submit" class="submit-btn" id="submitBtn">立即加入</button>
@@ -370,8 +398,8 @@
     // char count for bio
     bioQuill.on('text-change', () => {
         const len = getBioText().length;
-        bioCount.textContent = len > 200 ? '200+' : len;
-        bioCount.style.color = len > 200 ? 'var(--error)' : '';
+        bioCount.textContent = len > 300 ? '300+' : len;
+        bioCount.style.color = len > 300 ? 'var(--error)' : '';
     });
 
     // ===== draft autosave =====
@@ -394,6 +422,7 @@
                 topicNeeds: fd.get('topicNeeds') || '',
                 referrer: fd.get('referrer') || '',
                 privacyConsent: document.querySelector('input[name=privacyConsent]:checked')?.value || 'true',
+                otherDeclaration: document.getElementById('otherDeclaration')?.value || '',
                 activities: Array.from(document.querySelectorAll('input[name=activities]:checked')).map(i => i.value)
             };
             localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
@@ -415,6 +444,7 @@
             if (d.publications) document.getElementById('publications').value = d.publications;
             if (d.topicNeeds) { topicNeedsHidden.value = d.topicNeeds; topicNeedsQuill.root.innerHTML = d.topicNeeds; }
             if (d.referrer) document.getElementById('referrer').value = d.referrer;
+            if (d.otherDeclaration) document.getElementById('otherDeclaration').value = d.otherDeclaration;
             if (d.privacyConsent === 'false') selectPrivacy(false, document.querySelectorAll('.radio-item')[1]);
             if (Array.isArray(d.activities)) {
                 document.querySelectorAll('input[name=activities]').forEach(cb => {
@@ -484,7 +514,8 @@
         position: '职位名称', company: '工作单位', email: '电子邮箱',
         bio: '个人官方简介', researchFields: '研究领域', publications: '个人专业著作',
         topicNeeds: '课题需求', referrer: '来源/联系人', photo: '个人官方照片',
-        privacyConsent: '隐私说明'
+        privacyConsent: '隐私说明',
+        otherDeclaration: '其他声明'
     };
     function clearErrors() {
         document.querySelectorAll('.field.error').forEach(f => f.classList.remove('error'));
@@ -516,7 +547,7 @@
             ['bio', () => {
                 const text = getBioText();
                 if (!text) return '请填写个人官方简介';
-                if (text.length > 200) return '个人简介不能超过200字';
+                if (text.length > 200) return '个人简介不能超过300字';
                 return '';
             }],
             ['researchFields', () => { const v = document.getElementById('researchFields').value.trim(); return v ? '' : '请填写研究领域'; }],
@@ -558,7 +589,7 @@
             ['position', () => { const v = document.getElementById('position').value.trim(); return v ? '' : '请填写职位名称'; }],
             ['company', () => { const v = document.getElementById('company').value.trim(); return v ? '' : '请填写工作单位'; }],
             ['email', () => { const v = document.getElementById('email').value.trim(); if (!v) return '请填写电子邮箱'; if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return '请填写有效的邮箱地址'; return ''; }],
-            ['bio', () => { const text = getBioText(); if (!text) return '请填写个人官方简介'; if (text.length > 200) return '个人简介不能超过200字'; return ''; }],
+            ['bio', () => { const text = getBioText(); if (!text) return '请填写个人官方简介'; if (text.length > 200) return '个人简介不能超过300字'; return ''; }],
             ['researchFields', () => { const v = document.getElementById('researchFields').value.trim(); return v ? '' : '请填写研究领域'; }],
             ['publications', () => { const v = document.getElementById('publications').value.trim(); return v ? '' : '请填写个人专业著作'; }],
             ['topicNeeds', () => { const html = getTopicHTML(); return html ? '' : '请填写课题需求'; }],

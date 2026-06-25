@@ -42,6 +42,8 @@ const nqocExpertApplicationSchema = new mongoose.Schema({
     photoUrl: { type: String },
     // 13 隐私授权
     privacyConsent: { type: Boolean, default: false },
+    // 14 其他声明
+    otherDeclaration: { type: String, trim: true },
     // 旧字段兼容：原 description 字段保留，内容合并到 bio/topicNeeds 中
     description: { type: String, select: false },
     status: {

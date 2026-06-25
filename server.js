@@ -4171,6 +4171,7 @@ app.post('/api/nqoc/experts/apply', nqocUpload.single('photo'), async (req, res)
             referrer: referrer || '',
             photoUrl,
             privacyConsent: privacyConsent === 'true' || privacyConsent === true,
+            otherDeclaration: fields.otherDeclaration || '',
             status: 'pending'
         });
         
