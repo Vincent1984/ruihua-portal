@@ -4105,7 +4105,6 @@ app.post('/api/nqoc/experts/apply', nqocUpload.single('photo'), async (req, res)
             ['email', '电子邮箱'],
             ['bio', '个人官方简介'],
             ['researchFields', '研究领域'],
-            ['publications', '个人专业著作'],
             ['topicNeeds', '课题需求'],
             ['referrer', '来源/联系人']
         ];

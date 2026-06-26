@@ -226,10 +226,9 @@
 
             <!-- 09 个人专业著作 -->
             <div class="field" data-field="publications">
-                <div class="field-label"><span class="field-num">09</span>个人专业著作<span class="field-required">*</span></div>
+                <div class="field-label"><span class="field-num">09</span>个人专业著作</div>
                 <div class="field-hint">如果有出版书籍、知名媒体的文章，欢迎提供名称</div>
-                <input type="text" id="publications" name="publications" placeholder="请输入内容" maxlength="200">
-                <div class="field-error">请填写个人专业著作</div>
+                <input type="text" id="publications" name="publications" placeholder="请输入内容（如果没有请填写“无”）" maxlength="200">
             </div>
 
             <!-- 10 课题需求 -->
@@ -502,11 +501,10 @@
             ['bio', () => {
                 const text = getBioText();
                 if (!text) return '请填写个人官方简介';
-                if (text.length > 200) return '个人简介不能超过300字';
+                if (text.length > 300) return '个人简介不能超过300字';
                 return '';
             }],
             ['researchFields', () => { const v = document.getElementById('researchFields').value.trim(); return v ? '' : '请填写研究领域'; }],
-            ['publications', () => { const v = document.getElementById('publications').value.trim(); return v ? '' : '请填写个人专业著作'; }],
             ['topicNeeds', () => {
                 const html = getTopicHTML();
                 if (!html) return '请填写课题需求';
@@ -544,9 +542,8 @@
             ['position', () => { const v = document.getElementById('position').value.trim(); return v ? '' : '请填写职位名称'; }],
             ['company', () => { const v = document.getElementById('company').value.trim(); return v ? '' : '请填写工作单位'; }],
             ['email', () => { const v = document.getElementById('email').value.trim(); if (!v) return '请填写电子邮箱'; if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return '请填写有效的邮箱地址'; return ''; }],
-            ['bio', () => { const text = getBioText(); if (!text) return '请填写个人官方简介'; if (text.length > 200) return '个人简介不能超过300字'; return ''; }],
+            ['bio', () => { const text = getBioText(); if (!text) return '请填写个人官方简介'; if (text.length > 300) return '个人简介不能超过300字'; return ''; }],
             ['researchFields', () => { const v = document.getElementById('researchFields').value.trim(); return v ? '' : '请填写研究领域'; }],
-            ['publications', () => { const v = document.getElementById('publications').value.trim(); return v ? '' : '请填写个人专业著作'; }],
             ['topicNeeds', () => { const html = getTopicHTML(); return html ? '' : '请填写课题需求'; }],
             ['referrer', () => { const v = document.getElementById('referrer').value.trim(); return v ? '' : '请填写来源/联系人'; }],
             ['photo', () => { return currentFile ? '' : '请上传个人官方照片'; }],
