@@ -401,18 +401,22 @@ function buildCaseDetail(c, relatedCases = []) {
   const tags = (c.tags || []).map(x => `<span>${esc(x)}</span>`).join('');
   const stats = (c.stats && c.stats.length)
     ? `<div class="case-hero-stats">${c.stats.slice(0, 4).map(x => `<div class="stat"><b>${esc(x.value)}</b><i>${esc(x.label)}</i></div>`).join('')}</div>` : '';
-  const resultItems = (c.resultTags || []).reduce((items, item, index, source) => {
-    if (index % 2 === 0) {
-      const first = String(item || '');
-      const second = String(source[index + 1] || '');
-      const firstIsValue = /\d|%|↑|↓|→|倍|小时|分钟|天|周/.test(first);
-      items.push(firstIsValue ? { value: first, label: second } : { value: second, label: first });
+  const looksLikeResultValue = value => /\d|%|↑|↓|→|倍|小时|分钟|天|周/.test(String(value || ''));
+  const normalizeResultPair = (first, second) => {
+    const firstValue = String(first || '');
+    const secondValue = String(second || '');
+    if (looksLikeResultValue(secondValue) && !looksLikeResultValue(firstValue)) {
+      return { value: secondValue, label: firstValue };
     }
+    return { value: firstValue, label: secondValue };
+  };
+  const resultItems = (c.resultTags || []).reduce((items, item, index, source) => {
+    if (index % 2 === 0) items.push(normalizeResultPair(item, source[index + 1]));
     return items;
   }, []);
   const impactItems = resultItems.length
     ? resultItems
-    : (c.stats || []).filter(x => x && (x.value || x.label)).map(x => ({ value: x.value, label: x.label }));
+    : (c.stats || []).filter(x => x && (x.value || x.label)).map(x => normalizeResultPair(x.value, x.label));
   const results = impactItems.map(({ value, label }, index) => `<div class="case-result-item">
     <span class="case-result-index">${String(index + 1).padStart(2, '0')}</span><strong class="case-result-value">${esc(value)}</strong>${label ? `<p class="case-result-label">${esc(label)}</p>` : ''}
   </div>`).join('');

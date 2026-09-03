@@ -1351,9 +1351,12 @@ function inject2026PublicShell(document, activePath = '') {
     const firstScript = document.body.querySelector('script');
     if (firstScript) firstScript.insertAdjacentHTML('beforebegin', `${shell.footer}\n${shell.drawer}`);
     else document.body.insertAdjacentHTML('beforeend', `${shell.footer}\n${shell.drawer}`);
-    if (!document.head.querySelector('link[href*="/css/rh2026.css"]')) {
-        document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="/css/rh2026.css?v=20260903"><link rel="stylesheet" href="/css/rh2026-ext.css?v=20260903">');
-    }
+    const rhCss = document.head.querySelector('link[href*="/css/rh2026.css"]');
+    if (rhCss) rhCss.setAttribute('href', '/css/rh2026.css?v=20260903');
+    else document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="/css/rh2026.css?v=20260903">');
+    const rhExtCss = document.head.querySelector('link[href*="/css/rh2026-ext.css"]');
+    if (rhExtCss) rhExtCss.setAttribute('href', '/css/rh2026-ext.css?v=20260903');
+    else document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="/css/rh2026-ext.css?v=20260903">');
     if (!document.body.querySelector('script[src*="/js/rh2026-engine.js"]')) {
         document.body.insertAdjacentHTML('beforeend', '<script src="/js/rh2026-engine.js"></script><script src="/js/rh2026-ext.js"></script>');
     }
