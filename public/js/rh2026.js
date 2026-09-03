@@ -946,12 +946,18 @@ function subscribe(){
 var tocLinks=[], tocHeads=[];
 function updateProgress(){
   const bar=document.getElementById('aProg');
-  const b=document.querySelector('.page[data-page="article"].on .a-body');
-  if(!b){if(bar)bar.style.width='0';return}
+  const article=document.querySelector('.page[data-page="article-detail"].on');
+  const b=article?.querySelector('.a-body');
+  const percent=article?.querySelector('[data-reading-percent]');
+  const readingBar=article?.querySelector('[data-reading-bar]');
+  if(!b){if(bar)bar.style.width='0';if(percent)percent.textContent='0%';if(readingBar)readingBar.style.width='0%';return}
   const r=b.getBoundingClientRect();
   const total=Math.max(r.height-innerHeight+240,1);
   const done=Math.min(Math.max(-r.top+120,0),total);
-  bar.style.width=(done/total*100).toFixed(1)+'%';
+  const value=Math.round(done/total*100);
+  if(bar)bar.style.width=value+'%';
+  if(percent)percent.textContent=value+'%';
+  if(readingBar)readingBar.style.width=value+'%';
   /* 目录滚动高亮 */
   if(!tocHeads.length)return;
   let cur=0;

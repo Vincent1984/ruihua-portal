@@ -139,6 +139,15 @@ describe('案例独立详情页', function () {
         assert.match(script, /--case-progress/);
     });
 
+    it('文章目录阅读进度会更新百分比和进度条，而不是固定为 0%', function () {
+        const script = read('public/js/rh2026.js');
+
+        assert.match(script, /data-reading-percent/);
+        assert.match(script, /data-reading-bar/);
+        assert.match(script, /textContent=.*%/);
+        assert.match(script, /style\.width=.*%/);
+    });
+
     it('详情路由查询同业相关案例并排除当前案例', function () {
         const routes = read('routes/frontendRoutes2026.js');
 

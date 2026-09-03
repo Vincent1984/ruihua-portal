@@ -1358,7 +1358,7 @@ function inject2026PublicShell(document, activePath = '') {
     if (rhExtCss) rhExtCss.setAttribute('href', '/css/rh2026-ext.css?v=20260903');
     else document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="/css/rh2026-ext.css?v=20260903">');
     if (!document.body.querySelector('script[src*="/js/rh2026-engine.js"]')) {
-        document.body.insertAdjacentHTML('beforeend', '<script src="/js/rh2026-engine.js"></script><script src="/js/rh2026-ext.js"></script>');
+        document.body.insertAdjacentHTML('beforeend', '<script src="/js/rh2026-engine.js?v=20260903n"></script><script src="/js/rh2026-ext.js?v=20260903"></script>');
     }
 }
 
