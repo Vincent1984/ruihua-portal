@@ -7,24 +7,7 @@
     <title>瑞华智策 · 线索培育规划 (Official Release)</title>
     <style>
         body { -webkit-font-smoothing: antialiased; }
-        .glass-nav {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid #e5e7eb;
-        }
-        .nav-link {
-            position: relative;
-            color: #6e6b8a;
-            transition: color 0.3s;
-        }
-        .nav-link:hover { color: #7c4dff; }
-        .nav-link::after {
-            content: ''; position: absolute; width: 0; height: 2px;
-            bottom: -4px; left: 50%; background-color: #7c4dff;
-            transition: all 0.3s ease; transform: translateX(-50%);
-        }
-        .nav-link:hover::after { width: 100%; }
-        
+
         .hover-card {
             transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             will-change: transform, box-shadow;
@@ -45,19 +28,7 @@
 
     <div class="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 bg-[radial-gradient(circle_at_80%_20%,rgba(124,77,255,0.05)_0%,transparent_40%),radial-gradient(circle_at_20%_80%,rgba(124,77,255,0.03)_0%,transparent_40%)]"></div>
 
-    <nav class="glass-nav fixed top-0 w-full z-50 transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <button type="button" class="font-serif text-xl font-bold flex items-center gap-2 text-rh-text">
-                RUIHUA <span class="text-rh-purple font-black">ZHICE</span>
-            </button>
-            <ul class="hidden md:flex gap-8 list-none font-medium">
-                <li><a href="#tiers" class="nav-link text-sm font-bold tracking-wide">线索分层</a></li>
-                <li><a href="#calendar" class="nav-link text-sm font-bold tracking-wide">执行日历</a></li>
-                <li><a href="#scripts" class="nav-link text-sm font-bold tracking-wide">策略话术</a></li>
-                <li><a href="#monitor" class="nav-link text-sm font-bold tracking-wide">监测体系</a></li>
-            </ul>
-        </div>
-    </nav>
+
 
     <header class="pt-40 pb-20 px-6 max-w-7xl mx-auto relative">
         <div class="inline-flex items-center px-4 py-1.5 bg-rh-purple/10 border border-rh-purple/20 rounded-full text-xs font-bold text-rh-purple tracking-widest uppercase mb-8">
@@ -507,10 +478,6 @@ Adam | 瑞华智策研究中心</div>
         </div>
     </section>
 
-    <footer class="border-t border-rh-border py-16 text-center text-sm text-rh-muted mt-10">
-        <p class="mb-2">&copy; 2026 <b class="text-rh-text">瑞华智策 RUIHUA ZHICE</b> · 培育龙虾 Nurture Lobster V3.0</p>
-        <p class="opacity-70">执行手册: ceying-lobster/nurture/execution-plan-2026-04.md</p>
-    </footer>
 
 </body>
 </html>

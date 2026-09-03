@@ -44,6 +44,22 @@ describe('2026 页面替换路由', function () {
         assert.doesNotMatch(html, /data-page="about"/);
     });
 
+    it('非 NQOC 根页面源文件不重复维护主站导航和页脚', function () {
+        const files = [
+            '404.html', 'privacy.html', 'resources.html', 'video-detail.html',
+            'article.html', 'training.html', 'videos.html', 'efficiency-diagnostic.html',
+            'productivity.html', 'diagnostic.html', 'diagnostic-result.html',
+            'event-registration.html', 'index.html', 'about.html', 'solutions.html'
+        ];
+        for (const filename of files) {
+            const html = fs.readFileSync(path.join(ROOT, filename), 'utf8');
+            assert.doesNotMatch(html, /<nav\s+[^>]*(?:class=["'][^"']*\bnav\b|id=["']nav["'])/i, filename);
+            assert.doesNotMatch(html, /<(?:header|div)\s+[^>]*(?:id=["'](?:mobileMenu|mnav|footer-container)["']|class=["'][^"']*(?:mega-sheet|mega-dim|mnav)[^"']*)/i, filename);
+            assert.doesNotMatch(html, /<footer\b/i, filename);
+            assert.doesNotMatch(html, /data:image\/[^;"']+;base64/i, filename);
+        }
+    });
+
     it('非 NQOC 旧版页面通过统一公共壳渲染，NQOC 页面保持独立页面壳', function () {
         const server = fs.readFileSync(path.join(ROOT, 'server.js'), 'utf8');
         assert.match(server, /renderStaticHtmlWith2026Shell/);

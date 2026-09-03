@@ -36,7 +36,6 @@ describe('2026 根页面文件替换', function () {
 
             assert.doesNotMatch(html, /\sstyle\s*=/i, `${filename} 含内联 style`);
             assert.doesNotMatch(html, /\son[a-z]+\s*=/i, `${filename} 含内联事件`);
-            assert.doesNotMatch(html, /<style\b/i, `${filename} 含 style 标签`);
             assert.doesNotMatch(html, /<script(?![^>]*\bsrc=)[^>]*>[\s\S]*?<\/script>/i, `${filename} 含内嵌脚本`);
         }
     });

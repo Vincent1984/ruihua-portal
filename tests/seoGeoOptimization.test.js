@@ -53,9 +53,7 @@ describe('SEO 与 GEO 全站优化', function () {
     it('robots 不再阻止所有查询参数且覆盖当前内容路径', function () {
         const robots = read('robots.txt');
         assert.doesNotMatch(robots, /Disallow: \/\*\?\*/);
-        ['/insights/', '/cases/', '/about', '/hcvm', '/contact'].forEach(url => {
-            assert.ok(robots.includes(`Allow: ${url}`), `robots.txt 缺少 ${url}`);
-        });
+        assert.match(robots, /^Allow: \/$/m, 'robots.txt 未允许公开页面');
     });
 
     it('所有 2026 生产模板均使用真实站内链接', function () {
