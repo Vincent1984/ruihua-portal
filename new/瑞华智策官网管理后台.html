@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>瑞华智策 · 官网管理后台</title>
+<style>
+:root{
+  /* 与官网 token v1 完全一致 */
+  --cream:#fafafb; --cream-2:#f4f3f5; --card:#ffffff;
+  --ink:#211e28; --ink-2:#4a4359; --ink-3:#7a6f92;
+  --line:#eae9ed; --hair:#d8d6dd;
+  --dark:#211e28; --dark-2:#332e3d; --d-line:#4a4359;
+  --d-text:#fafafb; --d-sub:#d8d6dd; --d-weak:#9c95ac;
+  --purple:#7c4dff; --purple-hi:#7c4dff; --p-600:#693de3; --p-700:#5e35b1;
+  --p-300:#bda5ff; --p-50:#f6f3ff; --p-200:#dbcdff; --p-100:#ede7ff;
+  --sage:#d6e893; --sage-ink:#50630c; --data-ink:#677d16;
+  --apr:#fdcaae; --apr-ink:#c34704;   /* 杏 */
+  --amb:#ffecc1; --amb-ink:#8a5a00;   /* 琥珀 */
+  --serif:"Noto Serif SC","Songti SC",serif;
+  --sans:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif;
+  --mono:"JetBrains Mono",Consolas,monospace;
+  --ease:cubic-bezier(.2,0,0,1);
+  --sbw:224px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--cream);color:var(--ink);font-family:var(--sans);font-size:14px;
+  line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+input,select,textarea,button{font-family:inherit}
+::selection{background:var(--p-200)}
+
+/* ============ 布局 ============ */
+.app{display:flex;min-height:100vh}
+.sb{width:var(--sbw);flex:0 0 var(--sbw);background:var(--dark);color:var(--d-sub);
+  position:fixed;top:0;bottom:0;left:0;z-index:50;display:flex;flex-direction:column;
+  transition:transform .26s var(--ease)}
+.main{flex:1;min-width:0;margin-left:var(--sbw)}
+.sb-logo{display:flex;align-items:center;gap:10px;padding:20px 18px 16px}
+.sb-logo .bar{width:2.5px;height:20px;background:var(--purple-hi);border-radius:2px}
+.sb-logo b{font-family:var(--serif);font-size:16.5px;font-weight:900;color:#fff;letter-spacing:.05em}
+.sb-logo .en{font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:.16em;
+  color:var(--p-300);display:block;line-height:1.4}
+.sb-scroll{flex:1;overflow-y:auto;padding:6px 10px 16px}
+.sb-grp{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.16em;
+  color:var(--d-weak);text-transform:uppercase;padding:16px 10px 7px}
+.sb-i{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;
+  font-size:13.5px;font-weight:600;color:var(--d-sub);cursor:pointer;
+  transition:background .16s var(--ease),color .16s var(--ease);position:relative}
+.sb-i:hover{background:rgba(189,165,255,.13);color:#fff}
+.sb-i.act{background:var(--purple-hi);color:#fff;font-weight:800;
+  box-shadow:0 6px 18px rgba(124,77,255,.4)}
+.sb-i .ic{width:17px;height:17px;flex:0 0 17px;opacity:.9}
+.sb-i .badge{margin-left:auto;font-family:var(--mono);font-size:10px;font-weight:700;
+  background:var(--apr);color:var(--apr-ink);border-radius:20px;padding:0 7px;line-height:17px}
+.sb-i.act .badge{background:rgba(255,255,255,.22);color:#fff}
+.sb-foot{padding:12px 18px 16px;border-top:1px solid var(--d-line);font-size:11px;color:var(--d-weak)}
+.sb-foot .u{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.sb-foot .av{width:27px;height:27px;border-radius:8px;background:linear-gradient(135deg,#7c4dff,#bda5ff);
+  color:#fff;font-size:11.5px;font-weight:800;display:grid;place-items:center}
+.sb-foot .nm{color:var(--d-text);font-size:12.5px;font-weight:700;line-height:1.3}
+.sb-foot .rl{font-size:10.5px;color:var(--d-weak)}
+
+/* ============ 顶栏 ============ */
+.tb{position:sticky;top:0;z-index:40;background:rgba(250,250,251,.88);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);padding:0 28px;height:60px;display:flex;align-items:center;gap:16px}
+.tb h1{font-size:17px;font-weight:800;letter-spacing:-.01em}
+.tb .crumb{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);letter-spacing:.08em;
+  text-transform:uppercase}
+.tb .sp{flex:1}
+.tb .env{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--apr-ink);
+  background:var(--apr);border-radius:20px;padding:2px 10px;letter-spacing:.06em}
+.burger{display:none;width:34px;height:34px;border:1px solid var(--line);background:var(--card);
+  border-radius:9px;cursor:pointer;place-items:center}
+.burger span{display:block;width:15px;height:1.6px;background:var(--ink);margin:2.6px 0;border-radius:2px}
+.wrap{padding:24px 28px 60px;max-width:1480px}
+
+/* ============ 通用组件 ============ */
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--hair);background:var(--card);
+  color:var(--ink);font-size:13px;font-weight:700;padding:8px 15px;border-radius:10px;cursor:pointer;
+  transition:all .16s var(--ease);white-space:nowrap}
+.btn:hover{border-color:var(--p-200);background:var(--p-50);color:var(--p-700)}
+.btn.pri{background:var(--purple-hi);border-color:var(--purple-hi);color:#fff}
+.btn.pri:hover{background:var(--p-600);border-color:var(--p-600);color:#fff}
+.btn.pri:active{background:var(--p-700)}
+.btn.sm{font-size:12px;padding:5px 11px;border-radius:8px}
+.btn.gh{border-color:transparent;background:transparent;color:var(--ink-2)}
+.btn.gh:hover{background:var(--p-50)}
+.btn.dg:hover{border-color:#f3c5c5;background:#fdf1f1;color:#b3261e}
+.btn .arr{font-family:var(--mono)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px}
+.pad{padding:18px 20px}
+.hd{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.hd .t{font-size:15px;font-weight:800}
+.hd .s{font-size:12.5px;color:var(--ink-3)}
+.hd .sp{flex:1}
+.muted{color:var(--ink-3);font-size:12.5px}
+.mono{font-family:var(--mono)}
+
+/* 统计条 */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 17px;
+  transition:transform .22s var(--ease),box-shadow .22s var(--ease),border-color .22s var(--ease)}
+.stat:hover{transform:translateY(-4px);box-shadow:0 16px 34px rgba(94,53,177,.12);border-color:var(--p-200)}
+.stat .k{font-size:11.5px;font-weight:700;color:var(--ink-3);letter-spacing:.02em}
+.stat .v{font-family:var(--mono);font-size:27px;font-weight:800;line-height:1.35;letter-spacing:-.02em}
+.stat .d{font-size:11.5px;color:var(--ink-3)}
+.stat .d em{font-style:normal;font-weight:800;color:var(--data-ink)}
+.stat.hl .v{color:var(--purple)}
+
+/* 筛选栏 */
+.filters{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.fld{position:relative;display:inline-flex;align-items:center}
+.inp,select.inp{font-size:13px;padding:8px 12px;border:1px solid var(--hair);border-radius:10px;
+  background:var(--card);color:var(--ink);transition:border-color .16s,box-shadow .16s;min-width:0}
+select.inp{padding-right:28px;appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M2 4.5 6 8.5 10 4.5' fill='none' stroke='%237a6f92' stroke-width='1.6' stroke-linecap='round'/></svg>");
+  background-repeat:no-repeat;background-position:right 9px center;background-size:12px}
+.inp:focus{outline:none;border-color:var(--purple-hi);box-shadow:0 0 0 3px rgba(124,77,255,.16)}
+.search{width:250px;padding-left:32px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='7' cy='7' r='4.6' fill='none' stroke='%237a6f92' stroke-width='1.6'/><path d='M10.5 10.5 14 14' stroke='%237a6f92' stroke-width='1.6' stroke-linecap='round'/></svg>");
+  background-repeat:no-repeat;background-position:10px center;background-size:15px}
+.segs{display:inline-flex;background:var(--cream-2);border-radius:10px;padding:3px;gap:2px}
+.segs button{border:none;background:transparent;font-size:12.5px;font-weight:700;color:var(--ink-2);
+  padding:5px 13px;border-radius:8px;cursor:pointer;transition:all .16s var(--ease)}
+.segs button:hover{color:var(--ink)}
+.segs button.on{background:var(--card);color:var(--purple);box-shadow:0 2px 8px rgba(33,30,40,.08)}
+
+/* 表格 */
+.tbl-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--line);background:var(--card)}
+table{width:100%;border-collapse:collapse;min-width:880px}
+thead th{text-align:left;font-size:11.5px;font-weight:800;color:var(--ink-3);letter-spacing:.03em;
+  padding:11px 14px;border-bottom:1px solid var(--line);background:var(--cream-2);white-space:nowrap}
+tbody td{padding:13px 14px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr{transition:background .14s var(--ease)}
+tbody tr:hover{background:var(--p-50)}
+tbody tr.clk{cursor:pointer}
+td .nm{font-weight:800}
+td .sub{font-size:11.5px;color:var(--ink-3)}
+.empty{padding:56px 20px;text-align:center;color:var(--ink-3);font-size:13px}
+.empty b{display:block;font-size:14.5px;color:var(--ink-2);margin-bottom:5px}
+
+/* chip / 状态 */
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;
+  border-radius:20px;padding:2px 10px;white-space:nowrap;background:var(--p-50);color:var(--p-700);
+  border:1px solid var(--p-200)}
+.chip.a{background:#fff3ec;color:var(--apr-ink);border-color:var(--apr)}
+.chip.w{background:#fff8e6;color:var(--amb-ink);border-color:var(--amb)}
+.chip.s{background:#f4f8e4;color:var(--sage-ink);border-color:var(--sage)}
+.chip.n{background:var(--cream-2);color:var(--ink-3);border-color:var(--hair)}
+.chip .dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+.tag{display:inline-block;font-size:11px;font-weight:700;color:var(--ink-2);background:var(--cream-2);
+  border:1px solid var(--line);border-radius:7px;padding:1px 7px;margin:2px 3px 2px 0}
+.src-tag{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10.5px;
+  font-weight:700;color:var(--purple);background:var(--p-50);border:1px solid var(--p-200);
+  border-radius:7px;padding:1px 7px}
+
+/* 开关 */
+.sw{position:relative;width:38px;height:21px;border-radius:20px;background:var(--hair);cursor:pointer;
+  transition:background .2s var(--ease);flex:0 0 38px;border:none;display:inline-block}
+.sw::after{content:'';position:absolute;top:2.5px;left:2.5px;width:16px;height:16px;border-radius:50%;
+  background:#fff;transition:transform .22s var(--ease);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.sw.on{background:var(--purple-hi)}
+.sw.on::after{transform:translateX(17px)}
+
+/* 抽屉 */
+.dw-mask{position:fixed;inset:0;background:rgba(33,30,40,.42);backdrop-filter:blur(2px);z-index:80;
+  opacity:0;visibility:hidden;transition:all .25s var(--ease)}
+.dw-mask.open{opacity:1;visibility:visible}
+.dw{position:fixed;top:0;right:0;bottom:0;width:min(560px,100vw);background:var(--cream);z-index:81;
+  box-shadow:-24px 0 60px rgba(33,30,40,.2);transform:translateX(102%);
+  transition:transform .3s var(--ease);display:flex;flex-direction:column}
+.dw.open{transform:none}
+.dw-hd{padding:18px 22px 14px;border-bottom:1px solid var(--line);background:var(--card);
+  display:flex;align-items:flex-start;gap:12px}
+.dw-hd h2{font-size:17px;font-weight:800;line-height:1.4}
+.dw-hd .x{border:none;background:transparent;font-size:20px;color:var(--ink-3);cursor:pointer;
+  line-height:1;padding:4px 6px;border-radius:8px;margin-left:auto}
+.dw-hd .x:hover{background:var(--cream-2);color:var(--ink)}
+.dw-bd{flex:1;overflow-y:auto;padding:18px 22px 40px}
+.dw-ft{padding:12px 22px;border-top:1px solid var(--line);background:var(--card);display:flex;gap:9px;
+  flex-wrap:wrap;align-items:center}
+
+/* 详情块 */
+.sec{margin-bottom:22px}
+.sec>h3{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--purple);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sec>h3::after{content:'';flex:1;height:1px;background:var(--line)}
+.kv{display:grid;grid-template-columns:78px 1fr;gap:7px 12px;font-size:13px}
+.kv dt{color:var(--ink-3);font-size:12.5px}
+.kv dd{font-weight:600;word-break:break-all}
+.kv dd a{color:var(--purple);font-weight:700}
+
+/* 路径时间线 */
+.trail{position:relative;padding-left:19px}
+.trail::before{content:'';position:absolute;left:5px;top:6px;bottom:10px;width:1.5px;
+  background:linear-gradient(180deg,var(--p-200),var(--line))}
+.tr{position:relative;padding:0 0 13px}
+.tr::before{content:'';position:absolute;left:-17.5px;top:6px;width:8px;height:8px;border-radius:50%;
+  background:var(--card);border:2px solid var(--p-300)}
+.tr.hit::before{background:var(--purple);border-color:var(--purple);box-shadow:0 0 0 3px rgba(124,77,255,.18)}
+.tr .h{font-size:13px;font-weight:700}
+.tr .m{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+.tr .m em{font-style:normal;color:var(--purple);font-weight:700}
+
+/* 对话 */
+.talk{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.msg{margin-bottom:14px}
+.msg:last-child{margin-bottom:0}
+.msg .who{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.12em;
+  color:var(--ink-3);display:block;margin-bottom:4px}
+.msg.me .bub{background:var(--ink);color:#fff;border-radius:12px 12px 4px 12px;margin-left:auto}
+.msg.ai .bub{background:var(--cream-2);color:var(--ink);border-radius:12px 12px 12px 4px}
+.bub{display:block;max-width:88%;padding:9px 13px;font-size:12.5px;line-height:1.75}
+.msg.me{display:flex;flex-direction:column;align-items:flex-end}
+.msg.me .who{text-align:right}
+.rag{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.srcs{margin-top:6px;display:flex;flex-direction:column;gap:5px}
+.srcs .s{font-size:11.5px;background:var(--p-50);border:1px solid var(--p-200);border-radius:8px;
+  padding:5px 9px;display:flex;gap:8px;align-items:center;color:var(--p-700);font-weight:700}
+.srcs .s em{font-style:normal;font-family:var(--mono);font-size:10px;color:var(--ink-3);margin-left:auto}
+
+/* 跟进 */
+.notes{display:flex;flex-direction:column;gap:9px;margin-bottom:11px}
+.note{background:var(--card);border:1px solid var(--line);border-left:2.5px solid var(--p-300);
+  border-radius:10px;padding:9px 12px;font-size:12.5px}
+.note .m{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-bottom:2px}
+textarea.inp{width:100%;resize:vertical;line-height:1.7}
+
+/* 弹窗表单 */
+.mk{position:fixed;inset:0;background:rgba(33,30,40,.45);backdrop-filter:blur(3px);z-index:90;
+  display:grid;place-items:start center;padding:5vh 16px;overflow-y:auto;
+  opacity:0;visibility:hidden;transition:all .22s var(--ease)}
+.mk.open{opacity:1;visibility:visible}
+.md{width:min(720px,100%);background:var(--card);border-radius:16px;box-shadow:0 30px 80px rgba(33,30,40,.3);
+  transform:translateY(-10px);transition:transform .24s var(--ease)}
+.mk.open .md{transform:none}
+.md-hd{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.md-hd h2{font-size:16px;font-weight:800}
+.md-hd .x{border:none;background:transparent;font-size:20px;color:var(--ink-3);cursor:pointer;
+  margin-left:auto;line-height:1;padding:3px 6px;border-radius:8px}
+.md-hd .x:hover{background:var(--cream-2)}
+.md-bd{padding:20px 22px;max-height:62vh;overflow-y:auto}
+.md-ft{padding:14px 22px;border-top:1px solid var(--line);display:flex;gap:9px;justify-content:flex-end}
+.f{margin-bottom:15px}
+.f>label{display:block;font-size:12.5px;font-weight:800;margin-bottom:6px}
+.f>label .req{color:var(--apr-ink)}
+.f .hint{font-size:11.5px;color:var(--ink-3);font-weight:500;margin-left:6px}
+.f .inp{width:100%}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.cbs{display:flex;flex-wrap:wrap;gap:7px}
+.cbs label{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;
+  border:1px solid var(--hair);border-radius:9px;padding:5px 11px;cursor:pointer;background:var(--card);
+  transition:all .16s var(--ease)}
+.cbs label:hover{border-color:var(--p-200);background:var(--p-50)}
+.cbs input{accent-color:var(--purple)}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,16px);z-index:120;
+  background:var(--ink);color:#fff;font-size:13px;font-weight:700;padding:10px 20px;border-radius:12px;
+  box-shadow:0 16px 40px rgba(33,30,40,.32);opacity:0;visibility:hidden;transition:all .24s var(--ease)}
+.toast.on{opacity:1;visibility:visible;transform:translate(-50%,0)}
+.toast .ok{color:var(--sage)}
+
+/* 拖拽排序 */
+.sortlist{display:flex;flex-direction:column;gap:9px}
+.sortitem{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);
+  border-radius:12px;padding:11px 14px;cursor:grab;transition:all .18s var(--ease)}
+.sortitem:hover{border-color:var(--p-200);box-shadow:0 10px 24px rgba(94,53,177,.1)}
+.sortitem.drag{opacity:.4;border-style:dashed}
+.sortitem .rk{font-family:var(--mono);font-size:12px;font-weight:800;color:#fff;background:var(--purple);
+  width:22px;height:22px;border-radius:7px;display:grid;place-items:center;flex:0 0 22px}
+.sortitem .gp{color:var(--ink-3);font-size:14px;letter-spacing:1px;cursor:grab}
+.sortitem .tt{font-size:13px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap}
+.pick{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);
+  font-size:13px;cursor:pointer}
+.pick:hover{background:var(--p-50)}
+.pick input{accent-color:var(--purple);width:15px;height:15px}
+.pick.dis{opacity:.42;cursor:not-allowed}
+
+/* ============ 登录页 ============ */
+.login{position:fixed;inset:0;z-index:200;background:var(--dark);display:grid;place-items:center;
+  padding:24px;transition:opacity .38s var(--ease),visibility .38s var(--ease)}
+.login::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(120% 90% at 72% 18%,rgba(124,77,255,.36),transparent 62%),
+             radial-gradient(90% 70% at 12% 92%,rgba(189,165,255,.16),transparent 60%)}
+.login::after{content:'';position:absolute;inset:0;opacity:.5;
+  background-image:linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.028) 1px,transparent 1px);
+  background-size:46px 46px;-webkit-mask-image:radial-gradient(70% 60% at 50% 40%,#000,transparent)}
+.login.hide{opacity:0;visibility:hidden}
+.login:not(.hide)~.app{pointer-events:none;user-select:none}
+.lg-card{position:relative;z-index:1;width:min(398px,100%);background:var(--card);border-radius:20px;
+  padding:32px 30px 26px;box-shadow:0 40px 110px rgba(0,0,0,.5);animation:lgUp .5s var(--ease)}
+@keyframes lgUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.lg-brand{display:flex;align-items:center;gap:11px;margin-bottom:26px}
+.lg-brand .bar{width:3px;height:26px;background:var(--purple-hi);border-radius:2px}
+.lg-brand b{font-family:var(--serif);font-size:20px;font-weight:900;letter-spacing:.05em;display:block;
+  line-height:1.2}
+.lg-brand .en{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.19em;color:var(--purple)}
+.lg-card h1{font-size:19px;font-weight:800;letter-spacing:-.01em;margin-bottom:5px}
+.lg-card .sub{font-size:12.5px;color:var(--ink-3);margin-bottom:22px}
+.lg-f{margin-bottom:14px;position:relative}
+.lg-f label{display:block;font-size:12px;font-weight:800;margin-bottom:6px}
+.lg-f .inp{width:100%;padding:11px 13px;font-size:13.5px}
+.lg-f .eye{position:absolute;right:6px;bottom:5px;border:none;background:transparent;cursor:pointer;
+  font-size:11.5px;font-weight:700;color:var(--ink-3);padding:6px 8px;border-radius:8px}
+.lg-f .eye:hover{background:var(--cream-2);color:var(--purple)}
+.lg-btn{width:100%;justify-content:center;padding:11px;font-size:14px;margin-top:6px}
+.lg-err{font-size:12.5px;font-weight:700;color:#b3261e;background:#fdf1f1;border:1px solid #f3c5c5;
+  border-radius:10px;padding:8px 12px;margin-bottom:13px;display:none}
+.lg-err.on{display:block;animation:shake .32s}
+@keyframes shake{0%,100%{transform:translateX(0)}22%{transform:translateX(-6px)}
+  55%{transform:translateX(5px)}80%{transform:translateX(-2px)}}
+.lg-tip{margin-top:18px;padding-top:15px;border-top:1px solid var(--line);font-size:11.5px;
+  color:var(--ink-3);line-height:1.75}
+.lg-tip code{font-family:var(--mono);background:var(--p-50);color:var(--p-700);border-radius:5px;
+  padding:1px 5px;font-size:11px}
+/* 演示账号便利贴（贴在右上角，只出现在登录页） */
+.demo-tag{position:absolute;top:48px;right:48px;z-index:2;width:268px;
+  display:flex;flex-direction:column;align-items:stretch;gap:0;
+  padding:28px 22px 17px;border:none;border-radius:10px;cursor:pointer;text-align:left;
+  background:linear-gradient(178deg,#fdf3c4 0%,#f7e9ab 100%);
+  box-shadow:0 22px 52px rgba(0,0,0,.46),0 2px 0 rgba(0,0,0,.12);
+  transform:rotate(-1.8deg);
+  transition:transform .28s var(--ease),box-shadow .28s var(--ease)}
+.demo-tag:hover{transform:rotate(-.4deg) translateY(-4px);
+  box-shadow:0 30px 64px rgba(0,0,0,.55),0 2px 0 rgba(0,0,0,.12)}
+.demo-tag:active{transform:rotate(-.4deg) translateY(-1px)}
+.demo-tag:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(189,165,255,.6),0 22px 52px rgba(0,0,0,.46)}
+/* 胶带 */
+.demo-tag .tape{position:absolute;top:-16px;left:50%;width:126px;height:34px;
+  transform:translateX(-52%) rotate(.8deg);
+  background:linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,.26));
+  border-left:1px solid rgba(255,255,255,.18);border-right:1px solid rgba(255,255,255,.18);
+  backdrop-filter:blur(1px)}
+.demo-tag .t{font-family:var(--serif);font-size:16px;font-weight:900;color:#6b4a05;
+  letter-spacing:.02em;margin-bottom:14px}
+.demo-tag .kv{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+  padding:6px 0}
+.demo-tag .kv b{font-size:13.5px;font-weight:600;color:#9a7413;letter-spacing:.04em}
+.demo-tag .kv code{font-family:var(--mono);font-size:16px;font-weight:700;color:#3f2c02;
+  letter-spacing:.01em}
+.demo-tag .go{margin-top:12px;padding-top:12px;border-top:1px dashed rgba(154,116,19,.42);
+  font-size:13.5px;font-weight:700;color:#8a5a00;text-align:right;
+  display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.demo-tag .go i{font-style:normal;font-family:var(--mono);
+  transition:transform .18s var(--ease)}
+.demo-tag:hover .go i{transform:translateX(4px)}
+.demo-tag.done .go{color:var(--sage-ink)}
+@media (max-width:900px),(max-height:700px){
+  .demo-tag{top:auto;right:auto;left:50%;bottom:18px;width:242px;padding:24px 20px 14px;
+    transform:translateX(-50%) rotate(-1.4deg)}
+  .demo-tag:hover,.demo-tag:active{transform:translateX(-50%) rotate(-.4deg)}
+  .demo-tag .t{font-size:15px;margin-bottom:10px}
+  .demo-tag .kv code{font-size:15px}
+}
+
+.sb-acct{display:flex;gap:6px;margin-top:2px}
+.sb-acct button{flex:1;border:1px solid var(--d-line);background:transparent;color:var(--d-sub);
+  font-size:11px;font-weight:700;padding:5px 0;border-radius:8px;cursor:pointer;transition:all .16s var(--ease)}
+.sb-acct button:hover{background:rgba(189,165,255,.15);color:#fff;border-color:var(--p-300)}
+.pw-bar{height:4px;border-radius:3px;background:var(--cream-2);overflow:hidden;margin-top:7px}
+.pw-bar i{display:block;height:100%;width:0;background:var(--apr-ink);transition:width .25s var(--ease),background .25s}
+
+/* ============ 自定义下拉（替代原生 select 的系统弹层） ============ */
+.rsel{position:relative;display:inline-block;vertical-align:top}
+.f .rsel,.f2 .rsel,.dw-ft .rsel,.md-bd .rsel{width:100%}
+.rsel>select{position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;pointer-events:none;
+  appearance:none;border:none;background:none}
+.rsel-btn{width:100%;display:flex;align-items:center;gap:8px;text-align:left;cursor:pointer;
+  font-family:var(--sans);font-size:13px;padding:8px 30px 8px 12px;color:var(--ink);
+  background:var(--card);border:1px solid var(--hair);border-radius:10px;
+  transition:border-color .16s var(--ease),box-shadow .16s var(--ease);position:relative}
+.rsel-btn:hover{border-color:var(--p-200)}
+.rsel-btn .v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rsel-btn .cv{position:absolute;right:11px;top:50%;width:11px;height:11px;margin-top:-5px;
+  transition:transform .2s var(--ease)}
+.rsel-btn:focus-visible{outline:none;border-color:var(--purple-hi);box-shadow:0 0 0 3px rgba(124,77,255,.18)}
+.rsel.open .rsel-btn{border-color:var(--purple-hi);box-shadow:0 0 0 3px rgba(124,77,255,.18)}
+.rsel.open .rsel-btn .cv{transform:rotate(180deg)}
+.rsel-menu{position:fixed;z-index:140;background:var(--card);border:1px solid var(--line);
+  border-radius:12px;box-shadow:0 20px 46px rgba(33,30,40,.18);padding:5px;
+  max-height:min(300px,60vh);overflow-y:auto;opacity:0;visibility:hidden;transform:translateY(-6px);
+  transition:opacity .16s var(--ease),transform .16s var(--ease),visibility .16s}
+.rsel.open .rsel-menu{opacity:1;visibility:visible;transform:none}
+.rsel-menu .o{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;
+  font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;white-space:nowrap;
+  transition:background .13s var(--ease),color .13s var(--ease)}
+.rsel-menu .o .ck{flex:0 0 12px;font-family:var(--mono);font-size:11px;color:var(--purple);opacity:0}
+.rsel-menu .o.sel{color:var(--p-700);font-weight:800}
+.rsel-menu .o.sel .ck{opacity:1}
+.rsel-menu .o.cur,.rsel-menu .o:hover{background:var(--p-50);color:var(--p-700)}
+
+/* 全局配置 */
+.cfg-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.cfg-grid>*,.cfg-grid .f,.cfg-grid .f2{min-width:0}
+#v-settings input[type=file]{max-width:100%}
+.citychip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;
+  background:var(--p-50);border:1px solid var(--p-200);color:var(--p-700);border-radius:9px;padding:4px 9px}
+.citychip b{cursor:pointer;font-weight:800;opacity:.6}
+.citychip b:hover{opacity:1}
+@media (max-width:900px){.cfg-grid{grid-template-columns:1fr}}
+
+/* 提示条 */
+.tip{display:flex;gap:10px;background:var(--p-50);border:1px solid var(--p-200);border-radius:12px;
+  padding:11px 14px;font-size:12.5px;color:var(--p-700);line-height:1.7;margin-bottom:18px}
+.tip b{font-weight:800}
+.tip.a{background:#fff3ec;border-color:var(--apr);color:var(--apr-ink)}
+.view{display:none}
+.view.on{display:block;animation:fadeUp .32s var(--ease)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+@media (max-width:900px){
+  .sb{transform:translateX(-100%)}
+  .sb.open{transform:none}
+  .main{margin-left:0}
+  .burger{display:grid}
+  .wrap{padding:18px 16px 50px}
+  .tb{padding:0 16px;height:56px}
+  .stats{grid-template-columns:1fr 1fr;gap:10px}
+  .f2{grid-template-columns:1fr}
+  .search{width:100%}
+  .filters .fld{flex:1;min-width:140px}
+  .inp{font-size:16px}
+  .dw{width:100vw}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<!-- ========== 登录页 ========== -->
+<div class="login" id="login">
+  <form class="lg-card" id="lgForm" onsubmit="return doLogin(event)">
+    <div class="lg-brand"><span class="bar"></span>
+      <span><b>瑞华智策</b><span class="en">ADMIN CONSOLE</span></span></div>
+    <h1>登录管理后台</h1>
+    <p class="sub">内容配置与线索管理，仅限授权人员使用。</p>
+    <div class="lg-err" id="lgErr"></div>
+    <div class="lg-f"><label for="lgUser">账号</label>
+      <input class="inp" id="lgUser" autocomplete="username" placeholder="admin"></div>
+    <div class="lg-f"><label for="lgPass">密码</label>
+      <input class="inp" id="lgPass" type="password" autocomplete="current-password" placeholder="请输入密码">
+      <button type="button" class="eye" onclick="eyeToggle('lgPass',this)">显示</button></div>
+    <button class="btn pri lg-btn" type="submit" id="lgBtn">登 录</button>
+  </form>
+
+  <!-- 演示账号便利贴：点一下自动填充 -->
+  <button type="button" class="demo-tag" id="demoTag" onclick="fillDemo()"
+          title="点击自动填入演示账号">
+    <span class="tape"></span>
+    <span class="t">演示环境登录账号</span>
+    <span class="kv"><b>账号</b><code>admin</code></span>
+    <span class="kv"><b>密码</b><code>ruihua@2026</code></span>
+    <span class="go">点这里自动填入 <i>→</i></span>
+  </button>
+</div>
+
+<div class="app">
+
+<!-- ========== 侧边栏 ========== -->
+<aside class="sb" id="sb">
+  <div class="sb-logo">
+    <span class="bar"></span>
+    <span><b>瑞华智策</b><span class="en">ADMIN CONSOLE</span></span>
+  </div>
+  <div class="sb-scroll">
+    <div class="sb-grp">线索</div>
+    <div class="sb-i act" data-nav="leads">
+      <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5A2.5 2.5 0 0 1 5.5 3h9A2.5 2.5 0 0 1 17 5.5v9a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 3 14.5z"/><path d="M6.5 7.5h7M6.5 10.5h7M6.5 13.5h4"/></svg>
+      线索管理 <span class="badge" id="navLeadBadge">0</span>
+    </div>
+    <div class="sb-grp">内容配置</div>
+    <div class="sb-i" data-nav="articles">
+      <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h7l3.5 3.5V17H5z"/><path d="M11.5 3v4H16"/><path d="M7.5 11h5M7.5 13.8h3"/></svg>
+      文章管理
+    </div>
+    <div class="sb-i" data-nav="cases">
+      <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="6" width="14.4" height="10.5" rx="2"/><path d="M7.2 6V4.6A1.6 1.6 0 0 1 8.8 3h2.4a1.6 1.6 0 0 1 1.6 1.6V6"/><path d="M2.8 10.5h14.4"/></svg>
+      案例管理
+    </div>
+    <div class="sb-i" data-nav="featured">
+      <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m10 2.8 2.2 4.5 5 .7-3.6 3.5.85 4.95L10 14.1l-4.45 2.35.85-4.95L2.8 8l5-.7z"/></svg>
+      首页精选案例
+    </div>
+    <div class="sb-i" data-nav="faq">
+      <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.2"/><path d="M8.1 8a2 2 0 1 1 2.6 1.9c-.5.2-.7.6-.7 1.1v.4"/><path d="M10 14.2v.05"/></svg>
+      FAQ 管理
+    </div>
+    <div class="sb-i" data-nav="experts">
+      <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="7" r="3.2"/><path d="M4 16.6a6 6 0 0 1 12 0"/></svg>
+      讲师 / 专家团队
+    </div>
+    <div class="sb-grp">系统</div>
+    <div class="sb-i" data-nav="settings">
+      <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="2.6"/><path d="M10 2.6v1.7M10 15.7v1.7M17.4 10h-1.7M4.3 10H2.6M15.2 4.8l-1.2 1.2M6 14l-1.2 1.2M15.2 15.2 14 14M6 6 4.8 4.8"/></svg>
+      全局配置 <span class="badge" id="navCfgBadge" style="background:#fdcaae;color:#c34704">2</span>
+    </div>
+  </div>
+  <div class="sb-foot">
+    <div class="u">
+      <span class="av">A</span>
+      <span><span class="nm">admin</span><br><span class="rl" id="sbRole">唯一管理员 · 全部权限</span></span>
+    </div>
+    <div class="sb-acct">
+      <button onclick="openPwd()">修改密码</button>
+      <button onclick="logout()">退出登录</button>
+    </div>
+    <span class="mono" style="font-size:10px;display:block;margin-top:9px">v0.1 · 原型演示态</span>
+  </div>
+</aside>
+
+<div class="main">
+<header class="tb">
+  <button class="burger" onclick="toggleSb()"><span></span><span></span><span></span></button>
+  <div>
+    <div class="crumb" id="crumb">LEADS</div>
+    <h1 id="ttl" style="line-height:1.25;margin-top:-4px">线索管理</h1>
+  </div>
+  <div class="sp"></div>
+  <span class="env">演示数据 · 内存态</span>
+  <button class="btn sm gh" onclick="resetAll()" title="恢复初始演示数据">重置</button>
+</header>
+
+<div class="wrap">
+
+<!-- ================= 线索管理 ================= -->
+<section class="view on" id="v-leads">
+  <div class="stats">
+    <div class="stat hl"><div class="k">今日新增线索</div><div class="v" id="sTd">0</div>
+      <div class="d">昨日 <em id="sYd">0</em> 条</div></div>
+    <div class="stat"><div class="k">待跟进（新线索）</div><div class="v" id="sNew">0</div>
+      <div class="d">超 24h 未联系 <em id="sOvd">0</em> 条</div></div>
+    <div class="stat"><div class="k">来自 AI 顾问</div><div class="v" id="sAg">0</div>
+      <div class="d">占总量 <em id="sAgP">0%</em></div></div>
+    <div class="stat"><div class="k">已确认商机</div><div class="v" id="sOpp">0</div>
+      <div class="d">本月转化 <em id="sWon">0</em> 单</div></div>
+  </div>
+
+  <div class="tip">
+    <span>◆</span>
+    <span><b>这张表就是官网的落地终点。</b>AI 顾问抽屉里的留资卡、预约诊断页表单、首页演示小窗，三个入口全部写进这一张线索表；
+      每条线索都带着<b>来源渠道 + 完整浏览路径 + Agent 问答全文与命中来源</b>，顾问点开就知道对方在纠结什么。</span>
+  </div>
+
+  <div class="filters">
+    <div class="fld"><input class="inp search" id="fq" placeholder="搜索姓名 / 公司 / 手机 / 提问内容" oninput="renderLeads()"></div>
+    <select class="inp" id="fst" onchange="renderLeads()">
+      <option value="">全部状态</option>
+      <option value="new">新线索</option>
+      <option value="contacted">已联系</option>
+      <option value="opp">已确认商机</option>
+      <option value="won">已成交</option>
+      <option value="closed">已关闭</option>
+    </select>
+    <select class="inp" id="fch" onchange="renderLeads()">
+      <option value="">全部来源</option>
+      <option value="agent">AI 顾问抽屉</option>
+      <option value="form">预约诊断表单</option>
+      <option value="demo">首页演示小窗</option>
+    </select>
+    <select class="inp" id="ftm" onchange="renderLeads()">
+      <option value="">全部时间</option>
+      <option value="1">今天</option>
+      <option value="7">近 7 天</option>
+      <option value="30">近 30 天</option>
+    </select>
+    <div class="sp" style="flex:1"></div>
+    <button class="btn" onclick="exportCSV()">导出 CSV</button>
+  </div>
+
+  <div class="tbl-wrap"><table>
+    <thead><tr>
+      <th style="width:150px">联系人</th><th style="width:180px">联系方式</th>
+      <th style="width:106px">来源渠道</th><th>入口 / 留资页面路径</th>
+      <th style="width:150px">意向方向</th><th style="width:104px">状态</th><th style="width:118px">留资时间</th>
+    </tr></thead>
+    <tbody id="leadRows"></tbody>
+  </table></div>
+  <p class="muted" style="margin-top:10px" id="leadCount"></p>
+</section>
+
+<!-- ================= 文章管理 ================= -->
+<section class="view" id="v-articles">
+  <div class="tip"><span>◆</span><span>清单第 <b>1 / 2</b> 项：行业洞察与经营智库<b>共用一套文章后台</b>，用「所属栏目」区分。
+    <b>内容状态</b>沿用前台约定：全文可读 / 提纲只放目录 + 订阅提醒 / 敬请期待只占位；
+    <b>上架</b>是另一个维度——决定这篇在前台列表里出不出现，下架后数据保留。</span></div>
+  <div class="filters">
+    <div class="segs" id="artZone">
+      <button class="on" data-z="">全部</button><button data-z="industry">行业洞察</button><button data-z="thinktank">经营智库</button>
+    </div>
+    <select class="inp" id="artState" onchange="renderArts()">
+      <option value="">全部内容状态</option><option value="full">全文</option>
+      <option value="toc">提纲</option><option value="soon">敬请期待</option>
+    </select>
+    <select class="inp" id="artOn" onchange="renderArts()">
+      <option value="">全部上架状态</option><option value="1">已上架</option><option value="0">已下架</option>
+    </select>
+    <div class="fld"><input class="inp search" id="artQ" placeholder="搜索标题 / 作者" oninput="renderArts()"></div>
+    <div style="flex:1"></div>
+    <button class="btn pri" onclick="editArt(null)">＋ 新建文章</button>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th style="width:44px">置顶</th><th>标题</th><th style="width:136px">栏目 / 分类</th>
+      <th style="width:96px">作者</th><th style="width:88px">内容状态</th><th style="width:104px">发布日期</th>
+      <th style="width:58px">阅读</th><th style="width:66px">上架</th>
+      <th style="width:112px">操作</th></tr></thead>
+    <tbody id="artRows"></tbody>
+  </table></div>
+</section>
+
+<!-- ================= 案例管理 ================= -->
+<section class="view" id="v-cases">
+  <div class="tip"><span>◆</span><span>清单第 <b>3</b> 项：27 个案例分 8 个行业。行业归类决定案例页的筛选分组；
+    <b>下架</b>后前台立即不可见，但数据保留。<b>首页精选</b>在这里勾选，排序去「首页精选案例」页调。</span></div>
+  <div class="filters">
+    <select class="inp" id="csInd" onchange="renderCases()"><option value="">全部行业</option></select>
+    <select class="inp" id="csOn" onchange="renderCases()">
+      <option value="">全部状态</option><option value="1">已上架</option><option value="0">已下架</option>
+    </select>
+    <div class="fld"><input class="inp search" id="csQ" placeholder="搜索案例标题 / 客户" oninput="renderCases()"></div>
+    <div style="flex:1"></div>
+    <button class="btn pri" onclick="editCase(null)">＋ 新建案例</button>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th style="width:48px">首页</th><th>案例标题</th><th style="width:100px">行业</th>
+      <th style="width:190px">关键数据</th><th style="width:82px">上架</th><th style="width:112px">操作</th></tr></thead>
+    <tbody id="caseRows"></tbody>
+  </table></div>
+</section>
+
+<!-- ================= 首页精选案例 ================= -->
+<section class="view" id="v-featured">
+  <div class="tip"><span>◆</span><span>清单第 <b>4</b> 项：首页第 4 屏只展示 <b>6 个</b>案例，
+    <b>从案例库勾选置顶，不单独维护一份内容</b>——改案例正文只需改一处。左侧拖动即可调整首页展示顺序。</span></div>
+  <div style="display:grid;grid-template-columns:1fr 340px;gap:20px" id="featGrid">
+    <div class="card pad">
+      <div class="hd"><span class="t">首页展示顺序</span><span class="s" id="featCount"></span>
+        <span class="sp"></span><span class="muted mono" id="featWarn"></span></div>
+      <div class="sortlist" id="featList"></div>
+    </div>
+    <div class="card" style="align-self:start">
+      <div class="pad" style="padding-bottom:10px"><div class="hd" style="margin:0"><span class="t">从案例库勾选</span></div>
+        <input class="inp search" id="featQ" placeholder="搜索案例" oninput="renderFeat()" style="width:100%;margin-top:10px"></div>
+      <div style="max-height:440px;overflow-y:auto" id="featPick"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section class="view" id="v-faq">
+  <div class="tip"><span>◆</span><span>清单第 <b>5</b> 项：FAQ 直接服务 GEO 策略——问题写法要贴近用户在 AI 搜索里的真实问法。
+    顺序即前台首页展示顺序，拖动调整。</span></div>
+  <div class="hd"><span class="t">常见问题</span><span class="s" id="faqCount"></span><span class="sp"></span>
+    <button class="btn pri" onclick="editFaq(null)">＋ 新增问答</button></div>
+  <div class="sortlist" id="faqList"></div>
+</section>
+
+<!-- ================= 专家 ================= -->
+<section class="view" id="v-experts">
+  <div class="tip a"><span>⚠</span><span>清单第 <b>8</b> 项：讲师照片原挂在火山引擎 TOS 外链上，
+    <b>旧站退休后会全部失效</b>——这里上传的照片会转成站内资源，上线前 6 位专家照片必须全部换成本地图。</span></div>
+  <div class="hd"><span class="t">讲师 / 专家团队</span><span class="s" id="expCount"></span><span class="sp"></span>
+    <button class="btn pri" onclick="editExp(null)">＋ 新增专家</button></div>
+  <div class="sortlist" id="expList"></div>
+</section>
+
+<!-- ================= 全局配置 ================= -->
+<section class="view" id="v-settings">
+  <div class="tip a"><span>⚠</span><span>清单 <b>C 节 + D 节</b>：这几项旧站是<b>每页手工复制一份</b>，已经出现不一致。
+    这里改一处，全站生效。带 <b style="color:var(--apr-ink)">待处理</b> 标记的是上线前的硬性前提。</span></div>
+
+  <div class="cfg-grid">
+    <!-- 联系方式 -->
+    <div class="card pad">
+      <div class="hd"><span class="t">联系方式 · 全站页脚</span><span class="s">清单 12 / 13 / 15 / 16</span></div>
+      <div class="f"><label>联系电话</label><input class="inp" id="g_tel"></div>
+      <div class="f"><label>对外邮箱 <span class="chip a" style="font-size:10px">待处理</span>
+        <span class="hint">旧站 rxzj@ 与 ruihuazhice@ 两版并存，以业务确认版为准</span></label>
+        <input class="inp" id="g_mail"></div>
+      <div class="f"><label>办公城市 <span class="hint">回车添加，点 ✕ 删除</span></label>
+        <div id="g_cities" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+        <input class="inp" id="g_cityIn" placeholder="输入城市名后回车"></div>
+      <div class="f" style="margin-bottom:0"><label>ICP 备案号</label><input class="inp" id="g_icp"></div>
+    </div>
+
+    <!-- 二维码 -->
+    <div class="card pad">
+      <div class="hd"><span class="t">公众号二维码</span><span class="s">清单 14</span></div>
+      <div class="tip a" style="margin-bottom:14px"><span>⚠</span>
+        <span>当前站内那张<b>是假码</b>——解码内容为 2018 年拜年文案，<b>上线前必须替换成真码</b>。</span></div>
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+        <span id="g_qrPrev" style="flex:0 0 108px;height:108px;border-radius:14px;display:grid;place-items:center;
+          background:var(--cream-2);border:1px dashed var(--hair);overflow:hidden">
+          <span class="muted" style="font-size:11.5px;text-align:center;line-height:1.5">未上传<br>（前台用假码）</span></span>
+        <div><input type="file" id="g_qrFile" accept="image/*" style="font-size:12px">
+          <p class="muted" style="margin-top:8px">建议 ≥ 400×400 PNG。上传后转为站内资源，不走外链。</p></div>
+      </div>
+    </div>
+
+    <!-- 外链域名 -->
+    <div class="card pad">
+      <div class="hd"><span class="t">全局外链域名</span><span class="s">清单 20</span></div>
+      <div class="tip" style="margin-bottom:14px"><span>◆</span>
+        <span>全站 <b>30+ 处</b>指向旧域名（新质组织迷你站、HCVM 等）。收敛成一个变量，
+          旧站退休时改一次，否则全站死链。</span></div>
+      <div class="f2">
+        <div class="f"><label>旧站域名</label><input class="inp" id="g_oldDomain"></div>
+        <div class="f"><label>新站域名</label><input class="inp" id="g_newDomain"></div>
+      </div>
+      <div class="f" style="margin-bottom:0"><label>Logo 图片来源 <span class="chip a" style="font-size:10px">待处理</span>
+        <span class="hint">旧站退休后全站 Logo 会消失，需本地化</span></label>
+        <select class="inp" id="g_logo">
+          <option value="remote">旧站域名外链（当前，有风险）</option>
+          <option value="local">站内本地资源（推荐）</option>
+        </select></div>
+    </div>
+
+    <!-- 通知规则 -->
+    <div class="card pad">
+      <div class="hd"><span class="t">线索通知规则</span><span class="s">清单 19 · 上线硬性前提</span></div>
+      <div class="f"><label>新线索通知渠道 <span class="hint">可多选</span></label>
+        <div class="cbs" id="g_chans"></div></div>
+      <div class="f2">
+        <div class="f"><label>未跟进升级提醒</label><select class="inp" id="g_esc">
+          <option value="0">不提醒</option><option value="2">超 2 小时未跟进</option>
+          <option value="12">超 12 小时未跟进</option><option value="24">超 24 小时未跟进</option></select></div>
+        <div class="f"><label>每日线索汇总</label><select class="inp" id="g_daily">
+          <option value="">不发送</option><option value="09:00">每天 09:00</option>
+          <option value="18:00">每天 18:00</option><option value="09:00,18:00">每天 09:00 + 18:00</option></select></div>
+      </div>
+      <div class="f" style="margin-bottom:0"><label>值班兜底接收人 <span class="hint">没有匹配到分派规则时发给谁</span></label>
+        <select class="inp" id="g_fallback"></select></div>
+    </div>
+  </div>
+
+  <div class="card pad" style="margin-top:18px">
+    <div class="hd"><span class="t">线索通知接收人</span>
+      <span class="s">按意向方向分派；未匹配的走值班兜底</span><span class="sp"></span>
+      <button class="btn pri sm" onclick="editRcp(null)">＋ 添加接收人</button></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th style="width:172px">姓名 / 角色</th><th style="width:200px">接收账号</th>
+        <th>负责的意向方向</th><th style="width:96px">接收渠道</th><th style="width:70px">启用</th>
+        <th style="width:112px">操作</th></tr></thead>
+      <tbody id="rcpRows"></tbody>
+    </table></div>
+  </div>
+
+  <div style="display:flex;gap:10px;align-items:center;margin-top:20px">
+    <button class="btn pri" onclick="saveCfg()">保存全局配置</button>
+    <button class="btn" onclick="testNotify()">发送一条测试通知</button>
+    <span class="muted" id="cfgSaved"></span>
+  </div>
+</section>
+
+</div><!-- /wrap -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ========== 线索详情抽屉 ========== -->
+<div class="dw-mask" id="dwMask" onclick="closeDw()"></div>
+<aside class="dw" id="dw">
+  <div class="dw-hd">
+    <div><h2 id="dwName">—</h2><div class="muted" id="dwSub">—</div></div>
+    <button class="x" onclick="closeDw()">✕</button>
+  </div>
+  <div class="dw-bd" id="dwBody"></div>
+  <div class="dw-ft">
+    <label style="font-size:12.5px;font-weight:800">状态</label>
+    <select class="inp" id="dwState" onchange="setState()" style="flex:1">
+      <option value="new">新线索</option><option value="contacted">已联系</option>
+      <option value="opp">已确认商机</option><option value="won">已成交</option><option value="closed">已关闭</option>
+    </select>
+    <button class="btn" onclick="closeDw()">关闭</button>
+  </div>
+</aside>
+
+<!-- ========== 通用弹窗 ========== -->
+<div class="mk" id="mk">
+  <div class="md">
+    <div class="md-hd"><h2 id="mkTtl">编辑</h2><button class="x" onclick="closeMk()">✕</button></div>
+    <div class="md-bd" id="mkBody"></div>
+    <div class="md-ft">
+      <button class="btn" onclick="closeMk()">取消</button>
+      <button class="btn pri" id="mkSave">保存</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+/* ==========================================================================
+   瑞华智策 · 官网管理后台（原型 · 演示态）
+   数据说明：全部为内存态 mock，刷新页面即恢复初始演示数据。
+   真实实现时把 DB 换成接口返回即可，字段结构就是本原型的字段结构。
+   ========================================================================== */
+const H=3600e3, D=24*H, NOW=Date.now();
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------------- 线索 mock ---------------- */
+const LEADS=[
+ {id:'L2608-014',name:'周敏',tel:'138****6621',email:'zhou.min@haier-sub.com',company:'某家电集团 · 智能制造事业部',title:'数字化转型办公室主任',
+  channel:'agent',state:'new',ts:NOW-2.4*H,intents:['AI 落地陪跑','AI 转型咨询'],
+  ref:'AI 搜索引用（豆包）· 「制造业 Agent 落地案例」',landing:'#/cases/manufacturing',
+  leadPage:'#/article/1',trigger:'第 2 次回答后自动弹出',device:'Chrome · Windows',
+  trail:[{h:'#/cases/manufacturing',t:'行业案例 · 制造业',d:'2分18秒'},
+         {h:'#/cases',t:'行业案例总览',d:'46秒'},
+         {h:'#/article/1',t:'研究中心 · 从「模型囤积」到 Agentic AI',d:'5分02秒',hit:1}],
+  kb:['落地周期','投入成本'],
+  talk:[{r:'me',t:'我们是做家电制造的，工艺文件编制特别耗人，这块 AI 能接吗？'},
+        {r:'ai',t:'能接，而且这是制造业里跑得最成熟的场景之一。海尔智家用智能工艺规划 Agent，把工艺员从执行者变成审核者，编制时长从数小时压到分钟级。关键前提是老工艺文件要能结构化。',
+         rag:['知识库 · 制造业场景','全站检索 · 命中 3 处'],
+         src:[{t:'海尔智家 · 用 Agent OS 把 AI 能力交到每一位员工手上',w:'行业案例 · 制造业'},
+              {t:'AI 落地陪跑 · 三位一体交付',w:'产品与服务'}]},
+        {r:'me',t:'从启动到看到效果大概要多久？'},
+        {r:'ai',t:'分两段：原型验证通常 2–4 周，用真实业务数据跑通核心链路；完整部署并产生可量化结果一般 4–8 周，取决于场景复杂度和数据准备情况。',
+         rag:['知识库 · 落地周期'],
+         src:[{t:'企业部署 AI Agent 需要多长时间见效？',w:'首页 FAQ'}]}],
+  notes:[]},
+
+ {id:'L2608-013',name:'林旭东',tel:'139****0473',email:'',company:'华南某连锁零售',title:'CIO',
+  channel:'agent',state:'new',ts:NOW-6.5*H,intents:['还不确定，先聊聊'],
+  ref:'微信公众号文章跳转',landing:'#/',
+  leadPage:'#/',trigger:'价格类问题触发',device:'微信内置浏览器 · iPhone',
+  trail:[{h:'#/',t:'首页',d:'1分07秒'},{h:'#/solutions',t:'产品与服务总览',d:'52秒'},
+         {h:'#/',t:'首页（AI 顾问抽屉）',d:'3分41秒',hit:1}],
+  kb:['投入成本'],
+  talk:[{r:'me',t:'门店巡检这种场景，大概要投入多少？'},
+        {r:'ai',t:'投入分三块：平台工具费、实施服务费、内部人力投入。金额随企业规模和场景复杂度差异较大，但依托成熟平台加专业咨询，通常比从零自建 AI 团队节省 60% 以上试错成本。建议先做一次场景诊断明确范围，再给精准预算。',
+         rag:['知识库 · 投入成本'],
+         src:[{t:'企业 AI 转型需要多大的投入？',w:'首页 FAQ'},
+              {t:'鸣鸣很忙 · 用 AI 巡检把万店巡店从人力黑洞里捞出来',w:'行业案例 · 零售快消'}]}],
+  notes:[]},
+
+ {id:'L2608-012',name:'高鹏',tel:'186****2098',email:'gaopeng@zh-edu.cn',company:'中鸿教育集团',title:'人力资源总监',
+  channel:'form',state:'contacted',ts:NOW-11*H,intents:['AI 赋能培训','人力资本价值经营'],
+  msg:'集团有 30 多所校区，想先做一轮管理层的 AI 认知培训，另外人效核算这块也想聊。',
+  ref:'百度搜索「企业 AI 培训 讲师」',landing:'#/solutions/training',
+  leadPage:'#/contact',trigger:'预约诊断表单提交',device:'Chrome · macOS',
+  trail:[{h:'#/solutions/training',t:'产品与服务 · AI 赋能培训',d:'4分35秒'},
+         {h:'#/about/team',t:'关于我们 · 专家团队',d:'2分11秒'},
+         {h:'#/hcvm',t:'人力资本价值经营',d:'1分49秒'},
+         {h:'#/contact',t:'预约「AI 场景诊断」',d:'2分26秒',hit:1}],
+  kb:[],talk:[],
+  notes:[{ts:NOW-4*H,by:'Lynn',txt:'已电话沟通 15 分钟。9 月中旬有一次集团干部会，希望先做半天认知工作坊。已约周五线上过方案。'}]},
+
+ {id:'L2608-011',name:'王倩',tel:'150****7734',email:'wangqian@—',company:'某三甲医院信息中心',title:'副主任',
+  channel:'agent',state:'contacted',ts:NOW-1.2*D,intents:['AI 转型咨询'],
+  ref:'直接访问',landing:'#/',
+  leadPage:'#/i-industry',trigger:'第 2 次回答后自动弹出',device:'Edge · Windows',
+  trail:[{h:'#/',t:'首页',d:'38秒'},{h:'#/i-industry',t:'研究中心 · 行业洞察',d:'6分13秒',hit:1}],
+  kb:['切入场景','数据治理'],
+  talk:[{r:'me',t:'我们数据散在十几个系统里，是不是得先把数据治理做完才能上 AI？'},
+        {r:'ai',t:'不必等治理全部完成。更务实的顺序是：先选一个高频、高人力、流程相对标准化的场景做单点验证，同时把这个场景涉及的业务语义显性化。文章里把这件事叫「治好数据贫血，更要治好语义痴呆」。',
+         rag:['全站检索 · 命中 4 处'],
+         src:[{t:'2026企业数智化转型：从「模型囤积」到 Agentic AI 的价值跃迁',w:'研究中心 · CIO 数智化转型智库'},
+              {t:'企业 AI 转型应该从哪个场景切入？',w:'首页 FAQ'}]},
+        {r:'me',t:'那第一个场景一般选什么比较稳？'},
+        {r:'ai',t:'优先客服工单、招聘筛选、费用报销这类：数据积累充分、容错空间大、2–4 周能看到效果。核心业务放在第二批。',
+         rag:['知识库 · 切入场景'],src:[{t:'AI 落地陪跑',w:'产品与服务'}]}],
+  notes:[{ts:NOW-20*H,by:'Nic',txt:'加了微信，对方在等院内立项，预算窗口在 Q4。先发了一份医疗行业的场景清单。'}]},
+
+ {id:'L2608-010',name:'陈志强',tel:'137****1188',email:'chen@sh-logistics.com',company:'上海某供应链公司',title:'总经理',
+  channel:'form',state:'opp',ts:NOW-1.8*D,intents:['AI 落地陪跑','AI 转型咨询'],
+  msg:'询报价环节人工比对清单太慢，想看看能不能做成 Agent。年营收 12 亿左右。',
+  ref:'客户转介绍',landing:'#/cases/trade',
+  leadPage:'#/contact',trigger:'预约诊断表单提交',device:'Safari · iPad',
+  trail:[{h:'#/cases/trade',t:'行业案例 · 贸易物流',d:'7分02秒'},
+         {h:'#/solutions/fde',t:'产品与服务 · AI 落地陪跑',d:'3分28秒'},
+         {h:'#/contact',t:'预约「AI 场景诊断」',d:'1分55秒',hit:1}],
+  kb:[],talk:[],
+  notes:[{ts:NOW-1.5*D,by:'Wan',txt:'首轮电话已通，痛点清晰（千万级 SKU + 询报价）。'},
+         {ts:NOW-8*H,by:'Wan',txt:'已确认商机：9/03 上门做半天场景诊断，对方 CTO 与供应链负责人参会。'}]},
+
+ {id:'L2608-009',name:'苏亚楠',tel:'188****4460',email:'',company:'某游戏发行公司',title:'技术中台负责人',
+  channel:'demo',state:'new',ts:NOW-2.1*D,intents:['AI 落地陪跑'],
+  ref:'知乎外链',landing:'#/',
+  leadPage:'#/',trigger:'首页演示小窗追问后留资',device:'Chrome · Windows',
+  trail:[{h:'#/',t:'首页（3D hero → 演示小窗）',d:'2分44秒',hit:1}],
+  kb:['编码提效'],
+  talk:[{r:'me',t:'研发提效有没有游戏行业的例子？'},
+        {r:'ai',t:'有。创梦天地让 70%+ 工程师用上 AI 辅助编码，开发效率提升 12%+；游族网络接入 40+ 大模型打通全员 Agent 工作流。',
+         rag:['全站检索 · 命中 2 处'],
+         src:[{t:'创梦天地 · 用 CodeBuddy 让 70%+ 工程师用上 AI 辅助编码',w:'行业案例 · 游戏文娱'},
+              {t:'游族网络 · 用全员 Agent 工作流打通模型壁垒',w:'行业案例 · 游戏文娱'}]}],
+  notes:[]},
+
+ {id:'L2608-008',name:'赵慧',tel:'135****9027',email:'zhaohui@bank-x.cn',company:'某城商行',title:'人力资源部总经理',
+  channel:'form',state:'contacted',ts:NOW-3*D,intents:['人力资本价值经营','AI 赋能培训'],
+  msg:'看到张建国老师的文章，想了解人力资本价值经营的落地咨询怎么做。',
+  ref:'公众号文章跳转',landing:'#/article/2',
+  leadPage:'#/contact',trigger:'预约诊断表单提交',device:'微信内置浏览器 · Android',
+  trail:[{h:'#/article/2',t:'研究中心 · 人力资本价值经营的方法论与落地实践',d:'8分51秒'},
+         {h:'#/hcvm',t:'人力资本价值经营',d:'3分07秒'},
+         {h:'#/contact',t:'预约「AI 场景诊断」',d:'2分02秒',hit:1}],
+  kb:[],talk:[],
+  notes:[{ts:NOW-2.6*D,by:'Lynn',txt:'已回电。对方关注研发/网点人效核算，希望先看同业案例。已发《研发体系效能变革》案例摘要。'}]},
+
+ {id:'L2608-007',name:'刘振',tel:'159****3312',email:'',company:'某汽车零部件厂',title:'IT 经理',
+  channel:'agent',state:'closed',ts:NOW-4.2*D,intents:['还不确定，先聊聊'],
+  ref:'百度搜索「WorkBuddy 是什么」',landing:'#/',
+  leadPage:'#/',trigger:'第 2 次回答后自动弹出',device:'Chrome · Windows',
+  trail:[{h:'#/',t:'首页',d:'1分22秒'},{h:'#/solutions',t:'产品与服务总览',d:'41秒',hit:1}],
+  kb:['产品定义'],
+  talk:[{r:'me',t:'WorkBuddy 和你们是什么关系？'},
+        {r:'ai',t:'WorkBuddy 是我们在客户侧落地时常用的能力底座之一，瑞华智策提供的是从场景诊断到 Agent 落地陪跑的整体方案，工具会按客户实际情况选型。',
+         rag:['知识库 · 产品定义'],src:[{t:'产品与服务总览',w:'产品与服务'}]}],
+  notes:[{ts:NOW-3.9*D,by:'Kun',txt:'仅个人调研，无预算无立项，暂时关闭。半年后可再触达。'}]},
+
+ {id:'L2608-006',name:'吴迪',tel:'186****7755',email:'wudi@tcl-x.com',company:'某消费电子集团',title:'研发效能负责人',
+  channel:'agent',state:'opp',ts:NOW-5.5*D,intents:['AI 落地陪跑'],
+  ref:'AI 搜索引用（Kimi）· 「老代码维护 AI」',landing:'#/cases',
+  leadPage:'#/cases/manufacturing',trigger:'价格类问题触发',device:'Chrome · macOS',
+  trail:[{h:'#/cases',t:'行业案例总览',d:'1分18秒'},
+         {h:'#/cases/manufacturing',t:'行业案例 · 制造业',d:'9分37秒',hit:1}],
+  kb:['编码提效','投入成本'],
+  talk:[{r:'me',t:'五年以上的老代码没人敢动，这种情况 AI 能帮上忙吗？'},
+        {r:'ai',t:'TCL 实业就是这个起点：机型与系统版本庞杂、历史代码沉重，用 CodeBuddy 做存量代码理解与改造，核心团队 100% 覆盖、研发渗透度 90%+。',
+         rag:['全站检索 · 命中 2 处'],
+         src:[{t:'TCL 实业 · 用 CodeBuddy 让研发团队从改不动老代码里解放出来',w:'行业案例 · 制造业'}]},
+        {r:'me',t:'这种项目一般怎么收费？'},
+        {r:'ai',t:'按场景范围和陪跑周期计价，通常先做一次轻量场景诊断确定范围。要不要我把你的情况转给顾问，出一份初步范围建议？',
+         rag:['知识库 · 投入成本'],src:[]}],
+  notes:[{ts:NOW-5*D,by:'Nic',txt:'已建微信群，对方给了两个候选场景。'},
+         {ts:NOW-2*D,by:'Nic',txt:'确认商机，进入方案阶段，预计 9 月底提案。'}]},
+
+ {id:'L2608-005',name:'何静',tel:'133****5502',email:'hejing@—',company:'某物业集团',title:'运营副总',
+  channel:'form',state:'won',ts:NOW-8*D,intents:['AI 落地陪跑','AI 赋能培训'],
+  msg:'上千个项目的管家天天填表，工单响应太慢，想做智能工单。',
+  ref:'客户转介绍',landing:'#/cases/property',
+  leadPage:'#/contact',trigger:'预约诊断表单提交',device:'Chrome · Windows',
+  trail:[{h:'#/cases/property',t:'行业案例 · 物业地产',d:'5分44秒'},
+         {h:'#/contact',t:'预约「AI 场景诊断」',d:'2分31秒',hit:1}],
+  kb:[],talk:[],
+  notes:[{ts:NOW-7*D,by:'Wan',txt:'诊断会已开，锁定智能工单 + 巡检两个场景。'},
+         {ts:NOW-3*D,by:'Wan',txt:'合同已签，一期陪跑 8 周，9/08 启动。'}]},
+
+ {id:'L2608-004',name:'马晓东',tel:'137****8890',email:'',company:'某跨境电商',title:'创始人',
+  channel:'agent',state:'contacted',ts:NOW-9.5*D,intents:['AI 转型咨询'],
+  ref:'小红书外链',landing:'#/i-thinktank',
+  leadPage:'#/i-thinktank',trigger:'第 2 次回答后自动弹出',device:'微信内置浏览器 · iPhone',
+  trail:[{h:'#/i-thinktank',t:'研究中心 · 经营智库',d:'4分09秒',hit:1}],
+  kb:['获客场景'],
+  talk:[{r:'me',t:'外贸开发信这块有做过吗？'},
+        {r:'ai',t:'有一个 200 人外贸企业的案例：开发信流水线 + IP 内容矩阵，每日邮件处理从 2 小时压到 30 分钟，单封开发信从 20 分钟到分钟级。',
+         rag:['全站检索 · 命中 1 处'],
+         src:[{t:'某 200 人外贸企业 · 用开发信流水线+IP内容矩阵把获客全链路跑通',w:'行业案例 · 贸易物流'}]}],
+  notes:[{ts:NOW-9*D,by:'Kun',txt:'已加微信，对方 10 人小团队，先发了轻量方案。'}]},
+
+ {id:'L2608-003',name:'钱有为',tel:'188****2211',email:'qian@—',company:'某省级出版集团',title:'总编室主任',
+  channel:'form',state:'closed',ts:NOW-12*D,intents:['AI 赋能培训'],
+  msg:'想问下有没有面向编辑岗的 AI 工具培训。',
+  ref:'直接访问',landing:'#/solutions/training',
+  leadPage:'#/contact',trigger:'预约诊断表单提交',device:'Chrome · Windows',
+  trail:[{h:'#/solutions/training',t:'产品与服务 · AI 赋能培训',d:'3分16秒'},
+         {h:'#/contact',t:'预约「AI 场景诊断」',d:'1分41秒',hit:1}],
+  kb:[],talk:[],
+  notes:[{ts:NOW-11*D,by:'Lynn',txt:'今年培训预算已用完，明年 3 月再联系。转为长期培育。'}]},
+
+ {id:'L2608-002',name:'徐蕾',tel:'139****6603',email:'xulei@—',company:'某医药零售连锁',title:'数字化总监',
+  channel:'agent',state:'opp',ts:NOW-15*D,intents:['AI 落地陪跑','AI 转型咨询'],
+  ref:'AI 搜索引用（DeepSeek）· 「医药零售 AI 提效」',landing:'#/cases',
+  leadPage:'#/cases',trigger:'第 2 次回答后自动弹出',device:'Chrome · macOS',
+  trail:[{h:'#/cases',t:'行业案例总览',d:'6分22秒',hit:1},
+         {h:'#/solutions/consulting',t:'产品与服务 · AI 转型咨询',d:'2分58秒'}],
+  kb:['行业案例','落地周期'],
+  talk:[{r:'me',t:'医药零售有没有跑通的案例？'},
+        {r:'ai',t:'有一家医药零售集团用 WorkBuddy + CodeBuddy 打通研发与数据链路，整体提效约 50%，AI 代码采纳率 80%+。',
+         rag:['全站检索 · 命中 1 处'],
+         src:[{t:'某医药零售集团 · 用 WorkBuddy+CodeBuddy 把研发与数据链路跑通',w:'行业案例 · 其他'}]}],
+  notes:[{ts:NOW-14*D,by:'Lynn',txt:'需求明确，已进入方案沟通。'}]},
+
+ {id:'L2608-001',name:'孙立',tel:'150****0912',email:'',company:'某国有建工集团',title:'人力资源部部长',
+  channel:'form',state:'won',ts:NOW-22*D,intents:['人力资本价值经营'],
+  msg:'集团用工结构复杂，外包员工多，想做用工管理数智化。',
+  ref:'百度搜索「人力资本价值经营」',landing:'#/hcvm',
+  leadPage:'#/contact',trigger:'预约诊断表单提交',device:'Chrome · Windows',
+  trail:[{h:'#/hcvm',t:'人力资本价值经营',d:'7分33秒'},
+         {h:'#/about',t:'关于我们',d:'1分52秒'},
+         {h:'#/contact',t:'预约「AI 场景诊断」',d:'3分11秒',hit:1}],
+  kb:[],talk:[],
+  notes:[{ts:NOW-20*D,by:'Lynn',txt:'两轮沟通后确认方向。'},
+         {ts:NOW-13*D,by:'Lynn',txt:'合同签署，一期用工管理咨询启动。'}]}
+];
+
+/* ---------------- 内容 mock ---------------- */
+const ARTS=[
+ {id:1,title:'2026企业数智化转型：从「模型囤积」到Agentic AI的价值跃迁',zone:'industry',cat:'CIO 数智化转型智库',
+  author:'杨星宇Vincent',pub:'2026-04-10',state:'full',views:583,top:1,on:1,tags:['Agentic AI','数据治理','转型方法论'],
+  abstract:'2026年中国大模型市场规模突破700亿元。数智化转型的重心已从算力投入，转向以「业务本体」为核心的架构重构。'},
+ {id:2,title:'人力资本价值经营的方法论与落地实践',zone:'industry',cat:'CEO 经营增长智库',
+  author:'张建国',pub:'2026-03-16',state:'full',views:125,top:1,on:1,tags:['人力资本','价值经营','人效'],
+  abstract:'2026开始企业应该更加关注持续的价值创造，「开源」才是企业持续增长的动力。'},
+ {id:3,title:'AI时代下CHO的经营者思维进化策略',zone:'industry',cat:'CHO 人效提升智库',
+  author:'彭剑锋',pub:'2026-01-06',state:'toc',views:154,top:0,on:1,tags:['CHO','组织变革'],
+  abstract:'AI时代，如何构建人机协同的组织是全球性课题，突破认知与思维局限，是企业家和CHO的首要必然选择。'},
+ {id:4,title:'混合员工时代：数字员工的岗位设计与绩效衡量',zone:'thinktank',cat:'组织与人才',
+  author:'李丰华',pub:'2026-02-20',state:'full',views:212,top:0,on:1,tags:['数字员工','绩效','混合用工'],
+  abstract:'当 Agent 开始承担岗位职责，岗位说明书、编制口径与绩效衡量都要重写。'},
+ {id:5,title:'从场景诊断到规模复制：AI 项目为什么卡在第二个场景',zone:'thinktank',cat:'方法论',
+  author:'高燕',pub:'2026-05-08',state:'full',views:341,top:0,on:1,tags:['场景诊断','规模化'],
+  abstract:'1 个能规模化复制的 Agent，胜过 10 个烂尾的试验品。'},
+ {id:6,title:'制造业 Agent 落地地图：8 个已跑通的高频场景',zone:'industry',cat:'CIO 数智化转型智库',
+  author:'杨星宇Vincent',pub:'2026-06-11',state:'full',views:468,top:0,on:1,tags:['制造业','场景地图'],
+  abstract:'工艺编制、经营分析、采购决策、图纸识别……把已验证的场景摆在同一张表上。'},
+ {id:7,title:'HR 超级工作站：把招聘全链路与人事合规一次跑通',zone:'thinktank',cat:'组织与人才',
+  author:'汤争艳',pub:'2026-06-28',state:'full',views:189,top:0,on:1,tags:['招聘','合规','HR Agent'],
+  abstract:'招聘总耗时 3 周→1 周，合规核对 6h→30min，这条链路是怎么搭起来的。'},
+ {id:8,title:'AI 转型的组织侧账本：为什么技术跑在 2026、组织活在 1996',zone:'thinktank',cat:'组织与人才',
+  author:'王玉博',pub:'2026-07-15',state:'toc',views:97,top:0,on:0,tags:['组织变革','审批流'],
+  abstract:'AI 能在 1 秒内完成风险评估，人类的审批流程还要走三天。'},
+ {id:9,title:'2026 上半年企业 AI 应用成熟度观察',zone:'industry',cat:'CIO 数智化转型智库',
+  author:'瑞华智策研究中心',pub:'2026-08-05',state:'soon',views:0,top:0,on:1,tags:['行业观察','年度报告'],
+  abstract:'覆盖 8 个行业、120 家企业的调研样本，8 月底发布。'},
+ {id:10,title:'央国企 AI 化转型规划：从合规动作到经营抓手',zone:'industry',cat:'CEO 经营增长智库',
+  author:'高燕',pub:'2026-08-18',state:'soon',views:0,top:0,on:1,tags:['央国企','政策'],
+  abstract:'国资委要求央企制定 AI 化转型规划后，第一批规划书普遍缺了什么。'}
+];
+
+const CASES=[
+ ['制造业','海尔智家 · 用 Agent OS 把 AI 能力交到每一位员工手上','262 员工自建智能体 / ↑20.7% 研发型号效率',1,1],
+ ['制造业','鑫方盛集团 · 用 ADP 把工业品供应链从头跑在 Agent 上','200+ 智能体 / ↑60%+ 整体运营效率',1,1],
+ ['制造业','TCL 实业 · 用 CodeBuddy 让研发团队从改不动老代码里解放出来','90%+ 研发渗透度 / 100% 核心团队覆盖',1,0],
+ ['制造业','某电力设计院 · 用知识库把合规审查从周级压到小时级','周→小时 审查周期',1,0],
+ ['教育','西安经开第十小学 · 用 WorkBuddy 把备课时间压掉 80%+','46项 教学任务落地 / 10类 全覆盖',1,0],
+ ['教育','江西工程学院 · 用 WorkBuddy 把学生 Bug 修复效率提 30%','↑30% Bug修复效率',1,0],
+ ['教育','斯恩升学 · 用 ima+WorkBuddy 把方案制作从 6 小时压到分钟级','6h→分钟级 方案制作',1,0],
+ ['教育','联想开天 × 腾讯 WorkBuddy · 国产信创 AI PC 跑通中小学教务','信创全栈 国产化',1,0],
+ ['零售快消','伊利集团 · 用 ADP 让 4 万一线人员用上对话级 Agent','4万人 对话级Agent / 2000+ 任务级Agent',1,1],
+ ['零售快消','茶颜悦色 · 用 AI 面试与小诸葛把门店从凭感觉变靠数据','2天→30分钟 招聘流程',1,0],
+ ['零售快消','鸣鸣很忙 · 用 AI 巡检把万店巡店从人力黑洞里捞出来','↑20.49% 单次巡店效率',1,0],
+ ['游戏文娱','创梦天地 · 用 CodeBuddy 让 70%+ 工程师用上 AI 辅助编码','70%+ 工程师使用 / ↑12%+ 开发效率',1,0],
+ ['游戏文娱','游族网络 · 用全员 Agent 工作流打通模型壁垒、放大各岗位产能','40+ 大模型接入',1,0],
+ ['游戏文娱','淘米网络 · 用 CodeBuddy 接手重复活、美术 IP 衍生效率涨近 80%','↑80% 美术衍生效率',1,0],
+ ['金融财税','中国银行 · 用智能体把 4000+ AI 模型规模化落到全行业务','4000+ AI模型落地 / ↓60% 数据处理成本',1,1],
+ ['金融财税','招商银行 · 用 CodeBuddy 私有化沉淀 AISE 建设能力','私有化 AISE 能力',1,0],
+ ['金融财税','慧算账 · 用 ClawPro 让一个会计带 N 个数字员工','30% 最难场景承接 / 100% Agent含量',1,0],
+ ['金融财税','中港星 / 司盟企服 · 用 WorkBuddy 给 21 年专业服务提提速','21年 专业沉淀',1,0],
+ ['贸易物流','找钢网 · 用 ADP 把沟通即交易从头跑通钢铁 B2B','1515亿 2025交易额 / 4559万吨 交易吨量',1,1],
+ ['贸易物流','某 200 人外贸企业 · 用开发信流水线+IP内容矩阵把获客全链路跑通','2h→30min 每日邮件',1,0],
+ ['贸易物流','某港口集团 · 用 WorkBuddy 把集团财务、票据与经营分析全链路跑通','3天→秒级 亏损排查',1,0],
+ ['物业地产','某物业集团 · 上千项目管家被填表困住、服务响应效率低','120秒→3秒 工单处理 / ↑80%+ 效率',1,1],
+ ['物业地产','万科-万物云 · 用 CodeBuddy 公有云版把周编码时间砍半','300+ 授权 / 80% 日活占比',1,0],
+ ['其他','某医药零售集团 · 用 WorkBuddy+CodeBuddy 把研发与数据链路跑通','~50% 整体提效 / 80%+ AI代码采纳率',1,0],
+ ['其他','某全国性人力资源服务集团 · 用 HR 超级工作站把招聘全链路跑通','3周→1周 招聘总耗时 / 6h→30min 合规核对',1,0],
+ ['其他','华住集团 · 用 ADP 华小 AI 自动处理 70%+ 高频住客问询','10000+ 门店覆盖 / 180万+ 累计任务',1,0],
+ ['其他','中兴通讯 · 用原生 WorkBuddy AI 云电脑内置 100+ 领域专家','200万+ 云电脑销量 / 1000+ 政企客户',0,0]
+].map((c,i)=>({id:i+1,ind:c[0],title:c[1],stats:c[2],on:c[3],feat:c[4],featRank:c[4]?[1,2,9,15,19,22].indexOf(i+1):-1}));
+
+const FAQS=[
+ {id:1,q:'企业 AI 转型应该从哪个场景切入？',a:'不要从最复杂的核心业务开始。优先选择高频、高人力、流程相对标准化的场景——比如客服工单、招聘筛选、费用报销。这类场景数据积累充分、容错空间大、见效快，能在 2-4 周内验证 AI 价值，建立团队信心后再逐步扩展到核心业务环节。'},
+ {id:2,q:'企业部署 AI Agent 需要多长时间见效？',a:'分两个阶段：原型验证通常 2-4 周，用真实业务数据跑通核心链路；完整部署并产生可量化的业务结果，一般需要 4-8 周，具体取决于场景复杂度、系统对接难度和数据准备情况。'},
+ {id:3,q:'企业 AI 转型需要多大的投入？',a:'投入分三块：平台工具费、实施服务费、内部人力投入。具体金额因企业规模和场景复杂度差异较大，但相比从零自建 AI 团队，依托成熟平台加专业咨询的方式通常能节省 60% 以上的试错成本。'},
+ {id:4,q:'如何评估企业 AI 转型的投入产出比？',a:'建议从三个维度衡量：效率提升、能力扩展、质量改善。在场景诊断阶段就定义好可量化的指标和基线，上线后按周期对比。'},
+ {id:5,q:'没有技术团队的企业能做 AI 转型吗？',a:'可以。当前主流路径是依托成熟平台做低代码配置，业务人员经过培训即可参与场景设计。瑞华智策的陪跑模式会在项目期内完成能力转移，让企业内部形成自运营能力。'},
+ {id:6,q:'数据安全和合规怎么保障？',a:'可根据企业要求选择公有云、专有云或私有化部署，敏感数据不出域；同时在 Agent 侧设置分级置信度机制与操作留痕，确保每一步可审计、可回溯。'}
+];
+
+const EXPERTS=[
+ {id:1,name:'高燕',role:'瑞华智策 副总裁 · 新质组织研究中心主任',bio:'《价值驱动增长》作者，资深战略营销业务增长专家，AI 原生组织深度实践者。曾任某高科技企业 CEO，兼具 B2B 与 B2C 领域实践经验。',photo:'',on:1},
+ {id:2,name:'李丰华',role:'瑞华智策 副总裁 · 组织与人才变革专家',bio:'干部与领导力顾问，HR AI 与数字化转型专家，IPD 集成产品开发顾问。曾为华为、海信、吉利、平安、中远、广汽等数十家企业提供服务。',photo:'',on:1},
+ {id:3,name:'杨星宇',role:'瑞华智策 CTO · 资深数智化战略与架构专家',bio:'TOGAF 认证企业架构师，原埃森哲解决方案架构师，原 IBM 企业架构师。具备甲方战略规划与乙方落地交付复合视角。',photo:'',on:1},
+ {id:4,name:'欧阳晖',role:'瑞华智策 资深咨询顾问 · 资深 HR 管理专家',bio:'海外 HR 管理与实践专家，原央企、头部民企 HR 管理经验，构建了从战略顶层设计到微观机制落地的全栈专业能力。',photo:'',on:1},
+ {id:5,name:'汤争艳',role:'瑞华智策 资深咨询顾问 · 应用心理学博士',bio:'原人瑞人才研究院院长、外包业务总经理。曾任多家大型集团人力资源管理岗位，主导服务字节跳动、阿里巴巴、京东等客户。',photo:'',on:1},
+ {id:6,name:'王玉博',role:'瑞华智策 高级咨询顾问 · 中国人民大学博士后',bio:'中国人力资源开发研究会研究员，参与国家自科、社科、教育部多项人才研究课题，研究方向为组织韧性、战略型领导力、薪酬绩效。',photo:'',on:1}
+];
+
+/* ---------------- 全局配置 mock ---------------- */
+const CFG={
+  tel:'400-175-0886',
+  mail:'ruihuazhice@renruihr.com',
+  cities:['上海','北京','深圳','成都'],
+  icp:'沪ICP备XXXXXXXX号-1',
+  qr:'',
+  oldDomain:'www.ruihuaconsulting.com',
+  newDomain:'（待定，上线前填）',
+  logo:'remote',
+  chans:['企业微信群机器人','短信'],
+  esc:'12', daily:'09:00', fallback:4
+};
+const CHANS=['企业微信群机器人','企业微信应用消息','短信','邮件','飞书群机器人','钉钉群机器人'];
+const RCPS=[
+ {id:1,name:'Nic',role:'FDE · 落地陪跑负责人',acct:'nic@ruihua · 138****0001',
+  scope:['AI 落地陪跑','AI 转型咨询'],chan:'企业微信',on:1},
+ {id:2,name:'Wan',role:'FDE · 交付顾问',acct:'wan@ruihua · 138****0002',
+  scope:['AI 落地陪跑'],chan:'企业微信',on:1},
+ {id:3,name:'Lynn',role:'Sales · 培训与人效线',acct:'lynn@ruihua · 138****0003',
+  scope:['AI 赋能培训','人力资本价值经营'],chan:'企业微信',on:1},
+ {id:4,name:'Kun',role:'Sales · 线索池值班',acct:'kun@ruihua · 138****0004',
+  scope:['还不确定，先聊聊','AI 转型咨询'],chan:'企业微信',on:1}
+];
+const INTENTS=['AI 赋能培训','AI 转型咨询','AI 落地陪跑','人力资本价值经营','还不确定，先聊聊'];
+
+let DB=null;
+function seed(){DB=JSON.parse(JSON.stringify({leads:LEADS,arts:ARTS,cases:CASES,faqs:FAQS,exps:EXPERTS,
+  cfg:CFG,rcps:RCPS}))}
+seed();
+
+/* ---------------- 通用 ---------------- */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+let toastT;
+function toast(msg,ok){clearTimeout(toastT);const t=$('#toast');
+  t.innerHTML=(ok!==false?'<span class="ok">✓</span> ':'')+esc(msg);t.classList.add('on');
+  toastT=setTimeout(()=>t.classList.remove('on'),2200)}
+function fmt(ts){const d=new Date(ts),p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`}
+function ago(ts){const m=(NOW-ts)/6e4;
+  if(m<60)return Math.max(1,Math.round(m))+' 分钟前';
+  if(m<1440)return Math.round(m/60)+' 小时前';
+  return Math.round(m/1440)+' 天前'}
+function toggleSb(){$('#sb').classList.toggle('open')}
+function resetAll(){seed();renderAll();toast('已恢复初始演示数据')}
+
+const ST={new:['新线索',''],contacted:['已联系','a'],opp:['已确认商机','w'],won:['已成交','s'],closed:['已关闭','n']};
+const CH={agent:['AI 顾问抽屉',''],form:['预约诊断表单','w'],demo:['首页演示小窗','a']};
+
+/* ---------------- 导航 ---------------- */
+const TT={leads:['线索管理','LEADS'],articles:['文章管理','CONTENT / ARTICLES'],
+  cases:['案例管理','CONTENT / CASES'],featured:['首页精选案例','CONTENT / FEATURED'],
+  faq:['FAQ 管理','CONTENT / FAQ'],experts:['讲师 / 专家团队','CONTENT / EXPERTS'],
+  settings:['全局配置','SYSTEM / SETTINGS']};
+$$('.sb-i').forEach(el=>el.onclick=()=>go(el.dataset.nav));
+function go(k){
+  $$('.sb-i').forEach(e=>e.classList.toggle('act',e.dataset.nav===k));
+  $$('.view').forEach(e=>e.classList.toggle('on',e.id==='v-'+k));
+  $('#ttl').textContent=TT[k][0];$('#crumb').textContent=TT[k][1];
+  $('#sb').classList.remove('open');window.scrollTo(0,0);
+}
+
+/* ==========================================================================
+   线索管理
+   ========================================================================== */
+function renderLeads(){
+  const q=$('#fq').value.trim().toLowerCase(),st=$('#fst').value,ch=$('#fch').value,tm=+$('#ftm').value||0;
+  let rows=DB.leads.filter(l=>{
+    if(st&&l.state!==st)return false;
+    if(ch&&l.channel!==ch)return false;
+    if(tm&&NOW-l.ts>tm*D)return false;
+    if(q){const hay=(l.name+l.company+l.tel+l.email+(l.msg||'')+(l.talk||[]).map(t=>t.t).join('')).toLowerCase();
+      if(!hay.includes(q))return false}
+    return true;
+  }).sort((a,b)=>b.ts-a.ts);
+
+  $('#leadRows').innerHTML=rows.length?rows.map(l=>`
+    <tr class="clk" onclick="openLead('${l.id}')">
+      <td><div class="nm">${esc(l.name)}</div><div class="sub">${esc(l.company)}</div></td>
+      <td><div class="mono" style="font-size:12.5px">${esc(l.tel)}</div>
+          <div class="sub">${esc(l.title||'')}</div></td>
+      <td><span class="chip ${CH[l.channel][1]}"><span class="dot"></span>${CH[l.channel][0]}</span></td>
+      <td><div class="mono" style="font-size:11.5px;color:var(--purple)">${esc(l.leadPage)}</div>
+          <div class="sub">${esc(l.ref)} · 浏览 ${l.trail.length} 页${l.talk.length?' · 问了 '+l.talk.filter(t=>t.r==='me').length+' 个问题':''}</div></td>
+      <td>${(l.intents||[]).map(i=>`<span class="tag">${esc(i)}</span>`).join('')||'<span class="sub">—</span>'}</td>
+      <td><span class="chip ${ST[l.state][1]}">${ST[l.state][0]}</span></td>
+      <td><div style="font-size:12.5px">${ago(l.ts)}</div><div class="sub mono">${fmt(l.ts).slice(5,11)}</div></td>
+    </tr>`).join(''):`<tr><td colspan="7"><div class="empty"><b>没有符合条件的线索</b>换个筛选条件试试</div></td></tr>`;
+  $('#leadCount').textContent=`共 ${rows.length} 条线索${rows.length!==DB.leads.length?`（总计 ${DB.leads.length} 条）`:''}`;
+  stats();
+}
+function stats(){
+  const L=DB.leads,td=L.filter(l=>NOW-l.ts<D).length,yd=L.filter(l=>NOW-l.ts>=D&&NOW-l.ts<2*D).length;
+  const nw=L.filter(l=>l.state==='new').length;
+  const ovd=L.filter(l=>l.state==='new'&&NOW-l.ts>D).length;
+  const ag=L.filter(l=>l.channel==='agent'||l.channel==='demo').length;
+  $('#sTd').textContent=td;$('#sYd').textContent=yd;$('#sNew').textContent=nw;$('#sOvd').textContent=ovd;
+  $('#sAg').textContent=ag;$('#sAgP').textContent=Math.round(ag/L.length*100)+'%';
+  $('#sOpp').textContent=L.filter(l=>l.state==='opp').length;
+  $('#sWon').textContent=L.filter(l=>l.state==='won'&&NOW-l.ts<30*D).length;
+  $('#navLeadBadge').textContent=nw;
+}
+let curLead=null;
+function openLead(id,keep){
+  const l=DB.leads.find(x=>x.id===id);if(!l)return;
+  const sc=keep?$('#dwBody').scrollTop:0;curLead=l;
+  $('#dwName').innerHTML=esc(l.name)+` <span class="chip ${ST[l.state][1]}" style="vertical-align:3px">${ST[l.state][0]}</span>`;
+  $('#dwSub').innerHTML=`${esc(l.company)} · ${esc(l.title||'职位未填')} <span class="mono" style="font-size:11px">#${l.id}</span>`;
+  $('#dwState').value=l.state;
+  const q=l.talk.filter(t=>t.r==='me');
+  $('#dwBody').innerHTML=`
+  <div class="sec"><h3>联系方式</h3>
+    <dl class="kv">
+      <dt>手机 / 微信</dt><dd class="mono">${esc(l.tel)}</dd>
+      <dt>邮箱</dt><dd>${l.email?esc(l.email):'<span class="muted">未留</span>'}</dd>
+      <dt>企业</dt><dd>${esc(l.company)}</dd>
+      <dt>职位</dt><dd>${esc(l.title||'—')}</dd>
+      <dt>意向方向</dt><dd>${(l.intents||[]).map(i=>`<span class="tag">${esc(i)}</span>`).join('')||'—'}</dd>
+      ${l.msg?`<dt>想解决的问题</dt><dd style="font-weight:500;line-height:1.75">${esc(l.msg)}</dd>`:''}
+    </dl>
+  </div>
+
+  <div class="sec"><h3>从哪来 · 怎么走到留资的</h3>
+    <dl class="kv" style="margin-bottom:13px">
+      <dt>留资入口</dt><dd><span class="chip ${CH[l.channel][1]}">${CH[l.channel][0]}</span></dd>
+      <dt>触发方式</dt><dd style="font-weight:600">${esc(l.trigger)}</dd>
+      <dt>外部来源</dt><dd>${esc(l.ref)}</dd>
+      <dt>落地页</dt><dd class="mono" style="color:var(--purple)">${esc(l.landing)}</dd>
+      <dt>留资页面</dt><dd class="mono" style="color:var(--purple)">${esc(l.leadPage)}</dd>
+      <dt>设备</dt><dd style="font-weight:500">${esc(l.device)}</dd>
+    </dl>
+    <div class="trail">${l.trail.map(t=>`
+      <div class="tr ${t.hit?'hit':''}">
+        <div class="h">${esc(t.t)}${t.hit?' <span class="chip" style="font-size:10px;padding:0 7px">在此留资</span>':''}</div>
+        <div class="m">${esc(t.h)} · 停留 <em>${esc(t.d)}</em></div>
+      </div>`).join('')}</div>
+  </div>
+
+  ${l.talk.length?`<div class="sec"><h3>AI 顾问对话全文 · ${q.length} 问</h3>
+    ${l.kb.length?`<p class="muted" style="margin-bottom:9px">命中知识库：${l.kb.map(k=>`<span class="src-tag">${esc(k)}</span>`).join(' ')}</p>`:''}
+    <div class="talk">${l.talk.map(m=>m.r==='me'?
+      `<div class="msg me"><span class="who">访客</span><span class="bub">${esc(m.t)}</span></div>`:
+      `<div class="msg ai"><span class="who">AI 顾问</span><span class="bub">${esc(m.t)}
+         ${m.rag&&m.rag.length?`<span class="rag">${m.rag.map(r=>`<span class="src-tag">● ${esc(r)}</span>`).join('')}</span>`:''}
+         ${m.src&&m.src.length?`<span class="srcs">${m.src.map(s=>`<span class="s">${esc(s.t)}<em>${esc(s.w)}</em></span>`).join('')}</span>`:''}
+       </span></div>`).join('')}</div>
+    </div>`:`<div class="sec"><h3>AI 顾问对话</h3>
+      <p class="muted">该线索来自表单提交，没有 Agent 会话记录。</p></div>`}
+
+  <div class="sec"><h3>跟进记录</h3>
+    <div class="notes" id="noteList">${l.notes.length?l.notes.map(n=>
+      `<div class="note"><div class="m">${fmt(n.ts)} · ${esc(n.by)}</div>${esc(n.txt)}</div>`).join(''):
+      '<p class="muted">还没有跟进记录。</p>'}</div>
+    <textarea class="inp" id="noteTxt" rows="2" placeholder="记一条跟进：聊了什么、下一步什么时候做"></textarea>
+    <button class="btn sm pri" style="margin-top:8px" onclick="addNote()">添加跟进</button>
+  </div>`;
+  rhSelects($('#dw'));
+  $('#dw').classList.add('open');$('#dwMask').classList.add('open');
+  $('#dwBody').scrollTop=sc;
+}
+function closeDw(){shutSel();$('#dw').classList.remove('open');$('#dwMask').classList.remove('open')}
+function setState(){if(!curLead)return;curLead.state=$('#dwState').value;
+  $('#dwName').innerHTML=esc(curLead.name)+` <span class="chip ${ST[curLead.state][1]}" style="vertical-align:3px">${ST[curLead.state][0]}</span>`;
+  renderLeads();toast('状态已更新为「'+ST[curLead.state][0]+'」')}
+function addNote(){
+  const v=$('#noteTxt').value.trim();if(!v){$('#noteTxt').focus();return}
+  curLead.notes.push({ts:Date.now(),by:'admin',txt:v});
+  openLead(curLead.id,true);toast('跟进已记录')}
+function exportCSV(){
+  const head=['线索ID','姓名','手机/微信','邮箱','企业','职位','来源渠道','触发方式','外部来源','落地页','留资页面','浏览路径','意向方向','Agent 提问','状态','留资时间'];
+  const rows=DB.leads.map(l=>[l.id,l.name,l.tel,l.email,l.company,l.title,CH[l.channel][0],l.trigger,l.ref,
+    l.landing,l.leadPage,l.trail.map(t=>t.h).join(' → '),(l.intents||[]).join('/'),
+    l.talk.filter(t=>t.r==='me').map(t=>t.t).join(' ｜ '),ST[l.state][0],fmt(l.ts)]);
+  const csv='﻿'+[head,...rows].map(r=>r.map(c=>`"${String(c==null?'':c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='瑞华智策_线索_'+fmt(NOW).slice(0,10)+'.csv';a.click();
+  toast('已导出 '+DB.leads.length+' 条线索');
+}
+
+/* ==========================================================================
+   弹窗表单
+   ========================================================================== */
+function openMk(title,html,onSave){
+  $('#mkTtl').textContent=title;$('#mkBody').innerHTML=html;rhSelects($('#mkBody'));
+  $('#mk').classList.add('open');
+  $('#mkSave').onclick=onSave;
+  setTimeout(()=>{const f=$('#mkBody').querySelector('input,textarea,select');f&&f.focus()},260);
+}
+function closeMk(){shutSel();$('#mk').classList.remove('open')}
+$('#mk').onclick=e=>{if(e.target.id==='mk')closeMk()};
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;
+  if(openSel){shutSel();return}
+  closeMk();closeDw();});
+
+/* ==========================================================================
+   文章管理
+   ========================================================================== */
+const ART_ST={full:['全文','s'],toc:['提纲','w'],soon:['敬请期待','n']};
+let artZone='';
+$$('#artZone button').forEach(b=>b.onclick=()=>{
+  $$('#artZone button').forEach(x=>x.classList.remove('on'));b.classList.add('on');artZone=b.dataset.z;renderArts()});
+function renderArts(){
+  const q=$('#artQ').value.trim().toLowerCase(),st=$('#artState').value,on=$('#artOn').value;
+  const rows=DB.arts.filter(a=>(!artZone||a.zone===artZone)&&(!st||a.state===st)&&
+    (on===''||String(a.on)===on)&&
+    (!q||(a.title+a.author+a.cat).toLowerCase().includes(q)))
+    .sort((a,b)=>(b.top-a.top)||(b.pub<a.pub?-1:1));
+  $('#artRows').innerHTML=rows.length?rows.map(a=>`
+    <tr>
+      <td><span title="${a.top?'取消置顶':'置顶'}" style="cursor:pointer;font-size:15px;color:${a.top?'var(--purple)':'var(--hair)'}"
+        onclick="topArt(${a.id})">★</span></td>
+      <td><div class="nm" style="${a.on?'':'opacity:.5'}">${esc(a.title)}
+            ${a.on?'':'<span class="chip n" style="font-size:10px">已下架</span>'}</div>
+          <div class="sub">${(a.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div></td>
+      <td><div style="font-size:12.5px;font-weight:700">${a.zone==='industry'?'行业洞察':'经营智库'}</div>
+          <div class="sub">${esc(a.cat)}</div></td>
+      <td>${esc(a.author)}</td>
+      <td><span class="chip ${ART_ST[a.state][1]}">${ART_ST[a.state][0]}</span></td>
+      <td class="mono" style="font-size:12px;white-space:nowrap">${esc(a.pub)}</td>
+      <td class="mono" style="font-size:12px">${a.views}</td>
+      <td><button class="sw ${a.on?'on':''}" onclick="toggleArtOn(${a.id})" title="上架 / 下架"></button></td>
+      <td><button class="btn sm" onclick="editArt(${a.id})">编辑</button>
+          <button class="btn sm dg" onclick="delRow('arts',${a.id},'文章')">删除</button></td>
+    </tr>`).join(''):`<tr><td colspan="9"><div class="empty"><b>没有文章</b>换个筛选条件，或新建一篇</div></td></tr>`;
+}
+function topArt(id){
+  const a=DB.arts.find(x=>x.id===id);
+  if(!a.top&&!a.on){toast('已下架的文章不能置顶',false);return}
+  a.top=a.top?0:1;renderArts();
+  toast(a.top?'已置顶到栏目首位':'已取消置顶');
+}
+function toggleArtOn(id){
+  const a=DB.arts.find(x=>x.id===id);
+  a.on=a.on?0:1;
+  if(!a.on&&a.top)a.top=0;              // 下架即取消置顶，避免前台留一个空位
+  renderArts();
+  toast(a.on?'已上架，前台列表立即可见':'已下架，前台立即不可见（数据保留）');
+}
+function editArt(id){
+  const a=id?DB.arts.find(x=>x.id===id):{title:'',zone:'industry',cat:'CIO 数智化转型智库',author:'',
+    pub:new Date().toISOString().slice(0,10),state:'soon',views:0,top:0,on:1,tags:[],abstract:''};
+  openMk(id?'编辑文章':'新建文章',`
+   <div class="f"><label>标题 <span class="req">*</span></label>
+     <input class="inp" id="e_title" value="${esc(a.title)}" placeholder="贴近用户真实问法，兼顾 SEO/GEO"></div>
+   <div class="f2">
+     <div class="f"><label>所属栏目</label><select class="inp" id="e_zone">
+       <option value="industry"${a.zone==='industry'?' selected':''}>行业洞察</option>
+       <option value="thinktank"${a.zone==='thinktank'?' selected':''}>经营智库</option></select></div>
+     <div class="f"><label>分类标签</label><input class="inp" id="e_cat" value="${esc(a.cat)}" placeholder="如 CIO 数智化转型智库"></div>
+     <div class="f"><label>作者</label><input class="inp" id="e_author" value="${esc(a.author)}"></div>
+     <div class="f"><label>发布日期</label><input class="inp" id="e_pub" type="date" value="${esc(a.pub)}"></div>
+   </div>
+   <div class="f2">
+     <div class="f"><label>内容状态 <span class="hint">读者看到什么</span></label>
+       <select class="inp" id="e_state">
+         <option value="full"${a.state==='full'?' selected':''}>全文 — 正文完整可读</option>
+         <option value="toc"${a.state==='toc'?' selected':''}>提纲 — 只展示目录，可订阅提醒</option>
+         <option value="soon"${a.state==='soon'?' selected':''}>敬请期待 — 仅占位，不可点入</option>
+       </select></div>
+     <div class="f"><label>上架状态 <span class="hint">前台列表出不出现</span></label>
+       <select class="inp" id="e_on">
+         <option value="1"${a.on?' selected':''}>已上架</option>
+         <option value="0"${!a.on?' selected':''}>已下架</option>
+       </select></div>
+   </div>
+   <div class="f"><label>关键词标签 <span class="hint">逗号分隔</span></label>
+     <input class="inp" id="e_tags" value="${esc((a.tags||[]).join('，'))}"></div>
+   <div class="f"><label>摘要</label><textarea class="inp" id="e_abs" rows="3">${esc(a.abstract)}</textarea></div>
+   <div class="f"><label>正文 <span class="hint">正式后台此处为富文本编辑器；原型仅存 HTML</span></label>
+     <textarea class="inp" id="e_body" rows="4" placeholder="<p>……</p>"></textarea></div>`,
+  ()=>{
+    const t=$('#e_title').value.trim();if(!t){toast('标题必填',false);$('#e_title').focus();return}
+    const o={title:t,zone:$('#e_zone').value,cat:$('#e_cat').value.trim(),author:$('#e_author').value.trim(),
+      pub:$('#e_pub').value,state:$('#e_state').value,on:+$('#e_on').value,
+      tags:$('#e_tags').value.split(/[，,]/).map(s=>s.trim()).filter(Boolean),abstract:$('#e_abs').value.trim()};
+    if(id)Object.assign(a,o);else DB.arts.push(Object.assign({id:Date.now(),views:0,top:0},o));
+    if(!o.on){const t=id?a:DB.arts[DB.arts.length-1];t.top=0}
+    closeMk();renderArts();toast(id?'文章已保存':'文章已创建');
+  });
+}
+function delRow(key,id,label){
+  if(!confirm('确认删除这条'+label+'？前台将立即不再展示。'))return;
+  DB[key]=DB[key].filter(x=>x.id!==id);renderAll();toast(label+'已删除');
+}
+
+/* ==========================================================================
+   案例管理
+   ========================================================================== */
+const INDS=['制造业','教育','零售快消','游戏文娱','金融财税','贸易物流','物业地产','其他'];
+$('#csInd').innerHTML='<option value="">全部行业</option>'+INDS.map(i=>`<option>${i}</option>`).join('');
+function renderCases(){
+  const q=$('#csQ').value.trim().toLowerCase(),ind=$('#csInd').value,on=$('#csOn').value;
+  const rows=DB.cases.filter(c=>(!ind||c.ind===ind)&&(on===''||String(c.on)===on)&&
+    (!q||c.title.toLowerCase().includes(q)));
+  $('#caseRows').innerHTML=rows.length?rows.map(c=>`
+    <tr>
+      <td><span title="${c.feat?'取消首页精选':'加入首页精选'}" style="cursor:pointer;font-size:15px;color:${c.feat?'var(--purple)':'var(--hair)'}"
+        onclick="toggleFeat(${c.id})">★</span></td>
+      <td><div class="nm">${esc(c.title)}</div></td>
+      <td><span class="tag">${esc(c.ind)}</span></td>
+      <td class="mono" style="font-size:11.5px;color:var(--data-ink)">${esc(c.stats)}</td>
+      <td><button class="sw ${c.on?'on':''}" onclick="toggleOn(${c.id})" title="上架 / 下架"></button></td>
+      <td><button class="btn sm" onclick="editCase(${c.id})">编辑</button>
+          <button class="btn sm dg" onclick="delRow('cases',${c.id},'案例')">删除</button></td>
+    </tr>`).join(''):`<tr><td colspan="6"><div class="empty"><b>没有案例</b>换个筛选条件，或新建一个</div></td></tr>`;
+}
+function toggleOn(id){const c=DB.cases.find(x=>x.id===id);c.on=c.on?0:1;
+  if(!c.on&&c.feat){c.feat=0;c.featRank=-1}renderAll();toast(c.on?'已上架':'已下架，前台立即不可见')}
+function toggleFeat(id){
+  const c=DB.cases.find(x=>x.id===id);
+  if(!c.feat&&DB.cases.filter(x=>x.feat).length>=6){toast('首页最多 6 个，先取消一个',false);return}
+  if(!c.feat&&!c.on){toast('已下架的案例不能上首页',false);return}
+  c.feat=c.feat?0:1;c.featRank=c.feat?Math.max(0,...DB.cases.map(x=>x.featRank))+1:-1;
+  renderAll();toast(c.feat?'已加入首页精选':'已移出首页精选');
+}
+function editCase(id){
+  const c=id?DB.cases.find(x=>x.id===id):{title:'',ind:'制造业',stats:'',on:1,feat:0,featRank:-1};
+  openMk(id?'编辑案例':'新建案例',`
+   <div class="f"><label>案例标题 <span class="req">*</span></label>
+     <input class="inp" id="c_title" value="${esc(c.title)}" placeholder="客户 · 用什么把什么问题解决到什么程度"></div>
+   <div class="f2">
+     <div class="f"><label>所属行业</label><select class="inp" id="c_ind">
+       ${INDS.map(i=>`<option${i===c.ind?' selected':''}>${i}</option>`).join('')}</select></div>
+     <div class="f"><label>上架状态</label><select class="inp" id="c_on">
+       <option value="1"${c.on?' selected':''}>已上架</option><option value="0"${!c.on?' selected':''}>已下架</option></select></div>
+   </div>
+   <div class="f"><label>关键数据 <span class="hint">卡片上的数字，用 / 分隔多组</span></label>
+     <input class="inp" id="c_stats" value="${esc(c.stats)}" placeholder="↑20.7% 研发型号效率 / ↓10% 采购成本"></div>
+   <div class="f"><label>客户背景</label><textarea class="inp" id="c_bg" rows="2"></textarea></div>
+   <div class="f"><label>问题 / 目标 / 方案 <span class="hint">正式后台为三栏结构化编辑；原型合并演示</span></label>
+     <textarea class="inp" id="c_body" rows="3"></textarea></div>`,
+  ()=>{
+    const t=$('#c_title').value.trim();if(!t){toast('标题必填',false);return}
+    const o={title:t,ind:$('#c_ind').value,stats:$('#c_stats').value.trim(),on:+$('#c_on').value};
+    if(id)Object.assign(c,o);else DB.cases.push(Object.assign({id:Date.now(),feat:0,featRank:-1},o));
+    closeMk();renderAll();toast(id?'案例已保存':'案例已创建');
+  });
+}
+
+/* ==========================================================================
+   首页精选案例
+   ========================================================================== */
+function renderFeat(){
+  const sel=DB.cases.filter(c=>c.feat).sort((a,b)=>a.featRank-b.featRank);
+  $('#featCount').textContent=`已选 ${sel.length} / 6`;
+  $('#featWarn').innerHTML=sel.length<6?`<span style="color:var(--apr-ink)">还差 ${6-sel.length} 个</span>`:'已满';
+  $('#featList').innerHTML=sel.length?sel.map((c,i)=>`
+    <div class="sortitem" draggable="true" data-id="${c.id}">
+      <span class="rk">${i+1}</span><span class="gp">⠿</span>
+      <span class="tt">${esc(c.title)}</span>
+      <span class="tag">${esc(c.ind)}</span>
+      <button class="btn sm gh" onclick="toggleFeat(${c.id})" title="移出首页">✕</button>
+    </div>`).join(''):'<div class="empty"><b>首页还没有精选案例</b>从右侧案例库勾选 6 个</div>';
+  bindSort('#featList',arr=>{arr.forEach((id,i)=>{DB.cases.find(c=>c.id==id).featRank=i});renderFeat()});
+  const q=$('#featQ').value.trim().toLowerCase();
+  $('#featPick').innerHTML=DB.cases.filter(c=>!q||c.title.toLowerCase().includes(q)).map(c=>{
+    const dis=!c.on||(!c.feat&&DB.cases.filter(x=>x.feat).length>=6);
+    return `<label class="pick ${dis?'dis':''}">
+      <input type="checkbox" ${c.feat?'checked':''} ${dis?'disabled':''} onchange="toggleFeat(${c.id})">
+      <span style="flex:1;min-width:0"><span style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.title)}</span>
+      <span class="sub">${esc(c.ind)}${c.on?'':' · 已下架'}</span></span></label>`}).join('');
+}
+
+/* ==========================================================================
+   FAQ
+   ========================================================================== */
+function renderFaq(){
+  $('#faqCount').textContent=`共 ${DB.faqs.length} 条 · 顺序即首页展示顺序`;
+  $('#faqList').innerHTML=DB.faqs.map((f,i)=>`
+    <div class="sortitem" draggable="true" data-id="${f.id}" style="align-items:flex-start">
+      <span class="rk">${i+1}</span><span class="gp" style="padding-top:2px">⠿</span>
+      <span style="flex:1;min-width:0">
+        <span style="display:block;font-size:13.5px;font-weight:800">${esc(f.q)}</span>
+        <span class="muted" style="display:block;margin-top:3px">${esc(f.a).slice(0,96)}${f.a.length>96?'…':''}</span>
+      </span>
+      <button class="btn sm" onclick="editFaq(${f.id})">编辑</button>
+      <button class="btn sm dg" onclick="delRow('faqs',${f.id},'问答')">删除</button>
+    </div>`).join('');
+  bindSort('#faqList',arr=>{DB.faqs=arr.map(id=>DB.faqs.find(f=>f.id==id));renderFaq();toast('顺序已更新')});
+}
+function editFaq(id){
+  const f=id?DB.faqs.find(x=>x.id===id):{q:'',a:''};
+  openMk(id?'编辑问答':'新增问答',`
+   <div class="f"><label>问题 <span class="req">*</span> <span class="hint">用用户会对 AI 说的原话，不要写成栏目标题</span></label>
+     <input class="inp" id="q_q" value="${esc(f.q)}" placeholder="企业 AI 转型应该从哪个场景切入？"></div>
+   <div class="f"><label>回答 <span class="req">*</span></label>
+     <textarea class="inp" id="q_a" rows="6">${esc(f.a)}</textarea></div>`,
+  ()=>{
+    const q=$('#q_q').value.trim(),a=$('#q_a').value.trim();
+    if(!q||!a){toast('问题与回答都要填',false);return}
+    if(id)Object.assign(f,{q,a});else DB.faqs.push({id:Date.now(),q,a});
+    closeMk();renderFaq();toast(id?'问答已保存':'问答已新增');
+  });
+}
+
+/* ==========================================================================
+   专家
+   ========================================================================== */
+function renderExp(){
+  const miss=DB.exps.filter(e=>!e.photo).length;
+  $('#expCount').innerHTML=`共 ${DB.exps.length} 位 · <span style="color:var(--apr-ink);font-weight:800">${miss} 位缺照片</span>`;
+  $('#expList').innerHTML=DB.exps.map((e,i)=>`
+    <div class="sortitem" draggable="true" data-id="${e.id}" style="align-items:flex-start">
+      <span class="gp" style="padding-top:4px">⠿</span>
+      <span style="flex:0 0 44px;height:44px;border-radius:11px;overflow:hidden;display:grid;place-items:center;
+        background:${e.photo?'transparent':'var(--p-50)'};border:1px solid var(--line)">
+        ${e.photo?`<img src="${e.photo}" style="width:100%;height:100%;object-fit:cover">`:
+          `<span style="font-family:var(--serif);font-size:17px;font-weight:900;color:var(--p-300)">${esc(e.name[0])}</span>`}</span>
+      <span style="flex:1;min-width:0">
+        <span style="display:block;font-size:13.5px;font-weight:800">${esc(e.name)}
+          ${e.photo?'':'<span class="chip a" style="font-size:10px">缺照片</span>'}</span>
+        <span class="muted" style="display:block">${esc(e.role)}</span>
+      </span>
+      <button class="sw ${e.on?'on':''}" onclick="expOn(${e.id})" title="前台展示"></button>
+      <button class="btn sm" onclick="editExp(${e.id})">编辑</button>
+      <button class="btn sm dg" onclick="delRow('exps',${e.id},'专家')">删除</button>
+    </div>`).join('');
+  bindSort('#expList',arr=>{DB.exps=arr.map(id=>DB.exps.find(e=>e.id==id));renderExp();toast('顺序已更新')});
+}
+function expOn(id){const e=DB.exps.find(x=>x.id===id);e.on=e.on?0:1;renderExp();
+  toast(e.on?'已在前台展示':'已从前台隐藏')}
+function editExp(id){
+  const e=id?DB.exps.find(x=>x.id===id):{name:'',role:'',bio:'',photo:'',on:1};
+  openMk(id?'编辑专家':'新增专家',`
+   <div class="f2">
+     <div class="f"><label>姓名 <span class="req">*</span></label><input class="inp" id="x_name" value="${esc(e.name)}"></div>
+     <div class="f"><label>前台展示</label><select class="inp" id="x_on">
+       <option value="1"${e.on?' selected':''}>展示</option><option value="0"${!e.on?' selected':''}>隐藏</option></select></div>
+   </div>
+   <div class="f"><label>头衔 <span class="req">*</span></label>
+     <input class="inp" id="x_role" value="${esc(e.role)}" placeholder="瑞华智策 副总裁 · 组织与人才变革专家"></div>
+   <div class="f"><label>简介</label><textarea class="inp" id="x_bio" rows="4">${esc(e.bio)}</textarea></div>
+   <div class="f"><label>照片 <span class="hint">建议 1:1，≥600px；上传后转为站内资源，不再依赖外链</span></label>
+     <div style="display:flex;gap:13px;align-items:center">
+       <span id="x_prev" style="flex:0 0 68px;height:68px;border-radius:14px;overflow:hidden;display:grid;
+         place-items:center;background:var(--p-50);border:1px solid var(--line)">
+         ${e.photo?`<img src="${e.photo}" style="width:100%;height:100%;object-fit:cover">`:
+           '<span class="muted" style="font-size:11px">无</span>'}</span>
+       <input type="file" id="x_file" accept="image/*" style="font-size:12px">
+     </div></div>`,
+  ()=>{
+    const n=$('#x_name').value.trim(),r=$('#x_role').value.trim();
+    if(!n||!r){toast('姓名和头衔必填',false);return}
+    const o={name:n,role:r,bio:$('#x_bio').value.trim(),on:+$('#x_on').value,photo:pendPhoto!==null?pendPhoto:e.photo};
+    if(id)Object.assign(e,o);else DB.exps.push(Object.assign({id:Date.now()},o));
+    pendPhoto=null;closeMk();renderExp();toast(id?'专家已保存':'专家已新增');
+  });
+  pendPhoto=null;
+  setTimeout(()=>{const f=$('#x_file');if(!f)return;f.onchange=()=>{
+    const file=f.files[0];if(!file)return;
+    if(file.size>2.2e6){toast('图片超过 2MB，先压缩一下',false);return}
+    const rd=new FileReader();rd.onload=()=>{pendPhoto=rd.result;
+      $('#x_prev').innerHTML=`<img src="${rd.result}" style="width:100%;height:100%;object-fit:cover">`};
+    rd.readAsDataURL(file)}},80);
+}
+let pendPhoto=null;
+
+/* ==========================================================================
+   全局配置
+   ========================================================================== */
+function renderCfg(){
+  const c=DB.cfg;
+  $('#g_tel').value=c.tel;$('#g_mail').value=c.mail;$('#g_icp').value=c.icp;
+  $('#g_oldDomain').value=c.oldDomain;$('#g_newDomain').value=c.newDomain;$('#g_logo').value=c.logo;
+  $('#g_esc').value=c.esc;$('#g_daily').value=c.daily;
+  $('#g_cities').innerHTML=c.cities.map((x,i)=>
+    `<span class="citychip">${esc(x)}<b onclick="delCity(${i})" title="删除">✕</b></span>`).join('')
+    ||'<span class="muted">还没有城市</span>';
+  $('#g_chans').innerHTML=CHANS.map(ch=>
+    `<label><input type="checkbox" value="${esc(ch)}" ${c.chans.includes(ch)?'checked':''}
+      onchange="pickChan(this)">${esc(ch)}</label>`).join('');
+  $('#g_qrPrev').innerHTML=c.qr?`<img src="${c.qr}" style="width:100%;height:100%;object-fit:contain">`:
+    '<span class="muted" style="font-size:11.5px;text-align:center;line-height:1.5">未上传<br>（前台用假码）</span>';
+  $('#g_fallback').innerHTML=DB.rcps.map(r=>
+    `<option value="${r.id}"${r.id===c.fallback?' selected':''}>${esc(r.name)} · ${esc(r.role)}</option>`).join('');
+  $('#rcpRows').innerHTML=DB.rcps.length?DB.rcps.map(r=>`
+    <tr><td><div class="nm">${esc(r.name)}</div><div class="sub">${esc(r.role)}</div></td>
+      <td class="mono" style="font-size:11.5px">${esc(r.acct)}</td>
+      <td>${r.scope.map(s=>`<span class="tag">${esc(s)}</span>`).join('')||'<span class="sub">未分派</span>'}</td>
+      <td><span class="chip n">${esc(r.chan)}</span></td>
+      <td><button class="sw ${r.on?'on':''}" onclick="rcpOn(${r.id})"></button></td>
+      <td><button class="btn sm" onclick="editRcp(${r.id})">编辑</button>
+          <button class="btn sm dg" onclick="delRcp(${r.id})">删除</button></td></tr>`).join('')
+    :`<tr><td colspan="6"><div class="empty"><b>还没有接收人</b>线索来了没人知道，上线前必须至少配 1 个</div></td></tr>`;
+  /* 待处理项计数：二维码未换 + Logo 仍走旧域名外链 + 没有接收人 */
+  rhSelects($('#v-settings'));
+  let todo=0;if(!c.qr)todo++;if(c.logo==='remote')todo++;if(!DB.rcps.filter(r=>r.on).length)todo++;
+  const b=$('#navCfgBadge');b.textContent=todo;b.style.display=todo?'':'none';
+}
+function delCity(i){DB.cfg.cities.splice(i,1);renderCfg()}
+$('#g_cityIn').addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;e.preventDefault();
+  const v=e.target.value.trim();if(!v)return;
+  if(DB.cfg.cities.includes(v)){toast('已经有这个城市了',false);return}
+  DB.cfg.cities.push(v);e.target.value='';renderCfg()});
+function pickChan(el){
+  const c=DB.cfg.chans,v=el.value;
+  if(el.checked){if(!c.includes(v))c.push(v)}else DB.cfg.chans=c.filter(x=>x!==v)}
+$('#g_qrFile').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  if(f.size>1.2e6){toast('二维码图片超过 1MB，压一下',false);return}
+  const rd=new FileReader();rd.onload=()=>{DB.cfg.qr=rd.result;renderCfg();toast('二维码已替换，记得保存')};
+  rd.readAsDataURL(f)};
+function saveCfg(){
+  const c=DB.cfg;
+  c.tel=$('#g_tel').value.trim();c.mail=$('#g_mail').value.trim();c.icp=$('#g_icp').value.trim();
+  c.oldDomain=$('#g_oldDomain').value.trim();c.newDomain=$('#g_newDomain').value.trim();
+  c.logo=$('#g_logo').value;c.esc=$('#g_esc').value;c.daily=$('#g_daily').value;c.fallback=+$('#g_fallback').value;
+  renderCfg();$('#cfgSaved').textContent='已保存 · '+fmt(Date.now());
+  toast('全局配置已保存，全站生效');
+}
+function testNotify(){
+  const on=DB.rcps.filter(r=>r.on);
+  if(!on.length||!DB.cfg.chans.length){toast('先配好接收人和通知渠道',false);return}
+  toast('测试通知已发给 '+on.length+' 人 · 渠道：'+DB.cfg.chans.join('、'));
+}
+function rcpOn(id){const r=DB.rcps.find(x=>x.id===id);r.on=r.on?0:1;renderCfg();
+  toast(r.on?'已启用':'已停用，不再接收线索通知')}
+function delRcp(id){
+  if(!confirm('确认删除这个接收人？'))return;
+  DB.rcps=DB.rcps.filter(x=>x.id!==id);
+  if(DB.cfg.fallback===id&&DB.rcps.length)DB.cfg.fallback=DB.rcps[0].id;
+  renderCfg();toast('接收人已删除');
+}
+function editRcp(id){
+  const r=id?DB.rcps.find(x=>x.id===id):{name:'',role:'',acct:'',scope:[],chan:'企业微信',on:1};
+  openMk(id?'编辑接收人':'添加接收人',`
+   <div class="f2">
+     <div class="f"><label>姓名 <span class="req">*</span></label><input class="inp" id="r_name" value="${esc(r.name)}"></div>
+     <div class="f"><label>角色 / 部门</label><input class="inp" id="r_role" value="${esc(r.role)}"></div>
+   </div>
+   <div class="f"><label>接收账号 <span class="req">*</span> <span class="hint">企微 userid / 手机号 / 邮箱</span></label>
+     <input class="inp" id="r_acct" value="${esc(r.acct)}"></div>
+   <div class="f"><label>接收渠道</label><select class="inp" id="r_chan">
+     ${['企业微信','短信','邮件','飞书','钉钉'].map(x=>`<option${x===r.chan?' selected':''}>${x}</option>`).join('')}
+   </select></div>
+   <div class="f" style="margin-bottom:0"><label>负责的意向方向 <span class="hint">线索按这里的方向自动分派</span></label>
+     <div class="cbs">${INTENTS.map(i=>
+       `<label><input type="checkbox" class="r_sc" value="${esc(i)}" ${r.scope.includes(i)?'checked':''}>${esc(i)}</label>`).join('')}</div></div>`,
+  ()=>{
+    const n=$('#r_name').value.trim(),a=$('#r_acct').value.trim();
+    if(!n||!a){toast('姓名和接收账号必填',false);return}
+    const o={name:n,role:$('#r_role').value.trim(),acct:a,chan:$('#r_chan').value,
+      scope:[...document.querySelectorAll('.r_sc:checked')].map(x=>x.value)};
+    if(id)Object.assign(r,o);else DB.rcps.push(Object.assign({id:Date.now(),on:1},o));
+    closeMk();renderCfg();toast(id?'接收人已保存':'接收人已添加');
+  });
+}
+
+/* ==========================================================================
+   拖拽排序
+   ========================================================================== */
+function bindSort(sel,done){
+  const box=$(sel);if(!box)return;let dragEl=null;
+  box.querySelectorAll('.sortitem').forEach(it=>{
+    it.ondragstart=e=>{dragEl=it;it.classList.add('drag');e.dataTransfer.effectAllowed='move'};
+    it.ondragend=()=>{it.classList.remove('drag');
+      done([...box.querySelectorAll('.sortitem')].map(x=>x.dataset.id))};
+    it.ondragover=e=>{
+      e.preventDefault();if(!dragEl||dragEl===it)return;
+      const r=it.getBoundingClientRect();
+      box.insertBefore(dragEl,(e.clientY-r.top)/r.height>.5?it.nextSibling:it)};
+  });
+}
+
+/* ==========================================================================
+   登录 / 修改密码
+   原型说明：账号密码在内存里比对，仅用于演示交互。
+   真实实现：POST /api/admin/auth/login，服务端 bcrypt/argon2 校验，
+   会话写 HttpOnly + SameSite=Lax cookie，前端不碰任何凭据。
+   ========================================================================== */
+const AUTH={user:'admin',pass:'ruihua@2026',isDefault:true};
+let lgFail=0,lgLockUntil=0;
+
+function lgError(msg){const e=$('#lgErr');e.textContent=msg;e.classList.remove('on');
+  void e.offsetWidth;e.classList.add('on')}
+function eyeToggle(id,btn){const i=$('#'+id);const on=i.type==='password';
+  i.type=on?'text':'password';btn.textContent=on?'隐藏':'显示';i.focus()}
+
+function fillDemo(){
+  $('#lgUser').value=AUTH.user;
+  $('#lgPass').value=AUTH.isDefault?'ruihua@2026':'';
+  $('#lgErr').classList.remove('on');
+  const t=$('#demoTag'),g=t.querySelector('.go'),old=g.innerHTML;
+  t.classList.add('done');
+  g.innerHTML=AUTH.isDefault?'✓ 已填好，回车登录':'密码已改过，请手动输入';
+  setTimeout(()=>{t.classList.remove('done');g.innerHTML=old},2200);
+  (AUTH.isDefault?$('#lgBtn'):$('#lgPass')).focus();
+}
+function doLogin(e){
+  e.preventDefault();
+  const now=Date.now();
+  if(now<lgLockUntil){lgError('尝试过于频繁，请 '+Math.ceil((lgLockUntil-now)/1000)+' 秒后再试');return false}
+  const u=$('#lgUser').value.trim(),p=$('#lgPass').value;
+  if(!u||!p){lgError('请输入账号和密码');return false}
+  if(u!==AUTH.user||p!==AUTH.pass){
+    lgFail++;
+    if(lgFail>=5){lgLockUntil=now+30000;lgFail=0;lgError('连续 5 次失败，已锁定 30 秒')}
+    else lgError('账号或密码不正确（还可尝试 '+(5-lgFail)+' 次）');
+    $('#lgPass').select();return false;
+  }
+  lgFail=0;$('#lgErr').classList.remove('on');$('#lgPass').value='';
+  $('#login').classList.add('hide');
+  $('#sbRole').innerHTML='唯一管理员 · 全部权限'+
+    (AUTH.isDefault?' <span style="color:#fdcaae">· 仍在用默认密码</span>':'');
+  setTimeout(()=>toast(AUTH.isDefault?'登录成功 · 建议先改掉默认密码':'欢迎回来，admin'),450);
+  return false;
+}
+function logout(){
+  if(!confirm('确认退出登录？'))return;
+  closeDw();closeMk();go('leads');
+  $('#login').classList.remove('hide');
+  $('#lgUser').value='';$('#lgPass').value='';$('#lgErr').classList.remove('on');
+  setTimeout(()=>$('#lgUser').focus(),420);
+}
+function pwScore(p){
+  let s=0;if(p.length>=8)s++;if(p.length>=12)s++;
+  if(/[a-z]/.test(p)&&/[A-Z]/.test(p))s++;if(/\d/.test(p))s++;if(/[^\w]/.test(p))s++;
+  return Math.min(s,4);
+}
+function openPwd(){
+  openMk('修改密码',`
+   <div class="f"><label>当前密码 <span class="req">*</span></label>
+     <input class="inp" id="p_old" type="password" autocomplete="current-password"></div>
+   <div class="f"><label>新密码 <span class="req">*</span>
+       <span class="hint">至少 8 位，需含字母和数字</span></label>
+     <input class="inp" id="p_new" type="password" autocomplete="new-password" oninput="pwMeter()">
+     <div class="pw-bar"><i id="p_bar"></i></div>
+     <p class="muted" id="p_hint" style="margin-top:5px">还没输入</p></div>
+   <div class="f" style="margin-bottom:0"><label>确认新密码 <span class="req">*</span></label>
+     <input class="inp" id="p_re" type="password" autocomplete="new-password"></div>
+   <div class="tip" style="margin:16px 0 0"><span>◆</span>
+     <span>改完会<b>立即退出登录</b>，需要用新密码重新进入——这是正式环境该有的行为，
+       原型里也照做。<b>原型是内存态，刷新页面会恢复默认密码。</b></span></div>`,
+  ()=>{
+    const o=$('#p_old').value,n=$('#p_new').value,r=$('#p_re').value;
+    if(o!==AUTH.pass){toast('当前密码不正确',false);$('#p_old').select();return}
+    if(n.length<8||!/[a-zA-Z]/.test(n)||!/\d/.test(n)){toast('新密码至少 8 位且需含字母和数字',false);return}
+    if(n===o){toast('新密码不能和当前密码相同',false);return}
+    if(n!==r){toast('两次输入的新密码不一致',false);$('#p_re').select();return}
+    AUTH.pass=n;AUTH.isDefault=false;closeMk();
+    toast('密码已修改，请用新密码重新登录');
+    setTimeout(()=>{
+      $('#login').classList.remove('hide');
+      $('#lgUser').value=AUTH.user;$('#lgPass').value='';
+      setTimeout(()=>$('#lgPass').focus(),420);
+    },700);
+  });
+}
+function pwMeter(){
+  const p=$('#p_new').value,s=pwScore(p);
+  const txt=['太弱','偏弱','一般','较强','很强'][p?s:0];
+  const col=['#c34704','#c34704','#8a5a00','#677d16','#50630c'][s];
+  $('#p_bar').style.width=(p?(s+1)*20:0)+'%';$('#p_bar').style.background=col;
+  $('#p_hint').innerHTML=p?`强度：<b style="color:${col}">${txt}</b>`+
+    (p.length<8?' · 还差 '+(8-p.length)+' 位':''):'还没输入';
+}
+
+/* ==========================================================================
+   自定义下拉
+   原生 <select> 的弹层由系统绘制，macOS 会把它盖在控件本身上面，挡住旁边的输入框。
+   这里做渐进增强：原生 select 留在 DOM 里当数据源（.value / change 事件全部照旧），
+   界面换成自己画的按钮 + 菜单，菜单一律从控件下方展开，空间不够才向上翻。
+   ========================================================================== */
+const CV=`<svg class="cv" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.7"
+  stroke-linecap="round" style="color:var(--ink-3)"><path d="M2 4.5 6 8.5 10 4.5"/></svg>`;
+let openSel=null;
+function rhSelects(root){
+  (root||document).querySelectorAll('select.inp').forEach(sel=>{
+    if(sel.parentNode.classList&&sel.parentNode.classList.contains('rsel')){syncSel(sel.parentNode);return}
+    const wrap=document.createElement('div');
+    wrap.className='rsel';wrap.style.cssText=sel.style.cssText;sel.style.cssText='';
+    sel.parentNode.insertBefore(wrap,sel);wrap.appendChild(sel);
+    const btn=document.createElement('button');btn.type='button';btn.className='rsel-btn';
+    btn.innerHTML='<span class="v"></span>'+CV;
+    const menu=document.createElement('div');menu.className='rsel-menu';
+    wrap.append(btn,menu);
+    btn.onclick=e=>{e.stopPropagation();wrap.classList.contains('open')?shutSel():showSel(wrap)};
+    /* Enter/空格交给按钮自身的 click 去开合，这里只管方向键，避免开完立刻被 click 关掉 */
+    btn.onkeydown=e=>{
+      if(e.key!=='ArrowDown'&&e.key!=='ArrowUp')return;
+      e.preventDefault();
+      wrap.classList.contains('open')?menuKey(e,wrap):showSel(wrap);
+    };
+    menu.onkeydown=e=>menuKey(e,wrap);
+    syncSel(wrap);
+  });
+}
+function syncSel(wrap){
+  const sel=wrap.querySelector('select'),btn=wrap.querySelector('.rsel-btn'),
+        menu=wrap.querySelector('.rsel-menu');
+  btn.querySelector('.v').textContent=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:'';
+  menu.innerHTML=[...sel.options].map((o,i)=>
+    `<div class="o ${i===sel.selectedIndex?'sel':''}" data-i="${i}" tabindex="-1">
+       <span class="ck">✓</span>${esc(o.text)}</div>`).join('');
+  menu.querySelectorAll('.o').forEach(o=>{
+    o.onclick=e=>{e.stopPropagation();pickSel(wrap,+o.dataset.i)};
+    o.onmouseenter=()=>{menu.querySelectorAll('.o').forEach(x=>x.classList.remove('cur'));
+      o.classList.add('cur')};
+  });
+}
+function showSel(wrap){
+  if(openSel&&openSel!==wrap)shutSel();
+  const btn=wrap.querySelector('.rsel-btn'),menu=wrap.querySelector('.rsel-menu');
+  const r=btn.getBoundingClientRect();
+  menu.style.minWidth=r.width+'px';menu.style.left=r.left+'px';
+  menu.style.top='';menu.style.bottom='';menu.style.visibility='hidden';menu.style.opacity='0';
+  wrap.classList.add('open');
+  const h=menu.offsetHeight;
+  if(r.bottom+6+h>innerHeight-8&&r.top-6-h>8)menu.style.top=(r.top-6-h)+'px';
+  else menu.style.top=(r.bottom+6)+'px';
+  menu.style.left=Math.min(r.left,innerWidth-menu.offsetWidth-8)+'px';
+  menu.style.visibility='';menu.style.opacity='';
+  openSel=wrap;
+  const cur=menu.querySelector('.o.sel')||menu.querySelector('.o');
+  if(cur){cur.classList.add('cur');cur.focus({preventScroll:true});
+    menu.scrollTop=Math.max(0,cur.offsetTop-menu.offsetHeight/2)}
+}
+function shutSel(){if(!openSel)return;
+  openSel.classList.remove('open');
+  const b=openSel.querySelector('.rsel-btn');openSel=null;b&&b.focus({preventScroll:true})}
+function pickSel(wrap,i){
+  const sel=wrap.querySelector('select');
+  if(sel.selectedIndex!==i){sel.selectedIndex=i;sel.dispatchEvent(new Event('change',{bubbles:true}))}
+  syncSel(wrap);shutSel();
+}
+function menuKey(e,wrap){
+  const os=[...wrap.querySelectorAll('.o')],cur=wrap.querySelector('.o.cur');
+  let i=os.indexOf(cur);
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    e.preventDefault();i=(i+(e.key==='ArrowDown'?1:-1)+os.length)%os.length;
+    os.forEach(x=>x.classList.remove('cur'));os[i].classList.add('cur');os[i].focus({preventScroll:true});
+  }else if(e.key==='Enter'||e.key===' '){e.preventDefault();pickSel(wrap,i<0?0:i)}
+  else if(e.key==='Escape'||e.key==='Tab'){shutSel()}
+}
+document.addEventListener('click',()=>shutSel());
+document.addEventListener('scroll',()=>shutSel(),true);
+addEventListener('resize',()=>shutSel());
+
+/* ---------------- 启动 ---------------- */
+function renderAll(){renderLeads();renderArts();renderCases();renderFeat();renderFaq();renderExp();renderCfg();
+  rhSelects()}
+renderAll();
+setTimeout(()=>$('#lgUser').focus(),300);
+</script>
+</body>
+</html>

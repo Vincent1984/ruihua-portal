@@ -1,832 +1,205 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="scroll-smooth">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>关于我们 - 瑞华智策 | AI原生本土咨询机构</title>
-    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" />  
-    <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/honors.css" />
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="shortcut icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/favicon.ico">
-    <link rel="canonical" href="https://www.ruihuaconsulting.com/about/" />
-    <link rel="alternate" hreflang="zh-CN" href="https://www.ruihuaconsulting.com/about/" />
+    <title>关于我们 · AI 原生咨询公司 | 瑞华智策</title>
+    <meta name="description" content="瑞华智策：人瑞人才全资子公司，AI 原生的本土咨询机构。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="瑞华智策" />
+    <meta property="og:title" content="关于我们 · AI 原生咨询公司 | 瑞华智策" />
+    <meta property="og:description" content="瑞华智策：人瑞人才全资子公司，AI 原生的本土咨询机构。" />
+    <meta name="twitter:card" content="summary_large_image" />
     
-    <!-- Schema.org JSON-LD -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "AboutPage",
-      "mainEntity": {
-        "@type": "Organization",
-        "name": "瑞华智策",
-        "description": "依托人瑞人才 (6919.HK) 十五年行业深耕，以'专业+技术'双轮驱动，帮助企业构建 AI 时代持续增长的韧性组织。",
-        "url": "https://www.ruihuaconsulting.com",
-        "logo": "https://www.ruihuaconsulting.com/images/logo.png",
-        "parentOrganization": {
-            "@type": "Organization",
-            "name": "人瑞人才",
-            "url": "https://www.renruihr.com",
-            "stockSymbol": "6919.HK"
-        },
-        "award": [
-            "大中华区人力资源机构客户满意度大奖",
-            "新质生产力标杆企业",
-            "国家级高新技术企业认证"
-        ],
-        "knowsAbout": [
-            "人力资本价值经营",
-            "HCVM",
-            "OHCVM",
-            "AI Agent管理"
-        ]
-      }
-    }
-    </script>
-    <link rel="stylesheet" href="/css/tailwind.css" />
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700;900&family=JetBrains+Mono:wght@500;700&display=swap" />
+    <link rel="stylesheet" href="/css/rh2026.css" />
+    <link rel="stylesheet" href="/css/rh2026-ext.css" />
 </head>
-<body class="bg-white text-slate-800 antialiased selection:bg-brand-100 selection:text-brand-900">
+<body>
+    <div class="a-prog" id="aProg"></div>
 
-    <nav class="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <div class="flex items-center gap-2">
-                    <a href="/" class="flex items-center gap-2">
-                        <img src="/images/logo.png" alt="瑞华智策 Logo" class="h-8 w-auto" />
-                    </a>
+    <nav class="nav" id="nav">
+  <a class="logo" href="/"><img src="data:image/png;base64,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" alt="瑞华智策 RUIHUA CONSULTING" data-sx="s1"></a>
+  <div class="nav-links" id="navLinks">
+    <a href="/">首页</a>
+    <a href="/solutions" class="nav-mt" data-menu="products">产品与服务 <span class="caret">▾</span></a>
+    <a href="/cases" class="nav-mt" data-menu="cases">行业案例 <span class="caret">▾</span></a>
+    <a href="/insights" class="nav-mt" data-menu="research">研究中心 <span class="caret">▾</span></a>
+    <a href="/nqoc" target="_blank" rel="noopener" class="nq">新质组织 <span class="hot">HOT</span></a>
+    <a href="/about" class="nav-mt" data-menu="about">关于我们 <span class="caret">▾</span></a>
+  </div>
+  <div class="nav-right" data-sx="s2">
+    <button type="button" class="btn" data-sx="s3" data-evt-click="e1">AI 顾问</button>
+    <a class="btn btn-ink" href="/contact">预约诊断<span class="arr">→</span></a>
+    <button class="burger" id="burger" aria-label="打开菜单" data-evt-click="e2"><i></i><i></i><i></i></button>
+  </div>
 
-                </div>
-                <div class="hidden lg:flex space-x-2">
-                    <a href="/" class="nav-link">首页</a>
-                    <div class="relative group inline-block">
-    <a href="/solutions/" class="nav-link flex items-center gap-1">
-        解决方案
-        <i class="fas fa-chevron-down text-[10px] transition-transform duration-300 group-hover:rotate-180"></i>
-    </a>
-    <div class="absolute left-1/2 -translate-x-1/2 top-full pt-4 w-[24rem] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-50">
-        <div class="bg-white rounded-2xl shadow-2xl shadow-brand-500/10 border border-slate-100 overflow-hidden p-3 relative">
-            <!-- Decorative background -->
-            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-brand-50 to-white rounded-bl-full -z-10 opacity-60"></div>
-            
-            <a href="/solutions-hcvm/" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all">
-                <div class="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center shrink-0 group-hover/item:bg-brand-600 group-hover/item:text-white transition-colors shadow-sm">
-                    <i class="fas fa-chess-knight text-lg"></i>
-                </div>
-                <div>
-                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-brand-700 mb-0.5">人力资本价值经营</div>
-                    <div class="text-[11px] text-slate-500">HCVM体系 (自有员工)</div>
-                </div>
-            </a>
-            
-            <a href="/solutions-ohcvm/" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all mt-1">
-                <div class="w-10 h-10 rounded-xl bg-[#00f0ff]/10 text-[#00a0ff] flex items-center justify-center shrink-0 group-hover/item:bg-[#00a0ff] group-hover/item:text-white transition-colors shadow-sm">
-                    <i class="fas fa-network-wired text-lg"></i>
-                </div>
-                <div>
-                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-[#00a0ff] mb-0.5">全场景一体化用工</div>
-                    <div class="text-[11px] text-slate-500">OHCVM体系 (外包员工)</div>
-                </div>
-            </a>
-            
-            <div class="h-px w-full bg-gradient-to-r from-transparent via-slate-100 to-transparent my-2"></div>
-            
-            <a href="/training" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all">
-                <div class="w-10 h-10 rounded-xl bg-fuchsia-100 text-fuchsia-600 flex items-center justify-center shrink-0 group-hover/item:bg-fuchsia-600 group-hover/item:text-white transition-colors shadow-sm">
-                    <i class="fas fa-chalkboard-teacher text-lg"></i>
-                </div>
-                <div>
-                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-fuchsia-600 mb-0.5">企业AI落地咨询式培训</div>
-                    <div class="text-[11px] text-slate-500">高管工作坊与共创蓝图</div>
-                </div>
-            </a>
+  <div class="mega-sheet" id="megaSheet" aria-hidden="true">
+    <div class="mega-pane" data-pane="products"><div class="m-in">
+        <div class="m-cols">
+          <div class="m-group">AI 转型三位一体</div>
+          <a class="m-item" href="/solutions/training" data-prev="training"><b>AI 赋能培训</b><span>人才工作坊与技能实训 · 12 门课</span></a>
+          <a class="m-item" href="/solutions/consulting" data-prev="consulting"><b>AI 转型咨询</b><span>新增长引擎 × 碳硅共智</span></a>
+          <a class="m-item" href="/solutions/fde" data-prev="fde"><b>AI 落地陪跑</b><span>现场部署 · 持续运营 · 能力转移</span></a>
+          <div class="m-group" data-sx="s4">价值经营</div>
+          <a class="m-item" href="/hcvm" data-prev="hcvm"><b>人力资本价值经营</b><span>HCVM · 管理+技术双轮驱动</span></a>
+          <a class="m-item" href="/cases" data-prev="fde"><b>行业案例</b><span>27 个真实交付 · 8 个行业</span></a>
         </div>
-    </div>
+        <div class="m-prev" id="megaPrev"><span class="cap" id="megaCap">TRAINING</span></div>
+      </div></div>
+    <div class="mega-pane" data-pane="cases"><div class="m-in">
+        <div class="m-cols">
+          <div class="m-group">按行业浏览 · 27 个真实交付</div>
+          <a class="m-item" href="/cases/industry/manufacturing" data-prev="fde" data-cap="MANUFACTURING"><b>制造业</b><span>海尔智家 · 鑫方盛 · TCL 实业等</span></a>
+          <a class="m-item" href="/cases/industry/retail" data-prev="training" data-cap="RETAIL"><b>零售快消</b><span>伊利 · 茶颜悦色 · 鸣鸣很忙</span></a>
+          <a class="m-item" href="/cases/industry/finance" data-prev="consulting" data-cap="FINANCE"><b>金融财税</b><span>中国银行 · 招商银行 · 慧算账</span></a>
+          <a class="m-item" href="/cases" data-prev="hcvm" data-cap="ALL CASES"><b>全部案例</b><span>8 个行业筛选 · 全文详情</span></a>
+        </div>
+        <div class="m-prev"></div>
+      </div></div>
+    <div class="mega-pane" data-pane="research"><div class="m-in">
+        <div class="m-cols">
+          <div class="m-group">研究与方法论</div>
+          <a class="m-item" href="/insights" data-prev="consulting" data-cap="INSIGHTS"><b>行业洞察</b><span>三大智库 · AI 转型趋势与场景分析</span></a>
+          <a class="m-item" href="/insights" data-prev="hcvm" data-cap="THINK TANK"><b>经营智库</b><span>R=B×O 方法论与管理实践框架</span></a>
+          <a class="m-item" href="/nqoc" target="_blank" rel="noopener" data-prev="training" data-cap="NQOC"><b>中国新质组织研究 ↗</b><span>北大光华 × 中国经营报联合发起</span></a>
+        </div>
+        <div class="m-prev"></div>
+      </div></div>
+    <div class="mega-pane" data-pane="about"><div class="m-in">
+        <div class="m-cols">
+          <div class="m-group">关于瑞华智策</div>
+          <a class="m-item" href="/about" data-prev="hcvm" data-cap="ABOUT"><b>公司介绍</b><span>AI 原生咨询公司 · 人瑞人才全资子公司</span></a>
+          <a class="m-item" href="/about/team" data-prev="training" data-cap="TEAM"><b>团队基因</b><span>先自己跑通，再服务客户</span></a>
+          <a class="m-item" href="/contact" data-prev="consulting" data-cap="CONTACT"><b>联系我们</b><span>400-175-0886 · 预约诊断</span></a>
+        </div>
+        <div class="m-prev"></div>
+      </div></div>
+  </div>
+</nav>
+<div class="mega-dim" id="megaDim"></div>
+
+
+    <div class="mnav" id="mnav">
+  <a href="/">首页<em>→</em></a>
+  <div class="mg">产品与服务</div>
+  <a href="/solutions">总览 · AI 转型三位一体<em>→</em></a>
+  <a href="/solutions/training">AI 赋能培训<em>12 门课</em></a>
+  <a href="/solutions/consulting">AI 转型咨询<em>→</em></a>
+  <a href="/solutions/fde">AI 落地陪跑<em>FDE</em></a>
+  <a href="/hcvm">人力资本价值经营<em>HCVM</em></a>
+  <div class="mg">案例与研究</div>
+  <a href="/cases">行业案例<em>27 例</em></a>
+  <a href="/insights">行业洞察<em>三大智库</em></a>
+  <a href="/insights">经营智库<em>R=B×O</em></a>
+  <div class="mg">更多</div>
+  <a href="/nqoc" target="_blank" rel="noopener">新质组织<em>HOT</em></a>
+  <a href="/about">关于我们<em>→</em></a>
+  <div class="mn-cta">
+    <a class="btn btn-ink" href="/contact">预约诊断 →</a>
+    <button type="button" class="btn mn-ai" data-evt-click="e3">AI 顾问</button>
+  </div>
 </div>
-                    <div class="relative group inline-block">
-    <a href="/resources/" class="nav-link flex items-center gap-1">
-        行业洞察
-        <i class="fas fa-chevron-down text-[10px] transition-transform duration-300 group-hover:rotate-180"></i>
-    </a>
-    <div class="absolute left-1/2 -translate-x-1/2 top-full pt-4 w-[16rem] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-50">
-        <div class="bg-white rounded-2xl shadow-2xl shadow-brand-500/10 border border-slate-100 overflow-hidden p-3 relative">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-brand-50 to-white rounded-bl-full -z-10 opacity-60"></div>
-            
-            <a href="/resources/" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all">
-                <div class="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center shrink-0 group-hover/item:bg-brand-600 group-hover/item:text-white transition-colors shadow-sm">
-                    <i class="fas fa-book-open text-lg"></i>
-                </div>
-                <div>
-                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-brand-700 mb-0.5">经营智库</div>
-                    <div class="text-[11px] text-slate-500">文章、白皮书与报告</div>
-                </div>
-            </a>
-            
-            <a href="/videos" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all mt-1">
-                <div class="w-10 h-10 rounded-xl bg-[#00f0ff]/10 text-[#00a0ff] flex items-center justify-center shrink-0 group-hover/item:bg-[#00a0ff] group-hover/item:text-white transition-colors shadow-sm">
-                    <i class="fas fa-video text-lg"></i>
-                </div>
-                <div>
-                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-[#00a0ff] mb-0.5">值得看见</div>
-                    <div class="text-[11px] text-slate-500">视频访谈与活动回放</div>
-                </div>
-            </a>
-        </div>
+
+
+    <style>
+.ab-hero{background:linear-gradient(180deg,var(--p-50),var(--cream) 80%);border-bottom:1px solid var(--line);padding:84px 0 60px;position:relative;overflow:hidden}
+.ab-hero:before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:56px 56px;opacity:.45;pointer-events:none;-webkit-mask-image:radial-gradient(ellipse at 20% 40%,#000 30%,transparent 80%);mask-image:radial-gradient(ellipse at 20% 40%,#000 30%,transparent 80%)}
+.ab-hero .wrap{position:relative;max-width:1320px;margin:0 auto;padding:0 34px}.ab-hero .eyeb{font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:.2em;color:var(--purple);margin-bottom:18px}.ab-hero h1{font-family:var(--serif);font-weight:900;font-size:clamp(44px,5.4vw,72px);line-height:1.15;color:var(--ink);margin-bottom:18px}.ab-hero .sub{font-size:clamp(17px,1.6vw,22px);color:var(--ink-2);letter-spacing:.02em}.ab-hero hr{border:0;border-top:1px solid var(--hair);max-width:720px;margin:40px 0 22px}.ab-hero .meta{font-size:14.5px;color:var(--ink-2);letter-spacing:.04em;margin-bottom:16px}.ab-hero .pills{display:flex;flex-wrap:wrap;gap:12px}.ab-hero .pills span{display:inline-block;background:var(--purple);color:#fff;font-weight:800;font-size:14px;padding:10px 24px;border-radius:999px;box-shadow:0 10px 24px rgba(124,77,255,.28)}
+.ab-sec{max-width:1320px;margin:0 auto;padding:72px 34px 0}.ab-sec:last-of-type{padding-bottom:0}.ab-head{display:flex;align-items:baseline;gap:18px;margin-bottom:26px}.ab-head .part{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.2em;color:var(--purple);white-space:nowrap}.ab-head h2{font-family:var(--serif);font-weight:900;font-size:clamp(24px,2.5vw,32px);line-height:1.3;color:var(--ink);margin:0}.ab-lead{font-size:15px;color:var(--ink-2);line-height:1.85;margin-bottom:22px}.ab-lead b{color:var(--ink)}.ab-tags{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}.ab-tags span{background:var(--p-50);border:1px solid var(--p-200);color:var(--purple);font-weight:700;font-size:13px;padding:6px 14px;border-radius:8px}.ab-box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 26px;box-shadow:0 6px 24px rgba(33,30,40,.05)}.ab-box p{font-size:15px;color:var(--ink-2);line-height:1.9;margin:0}.ab-box p+p{margin-top:10px}.ab-box em{font-style:normal;color:var(--purple);font-weight:700}.ab-mission{display:flex;align-items:center;gap:18px;background:var(--p-50);border:1px solid var(--p-200);border-radius:14px;padding:16px 22px;margin:16px 0;font-size:17px;color:var(--ink);font-weight:600}.ab-mission b{font-family:var(--mono);color:var(--purple);font-size:16px;letter-spacing:.08em;white-space:nowrap}
+.ab-grad3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.ab-grad{position:relative;background:linear-gradient(135deg,var(--purple),var(--p-600));border-radius:14px;padding:22px 24px;color:#fff;overflow:hidden;box-shadow:0 12px 30px rgba(94,53,177,.22);transition:transform .3s var(--ease),box-shadow .3s var(--ease)}.ab-grad:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--sage)}.ab-grad:hover{transform:translateY(-4px);box-shadow:0 22px 46px rgba(94,53,177,.3)}.ab-grad .t{font-size:16.5px;font-weight:800;margin-bottom:6px}.ab-grad p{font-size:13.5px;opacity:.92;line-height:1.75;margin:0}.ab-note{border-top:1px dashed var(--hair);margin-top:18px;padding-top:12px;font-size:12.5px;color:var(--ink-3)}
+.ab-two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.ab-side{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--purple);border-radius:14px;padding:22px 24px;box-shadow:0 6px 24px rgba(33,30,40,.05)}.ab-side .tag{display:inline-block;background:var(--p-50);color:var(--purple);font-weight:700;font-size:12.5px;padding:4px 12px;border-radius:6px;margin-bottom:10px}.ab-side p{font-size:14.5px;color:var(--ink-2);line-height:1.8;margin:0}.ab-side p b{color:var(--ink)}.ab-side.alt{border-left-color:var(--p-300)}
+.ab-layers{display:grid;gap:12px}.ab-layer{display:grid;grid-template-columns:300px 1fr;gap:20px;border-radius:18px;padding:22px 28px;color:#fff;transition:transform .3s var(--ease)}.ab-layer:hover{transform:translateX(4px)}.ab-layer.l5{background:var(--purple)}.ab-layer.l4{background:#8f68ff}.ab-layer.l3{background:#a789ff}.ab-layer.l2{background:var(--p-300)}.ab-layer.l1{background:var(--p-200)}.ab-layer .ln{font-family:var(--mono);font-size:12.5px;letter-spacing:.14em;opacity:.85;margin-bottom:6px}.ab-layer .lt{font-size:19px;font-weight:800}.ab-layer.l2 .ln,.ab-layer.l2 .lt,.ab-layer.l1 .ln,.ab-layer.l1 .lt,.ab-layer.l2 .lc,.ab-layer.l1 .lc{color:var(--ink)}.ab-layer.l2 .ln,.ab-layer.l1 .ln{opacity:.7}.ab-layer .lc{font-size:13px;font-weight:700;opacity:.9;margin-bottom:10px}.ab-layer .chips{display:grid;gap:12px}.ab-layer .chips.c4{grid-template-columns:repeat(4,1fr)}.ab-layer .chips.c5{grid-template-columns:repeat(5,1fr)}.ab-layer .chips.c2{grid-template-columns:repeat(2,1fr)}.ab-chip{background:var(--card);border-radius:10px;padding:12px 16px;color:var(--ink)}.ab-chip b{display:block;color:var(--purple);font-size:14px;font-weight:800}.ab-chip span{display:block;font-size:12.5px;color:var(--ink-2);margin-top:3px}.ab-foot{border-top:1px dashed var(--hair);margin-top:18px;padding-top:12px;font-size:13px;color:var(--ink-3)}
+.ab-grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.ab-team{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.ab-person{background:linear-gradient(135deg,#800bf5,var(--purple));border:1px solid rgba(255,255,255,.25);border-radius:16px;padding:22px 24px;color:#fff;box-shadow:0 12px 30px rgba(94,53,177,.22);transition:transform .3s var(--ease),box-shadow .3s var(--ease)}.ab-person:hover{transform:translateY(-6px);box-shadow:0 24px 50px rgba(94,53,177,.32)}.ab-person .ava{width:48px;height:48px;border-radius:50%;background:#800bf5;border:2px solid rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;margin-bottom:14px;overflow:hidden}.ab-person .ava img{width:100%;height:100%;object-fit:cover;object-position:top}.ab-person .nm{font-size:16.5px;font-weight:700;margin-bottom:8px}.ab-person .nm small{font-size:13px;font-weight:400;color:#26c7db;margin-left:8px;letter-spacing:.5px}.ab-person p{font-size:13.5px;line-height:1.75;margin:0;color:rgba(255,255,255,.88)}
+.ab-close{position:relative;background:linear-gradient(180deg,var(--cream),var(--p-50));border-top:1px solid var(--line);margin-top:72px;padding:84px 0 72px;overflow:hidden}.ab-close:before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:56px 56px;opacity:.45;pointer-events:none;-webkit-mask-image:radial-gradient(ellipse at 80% 50%,#000 20%,transparent 75%);mask-image:radial-gradient(ellipse at 80% 50%,#000 20%,transparent 75%)}.ab-close .wrap{position:relative;max-width:1320px;margin:0 auto;padding:0 34px}.ab-close .eyeb{font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:.2em;color:var(--purple);margin-bottom:18px}.ab-close h2{font-family:var(--serif);font-weight:900;font-size:clamp(36px,4.6vw,60px);line-height:1.25;color:var(--ink);margin:0 0 40px}.ab-close hr{border:0;border-top:1px solid var(--hair);margin:0 0 30px}.ab-close .two{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:30px}.ab-close .vc{background:var(--p-50);border:1px solid var(--p-200);border-left:5px solid var(--purple);border-radius:14px;padding:24px 28px}.ab-close .vc.act{border-left-color:var(--sage)}.ab-close .vc b{display:block;color:var(--purple);font-size:14px;margin-bottom:8px}.ab-close .vc p{font-size:15.5px;color:var(--ink);line-height:1.8;margin:0}.ab-close .mail{display:flex;align-items:center;gap:22px;flex-wrap:wrap;font-size:15px;color:var(--ink-2);letter-spacing:.02em}
+@media (max-width:960px){.ab-hero{padding:56px 0 40px}.ab-hero .wrap,.ab-sec,.ab-close .wrap{padding-left:20px;padding-right:20px}.ab-sec{padding-top:52px}.ab-head{flex-direction:column;gap:6px}.ab-grad3,.ab-two,.ab-grid2,.ab-team,.ab-close .two{grid-template-columns:1fr}.ab-layer{grid-template-columns:1fr;gap:12px;padding:18px 20px}.ab-layer .chips.c4,.ab-layer .chips.c5,.ab-layer .chips.c2{grid-template-columns:1fr 1fr}.ab-mission{flex-direction:column;align-items:flex-start;gap:6px;font-size:15px}}
+    </style>
+    <div class="page on" data-page="about">
+      <div class="ab-hero"><div class="wrap">
+        <div class="eyeb">AI 原生咨询机构 · 碳硅混合战队解决方案供应商</div><h1>瑞华智策</h1><div class="sub">从 Agent 落地，到碳硅混合战队打造</div><hr><div class="meta">人瑞人才（06919.HK）全资子公司 · 主流 Agent 平台生态伙伴</div><div class="pills"><span>AI 赋能培训</span><span>FDE 全周期服务</span><span>碳硅混合 HR 管理咨询</span></div>
+      </div></div>
+      <section class="ab-sec">
+        <div class="ab-head"><span class="part">PART 01</span><h2>瑞华智策：赋能中国企业打造「碳硅共智」的新质组织</h2></div>
+        <div class="ab-tags"><span>AI 原生咨询机构</span><span>碳硅混合战队解决方案供应商</span><span>人瑞人才（06919.HK）全资子公司</span><span>主流 Agent 平台生态伙伴</span></div>
+        <div class="ab-box"><p>2026 年开始，<em>「硅基员工」</em>（Agent）正在进入越来越多的组织，<em>「碳硅混合」</em>的时代已经到来——AI 正在成为企业增长的新动能。但多数企业卡在「落了扛不起业务、用了跑不出绩效」，背后原因在于：技术已经就绪，但组织和人成为新的瓶颈。</p><p>承接人瑞人才（06919.HK）在 AI 时代的战略延续——<em>从为企业「供应人力」到「供应碳硅混合生产力」</em>，瑞华智策组建了一支既擅长企业级 Agent 落地、又擅长企业赋能的复合型资深专家团队。</p><p>我们通过 Agent 落地的全生命周期服务，赋能中国企业完成 AI 时代的组织进化——在真实业务场景中设计企业专属的<em>「碳硅混合战队」</em>，提升人员的 AI 素养，构建以<em>「碳硅共智」</em>为目标的组织机制，持续沉淀企业专属的最佳实践，逐步进化为能穿越周期的<em>新质组织</em>。</p></div>
+        <div class="ab-mission"><b>使命</b>持续赋能中国企业打造「碳硅共智」的新质生产力，实现人与 AI 协同进化，逐步进化为穿越周期的新质组织</div>
+        <div class="ab-grad3"><div class="ab-grad"><div class="t">AI 赋能培训</div><p>让团队会想、会用、会和 Agent 并肩作战</p></div><div class="ab-grad"><div class="t">FDE 全周期服务</div><p>把 Agent 安全、专业、准确、省钱地落进业务，并陪跑兑现</p></div><div class="ab-grad"><div class="t">碳硅混合 HR 管理咨询</div><p>建立管好「碳硅混合生产力」的管理机制</p></div></div><div class="ab-note">注：现为腾讯云生态伙伴（授权编号 100049719305）。</div>
+      </section>
+      <section class="ab-sec">
+        <div class="ab-head"><span class="part">PART 02</span><h2>战略聚焦：AI 生态中的解决方案供应商</h2></div><p class="ab-lead"><b>大厂做产品，我们提供解决方案。</b>企业 Agent 落地不是买平台、开通账号那么简单——把开箱即用的 Agent 真正部署进业务场景、扛起业绩，需要经历「个性化」的落地过程：</p>
+        <div class="ab-two"><div class="ab-side alt"><span class="tag">Agent 平台提供通用专家</span><p>专家与 skill 是通用的，不能直接完美嵌入企业工作流，需要完成落地的「个性化」过程。</p></div><div class="ab-side"><span class="tag">瑞华智策完成 Agent 个性化 &amp; 内部上岗</span><p><b>四大能力：</b>「咨询 + AI 工程 + FDE 全周期服务 + <b>特定领域知识服务层</b>」——拆得清业务、建得出战队、落得了地，<b>让平台专家更懂你的领域。</b></p></div></div>
+        <div class="cards3"><div class="mini"><span class="step">承诺一</span><div class="t">厂商中立，按需选型</div><p>持续接入成熟主流 Agent 平台（SaaS / 私有化部署），不被单一厂商利益捆绑。</p></div><div class="mini"><span class="step">承诺二</span><div class="t">不止开通账号，更是上岗训练</div><p>FDE 现场部署 + 培训陪跑，把「人 + Agent」高效协同的能力转移给客户。</p></div><div class="mini"><span class="step">承诺三</span><div class="t">能力转移是起点，组织进化是目标</div><p>持续赋能企业进化组织能力，直至成为能穿越周期的新质组织。</p></div></div>
+      </section>
+      <section class="ab-sec">
+        <div class="ab-head"><span class="part">PART 03</span><h2>我们的核心价值：五层架构解决方案</h2></div><p class="ab-lead">我们的解决方案，从底层大模型到场景化战队，五层架构层层支撑——<b>每一层都是「瑞华智策」为您搭好的台阶。</b></p>
+        <div class="ab-layers">
+          <div class="ab-layer l5"><div><div class="ln">LAYER 05 · 核心交付</div><div class="lt">场景化碳硅混合战队</div></div><div><div class="lc">瑞华智策解决方案</div><div class="chips c4"><div class="ab-chip"><b>B2B 营销战队</b></div><div class="ab-chip"><b>用工管理战队</b></div><div class="ab-chip"><b>律所 IP + GEO 获客战队</b></div><div class="ab-chip"><b>其他非生产场景高效定制</b></div></div></div></div>
+          <div class="ab-layer l4"><div><div class="ln">LAYER 04 · 瑞华智策独有</div><div class="lt">落地服务</div></div><div><div class="lc">从方案到上岗的交付过程</div><div class="chips c4"><div class="ab-chip"><b>培训赋能</b><span>认知改变</span></div><div class="ab-chip"><b>FDE 服务</b><span>「硅基员工」全流程调优上岗</span></div><div class="ab-chip"><b>阶段性陪跑</b><span>沉淀企业最佳应用实践</span></div><div class="ab-chip"><b>咨询服务</b><span>「碳硅混合」团队的 HR 管理机制设计</span></div></div></div></div>
+          <div class="ab-layer l3"><div><div class="ln">LAYER 03 · 瑞华智策独有</div><div class="lt">能力注入</div></div><div><div class="lc">让 Agent 从通用走向懂领域</div><div class="chips c5"><div class="ab-chip"><b>领域知识服务层（SaaS）</b></div><div class="ab-chip"><b>专属专家 Agent</b></div><div class="ab-chip"><b>工作流编排</b></div><div class="ab-chip"><b>员工培训</b></div><div class="ab-chip"><b>协同机制</b></div></div></div></div>
+          <div class="ab-layer l2"><div><div class="ln">LAYER 02 · 生态伙伴 · 产品</div><div class="lt">Agent 平台</div></div><div><div class="lc">通用能力与安全底座已就绪</div><div class="chips c4"><div class="ab-chip"><b>WorkBuddy 企业版</b></div><div class="ab-chip"><b>豆包工作</b></div><div class="ab-chip"><b>千问办公</b></div><div class="ab-chip"><b>其他优质私有化部署 Agent 平台</b></div></div></div></div>
+          <div class="ab-layer l1"><div><div class="ln">LAYER 01 · 底座</div><div class="lt">大模型与数据</div></div><div><div class="lc">一切能力的共同基础</div><div class="chips c2"><div class="ab-chip"><b>底层大模型</b><span>国内外多模态 LLM</span></div><div class="ab-chip"><b>企业数据与知识资产</b><span>数据治理 &amp; 知识管理</span></div></div></div></div>
+        </div><div class="ab-foot">每一个战队，都是「场景 know-how + 碳硅混合工作流 + 平台底座」的组合；每一次陪跑，都为您沉淀一份企业专属最佳实践——能力始终留在您自己手里。</div>
+      </section>
+      <section class="ab-sec" id="about-team">
+        <div class="ab-head"><span class="part">PART 04</span><h2>差异化价值：我们的复合基因 · 能力与团队</h2></div><p class="ab-lead"><b>资深的专家团队 · 独特的复合基因：</b>瑞华智策从创立伊始，就致力于打造一个复合型的专家团队以全面为 AI 转型中的企业全面赋能——团队成员均是在管理咨询、数智化转型咨询领域人均拥有 15+ 年经验，并且都是深度应用 AI 的复合型人才，和 AI 原生组织的深度实践者。</p>
+        <div class="ab-grid2"><div class="mini"><span class="step">差异化能力一</span><div class="t">三位一体交付 · 为企业 AI 转型全面护航</div><p>能够提供「培训 + FDE 全周期服务 + 咨询」三位一体的交付模式，为不同成熟度的企业提供适配的整体解决方案，确保 Agent 平滑落地，尽快释放战力价值。</p></div><div class="mini"><span class="step">差异化能力二</span><div class="t">多元生态加持 · 持续引领客户</div><p>已成为<b>腾讯云生态伙伴</b>，同时还在陆续推进和其他私有化 Agent 平台的生态合作，只为给客户提供最适配的产品；2026 年，联合北大光华管理学院、中国经营报首度发起「中国新质组织研究项目」，依托智库平台的专家力量，将持续探索中国企业的组织进化方法论，为解决方案提供理论指导，为客户持续赋能。</p></div><div class="mini"><span class="step">差异化能力三</span><div class="t">自身实战为先 · 提前验证价值</div><p>瑞华智策一直致力于降低客户试错风险，核心的场景化解决方案均率先在瑞华智策与人瑞人才集团内部验证才推向市场——如营销增长、HR、财务、用工管理、研发等核心场景的碳硅混合流程，内部均已跑通。</p></div><div class="mini"><span class="step st-w">差异化能力四 ⭐</span><div class="t">know-how 沉淀 · 知识服务层接入</div><p>瑞华智策在 HR 管理、营销增长、生态用工管理方面的深厚积淀，目前已经产品化，可以通过 MCP 接入客户的 Agent 平台，让企业专属的 Agent 成为更加资深的领域专家。</p></div></div>
+        <div class="ab-team"><div class="ab-person"><div class="ava">张</div><div class="nm">张建国<small>人瑞人才创始人 &amp; 瑞华智策 CEO</small></div><p>曾是华为的首位 HRVP，是《华为基本法》的推动者和起草者之一，后带领中华英才网实现连续 3 年 100% 增长的卓越战绩；2010 年创立人瑞集团于 2019 年成为港股上市公司，成为以数字化技术驱动业务效率的 HR 领域的标杆企业。一直致力于研究人力资本价值经营驱动企业增长，著有多本著作包括《经营者思维》、《灵活用工》等，是一位真正穿越周期的人力资源管理专家和企业经营专家。</p></div><div class="ab-person"><div class="ava">高</div><div class="nm">高燕<small>合伙人 &amp; 新质组织研究中心主任</small></div><p>为《价值驱动增长》作者，中国人民大学校友会人力资源分会常务理事，曾为包括北森在内的多家 SaaS 企业的 CMO，曾开创 B2B 行业品效合一营销增长范式，后成为某职业教育公司 CEO，带领团队连续多年实现 20% 的业务增长目标。从 2023 年 ChatGPT 面世以来，成为 AI 应用的探索者和创业者，主导了瑞华智策内部的 Agentic 转型以及自研 Agent 产品的规划。2026 年发起「中国新质组织研究项目」，企业级 AI 落地有深度的一手研究和应用经验。</p></div><div class="ab-person"><div class="ava">杨</div><div class="nm">杨星宇<small>合伙人 &amp; CTO</small></div><p>曾为 IBM、埃森哲的解决方案架构师、企业架构师，后来又以甲方 CTO 身份在捷信、雨润等企业成功完成了内部的数字化转型。拥有二十年 IT 领域深厚积淀及十年企业数智化转型一线实战经验，在瑞华智策先后为多家企业含大型国企提供 AI 转型和 AI Native 团队重构的咨询和顾问服务，包括 Agentic AI 架构蓝图设计、从 0 到 1 组建 AI Native 技术团队、定制多领域 Agent 等深度服务。同时负责瑞华智策自研 Agent 平台的打造和研发。</p></div></div>
+      </section>
+      <div class="ab-close"><div class="wrap"><div class="eyeb">碳硅混合的时代已经到来</div><h2>问题不是要不要走，<br>而是从哪起步</h2><hr><div class="two"><div class="vc"><b>远期愿景</b><p>陪伴中国企业逐步进化为能穿越周期的「碳硅共智」新质组织。</p></div><div class="vc act"><b>当下行动</b><p>从一次 Agent 落地评估，或从第一场工作坊开始——以企业成熟度为锚，只选最合理的起点。</p></div></div><div class="mail"><a class="btn btn-ink" href="/contact">预约诊断 →</a></div></div></div>
     </div>
-</div>
-                    <a href="/nqoc" class="nav-link">新质组织研究<span class="inline-flex items-center justify-center px-1.5 py-[1px] ml-1.5 text-[9px] font-black tracking-wider text-white uppercase bg-gradient-to-r from-[#ff6a00] to-[#ee0979] rounded-tl-md rounded-tr-md rounded-br-md rounded-bl-sm shadow-sm -translate-y-1 relative">HOT<span class="absolute top-0 right-0 w-1.5 h-1.5 bg-white rounded-full opacity-30 animate-ping"></span></span></a>
-                    <a href="/#cases" class="nav-link">成功案例</a>
-                    <a href="/about/" class="nav-link  font-semibold text-brand-700 bg-brand-50">关于我们</a>
-                </div>
-                <div class="hidden md:flex items-center space-x-4">
-                    <a href="/productivity/" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-full font-medium transition shadow-lg shadow-brand-500/20 hover:-translate-y-0.5 text-sm">
-                        预约专家咨询
-                    </a>
-                </div>
-                <button class="lg:hidden p-2 rounded-lg hover:bg-slate-100" onclick="toggleMobileMenu()" aria-label="Toggle navigation">
-                    <i class="fas fa-bars text-slate-600 text-xl"></i>
-                </button>
-            </div>
-        </div>
-        <div id="mobileMenu" class="hidden lg:hidden bg-white border-t border-slate-100 px-4 py-4">
-            <div class="flex flex-col space-y-2">
-                <a href="/" class="nav-link">首页</a>
-                <div class="flex flex-col border-b border-slate-50 pb-2 mb-2">
-    <a href="/solutions/"  class="mobile-nav-link">解决方案</a>
-    <div class="flex flex-col pl-4 mt-2 space-y-2 border-l-2 border-brand-100">
-        <a href="/solutions-hcvm/" class="text-sm text-slate-500 hover:text-brand-700 py-1">人力资本价值经营</a>
-        <a href="/solutions-ohcvm/" class="text-sm text-slate-500 hover:text-brand-700 py-1">全场景一体化用工</a>
-        <a href="/training" class="text-sm text-slate-500 hover:text-brand-700 py-1">企业AI落地咨询式培训</a>
+
+
+    <footer class="footer">
+  <div class="f-inner">
+    <div class="f-word">让 AI <em>长进组织里</em>。</div>
+    <div class="f-cols">
+      <div class="f-col"><div class="h">产品与服务</div>
+        <a href="/solutions/training">AI 赋能培训</a><a href="/solutions/consulting">AI 转型咨询</a><a href="/solutions/fde">AI 落地陪跑</a><a href="/hcvm">人力资本价值经营</a></div>
+      <div class="f-col"><div class="h">行业案例</div>
+        <a href="/cases/industry/manufacturing">制造业</a><a href="/cases/industry/retail">零售快消</a><a href="/cases/industry/finance">金融财税</a><a href="/cases">全部案例</a></div>
+      <div class="f-col"><div class="h">研究中心</div>
+        <a href="/insights">行业洞察</a><a href="/insights">经营智库</a><a href="/insights">新质组织研究</a></div>
+      <div class="f-col"><div class="h">关于我们</div>
+        <a href="/about">公司介绍</a><a href="/about/team">团队基因</a><a href="/contact">联系我们</a></div>
+      <div class="f-col"><div class="h">联系</div>
+        <a href="/contact">400-175-0886</a><a href="/contact">预约诊断</a><a href="/about">上海 · 北京 · 深圳 · 成都</a>
+        <div data-sx="s5">瑞华智策公众号</div>
+        <img class="f-qr" src="data:image/jpeg;base64,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" alt="瑞华智策公众号二维码"></div>
     </div>
-</div>
-                <div class="flex flex-col border-b border-slate-50 pb-2 mb-2">
-    <a href="/resources/" class="mobile-nav-link">行业洞察</a>
-    <div class="flex flex-col pl-4 mt-2 space-y-2 border-l-2 border-brand-100">
-        <a href="/resources/" class="text-sm text-slate-500 hover:text-brand-700 py-1">经营智库</a>
-        <a href="/videos" class="text-sm text-slate-500 hover:text-brand-700 py-1">值得看见</a>
+    <div class="f-base">
+      <span>© 2026 瑞华智策 · AI 时代组织进化全生命周期服务商</span>
+      <span>沪ICP备12042344号-24（占位）</span>
     </div>
-</div>
-                <a href="/nqoc" class="mobile-nav-link">新质组织研究<span class="inline-flex items-center justify-center px-1.5 py-[1px] ml-1.5 text-[9px] font-black tracking-wider text-white uppercase bg-gradient-to-r from-[#ff6a00] to-[#ee0979] rounded-tl-md rounded-tr-md rounded-br-md rounded-bl-sm shadow-sm -translate-y-1 relative">HOT<span class="absolute top-0 right-0 w-1.5 h-1.5 bg-white rounded-full opacity-30 animate-ping"></span></span></a>
-                <a href="/#cases" class="mobile-nav-link">成功案例</a>
-                <a href="/about/" class="mobile-nav-link  font-semibold text-brand-700 bg-brand-50">关于我们</a>
-                <a href="/productivity/" class="bg-brand-600 text-white font-medium py-3 px-4 rounded-lg text-center mt-2">预约专家咨询</a>
-            </div>
-        </div>
-    </nav>
-
-    <main>
-    <section class="relative h-[45vh] min-h-[400px] flex items-center justify-center overflow-hidden bg-slate-900 mt-20 mx-4 md:mx-6 lg:mx-8 rounded-[2rem] shadow-2xl group">
-        <!-- Animated Background -->
-        <div class="absolute inset-0 z-0">
-            <!-- Dark Gradient Base -->
-            <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"></div>
-            
-            <!-- Animated Orbs -->
-            <div class="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-brand-600/30 rounded-full blur-[120px] animate-pulse-slow"></div>
-            <div class="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[100px] animate-pulse-slow" style="animation-delay: 2s;"></div>
-            
-            <!-- Grid Pattern -->
-            <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgNDBMMDQgMEgyMEwwIDIwek00MCA0MFYyMEwyMCA0MHoiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNhKSIvPjwvc3ZnPg==')] opacity-30"></div>
-        </div>
-
-        <!-- Content Container -->
-        <div class="relative z-10 w-full max-w-5xl mx-auto px-4 text-center">
-            <!-- Badge -->
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6 animate-fade-in-up">
-                <span class="w-2 h-2 rounded-full bg-brand-400 animate-ping"></span>
-                <span class="text-xs font-bold tracking-[0.2em] text-brand-200 uppercase">About Us</span>
-            </div>
-
-            <!-- Main Title -->
-            <h1 class="text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-6 leading-tight tracking-tight animate-fade-in-up delay-100">
-                <span class="block mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400">人力资本价值经营</span>
-                <span class="relative inline-block">
-                    <span class="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-brand-300 to-blue-300">一体化解决方案</span>
-                    <svg class="absolute w-full h-3 -bottom-1 left-0 text-brand-500/30 -z-0" viewBox="0 0 100 10" preserveAspectRatio="none">
-                        <path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="8" fill="none" />
-                    </svg>
-                </span>
-            </h1>
-
-            <!-- Subtitle -->
-            <p class="text-base md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed animate-fade-in-up delay-200 font-light">
-                <span class="text-white font-medium">构建面向未来的新质组织</span> · 依托人瑞人才 (6919.HK) 十五年行业深耕<br class="hidden md:block" />
-                以“管理咨询+数智化建设+陪伴式服务”三位一体，帮助企业构建 AI 时代持续增长的韧性组织。
-            </p>
-
-            <!-- Scroll Indicator -->
-            <div class="absolute bottom-[-60px] left-1/2 transform -translate-x-1/2 animate-bounce-slow opacity-50 hover:opacity-100 transition-opacity cursor-pointer" onclick="document.getElementById('company').scrollIntoView({behavior: 'smooth'})" role="button" tabindex="0" aria-label="Scroll down">
-                <div class="w-6 h-10 rounded-full border-2 border-white/30 flex justify-center p-1">
-                    <div class="w-1 h-2 bg-white/50 rounded-full animate-scroll-down"></div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="company" class="py-24 bg-slate-50 relative overflow-hidden">
-        <!-- Background Grid Pattern -->
-        <div class="absolute inset-0 z-0 opacity-[0.03]" style="background-image: linear-gradient(#4f46e5 1px, transparent 1px), linear-gradient(90deg, #4f46e5 1px, transparent 1px); background-size: 40px 40px;"></div>
-        
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <!-- Header -->
-            <div class="max-w-3xl mb-16">
-                <span class="text-brand-600 font-bold tracking-widest uppercase text-sm mb-4 block relative pl-12 before:content-[''] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-8 before:h-[2px] before:bg-brand-600">Who We Are</span>
-                <h2 class="text-4xl md:text-5xl font-bold text-slate-900 leading-tight">
-                    人瑞旗下AI原生本土咨询机构，<br>
-                    <span class="relative inline-block mt-2">
-                        <span class="relative z-10">首创“人力资本价值经营”方法论</span>
-                        <span class="absolute bottom-1 left-0 w-full h-3 bg-brand-200/50 -z-0"></span>
-                    </span>
-                </h2>
-            </div>
-
-            <!-- Modern Grid Layout -->
-            <div class="grid lg:grid-cols-12 gap-8 mb-16">
-                <!-- Main Content Card -->
-                <div class="lg:col-span-8 bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-slate-100 hover:shadow-xl transition-all duration-300 relative group">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-brand-50 to-transparent rounded-tr-3xl -z-0"></div>
-                    <p class="text-xl text-slate-700 leading-relaxed mb-8 font-medium">
-                        AI原生的本土咨询机构，专注为大中型企业提供AI时代的“人力资本价值经营”一体化解决方案。以创新的咨询方式高效导入管理思想和方法论，通过自主研发的 ©HCVM 数智平台落地，帮助企业实现可持续的人效提升与利润增长，构建面向未来的新质组织。
-                    </p>
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <div>
-                            <div class="w-10 h-10 rounded-lg bg-brand-100 flex items-center justify-center text-brand-600 mb-4">
-                                <i class="fas fa-layer-group"></i>
-                            </div>
-                            <h4 class="font-bold text-slate-900 mb-2">双轮驱动内核</h4>
-                            <p class="text-slate-500 text-sm leading-relaxed">"管理+技术"双轮驱动核心体系，实现从战略解码到价值分配的完整闭环。</p>
-                        </div>
-                        <div>
-                            <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 mb-4">
-                                <i class="fas fa-sync-alt"></i>
-                            </div>
-                            <h4 class="font-bold text-slate-900 mb-2">闭环服务体系</h4>
-                            <p class="text-slate-500 text-sm leading-relaxed">开创了“咨询+技术+服务”三位一体的独特服务模式，帮助企业实现可持续的人效提升和利润增长。</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Highlight Card -->
-                <div class="lg:col-span-4 bg-brand-600 rounded-3xl p-8 md:p-10 text-white relative overflow-hidden flex flex-col justify-between shadow-lg shadow-brand-500/30 group">
-                    <!-- Decor -->
-                    <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-                    <div class="absolute bottom-0 left-0 -ml-8 -mb-8 w-32 h-32 bg-brand-400/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-                    
-                    <div class="relative z-10">
-                        <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white text-xl mb-6 border border-white/10">
-                            <i class="fas fa-rocket"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold mb-4">从资源红利向<br>价值红利转型</h3>
-                        <p class="text-brand-100 text-sm leading-relaxed mb-8">
-                            优化人力资本投入产出比，实现从人效提升到利润增长的经营目标。
-                        </p>
-                    </div>
-                    <a href="/solutions/" class="inline-flex items-center gap-2 text-white font-bold hover:gap-3 transition-all relative z-10">
-                        了解更多解决方案 <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Interactive Stats Bar -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 text-center group">
-                    <div class="text-3xl lg:text-4xl font-bold text-slate-900 mb-1 group-hover:text-brand-600 transition-colors">6919<span class="text-lg text-slate-400">.HK</span></div>
-                    <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold">母公司上市代码</div>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 text-center group">
-                    <div class="text-3xl lg:text-4xl font-bold text-slate-900 mb-1 group-hover:text-brand-600 transition-colors">2025</div>
-                    <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold">品牌创立年份</div>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 text-center group">
-                    <div class="text-3xl lg:text-4xl font-bold text-slate-900 mb-1 group-hover:text-brand-600 transition-colors">15<span class="text-lg text-brand-500">+</span></div>
-                    <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold">年行业深耕</div>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 text-center group">
-                    <div class="text-3xl lg:text-4xl font-bold text-slate-900 mb-1 group-hover:text-brand-600 transition-colors">20<span class="text-lg text-brand-500">%</span></div>
-                    <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold">平均人效提升</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="mvv" class="py-24 bg-slate-50 relative">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <span class="text-brand-600 font-bold tracking-widest uppercase text-sm">Mission & Vision</span>
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-4">愿景与使命</h2>
-                <p class="text-slate-600 max-w-2xl mx-auto mt-4">
-                    我们的价值主张与行动指南
-                </p>
-            </div>
-
-            <div class="grid lg:grid-cols-2 gap-8 mb-20">
-                <!-- Mission -->
-                <article class="bg-white rounded-2xl p-8 md:p-12 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-lg transition duration-300">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-brand-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
-                    <div class="relative z-10">
-                        <div class="w-12 h-12 bg-brand-100 text-brand-600 rounded-xl flex items-center justify-center text-2xl mb-6">
-                            <i class="fas fa-bullseye"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold text-slate-900 mb-4">企业使命 (Mission)</h3>
-                        <p class="text-lg text-slate-600 leading-relaxed">
-                            为企业提供一体化的人力资本价值经营解决方案，帮助企业实现从<span class="text-brand-600 font-medium">人效提升</span>到<span class="text-brand-600 font-medium">利润增长</span>的经营目标。
-                        </p>
-                    </div>
-                </article>
-
-                <!-- Vision -->
-                <article class="bg-white rounded-2xl p-8 md:p-12 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-lg transition duration-300">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
-                    <div class="relative z-10">
-                        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-2xl mb-6">
-                            <i class="fas fa-eye"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold text-slate-900 mb-4">企业愿景 (Vision)</h3>
-                        <p class="text-lg text-slate-600 leading-relaxed">
-                            共同探索 AI 时代下的 HR 管理新范式，锻造可持续发展的韧性组织，实现<span class="text-blue-600 font-medium">客户价值、企业价值与人才价值</span>的共赢。
-                        </p>
-                    </div>
-                </article>
-            </div>
-
-            <!-- Values -->
-            <div class="relative">
-                 <div class="text-center mb-12">
-                    <h3 class="text-2xl font-bold text-slate-900">核心价值观 (Values)</h3>
-                </div>
-                
-                <div class="grid md:grid-cols-3 gap-8">
-                    <!-- Long-termism -->
-                    <article class="bg-white rounded-xl p-8 border-t-4 border-brand-500 shadow-sm hover:shadow-md transition hover:-translate-y-1">
-                        <div class="mb-6">
-                            <span class="inline-block px-3 py-1 bg-brand-50 text-brand-700 text-xs font-bold rounded-full uppercase tracking-wide">Long-termism</span>
-                        </div>
-                        <h4 class="text-xl font-bold text-slate-900 mb-4">长期主义</h4>
-                        <p class="text-slate-600">
-                            和企业一起向“长期主义”要成果，作为服务宗旨贯穿始终。
-                        </p>
-                    </article>
-
-                    <!-- Result-oriented -->
-                    <article class="bg-white rounded-xl p-8 border-t-4 border-blue-500 shadow-sm hover:shadow-md transition hover:-translate-y-1">
-                        <div class="mb-6">
-                            <span class="inline-block px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full uppercase tracking-wide">Result-oriented</span>
-                        </div>
-                        <h4 class="text-xl font-bold text-slate-900 mb-4">效果导向</h4>
-                        <p class="text-slate-600">
-                            所有服务的价值锚点都是和客户一起“拿到结果”，提供结果即服务 (RAAS)。
-                        </p>
-                    </article>
-
-                    <!-- Win-win Ecosystem -->
-                    <article class="bg-white rounded-xl p-8 border-t-4 border-purple-500 shadow-sm hover:shadow-md transition hover:-translate-y-1">
-                        <div class="mb-6">
-                            <span class="inline-block px-3 py-1 bg-purple-50 text-purple-700 text-xs font-bold rounded-full uppercase tracking-wide">Win-win Ecosystem</span>
-                        </div>
-                        <h4 class="text-xl font-bold text-slate-900 mb-4">共生共赢</h4>
-                        <p class="text-slate-600">
-                            全面拥抱 AI，构建人机共生的员工队伍，实现生态内的多方价值增值。
-                        </p>
-                    </article>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="history" class="py-24 bg-white relative">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <span class="text-brand-600 font-bold tracking-widest uppercase text-sm">Milestones</span>
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-4">发展历程</h2>
-                <p class="text-slate-600 max-w-2xl mx-auto mt-4">
-                    十五年砥砺前行，每一步都是新的跨越
-                </p>
-            </div>
-
-            <div class="relative">
-                <!-- Vertical Line -->
-                <div class="absolute left-4 md:left-1/2 top-0 bottom-0 w-0.5 bg-slate-200 transform md:-translate-x-1/2"></div>
-
-                <!-- 2025 -->
-                <div class="relative mb-12 md:mb-16">
-                    <div class="md:flex items-center justify-between">
-                        <div class="md:w-5/12 mb-4 md:mb-0 md:text-right order-1">
-                            <span class="text-5xl font-bold text-brand-600 block mb-2">2025</span>
-                        </div>
-                        <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-white border-4 border-brand-600 rounded-full transform -translate-x-1/2 z-10 mt-2 md:mt-0"></div>
-                        <div class="md:w-5/12 pl-12 md:pl-0 order-2">
-                            <article class="bg-brand-50 rounded-xl p-6 shadow-sm border border-brand-100 relative group hover:shadow-md transition">
-                                <div class="hidden md:block absolute top-6 -left-2 w-4 h-4 bg-brand-50 border-l border-b border-brand-100 transform rotate-45"></div>
-                                <div class="md:hidden absolute top-6 -left-2 w-4 h-4 bg-brand-50 border-l border-b border-brand-100 transform rotate-45"></div>
-                                <h3 class="text-xl font-bold text-slate-900 mb-2">瑞华智策成立</h3>
-                                <p class="text-slate-700">瑞华智策公司成立，开启人力资本价值经营新篇章。</p>
-                            </article>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2024 -->
-                <div class="relative mb-12 md:mb-16">
-                    <div class="md:flex items-center justify-between flex-row-reverse">
-                        <div class="md:w-5/12 mb-4 md:mb-0 md:text-left order-1">
-                            <span class="text-5xl font-bold text-slate-200 block mb-2 group-hover:text-brand-300 transition duration-300">2024</span>
-                        </div>
-                        <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-white border-4 border-slate-300 rounded-full transform -translate-x-1/2 z-10 mt-2 md:mt-0"></div>
-                        <div class="md:w-5/12 pl-12 md:pl-0 order-2 md:text-right">
-                            <article class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
-                                <div class="hidden md:block absolute top-6 -right-2 w-4 h-4 bg-white border-r border-t border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
-                                <div class="md:hidden absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
-                                <ul class="space-y-2 text-slate-600 text-sm inline-block text-left">
-                                    <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 人瑞人才公布全新出海战略，派出第一批“国家经理”</li>
-                                    <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 人瑞人才获评“上海市优质人力资源服务机构”</li>
-                                    <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 人瑞人才数字化系统2.0上线</li>
-                                </ul>
-                            </article>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2023 -->
-                <div class="relative mb-12 md:mb-16">
-                    <div class="md:flex items-center justify-between">
-                        <div class="md:w-5/12 mb-4 md:mb-0 md:text-right order-1">
-                            <span class="text-5xl font-bold text-slate-200 block mb-2 group-hover:text-brand-300 transition duration-300">2023</span>
-                        </div>
-                        <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-white border-4 border-slate-300 rounded-full transform -translate-x-1/2 z-10 mt-2 md:mt-0"></div>
-                        <div class="md:w-5/12 pl-12 md:pl-0 order-2">
-                            <article class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
-                                <div class="hidden md:block absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
-                                <div class="md:hidden absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
-                                <ul class="space-y-2 text-slate-600 text-sm">
-                                    <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 出版《产业数字人才研究与发展报告》，全面助力企业数字化转型</li>
-                                    <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 人瑞人才全面推进数字化转型，瑞智系统二期上线</li>
-                                </ul>
-                            </article>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2022 -->
-                <div class="relative mb-12 md:mb-16">
-                    <div class="md:flex items-center justify-between flex-row-reverse">
-                        <div class="md:w-5/12 mb-4 md:mb-0 md:text-left order-1">
-                            <span class="text-5xl font-bold text-slate-200 block mb-2 group-hover:text-brand-300 transition duration-300">2022</span>
-                        </div>
-                        <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-white border-4 border-slate-300 rounded-full transform -translate-x-1/2 z-10 mt-2 md:mt-0"></div>
-                        <div class="md:w-5/12 pl-12 md:pl-0 order-2 md:text-right">
-                            <article class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
-                                <div class="hidden md:block absolute top-6 -right-2 w-4 h-4 bg-white border-r border-t border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
-                                <div class="md:hidden absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
-                                <ul class="space-y-2 text-slate-600 text-sm inline-block text-left">
-                                    <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 收购上海思芮，数字化人才生态迎来新格局</li>
-                                    <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 与极客邦科技达成战略合作关系，共建数字化人才生态链</li>
-                                    <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 通过全球软件领域最高级CMMI5认证</li>
-                                </ul>
-                            </article>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2021 -->
-                <div class="relative mb-12 md:mb-16">
-                    <div class="md:flex items-center justify-between">
-                        <div class="md:w-5/12 mb-4 md:mb-0 md:text-right order-1">
-                            <span class="text-5xl font-bold text-slate-200 block mb-2 group-hover:text-brand-300 transition duration-300">2021</span>
-                        </div>
-                        <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-white border-4 border-slate-300 rounded-full transform -translate-x-1/2 z-10 mt-2 md:mt-0"></div>
-                        <div class="md:w-5/12 pl-12 md:pl-0 order-2">
-                            <article class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
-                                <div class="hidden md:block absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
-                                <div class="md:hidden absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
-                                <ul class="space-y-2 text-slate-600 text-sm">
-                                    <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 打造人才生态链，构建数字化人才领域专业服务能力</li>
-                                    <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 2021年度最佳人力资源综合服务机构</li>
-                                </ul>
-                            </article>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2020 -->
-                <div class="relative mb-12 md:mb-16">
-                    <div class="md:flex items-center justify-between flex-row-reverse">
-                        <div class="md:w-5/12 mb-4 md:mb-0 md:text-left order-1">
-                            <span class="text-5xl font-bold text-slate-200 block mb-2 group-hover:text-brand-300 transition duration-300">2020</span>
-                        </div>
-                        <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-white border-4 border-slate-300 rounded-full transform -translate-x-1/2 z-10 mt-2 md:mt-0"></div>
-                        <div class="md:w-5/12 pl-12 md:pl-0 order-2 md:text-right">
-                            <article class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
-                                <div class="hidden md:block absolute top-6 -right-2 w-4 h-4 bg-white border-r border-t border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
-                                <div class="md:hidden absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
-                                <ul class="space-y-2 text-slate-600 text-sm inline-block text-left">
-                                    <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 业务覆盖300+城市</li>
-                                    <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 《中国灵活用工发展报告》出版</li>
-                                    <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 中国首家人力资源民营企业博士后工作站落户人瑞</li>
-                                </ul>
-                            </article>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2019 -->
-                <div class="relative mb-12 md:mb-16">
-                    <div class="md:flex items-center justify-between">
-                        <div class="md:w-5/12 mb-4 md:mb-0 md:text-right order-1">
-                            <span class="text-5xl font-bold text-slate-200 block mb-2 group-hover:text-brand-300 transition duration-300">2019</span>
-                        </div>
-                        <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-white border-4 border-slate-300 rounded-full transform -translate-x-1/2 z-10 mt-2 md:mt-0"></div>
-                        <div class="md:w-5/12 pl-12 md:pl-0 order-2">
-                            <article class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
-                                <div class="hidden md:block absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
-                                <div class="md:hidden absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
-                                <ul class="space-y-2 text-slate-600 text-sm">
-                                    <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 《经营者思维》出版，对未来企业人力资源战略管理提出建设性思考</li>
-                                    <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 12.13港交所上市，股份代号：6919.HK</li>
-                                </ul>
-                            </article>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2018 -->
-                <div class="relative mb-12 md:mb-16">
-                    <div class="md:flex items-center justify-between flex-row-reverse">
-                        <div class="md:w-5/12 mb-4 md:mb-0 md:text-left order-1">
-                            <span class="text-5xl font-bold text-slate-200 block mb-2 group-hover:text-brand-300 transition duration-300">2018</span>
-                        </div>
-                        <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-white border-4 border-slate-300 rounded-full transform -translate-x-1/2 z-10 mt-2 md:mt-0"></div>
-                        <div class="md:w-5/12 pl-12 md:pl-0 order-2 md:text-right">
-                            <article class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
-                                <div class="hidden md:block absolute top-6 -right-2 w-4 h-4 bg-white border-r border-t border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
-                                <div class="md:hidden absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
-                                <ul class="space-y-2 text-slate-600 text-sm inline-block text-left">
-                                    <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 灵活用工人数与收入市场占有第一</li>
-                                    <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 首部行业专著《灵活用工》出版，输出标准，引领行业规范</li>
-                                    <li class="flex items-start gap-2"><i class="fas fa-check text-brand-500 mt-1"></i> 获评中国人力资源开发研究会 “杰出综合服务供应商”奖</li>
-                                </ul>
-                            </article>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2010-2017 Combined to save space, or list important ones -->
-                <div class="relative mb-12 md:mb-16">
-                    <div class="md:flex items-center justify-between">
-                        <div class="md:w-5/12 mb-4 md:mb-0 md:text-right order-1">
-                            <span class="text-5xl font-bold text-slate-200 block mb-2 group-hover:text-brand-300 transition duration-300">2010-2017</span>
-                        </div>
-                        <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-white border-4 border-slate-300 rounded-full transform -translate-x-1/2 z-10 mt-2 md:mt-0"></div>
-                        <div class="md:w-5/12 pl-12 md:pl-0 order-2">
-                            <article class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative group hover:shadow-md transition hover:border-brand-200">
-                                <div class="hidden md:block absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
-                                <div class="md:hidden absolute top-6 -left-2 w-4 h-4 bg-white border-l border-b border-slate-200 transform rotate-45 group-hover:border-brand-200 transition"></div>
-                                <div class="space-y-4 text-slate-600 text-sm">
-                                    <div>
-                                        <strong class="text-brand-600 block mb-1">2017</strong>
-                                        <p>业务覆盖155个城市；首个BPO业务在辽宁营口落地；获得上海市高新技术企业和双软企业</p>
-                                    </div>
-                                    <div>
-                                        <strong class="text-brand-600 block mb-1">2016</strong>
-                                        <p>一体化HR管理5大平台上线（香聘+瑞云+瑞聘+瑞家园+合同管理系统）</p>
-                                    </div>
-                                    <div>
-                                        <strong class="text-brand-600 block mb-1">2010</strong>
-                                        <p>公司在成都成立；开创以效果为导向的人力资源服务新模式</p>
-                                    </div>
-                                </div>
-                            </article>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-    <section id="honors" class="py-24 bg-slate-50 relative overflow-hidden">
-        <!-- Background Decorations -->
-        <div class="Honor_leftBg_3dp94"></div>
-        <div class="Honor_rightTopBg_m0Vtl"></div>
-        <div class="Honor_rightBottomBg_FhkJM"></div>
-
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <!-- Standard Header -->
-            <div class="text-center mb-16">
-                <span class="text-brand-600 font-bold tracking-widest uppercase text-sm">HONORS</span>
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-4">荣誉资质</h2>
-                <p class="text-slate-600 max-w-2xl mx-auto mt-4">
-                    权威认可，实力见证
-                </p>
-            </div>
-
-            <div class="geek-auth-box">
-                <a target="_blank" class="geek-auth-item">
-                    <img src="/images/IOS27001.png" alt="ISO 27001" class="geek-auth-img">
-                    <div class="geek-auth-content">
-                        <div>
-                            <div>ISO 27001</div>
-                            <div style="font-size: 12px; color: #999; margin-top: 4px;">信息安全管理体系认证</div>
-                        </div>
-                    </div>
-                </a>
-                <a target="_blank" class="geek-auth-item">
-                    <img src="/images/ios9001.png" alt="ISO 9001" class="geek-auth-img">
-                    <div class="geek-auth-content">
-                        <div>
-                            <div>ISO 9001</div>
-                            <div style="font-size: 12px; color: #999; margin-top: 4px;">质量管理体系认证</div>
-                        </div>
-                    </div>
-                </a>
-                <a target="_blank" class="geek-auth-item">
-                    <img src="/images/ios20000.png" alt="ISO 9001" class="geek-auth-img">
-                    <div class="geek-auth-content">
-                        <div>
-                            <div>IOS20000</div>
-                            <div style="font-size: 12px; color: #999; margin-top: 4px;">信息技术服务管理体系认证</div>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <div class="geek-content-box">
-                <div class="geek-first-line">
-                    <div class="geek-background-box">
-                        <div class="geek-item-title">
-                            <div class="geek-title-bg">行业标杆奖项</div>
-                        </div>
-                        <div class="geek-item-info">2025年度人力资源服务机构100强</div>
-                        <div class="geek-item-info">2025新客服节“服务价值最佳实践奖”</div>
-                        <div class="geek-item-info">大中华区人力资源机构客户满意度大奖</div>
-                        <div class="geek-item-info">新质生产力标杆企业</div>
-                    </div>
-                    <div class="geek-leading-enterprise-box">
-                        <div class="geek-item-title">
-                            <div class="geek-title-bg">专业资质认证</div>
-                        </div>
-                        <div class="geek-item-info">国家级高新技术企业认证</div>
-                        <div class="geek-item-info">信息安全与服务管理体系全方位认证</div>
-                        <div class="geek-item-info">CMMI 3/5 级认证</div>
-                        <div class="geek-item-info">21个国家和地区全球服务牌照</div>
-                    </div>
-                </div>
-                <div class="geek-first-line">
-                    <div class="geek-science-box">
-                        <div class="geek-item-title">
-                            <div class="geek-title-bg">创新与研究</div>
-                        </div>
-                        <div class="geek-item-info">万码优才（Wanma Youcai）AI人才科技平台</div>
-                        <div class="geek-item-info">联合德勤、阿里云发布《中国数字化人才发展报告》</div>
-                        <div class="geek-item-info">盖全行业的2500万+数字化人才基因库</div>
-                        <div class="geek-item-info">数十项自主知识产权软件著作</div>
-                    </div>
-                    <div class="geek-party-building-box">
-                        <div class="geek-item-title">
-                            <div class="geek-title-bg">生态与合作</div>
-                        </div>
-                        <div class="geek-item-info">华为云/阿里云战略合作伙伴</div>
-                        <div class="geek-item-info">中国人力资源服务业副会长单位</div>
-                        <div class="geek-item-info">获港股上市公司ESG标杆荣誉</div>
-                        <div class="geek-item-info">全球人才生态圈：覆盖300+城市及海外市场</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="team" class="hidden py-24 bg-slate-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <span class="text-brand-600 font-bold tracking-widest uppercase text-sm">Leadership</span>
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-4">核心管理团队</h2>
-                <p class="text-slate-600 max-w-2xl mx-auto mt-4">
-                    汇聚战略、技术与人力资源领域的顶尖专家
-                </p>
-            </div>
-
-            <div class="grid md:grid-cols-3 gap-8 items-start">
-                
-                <article class="bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 group">
-                    <div class="h-80 bg-slate-200 relative overflow-hidden">
-                         <img src="/images/andi.png" alt="高燕 Andi" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                        <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-slate-900/90 to-transparent p-6">
-                            <h3 class="text-2xl font-bold text-white">高燕 Andi</h3>
-                            <p class="text-brand-300 font-medium">副总裁</p>
-                        </div>
-                    </div>
-                    <div class="p-8 relative">
-                         <div class="absolute -top-6 right-6 bg-brand-600 text-white text-xs px-3 py-1 rounded-full shadow-lg">
-                            《价值驱动增长》作者
-                        </div>
-                        <ul class="space-y-3 text-sm text-slate-600">
-                            <li class="flex items-start gap-3">
-                                <i class="fas fa-graduation-cap text-brand-500 mt-1"></i>
-                                <span>乔治城大学 MBA，中国人民大学劳动人事学院本科。</span>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <i class="fas fa-rocket text-brand-500 mt-1"></i>
-                                <span><strong>资深战略营销与增长专家</strong>，兼具 B2B 与 B2C 领域实战经验。</span>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <i class="fas fa-briefcase text-brand-500 mt-1"></i>
-                                <span>曾成功操盘<strong>多家行业头部SaaS</strong>企业的战略营销体系与品牌升级。</span>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <i class="fas fa-users text-brand-500 mt-1"></i>
-                                <span>为数百家头部企业提供咨询服务，收获零差评口碑。</span>
-                            </li>
-                        </ul>
-                    </div>
-                </article>
-
-                <article class="bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 group transform md:-translate-y-4 shadow-xl border-t-4 border-brand-500 z-10 relative">
-                    <div class="h-80 bg-slate-200 relative overflow-hidden">
-                        <img src="/images/zhangjianguo.png" alt="张建国" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                        <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-brand-900/90 to-transparent p-6">
-                            <h3 class="text-2xl font-bold text-white">张建国</h3>
-                            <p class="text-brand-300 font-medium">总裁 / 创始人</p>
-                        </div>
-                    </div>
-                    <div class="p-8">
-                        <ul class="space-y-3 text-sm text-slate-600">
-                            <li class="flex items-start gap-3">
-                                <i class="fas fa-star text-brand-500 mt-1"></i>
-                                <span><strong>人瑞人才集团创始人</strong>，北京大学 MBA，高级经济师。</span>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <i class="fas fa-history text-brand-500 mt-1"></i>
-                                <span>曾任<strong>华为首任人力资源副总裁</strong>，组织了《华为基本法》的起草。</span>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <i class="fas fa-chart-line text-brand-500 mt-1"></i>
-                                <span>曾任中华英才网 CEO，带领团队实现连续 3 年 100% 增长。</span>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <i class="fas fa-book text-brand-500 mt-1"></i>
-                                <span>著有《经营者思维》、《灵活用工》等行业畅销书。</span>
-                            </li>
-                        </ul>
-                    </div>
-                </article>
-
-                <article class="bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 group">
-                    <div class="h-80 bg-slate-200 relative overflow-hidden">
-                        <img src="/images/vincent.png" alt="杨兴宇 Vincent" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                        <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-slate-900/90 to-transparent p-6">
-                            <h3 class="text-2xl font-bold text-white">杨兴宇 Vincent</h3>
-                            <p class="text-brand-300 font-medium">CTO / 首席技术官</p>
-                        </div>
-                    </div>
-                    <div class="p-8">
-                        <ul class="space-y-3 text-sm text-slate-600">
-                            <li class="flex items-start gap-3">
-                                <i class="fas fa-code-branch text-brand-500 mt-1"></i>
-                                <span><strong>资深数字化战略与架构专家</strong>，北京大学工程管理硕士 (MEM)。</span>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <i class="fas fa-laptop-code text-brand-500 mt-1"></i>
-                                <span>20年 IT 积淀，曾任捷信亚太区、雨润集团等核心决策岗位 (CIO/CTO)。</span>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <i class="fas fa-check-circle text-brand-500 mt-1"></i>
-                                <span>主导捷信亚太区从 0 到 1 数字化转型，助力业务逆势增长。</span>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <i class="fas fa-cogs text-brand-500 mt-1"></i>
-                                <span>精通从企业架构到技术执行的全链路管理，兼备甲方与乙方视角。</span>
-                            </li>
-                        </ul>
-                    </div>
-                </article>
-
-            </div>
-        </div>
-    </section>
+  </div>
+</footer>
 
 
+    <div class="cmodal" id="cmodal"><div class="mask" data-evt-click="e4"></div><div class="panel"></div></div>
+
+<button class="fab" data-evt-click="e5"><span class="dot"></span>AI 顾问</button>
+
+<aside class="drawer" id="drawer" aria-label="AI 顾问">
+  <div class="dw-resize" id="dwResize" title="拖拽调整宽度"></div>
+  <div class="dw-head">
+    <div class="dw-ava">瑞</div>
+    <div>
+      <div class="dw-title">瑞华 AI 顾问 <span class="st"></span></div>
+      <div class="dw-sub">基于官网内容与 27 个行业案例回答 · 不代替正式咨询</div>
+    </div>
+    <button class="dw-close" data-evt-click="e6" aria-label="关闭">✕</button>
+  </div>
+  <div class="dw-body" id="dwBody"></div>
+  <div class="chips" id="dwChips"></div>
+  <div class="dw-input">
+    <input id="dwInput" type="text" placeholder="问点什么，比如「部署要多久见效」…" data-evt-keydown="e7">
+    <button data-evt-click="e8" aria-label="发送">➤</button>
+  </div>
+</aside>
 
 
-    <section class="py-20 bg-brand-50">
-        <div class="max-w-4xl mx-auto px-4 text-center">
-            <h2 class="text-3xl font-bold text-slate-900 mb-6">准备好构建高人效的韧性组织了吗？</h2>
-            <p class="text-slate-600 mb-10 text-lg">
-                无论您处于转型初期，还是需要解决具体的用工难题，瑞华智策的专家团队都准备好为您服务。
-            </p>
-            <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <a href="/productivity/" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-brand-500/30 transition hover:-translate-y-1">
-                    预约组织人效体检
-                </a>
-                <a href="/#contact" class="bg-white border border-slate-200 text-slate-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition shadow-sm">
-                    联系我们
-                </a>
-            </div>
-        </div>
-    </section>
-
-    </main>
-    <footer id="footer-container" role="contentinfo"></footer>
-
-    <script src="/js/script.js"></script>
-    <script src="/js/main.js"></script>
+    
+    <script src="/js/rh2026-engine.js"></script>
+    <script src="/js/rh2026-ext.js"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@ describe('homeContentRenderer', () => {
       publishDate: '2026-03-18T08:00:00.000Z'
     }, { insight: '研究洞察' });
 
-    expect(html).toContain('/article/test-article.html');
+    expect(html).toContain('/insights/test-article');
     expect(html).toContain('测试文章');
     expect(html).toContain('研究洞察');
   });

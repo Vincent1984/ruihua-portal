@@ -13,7 +13,8 @@ function loadCategories() {
             const select = document.getElementById('artCategory');
             if(select) {
                 select.innerHTML = '<option value="">选择分类...</option>' + 
-                    data.map(c => `<option value="${c.code}">${c.name}</option>`).join('');
+                    data.map(c => `<option value="${c.code}">${c.name}</option>`).join('') +
+                    '<option value="__new__">＋ 新增分类</option>';
             }
             // Populate list in category modal
             const list = document.getElementById('categoryList');
@@ -124,23 +125,39 @@ function onAuthorSelectChange() {
     const select = document.getElementById('artAuthorSelect');
     const manualDiv = document.getElementById('manualAuthorFields');
     const val = select.value;
-    
-    if (val === 'manual') {
-        manualDiv.classList.remove('d-none');
-        // Clear manual fields if switching to manual? Maybe keep them.
-    } else if (val) {
-        manualDiv.classList.add('d-none');
-        // Populate hidden manual fields with selected author data for fallback/display?
-        // Actually, we don't need to populate them if we send authorId. 
-        // But if we want to preview what's selected?
-        // The UI doesn't show preview for selected author yet, only manual fields.
-        // Let's just hide manual fields.
-    } else {
-        manualDiv.classList.add('d-none');
-    }
+    manualDiv.hidden = val !== 'manual';
+    if (val === 'manual') document.getElementById('artAuthor').focus();
+}
+
+function onCategorySelectChange() {
+    const select = document.getElementById('artCategory');
+    const fields = document.getElementById('newCategoryFields');
+    fields.hidden = select.value !== '__new__';
+    if (!fields.hidden) document.getElementById('newCategoryName').focus();
+}
+
+async function saveInlineCategory() {
+    const name = document.getElementById('newCategoryName').value.trim();
+    const code = normalizeSeoSlug(document.getElementById('newCategoryCode').value || name);
+    if (!name || !code) return showToast('请填写分类名称和英文代码', 'warning');
+    const response = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ name, code, order: allCategories.length })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.success) return showToast(result.error || '新增分类失败', 'error');
+    allCategories.push(result.data);
+    const select = document.getElementById('artCategory');
+    select.insertBefore(new Option(result.data.name, result.data.code), select.lastElementChild);
+    select.value = result.data.code;
+    document.getElementById('newCategoryFields').hidden = true;
+    showToast('分类已新增并选中');
 }
 window.loadAuthorOptions = loadAuthorOptions;
 window.onAuthorSelectChange = onAuthorSelectChange;
+window.onCategorySelectChange = onCategorySelectChange;
+window.saveInlineCategory = saveInlineCategory;
 
 let editor;
 let autoSaveTimer;
@@ -292,12 +309,14 @@ function updateWordCount() {
         count = text.trim().length;
     }
     
-    const el = document.getElementById('wordCount');
-    if(el) {
-        el.textContent = `${count} 字`;
-        if(count > 10000) el.classList.add('text-danger');
-        else el.classList.remove('text-danger');
-    }
+    ['wordCount', 'studioWordCount'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) {
+            el.textContent = `${count} 字`;
+            if(count > 10000) el.classList.add('text-danger');
+            else el.classList.remove('text-danger');
+        }
+    });
 }
 
 // Override Auto Save
@@ -349,7 +368,7 @@ function checkLocalDraft() {
 }
 
 function updateGeoDescCount() {
-    const desc = document.getElementById('artDesc').value;
+    const desc = studioVal('artDesc');
     const count = desc.length;
     const el = document.getElementById('geoDescCount');
     if(el) {
@@ -388,6 +407,16 @@ function updateSeoScore() {
     updateGeoScore();
 }
 
+// Studio 工作台(studioTitleInput)与旧编辑器(artTitle)字段 id 不一致，统一读取；缺失字段返回空串避免空引用
+function studioVal(id) {
+    const el = document.getElementById(id);
+    return el ? el.value : '';
+}
+function studioTitle() {
+    const el = document.getElementById('studioTitleInput') || document.getElementById('artTitle');
+    return el ? el.value : '';
+}
+
 function updateGeoScore() {
     let scores = {
         semantic: 0,
@@ -397,12 +426,12 @@ function updateGeoScore() {
         total: 0
     };
     
-    const title = document.getElementById('artTitle').value.trim();
-    const desc = document.getElementById('artDesc').value.trim();
-    const tags = document.getElementById('artTags').value.trim();
-    const slug = document.getElementById('artSlug').value.trim();
-    const cover = document.getElementById('artCover').value.trim();
-    const seoDesc = document.getElementById('artSeoDesc') ? document.getElementById('artSeoDesc').value.trim() : '';
+    const title = studioTitle().trim();
+    const desc = studioVal('artDesc').trim();
+    const tags = studioVal('artTags').trim();
+    const slug = studioVal('artSlug').trim();
+    const cover = studioVal('artCover').trim();
+    const seoDesc = studioVal('artSeoDesc').trim();
     
     let content = '';
     if (window.wangEditorInstance) {
@@ -446,8 +475,8 @@ function updateGeoScore() {
     // - Publish date set (5)
     // - Category set (5)
     // - Recency/Freshness (Simulated) (10)
-    if (document.getElementById('artAuthorSelect').value || document.getElementById('artAuthor').value) scores.other += 5;
-    if (document.getElementById('artCategory').value) scores.other += 5;
+    if (studioVal('artAuthorSelect') || studioVal('artAuthor')) scores.other += 5;
+    if (studioVal('artCategory')) scores.other += 5;
     scores.other += 15; // Base score
 
     // Calculate Total
@@ -560,9 +589,9 @@ async function fetchGeoAnalysis() {
     if (window.wangEditorInstance) {
         content = window.wangEditorInstance.getText().trim();
     }
-    const title = document.getElementById('artTitle').value.trim();
-    const tags = document.getElementById('artTags').value.trim();
-    const summary = document.getElementById('artDesc').value.trim();
+    const title = studioTitle().trim();
+    const tags = studioVal('artTags').trim();
+    const summary = studioVal('artDesc').trim();
 
     if (!content || content.length < 50) {
         showToast('文章内容太少，无法进行深度分析', 'warning');
@@ -889,7 +918,7 @@ function autoGenerateQA() {
     if (window.wangEditorInstance) {
         content = window.wangEditorInstance.getText();
     }
-    const title = document.getElementById('artTitle').value;
+    const title = studioTitle();
     
     if (!content || content.trim().length < 100) {
         showToast('请先输入足够的文章内容(至少100字)', 'warning');
@@ -947,8 +976,476 @@ function autoGenerateQA() {
     });
 }
 
-// Expose
-window.updateGeoDescCount = updateGeoDescCount;
+// 新增 console.html 专用的 Studio 工作台集成逻辑
+function caseOverviewText(value) {
+    const el = document.createElement('div');
+    el.innerHTML = String(value || '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>/gi, '\n');
+    return (el.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+window.openStudio = function(type, id) {
+    window.studioType = type;
+    window.studioId = id;
+    const studioModal = document.getElementById('studioModal');
+    studioModal.classList.toggle('case-mode', type === 'case');
+    document.getElementById('caseOverviewInput').value = '';
+    
+    // 文章模式使用富文本编辑器，案例概览使用普通文本框
+    if (type === 'article' && !window.wangEditorInstance && window.wangEditor) {
+        const { createEditor, createToolbar } = window.wangEditor;
+        window.wangEditorInstance = createEditor({
+            selector: '#studioContainer',
+            html: '',
+            config: {
+                placeholder: '请输入正文内容...',
+                MENU_CONF: {
+                    uploadImage: {
+                        server: '/api/upload',
+                        fieldName: 'file',
+                        headers: { Authorization: 'Bearer ' + sessionStorage.getItem('token') },
+                        customInsert(res, insertFn) { if (res.success) insertFn(res.url, '图片', res.url); }
+                    }
+                },
+                onChange(editor) { updateWordCount(); }
+            }
+        });
+        window.wangEditorToolbar = createToolbar({
+            editor: window.wangEditorInstance,
+            selector: '#studioToolbar',
+            config: {}
+        });
+    }
+
+    // 渲染配置区表单
+    const configEl = document.getElementById('studioConfig');
+    if (type === 'article') {
+        configEl.innerHTML = `
+            <div class="cfg-block">
+                <h4 class="cfg-title">基础配置</h4>
+                <div class="f"><label>自定义链接 (Slug)</label>
+                    <div style="display:flex;gap:6px"><input id="artSlug" placeholder="article-slug" style="flex:1" oninput="previewSlug()"><button type="button" class="mini-btn" style="width:auto;padding:4px 10px" onclick="autoGenerateSlug(true)" title="AI 智能生成">✨</button></div>
+                    <small style="color:var(--muted);font-size:10.5px;display:block;margin-top:4px" id="slugPreview"></small>
+                </div>
+                <div class="f"><label>所属分类</label>
+                    <select id="artCategory" onchange="onCategorySelectChange()"><option value="">选择分类...</option><option value="__new__">＋ 新增分类</option></select>
+                    <div class="inline-create-fields" id="newCategoryFields" hidden><input id="newCategoryName" placeholder="分类名称"><input id="newCategoryCode" placeholder="英文代码，如 ai-strategy"><button type="button" class="mini-btn" onclick="saveInlineCategory()">新增并选中</button></div>
+                </div>
+                <div class="f"><label>作者</label>
+                    <select id="artAuthorSelect" onchange="onAuthorSelectChange()"><option value="">选择作者...</option><option value="manual">手动输入</option></select>
+                    <div class="manual-author-fields" id="manualAuthorFields" hidden><input id="artAuthor" placeholder="作者姓名"><textarea id="artAuthorDesc" rows="2" placeholder="作者简介（选填）"></textarea></div>
+                </div>
+            </div>
+            <div class="cfg-block">
+                <h4 class="cfg-title">SEO & GEO 摘要</h4>
+                <div class="f"><label>文章标签 <span class="hint">(逗号分隔)</span>
+                    <button type="button" class="mini-btn" style="width:auto;float:right;padding:2px 8px;font-size:10.5px" onclick="autoGenerateTags()">✨ 智能生成</button></label>
+                    <input id="artTags" oninput="updateGeoScore()">
+                </div>
+                <div class="f"><label>SEO 摘要 <span class="hint" id="seoDescCount">0/160</span>
+                    <button type="button" class="mini-btn" style="width:auto;float:right;padding:2px 8px;font-size:10.5px" onclick="autoGenerateSummary('seo')">✨</button></label>
+                    <textarea id="artSeoDesc" rows="3" placeholder="用于搜索引擎结果展示..." oninput="updateSeoDescCount()"></textarea>
+                </div>
+                <div class="f"><label>核心摘要 <span class="hint" id="geoDescCount">0/150</span>
+                    <button type="button" class="mini-btn summary-generate" onclick="autoGenerateSummary('geo')">基于正文提炼</button></label>
+                    <textarea id="artDesc" rows="4" maxlength="150" placeholder="用 1—3 句话提炼核心观点、关键结论和读者价值，不超过 150 字。" oninput="updateGeoDescCount()"></textarea>
+                </div>
+            </div>
+            <div class="cfg-block">
+                <h4 class="cfg-title">栏目与内容状态</h4>
+                <div class="f"><label>所属栏目</label>
+                    <select id="artZone"><option value="">请选择栏目</option><option value="industry">行业洞察</option><option value="thinktank">经营智库</option></select>
+                </div>
+                <div class="f"><label>内容状态</label>
+                    <select id="artContentStatus"><option value="full">完整内容</option><option value="toc">仅目录 / 摘要</option><option value="soon">即将上线</option></select>
+                </div>
+                <div class="switch-row"><label>置顶显示</label><button type="button" id="artTopBtn" class="switch" onclick="this.classList.toggle('on')"></button></div>
+            </div>
+            <div class="cfg-block">
+                <h4 class="cfg-title">发布设置</h4>
+                <div class="f"><label>封面图片</label>
+                    <div class="cover-upload" onclick="document.getElementById('artCoverFile').click()">
+                        <div class="add" id="artCoverPlaceholder"><i style="font-size:24px;font-style:normal">+</i><span>点击上传</span></div>
+                        <img id="artCoverImg" style="display:none;">
+                    </div>
+                    <input type="hidden" id="artCover">
+                    <input type="file" id="artCoverFile" accept="image/*" onchange="uploadCover()">
+                </div>
+                <div class="switch-row"><label>设为推荐文章</label><button type="button" id="artFeaturedBtn" class="switch" onclick="this.classList.toggle('on')"></button></div>
+                <div class="switch-row"><label>是否上线</label><button type="button" id="artOnlineBtn" class="switch on" onclick="this.classList.toggle('on')"></button></div>
+                <div class="f"><label>发布状态</label>
+                    <select id="artStatus" onchange="togglePublishDate()"><option value="published">立即发布</option><option value="draft">存为草稿</option><option value="scheduled">定时发布</option><option value="archived">归档</option></select>
+                </div>
+                <div class="f" id="publishDateWrapper" style="display:none"><label>预定时间</label><input type="datetime-local" id="artPublishDate"></div>
+            </div>
+            <div class="cfg-block">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                    <h4 class="cfg-title" style="margin:0">智能问答 (Q&A)</h4>
+                    <button class="mini-btn" type="button" style="width:auto" onclick="autoGenerateQA()">AI 一键生成</button>
+                </div>
+                <div class="qa-list" id="qaList"></div>
+                <button class="mini-btn mt-2" type="button" onclick="addQAItem()">+ 手动添加</button>
+            </div>
+        `;
+        // 加载分类和作者下拉
+        setTimeout(() => { loadCategories(); loadStudioAuthors(); }, 0);
+    } else {
+        configEl.innerHTML = `
+            <section class="cfg-block case-config-section" id="case-section-basic">
+                <div class="case-config-heading"><span>01</span><div><h4>基础信息</h4><p>客户身份与案例检索信息</p></div></div>
+                <div class="grid2">
+                    <div class="f"><label>客户名称</label><input id="caseClient" placeholder="例如：海尔智家"></div>
+                    <div class="f"><label>所属行业</label><select id="caseIndustry"><option value="">请选择行业</option><option>制造业</option><option>教育</option><option>零售快消</option><option>游戏文娱</option><option>金融财税</option><option>贸易物流</option><option>物业地产</option><option>其他</option></select></div>
+                </div>
+                <div class="f"><label>SEO Slug <span class="hint">英文语义链接</span></label><input id="artSlug" placeholder="case-slug"></div>
+                <div class="f"><label>案例标签 <span class="hint">使用逗号分隔</span></label><input id="caseTags" placeholder="AI Agent, 降本增效"></div>
+            </section>
+            <section class="cfg-block case-config-section" id="case-section-story">
+                <div class="case-config-heading"><span>02</span><div><h4>项目复盘</h4><p>按问题、目标、方案组织叙事</p></div></div>
+                <div class="f"><label>客户问题 <span class="hint">每行一条</span></label><textarea id="caseProblems" rows="4" placeholder="机型版本庞杂、历史代码沉重"></textarea></div>
+                <div class="f"><label>项目目标 <span class="hint">每行一条</span></label><textarea id="caseGoals" rows="4" placeholder="实现核心团队 100% 覆盖"></textarea></div>
+                <div class="f"><label>解决方案 <span class="hint">每行一条</span></label><textarea id="caseSolutions" rows="6" placeholder="引入 CodeBuddy 存量代码改造"></textarea></div>
+            </section>
+            <section class="cfg-block case-config-section" id="case-section-impact">
+                <div class="case-config-heading"><span>03</span><div><h4>成果数据</h4><p>用明确指标呈现项目价值</p></div></div>
+                <div class="f"><label>关键数据 <span class="hint">每行：指标名: 数值</span></label><textarea id="caseStats" rows="5" placeholder="研发效率提升: 30%&#10;采购成本下降: 10%"></textarea></div>
+                <div class="f"><label>成果补充 <span class="hint">每行一条</span></label><textarea id="caseResultTags" rows="4" placeholder="研发渗透度&#10;90%+"></textarea></div>
+            </section>
+            <section class="cfg-block case-config-section" id="case-section-publish">
+                <div class="case-config-heading"><span>04</span><div><h4>发布设置</h4><p>封面、状态与首页推荐</p></div></div>
+                <div class="f"><label>封面图片 <span class="hint">建议 16:9</span></label>
+                    <div class="cover-upload" onclick="document.getElementById('artCoverFile').click()"><div class="add" id="artCoverPlaceholder"><i>+</i><span>点击上传封面</span></div><img id="artCoverImg" style="display:none;"></div>
+                    <input type="hidden" id="artCover"><input type="file" id="artCoverFile" accept="image/*" onchange="uploadCover()">
+                </div>
+                <div class="case-publish-panel">
+                    <div class="switch-row"><label>对外上线 <small>允许前台访问</small></label><button type="button" id="caseOnlineBtn" class="switch on" onclick="this.classList.toggle('on')"></button></div>
+                    <div class="switch-row"><label>首页精选 <small>加入精选候选</small></label><button type="button" id="artFeaturedBtn" class="switch" onclick="this.classList.toggle('on')"></button></div>
+                </div>
+                <div class="f"><label>发布状态</label><select id="artStatus"><option value="published">已发布</option><option value="draft">草稿</option></select></div>
+            </section>
+        `;
+    }
+
+    // 渲染 GEO 侧边栏
+    document.getElementById('studioGeo').innerHTML = type === 'article' ? `
+        <div class="geo-card">
+            <h4><i style="color:var(--purple);font-style:normal">⚡</i> GEO 综合评分 <span class="spacer"></span><span class="geo-score-badge" id="geoScore">0分</span></h4>
+            <div class="geo-progress"><i id="geoProgress" style="width:0%"></i></div>
+            <div class="geo-dim">
+                <div class="row"><b>语义完整性 (30%)</b><span id="geoDimSemantic">0/30</span></div>
+                <div class="bar"><i class="s" id="geoProgSemantic" style="width:0%"></i></div>
+            </div>
+            <div class="geo-dim">
+                <div class="row"><b>AI 可理解性 (25%)</b><span id="geoDimAi">0/25</span></div>
+                <div class="bar"><i class="a" id="geoProgAi" style="width:0%"></i></div>
+            </div>
+            <div class="geo-dim mb-0">
+                <div class="row"><b>结构化数据 (20%)</b><span id="geoDimStruct">0/20</span></div>
+                <div class="bar"><i class="st" id="geoProgStruct" style="width:0%"></i></div>
+            </div>
+        </div>
+        <div class="geo-card" style="margin-bottom:0">
+            <h4 style="margin-bottom:12px"><i style="color:var(--purple);font-style:normal">✨</i> 深度诊断建议</h4>
+            <button type="button" class="geo-analyze-btn" id="btnGeoAnalyze" onclick="fetchGeoAnalysis()">执行全文 AI 诊断</button>
+            <div id="geoAnalysisList" style="margin-top:12px">
+                <div class="geo-analysis-empty" id="geoAnalysisEmpty">点击上方按钮，AI 将对全文进行深度扫描</div>
+            </div>
+        </div>
+    ` : `
+        <div class="case-editor-guide">
+            <span>CASE EDITOR</span>
+            <h3>案例内容结构</h3>
+            <p>从客户背景到项目成果，按阅读顺序完成信息录入。</p>
+        </div>
+        <nav class="case-editor-nav" aria-label="案例编辑步骤">
+            <a href="#case-section-basic"><i>01</i><span>基础信息<small>客户与分类</small></span></a>
+            <a href="#case-section-story"><i>02</i><span>项目复盘<small>问题、目标、方案</small></span></a>
+            <a href="#case-section-impact"><i>03</i><span>成果数据<small>指标与价值</small></span></a>
+            <a href="#case-section-publish"><i>04</i><span>发布设置<small>封面与状态</small></span></a>
+        </nav>
+    `;
+
+    // 绑定通用事件
+    // 确保 artId 隐藏域存在（autoGenerateSlug 依赖它判断是否新文章）
+    if (!document.getElementById('artId')) {
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden'; hidden.id = 'artId';
+        document.getElementById('studioConfig').appendChild(hidden);
+    }
+    document.getElementById('artId').value = id || '';
+    document.getElementById('studioTitleInput').addEventListener('input', () => { updateGeoScore(); autoGenerateSlug(false); });
+    if(type === 'article' && window.wangEditorInstance) {
+        window.wangEditorInstance.setHtml('<p><br></p>');
+    }
+    
+    // 加载数据
+    if (id) {
+        document.getElementById('studioTitle').textContent = `编辑${type === 'article' ? '文章' : '案例'}`;
+        loadStudioData(type, id);
+    } else {
+        document.getElementById('studioTitle').textContent = `新建${type === 'article' ? '文章' : '案例'}`;
+        document.getElementById('studioTitleInput').value = '';
+        if(type === 'article') {
+            document.getElementById('artTags').value = '';
+            document.getElementById('artDesc').value = '';
+            document.getElementById('artSeoDesc').value = '';
+            document.getElementById('artSlug').value = '';
+            previewSlug();
+            document.getElementById('artCategory').value = '';
+            document.getElementById('artZone').value = '';
+            document.getElementById('artContentStatus').value = 'full';
+            document.getElementById('artTopBtn').className = 'switch';
+            document.getElementById('artFeaturedBtn').className = 'switch';
+            document.getElementById('artOnlineBtn').className = 'switch on';
+            document.getElementById('artStatus').value = 'published';
+            togglePublishDate();
+            document.getElementById('manualAuthorFields').hidden = true;
+            document.getElementById('newCategoryFields').hidden = true;
+            qaList = [];
+            renderQAList();
+            setTimeout(() => { loadCategories(); loadStudioAuthors(); }, 0);
+        } else {
+            document.getElementById('caseClient').value = '';
+            document.getElementById('caseIndustry').value = '制造业';
+            document.getElementById('artSlug').value = '';
+            document.getElementById('caseOnlineBtn').className = 'switch on';
+            document.getElementById('artFeaturedBtn').className = 'switch';
+            document.getElementById('artStatus').value = 'published';
+        }
+        document.getElementById('artCover').value = '';
+        document.getElementById('artCoverImg').style.display = 'none';
+        document.getElementById('artCoverPlaceholder').style.display = 'flex';
+        updateGeoScore();
+    }
+
+    document.getElementById('studioModal').classList.add('show');
+    document.getElementById('studioModal').setAttribute('aria-hidden', 'false');
+};
+
+window.closeStudio = function() {
+    document.getElementById('studioModal').classList.remove('show');
+    document.getElementById('studioModal').setAttribute('aria-hidden', 'true');
+};
+
+document.addEventListener('click', e => {
+    if(e.target.closest('[data-action="close-studio"]')) closeStudio();
+    if(e.target.closest('[data-action="save-studio"]')) saveStudioData();
+});
+
+async function loadStudioData(type, id) {
+    try {
+        let data;
+        if (type === 'case') {
+            data = state.cases.find(x => x._id === id);
+        } else {
+            const res = await fetch(`/api/admin/articles/${id}`, { headers: { Authorization: 'Bearer ' + sessionStorage.getItem('token') } });
+            const d = await res.json();
+            data = d;
+        }
+        
+        if (!data) throw new Error('未找到数据');
+        
+        document.getElementById('studioTitleInput').value = data.title || '';
+        
+        if (type === 'article') {
+            document.getElementById('artSlug').value = data.slug || '';
+            previewSlug();
+            document.getElementById('artTags').value = (data.tags || []).join(', ');
+            document.getElementById('artDesc').value = data.summary || '';
+            document.getElementById('artSeoDesc').value = data.seoDescription || '';
+            document.getElementById('artStatus').value = data.status || 'published';
+            document.getElementById('artZone').value = data.zone || '';
+            document.getElementById('artContentStatus').value = data.contentStatus || 'full';
+            document.getElementById('artTopBtn').className = data.top ? 'switch on' : 'switch';
+            togglePublishDate();
+            document.getElementById('artFeaturedBtn').className = data.isRecommended ? 'switch on' : 'switch';
+            document.getElementById('artOnlineBtn').className = data.isOnline !== false ? 'switch on' : 'switch';
+            if (data.publishDate) document.getElementById('artPublishDate').value = new Date(data.publishDate).toISOString().slice(0,16);
+            qaList = data.qa || [];
+            renderQAList();
+            // 异步加载分类和作者下拉后回填选中值
+            Promise.all([
+                fetch('/api/categories').then(r=>r.json()).catch(()=>[]),
+                fetch('/api/authors', { headers: { Authorization: 'Bearer ' + sessionStorage.getItem('token') } }).then(r=>r.json()).catch(()=>({data:[]}))
+            ]).then(([cats, authorsData]) => {
+                const authors = Array.isArray(authorsData) ? authorsData : (authorsData.data || []);
+                const catSel = document.getElementById('artCategory');
+                if (catSel) {
+                    catSel.innerHTML = '<option value="">选择分类...</option>' +
+                        (cats||[]).map(c => `<option value="${c.code||c}">${c.name||c}</option>`).join('') +
+                        '<option value="__new__">＋ 新增分类</option>';
+                    catSel.value = data.category || '';
+                }
+                const authorSel = document.getElementById('artAuthorSelect');
+                if (authorSel) {
+                    authorSel.innerHTML = '<option value="">选择作者...</option><option value="manual">手动输入</option>' +
+                        authors.map(a => `<option value="${a._id}">${a.name}</option>`).join('');
+                    if (data.authorId) {
+                        authorSel.value = data.authorId;
+                    } else if (data.author) {
+                        authorSel.value = 'manual';
+                        document.getElementById('manualAuthorFields').hidden = false;
+                        document.getElementById('artAuthor').value = typeof data.author === 'string' ? data.author : data.author.name || '';
+                        document.getElementById('artAuthorDesc').value = typeof data.author === 'object' ? (data.author.desc || '') : '';
+                    }
+                }
+            });
+        } else {
+            document.getElementById('artSlug').value = data.slug || '';
+            document.getElementById('caseClient').value = data.client || '';
+            document.getElementById('caseIndustry').value = data.industry || '';
+            document.getElementById('artStatus').value = data.status || 'published';
+            document.getElementById('caseOnlineBtn').className = data.isOnline !== false ? 'switch on' : 'switch';
+            document.getElementById('artFeaturedBtn').className = data.featured ? 'switch on' : 'switch';
+            document.getElementById('caseTags').value = (data.tags || []).join(', ');
+            document.getElementById('caseStats').value = (data.stats || []).map(s => `${s.label || ''}: ${s.value || ''}`).join('\n');
+            document.getElementById('caseProblems').value = (data.problems || []).join('\n');
+            document.getElementById('caseGoals').value = (data.goals || []).join('\n');
+            document.getElementById('caseSolutions').value = (data.solutions || []).join('\n');
+            document.getElementById('caseResultTags').value = (data.resultTags || []).join('\n');
+            document.getElementById('caseOverviewInput').value = caseOverviewText(data.background);
+        }
+        
+        const cover = data.coverImage || data.cover;
+        document.getElementById('artCover').value = cover || '';
+        if (cover) {
+            document.getElementById('artCoverImg').src = cover;
+            document.getElementById('artCoverImg').style.display = 'block';
+            document.getElementById('artCoverPlaceholder').style.display = 'none';
+        }
+        
+        if (type === 'article' && window.wangEditorInstance) {
+            window.wangEditorInstance.setHtml(data.content || '');
+        }
+        
+        updateGeoScore();
+        updateGeoDescCount();
+        updateSeoDescCount();
+    } catch(e) {
+        alert(e.message);
+    }
+}
+
+async function loadStudioAuthors() {
+    try {
+        const res = await fetch('/api/authors', { headers: { Authorization: 'Bearer ' + sessionStorage.getItem('token') } });
+        const d = await res.json();
+        const authors = Array.isArray(d) ? d : (d.data || []);
+        const sel = document.getElementById('artAuthorSelect');
+        if (!sel) return;
+        // 保留前两个 option（空 + manual）
+        const html = '<option value="">选择作者...</option><option value="manual">手动输入</option>' +
+            authors.map(a => `<option value="${a._id}">${a.name}</option>`).join('');
+        sel.innerHTML = html;
+    } catch(e) { console.warn('加载作者列表失败', e); }
+}
+
+async function saveStudioData() {
+    try {
+        const type = window.studioType;
+        const id = window.studioId;
+        const title = document.getElementById('studioTitleInput').value.trim();
+        if(!title) throw new Error('标题不能为空');
+        
+        const content = window.wangEditorInstance ? window.wangEditorInstance.getHtml() : '';
+        const cover = document.getElementById('artCover').value;
+        const slug = document.getElementById('artSlug').value;
+        const status = document.getElementById('artStatus').value;
+        const featured = document.getElementById('artFeaturedBtn').classList.contains('on');
+        
+        let payload = {};
+        let url = '';
+        
+        if (type === 'article') {
+            url = id ? `/api/articles/${id}` : '/api/articles';
+            const authorSel = document.getElementById('artAuthorSelect');
+            const authorVal = authorSel ? authorSel.value : '';
+            let authorId = authorVal && authorVal !== 'manual' ? authorVal : '';
+            let manualAuthor;
+            if (authorVal === 'manual') {
+                manualAuthor = {
+                    name: document.getElementById('artAuthor').value.trim(),
+                    desc: document.getElementById('artAuthorDesc').value.trim()
+                };
+            }
+            const articleSlug = normalizeSeoSlug(slug);
+            const categoryValue = document.getElementById('artCategory').value;
+            if (!articleSlug) {
+                document.getElementById('artSlug').focus();
+                throw new Error('Slug 必须由英文小写字母、数字和短横线组成');
+            }
+            if (categoryValue === '__new__') {
+                document.getElementById('newCategoryName').focus();
+                throw new Error('请先完成新增分类，或选择已有分类');
+            }
+            if (authorVal === 'manual' && !manualAuthor.name) {
+                document.getElementById('artAuthor').focus();
+                throw new Error('请填写作者姓名');
+            }
+            payload = {
+                title,
+                content,
+                coverImage: cover,
+                slug: articleSlug,
+                status,
+                isRecommended: featured,
+                isOnline: document.getElementById('artOnlineBtn').classList.contains('on'),
+                zone: document.getElementById('artZone').value || undefined,
+                contentStatus: document.getElementById('artContentStatus').value || 'full',
+                top: document.getElementById('artTopBtn').classList.contains('on'),
+                category: categoryValue,
+                authorId: authorId,
+                author: manualAuthor && manualAuthor.name ? manualAuthor : undefined,
+                tags: document.getElementById('artTags').value.split(',').map(x=>x.trim()).filter(Boolean),
+                summary: document.getElementById('artDesc').value.trim().slice(0, 150),
+                seoDescription: document.getElementById('artSeoDesc').value,
+                publishDate: document.getElementById('artStatus').value === 'scheduled' ? document.getElementById('artPublishDate').value : undefined,
+                qa: qaList
+            };
+        } else {
+            url = id ? `/api/cases/${id}` : '/api/cases';
+            const lineToList = (s) => String(s || '').split('\n').map(x => x.trim()).filter(Boolean);
+            const stats = document.getElementById('caseStats').value.split('\n').map(line => {
+                const idx = line.indexOf(':');
+                return idx > 0 ? { label: line.slice(0, idx).trim(), value: line.slice(idx + 1).trim() } : { label: line.trim(), value: '' };
+            }).filter(x => x.label);
+            payload = {
+                title,
+                background: document.getElementById('caseOverviewInput').value.trim(),
+                cover,
+                slug,
+                status,
+                featured,
+                isOnline: document.getElementById('caseOnlineBtn').classList.contains('on'),
+                client: document.getElementById('caseClient').value,
+                industry: document.getElementById('caseIndustry').value,
+                tags: document.getElementById('caseTags').value.split(/[,，]/).map(x => x.trim()).filter(Boolean),
+                stats,
+                problems: lineToList(document.getElementById('caseProblems').value),
+                goals: lineToList(document.getElementById('caseGoals').value),
+                solutions: lineToList(document.getElementById('caseSolutions').value),
+                resultTags: lineToList(document.getElementById('caseResultTags').value)
+            };
+        }
+        
+        const response = await fetch(url, {
+            method: id ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + sessionStorage.getItem('token') },
+            body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || errorData.error || `保存失败（${response.status}）`);
+        }
+        
+        closeStudio();
+        if (type === 'article') loadArticles();
+        else loadCases();
+        toast('保存成功');
+    } catch(e) {
+        alert(e.message);
+    }
+}
+
 window.updateSeoDescCount = updateSeoDescCount;
 window.uploadCover = uploadCover;
 window.toggleLeftSidebar = toggleLeftSidebar;
@@ -1557,11 +2054,22 @@ function saveArt() {
     });
 }
 
+function normalizeSeoSlug(value) {
+    return String(value || '')
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .replace(/-+/g, '-')
+        .slice(0, 60)
+        .replace(/-+$/g, '');
+}
+
 function autoGenerateSlug(forceAi = false) {
-    const id = document.getElementById('artId').value;
+    const id = studioVal('artId');
     if (id && !forceAi) return; // Don't auto-change slug for existing articles
     
-    const title = document.getElementById('artTitle').value;
+    const title = studioTitle();
     const slugInput = document.getElementById('artSlug');
     
     if (!title) {
@@ -1589,7 +2097,7 @@ function autoGenerateSlug(forceAi = false) {
         .then(res => res.json())
         .then(data => {
             if (data.slug) {
-                slugInput.value = data.slug;
+                slugInput.value = normalizeSeoSlug(data.slug);
                 previewSlug();
                 showToast('智能Slug生成成功');
             } else {
@@ -1598,10 +2106,8 @@ function autoGenerateSlug(forceAi = false) {
         })
         .catch(e => {
             console.error('Slug AI Error:', e);
-            // Fallback to simple generation on error
-            slugInput.value = 'post-' + Date.now(); 
-            previewSlug();
-            showToast('生成请求失败，已使用随机Slug', 'warning');
+            showToast('Slug 生成失败，请填写与主题相关的英文关键词', 'error');
+            slugInput.focus();
         })
         .finally(() => {
             if (btn) {
@@ -1609,12 +2115,8 @@ function autoGenerateSlug(forceAi = false) {
                 btn.innerHTML = originalIcon;
             }
         });
-    } else if (!slugInput.value) {
-        // Simple client-side pinyin or random if not forced AI
-        // Ideally use a pinyin library if available, but for now simple fallback
-        if (/^[a-zA-Z0-9\s]+$/.test(title)) {
-             slugInput.value = title.toLowerCase().replace(/\s+/g, '-').substring(0, 50);
-        }
+    } else if (!slugInput.value && /^[a-zA-Z0-9\s-]+$/.test(title)) {
+        slugInput.value = normalizeSeoSlug(title);
         previewSlug();
     }
 }
@@ -1623,11 +2125,9 @@ function previewSlug() {
     const slug = document.getElementById('artSlug').value.trim();
     const preview = document.getElementById('slugPreview');
     if (slug) {
-        const cleanSlug = slug.replace(/[^a-zA-Z0-9\-]/g, '-').replace(/-+/g, '-').toLowerCase();
-        if (cleanSlug !== slug) {
-            document.getElementById('artSlug').value = cleanSlug;
-        }
-        preview.textContent = `预览: /article/${cleanSlug}.html`;
+        const cleanSlug = normalizeSeoSlug(slug);
+        document.getElementById('artSlug').value = cleanSlug;
+        preview.textContent = cleanSlug ? `预览: /insights/${cleanSlug}` : '仅支持英文小写字母、数字和短横线';
     } else {
         preview.textContent = '';
     }
@@ -1639,7 +2139,7 @@ function autoGenerateTags() {
     if (window.wangEditorInstance) {
         content = window.wangEditorInstance.getText();
     }
-    const title = document.getElementById('artTitle').value;
+    const title = studioTitle();
     
     if (!content && !title) {
         showToast('请先输入文章标题或内容', 'warning');
@@ -1719,7 +2219,7 @@ function autoGenerateSummary(type = 'seo') {
                 showToast('智能 SEO 摘要生成成功');
             } else if (type === 'geo') {
                 const el = document.getElementById('artDesc');
-                if (el) el.value = data.summary;
+                if (el) el.value = data.summary.slice(0, 150);
                 updateGeoDescCount();
                 showToast('智能 GEO 摘要生成成功');
             }
@@ -1843,7 +2343,7 @@ function loadArticleSelectorList(page=1) {
         }
         if(list) {
             list.innerHTML = data.map(art => `
-                <button class="list-group-item list-group-item-action" onclick="selectArticle('${art.title.replace(/'/g, "\\'")}', '/article/${art.slug}.html', '${art.category}')">
+                <button class="list-group-item list-group-item-action" onclick="selectArticle('${art.title.replace(/'/g, "\\'")}', '/insights/${encodeURIComponent(art.slug)}', '${art.category}')">
                     ${art.title} <small class="text-muted">(${art.author?.name || '-'})</small>
                 </button>
             `).join('');

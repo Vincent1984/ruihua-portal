@@ -244,7 +244,7 @@ const vc = {
               </a>
             </div>
           </div>
-          <div class="relative group cursor-pointer" onclick="window.location.href='${href}'">
+          <a href="${href}" class="relative group block cursor-pointer">
             <div class="aspect-video rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 relative">
               <img src="${cover}" alt="${title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" data-fallback="/fallback-image/video">
               <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/10 transition-colors">
@@ -253,7 +253,7 @@ const vc = {
                 </div>
               </div>
             </div>
-          </div>
+          </a>
         </div>
       </div>
     `;
@@ -265,7 +265,7 @@ const vc = {
     const desc = v.description || '';
     const playLink = `/video/${v.slug}/`;
     return `
-      <article class="group bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 flex flex-col h-full cursor-pointer" onclick="window.location.href='${playLink}'">
+      <a href="${playLink}" class="group bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 flex flex-col h-full cursor-pointer block">
         <div class="relative aspect-video overflow-hidden">
           <img src="${cover}" alt="${title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" data-fallback="/fallback-image/video">
           <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -287,7 +287,7 @@ const vc = {
             </span>
           </div>
         </div>
-      </article>
+      </a>
     `;
   },
   pagerHtml(page, pages) {

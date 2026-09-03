@@ -118,7 +118,12 @@ module.exports = function registerActivityRoutes(app, authRequired, requirePerm,
   app.get('/event/register/:token', async (req, res) => {
     const exist = await Activity.findOne({ 'channelConfigs.token': req.params.token, status: 'published' }).select('_id');
     if (!exist) {
-      return res.status(404).sendFile(path.join(__dirname, '..', '404.html'));
+      const { render2026, loadBlock } = require('../utils/render2026');
+      return res.status(404).send(render2026({
+        title: '页面未找到 · 404 | 瑞华智策',
+        description: '您访问的页面不存在或已被移动，返回首页继续浏览。',
+        content: loadBlock('404')
+      }));
     }
     res.sendFile(path.join(__dirname, '..', 'event-registration.html'));
   });

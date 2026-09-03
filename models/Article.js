@@ -2,9 +2,15 @@ const mongoose = require('mongoose');
 const articleSchema = new mongoose.Schema({
   title: String,
   category: String, // 'whitepaper', 'tech', 'ceo', 'industry'
+  zone: { type: String, enum: ['industry', 'thinktank'] },
+  contentStatus: { type: String, enum: ['full', 'toc', 'soon'], default: 'full' },
+  isOnline: { type: Boolean, default: true },
+  top: { type: Boolean, default: false },
   slug: { type: String, unique: true, sparse: true }, // 添加slug字段，用于伪静态链接（sparse 允许多篇无 slug 文章并存）
  summary: String, // 现作为 GEO 摘要 (核心内容快读)
-  seoDescription: String, // 新增：SEO 专属摘要 (Meta Description)
+  seoTitle: String, // SEO 专属标题
+  seoDescription: String, // SEO 专属摘要 (Meta Description)
+  seoKeywords: [String], // SEO 关键词
   content: String,  // 可以是 HTML 内容
   coverImage: String,
   qa: [{ question: String, answer: String, isManualEdited: { type: Boolean, default: false } }], // Q&A 问答对

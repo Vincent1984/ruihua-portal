@@ -1,144 +1,125 @@
 .u-admin-sidebar {
-  background: #001529;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  display: flex;
+  flex: 0 0 232px;
+  flex-direction: column;
+  width: 232px;
+  min-width: 232px;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: #211e28;
   border-right: 0;
-  width: 250px;
-  transition: width .2s ease;
-  color: rgba(255,255,255,.85);
+  color: #d8d6dd;
+  transition: width .22s cubic-bezier(.2,0,0,1), min-width .22s cubic-bezier(.2,0,0,1), flex-basis .22s cubic-bezier(.2,0,0,1);
+  z-index: 50;
 }
 
-.u-admin-sidebar.collapsed {
-  width: 72px;
-}
+.u-admin-sidebar *, .u-admin-sidebar *::before, .u-admin-sidebar *::after { box-sizing: border-box; }
+.u-admin-sidebar.collapsed { flex-basis: 72px; width: 72px; min-width: 72px; }
 
 .u-sidebar-header {
+  flex: 0 0 60px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 56px;
+  gap: 10px;
+  height: 60px;
+  min-height: 60px;
   padding: 0 16px;
-  font-weight: 700;
-  border-bottom: 1px solid rgba(255,255,255,.08);
   color: #fff;
+  border-bottom: 1px solid #4a4359;
+  font: 800 14px/1 "PingFang SC","Microsoft YaHei",sans-serif;
+  white-space: nowrap;
 }
-
-.u-sidebar-header .u-sidebar-collapse-btn {
+.u-sidebar-header > i:first-child { color: #bda5ff; }
+.u-sidebar-collapse-btn {
+  display: grid;
+  place-items: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
   margin-left: auto;
+  padding: 0;
   border: 0;
+  border-radius: 8px;
+  color: #9c95ac;
   background: transparent;
-  color: rgba(255,255,255,.65);
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+  cursor: pointer;
 }
-
-.u-sidebar-header .u-sidebar-collapse-btn:hover {
-  color: #fff;
-  background: rgba(255,255,255,.08);
-}
+.u-sidebar-collapse-btn:hover { color: #fff; background: rgba(189,165,255,.14); }
 
 .u-sidebar-menu {
-  padding: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 8px 10px 18px;
+  overflow-x: hidden;
   overflow-y: auto;
-  max-height: calc(100vh - 56px);
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #4a4359 transparent;
 }
-
-.u-nav-group + .u-nav-group {
-  margin-top: 4px;
-}
+.u-sidebar-menu::-webkit-scrollbar { width: 6px; }
+.u-sidebar-menu::-webkit-scrollbar-thumb { border-radius: 6px; background: #4a4359; }
+.u-nav-group { width: 100%; margin: 0; }
+.u-nav-group + .u-nav-group { margin-top: 4px; }
 
 .u-nav-header {
-  width: 100%;
-  border: 0;
-  background: transparent;
-  color: rgba(255,255,255,.78);
-  height: 46px;
-  padding: 0 12px;
-  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
+  height: 42px;
+  margin: 0;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 9px;
+  color: #d8d6dd;
+  background: transparent;
   cursor: pointer;
+  font: 700 13px/1 "PingFang SC","Microsoft YaHei",sans-serif;
+  text-align: left;
 }
+.u-nav-header:hover,.u-nav-header.expanded { color: #fff; background: rgba(189,165,255,.1); }
+.u-header-main { display: inline-flex; align-items: center; min-width: 0; gap: 10px; }
+.u-nav-icon { flex: 0 0 18px; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; color: #bda5ff; }
+.u-header-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.u-header-arrow { flex: 0 0 12px; width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; color: #9c95ac; transition: transform .2s ease; }
+.u-nav-header.expanded .u-header-arrow { transform: rotate(90deg); }
 
-.u-nav-header:hover,
-.u-nav-header.expanded {
-  color: #fff;
-  background: rgba(255,255,255,.06);
-}
-
-.u-header-main {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.u-header-label {
-  font-size: 14px;
-}
-
-.u-header-arrow {
-  font-size: 12px;
-  transition: transform .2s ease;
-}
-
-.u-nav-header.expanded .u-header-arrow {
-  transform: rotate(90deg);
-}
-
-.u-nav-items {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height .22s ease;
-  background: rgba(0,0,0,.16);
-  border-radius: 6px;
-}
-
-.u-nav-items.expanded {
-  max-height: 540px;
-}
-
+.u-nav-items { max-height: 0; overflow: hidden; border-radius: 9px; transition: max-height .24s cubic-bezier(.2,0,0,1); }
+.u-nav-items.expanded { max-height: 560px; }
 .u-sub-menu-item {
   display: flex;
   align-items: center;
-  height: 40px;
-  padding: 0 14px 0 44px;
-  color: rgba(255,255,255,.62);
+  width: 100%;
+  min-height: 36px;
+  padding: 7px 12px 7px 37px;
+  border-radius: 8px;
+  color: #aaa3b4;
   text-decoration: none;
-  font-size: 13px;
+  font: 600 12.5px/1.4 "PingFang SC","Microsoft YaHei",sans-serif;
+  white-space: normal;
 }
+.u-sub-menu-item:hover { color: #fff; background: rgba(189,165,255,.11); }
+.u-sub-menu-item.active { color: #fff; background: #7c4dff; box-shadow: 0 6px 16px rgba(124,77,255,.3); font-weight: 800; }
+.u-sub-menu-item.danger { color: #f3a7a2; }
 
-.u-sub-menu-item:hover {
-  background: rgba(255,255,255,.06);
-  color: #fff;
-}
-
-.u-sub-menu-item.active {
-  background: #1677ff;
-  color: #fff;
-  font-weight: 600;
-}
-
-.u-sub-menu-item.danger {
-  color: #fda4af;
-}
-
-.u-admin-sidebar.collapsed .u-header-label,
-.u-admin-sidebar.collapsed .u-header-arrow,
-.u-admin-sidebar.collapsed .u-sidebar-header span {
-  display: none;
-}
-
-.u-admin-sidebar.collapsed .u-nav-header {
-  justify-content: center;
-  padding: 0;
-}
-
-.u-admin-sidebar.collapsed .u-nav-items {
-  display: none;
-}
+.u-admin-sidebar.collapsed .u-sidebar-header { justify-content: center; padding: 0; }
+.u-admin-sidebar.collapsed .u-sidebar-header > span,.u-admin-sidebar.collapsed .u-header-label,.u-admin-sidebar.collapsed .u-header-arrow { display: none; }
+.u-admin-sidebar.collapsed .u-sidebar-collapse-btn { margin-left: 0; }
+.u-admin-sidebar.collapsed .u-nav-header { justify-content: center; padding: 0; }
+.u-admin-sidebar.collapsed .u-header-main { gap: 0; }
+.u-admin-sidebar.collapsed .u-nav-items { display: none; }
 
 @media (max-width: 992px) {
-  .u-admin-sidebar {
-    width: 72px;
-  }
+  .u-admin-sidebar { flex-basis: 72px; width: 72px; min-width: 72px; }
+  .u-admin-sidebar .u-sidebar-header { justify-content: center; padding: 0; }
+  .u-admin-sidebar .u-sidebar-header > span,.u-admin-sidebar .u-header-label,.u-admin-sidebar .u-header-arrow { display: none; }
+  .u-admin-sidebar .u-sidebar-collapse-btn { display: none; }
+  .u-admin-sidebar .u-nav-header { justify-content: center; padding: 0; }
+  .u-admin-sidebar .u-header-main { gap: 0; }
+  .u-admin-sidebar .u-nav-items { display: none; }
 }

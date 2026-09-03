@@ -29,7 +29,7 @@ function getCategoryHue(category) {
 
 function renderInsightCard(article, categoryMap = {}) {
     const id = article?._id ? String(article._id) : '';
-    const link = article?.slug ? `/article/${article.slug}.html` : `/article.html?id=${id}`;
+    const link = article?.slug ? `/insights/${encodeURIComponent(article.slug)}` : `/article.html?id=${id}`;
     const title = article?.title || '无标题';
     const summary = article?.summary || '暂无摘要';
     const cover = article?.coverImage || '/images/default-article.jpg';

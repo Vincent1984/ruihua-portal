@@ -1,68 +1,41 @@
 (function (global) {
+  const ICONS = {
+    operations: '<svg class="u-nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5.5A2.5 2.5 0 0 1 5.5 3h9A2.5 2.5 0 0 1 17 5.5v9a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 3 14.5z"/><path d="M6.5 7.5h7M6.5 10.5h7M6.5 13.5h4"/></svg>',
+    nqoc: '<svg class="u-nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="m10 2.8 2.2 4.5 5 .7-3.6 3.5.85 4.95L10 14.1l-4.45 2.35.85-4.95L2.8 8l5-.7z"/></svg>',
+    settings: '<svg class="u-nav-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.6"/><path d="M10 2.6v1.7M10 15.7v1.7M17.4 10h-1.7M4.3 10H2.6M15.2 4.8 14 6M6 14l-1.2 1.2M15.2 15.2 14 14M6 6 4.8 4.8"/></svg>'
+  };
+
   const NAV_GROUPS = [
     {
-      title: '总览',
-      icon: 'bi-speedometer2',
+      title: '官网运营',
+      icon: ICONS.operations,
       items: [
-        { label: '数据看板', icon: 'bi-speedometer2', href: '/admin/dashboard.html', perm: 'dashboard:view' }
-      ]
-    },
-    {
-      title: '内容管理',
-      icon: 'bi-house',
-      items: [
-        { label: 'Banner 管理', icon: 'bi-image', href: '/admin/dashboard.html', section: 'banner', perm: 'banner:manage' },
-        { label: 'FAQ 管理', icon: 'bi-question-circle', href: '/admin/dashboard.html', section: 'faq', perm: 'faq:list' },
-        { label: '文章管理', icon: 'bi-file-text', href: '/admin/dashboard.html', section: 'article', perm: 'article:list' },
-        { label: '专家管理', icon: 'bi-people', href: '/admin/dashboard.html', section: 'authors', perm: 'article:list' },
-        { label: '侧边栏配置', icon: 'bi-layout-sidebar', href: '/admin/dashboard.html', section: 'sidebar', perm: 'sidebar:manage' },
-        { label: '视频管理', icon: 'bi-camera-reels', href: '/admin/video-management.html', perm: 'video:list' }
-      ]
-    },
-    {
-      title: '线索与活动',
-      icon: 'bi-database',
-      items: [
-        { label: '预约表单', icon: 'bi-list-check', href: '/admin/dashboard.html', section: 'appointments', perm: 'appointment:list' },
-        { label: '课程咨询', icon: 'bi-mortarboard', href: '/admin/training-applications.html', perm: 'appointment:list' },
-        { label: '调研问卷', icon: 'bi-clipboard-data', href: '/admin/survey.html', i18nKey: 'nav.survey', perm: 'appointment:list' },
-        { label: '资源下载记录', icon: 'bi-file-earmark-arrow-down', href: '/admin/whitepaper-submissions.html', perm: 'appointment:list' },
-        { label: '诊断评测数据', icon: 'bi-bar-chart-steps', href: '/admin/maturity.html', perm: 'appointment:list' },
-        { label: '经营分析报告', icon: 'bi-graph-up-arrow', href: '/admin/efficiency.html', perm: 'appointment:list' }
+        { label: '线索管理', href: '/admin/console.html#leads', perm: ['lead:list', 'appointment:list'] },
+        { label: '文章管理', href: '/admin/console.html#articles', perm: 'article:list' },
+        { label: '案例管理', href: '/admin/console.html#cases', perm: 'case:list' },
+        { label: '首页精选案例', href: '/admin/console.html#featured', perm: 'featured-case:list' },
+        { label: 'FAQ 管理', href: '/admin/console.html#faq', perm: 'faq:list' },
+        { label: '讲师 / 专家团队', href: '/admin/console.html#experts', perm: 'expert:list' }
       ]
     },
     {
       title: '新质组织',
-      icon: 'bi-stars',
+      key: 'nqoc',
+      icon: ICONS.nqoc,
       items: [
-        { label: '申报数据', icon: 'bi-trophy', href: '/admin/nqoc-awards.html', perm: ['nqoc:list', 'nqoc:manage'] },
-        { label: '调研问卷', icon: 'bi-clipboard-data', href: '/admin/nqoc-survey.html', perm: ['nqoc:list', 'nqoc:manage'] },
-        { label: '在线投票', icon: 'bi-bar-chart-steps', href: '/admin/nqoc-debate.html', perm: ['nqoc:list', 'nqoc:manage'] },
-        { label: '专家申请', icon: 'bi-person-check', href: '/admin/nqoc-experts.html', perm: ['nqoc:list', 'nqoc:manage'] },
-        { label: '白皮书', icon: 'bi-file-earmark-text', href: '/admin/nqoc-whitepaper.html', perm: ['nqoc:list', 'nqoc:manage'] }
+        { label: '申报数据', href: '/admin/nqoc-awards.html', perm: ['nqoc:list', 'nqoc:manage'] },
+        { label: '调研问卷', href: '/admin/nqoc-survey.html', perm: ['nqoc:list', 'nqoc:manage'] },
+        { label: '在线投票', href: '/admin/nqoc-debate.html', perm: ['nqoc:list', 'nqoc:manage'] },
+        { label: '专家申请', href: '/admin/nqoc-experts.html', perm: ['nqoc:list', 'nqoc:manage'] },
+        { label: '白皮书', href: '/admin/nqoc-whitepaper.html', perm: ['nqoc:list', 'nqoc:manage'] }
       ]
     },
     {
-      title: '活动管理',
-      icon: 'bi-calendar2-event',
+      title: '系统全局配置',
+      icon: ICONS.settings,
       items: [
-        { label: '报名模板管理', icon: 'bi-ui-checks-grid', href: '/admin/template-management.html', perm: 'appointment:list' },
-        { label: '活动报名管理', icon: 'bi-calendar2-event', href: '/admin/activity-management.html', perm: 'appointment:list' }
-      ]
-    },
-    {
-      title: 'SEO优化',
-      icon: 'bi-search',
-      items: [
-        { label: 'TDK管理', icon: 'bi-search', href: '/admin/dashboard.html', section: 'seo', perm: 'system:manage' }
-      ]
-    },
-    {
-      title: '系统设置',
-      icon: 'bi-gear',
-      items: [
-        { label: '权限管理', icon: 'bi-shield-lock', href: '/admin/dashboard.html', section: 'permissions', perm: 'all' },
-        { label: '退出登录', icon: 'bi-box-arrow-right', href: '/admin/index.html?logout=1', danger: true }
+        { label: '全局配置', href: '/admin/console.html#settings', perm: 'system:manage' },
+        { label: '退出登录', href: '/admin/index.html?logout=1', danger: true }
       ]
     }
   ];
@@ -117,24 +90,33 @@
     return items.some(activeMatch);
   }
 
-  function groupKey(title) {
-    return title.toLowerCase().replace(/\s+/g, '_');
+  function groupKey(group) {
+    return group.key || group.title.toLowerCase().replace(/\s+/g, '_');
+  }
+
+  function persistedGroups() {
+    try {
+      return JSON.parse(localStorage.getItem('adminSidebarGroups') || '{}') || {};
+    } catch (e) {
+      return {};
+    }
   }
 
   function buildSidebarHtml() {
     const permSet = getCurrentUserPermissions();
+    const persisted = persistedGroups();
     const groupsHtml = NAV_GROUPS.map(group => {
-      const key = groupKey(group.title);
+      const key = groupKey(group);
       const visibleItems = group.items.filter(item => canSeeItem(item, permSet));
       if (visibleItems.length === 0) return '';
-      const expanded = hasActiveItem(visibleItems);
+      const expanded = persisted[key] !== undefined ? !!persisted[key] : key === 'nqoc' ? false : hasActiveItem(visibleItems);
       const items = visibleItems.map(itemHtml).join('');
       return `<div class="u-nav-group" data-group-key="${key}">
-        <button type="button" class="u-nav-header${expanded ? ' expanded' : ''}">
-          <span class="u-header-main"><i class="bi ${group.icon || 'bi-folder'}"></i><span class="u-header-label">${group.title}</span></span>
-          <i class="bi bi-chevron-right u-header-arrow"></i>
+        <button type="button" class="u-nav-header${expanded ? ' expanded' : ''}" aria-expanded="${expanded}" aria-controls="u-nav-items-${key}">
+          <span class="u-header-main">${group.icon}<span class="u-header-label">${group.title}</span></span>
+          <svg class="u-header-arrow" viewBox="0 0 12 12" aria-hidden="true"><path d="m4 2 4 4-4 4"/></svg>
         </button>
-        <div class="u-nav-items${expanded ? ' expanded' : ''}">${items}</div>
+        <div class="u-nav-items${expanded ? ' expanded' : ''}" id="u-nav-items-${key}">${items}</div>
       </div>`;
     }).join('');
     return `<div class="u-sidebar-header"><i class="bi bi-grid-1x2-fill"></i><span>CMS 系统</span><button type="button" class="u-sidebar-collapse-btn" id="uSidebarCollapseBtn"><i class="bi bi-layout-sidebar-inset"></i></button></div><div class="u-sidebar-menu">${groupsHtml}</div>`;
@@ -179,7 +161,7 @@
       const header = group.querySelector('.u-nav-header');
       const list = group.querySelector('.u-nav-items');
       const hasActive = !!group.querySelector('.u-sub-menu-item.active');
-      const shouldExpand = persisted[gk] !== undefined ? !!persisted[gk] : hasActive;
+      const shouldExpand = persisted[gk] !== undefined ? !!persisted[gk] : gk === 'nqoc' ? false : hasActive;
       if (shouldExpand) {
         header.classList.add('expanded');
         list.classList.add('expanded');
@@ -187,10 +169,12 @@
         header.classList.remove('expanded');
         list.classList.remove('expanded');
       }
+      header.setAttribute('aria-expanded', String(shouldExpand));
       header.addEventListener('click', () => {
         const next = !list.classList.contains('expanded');
         list.classList.toggle('expanded', next);
         header.classList.toggle('expanded', next);
+        header.setAttribute('aria-expanded', String(next));
         persisted[gk] = next;
         localStorage.setItem(key, JSON.stringify(persisted));
       });
@@ -235,7 +219,7 @@
   init();
 
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { NAV_GROUPS };
+    module.exports = { NAV_GROUPS, buildSidebarHtml };
   } else {
     global.__UNIFIED_ADMIN_NAV__ = { NAV_GROUPS };
   }

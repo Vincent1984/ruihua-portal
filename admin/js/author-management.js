@@ -166,11 +166,11 @@ async function uploadAuthorImage() {
             preview.querySelector('img').src = data.url;
             preview.classList.remove('d-none');
         } else {
-            alert('上传失败: ' + (data.error || '未知错误'));
+            alert('上传失败: ' + (data.error || data.message || `服务器返回 HTTP ${res.status}`));
         }
     } catch (e) {
         console.error(e);
-        alert('上传失败: 网络错误');
+        alert('上传失败: 无法连接服务器，请确认后台地址为当前服务并刷新页面');
     }
 }
 

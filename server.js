@@ -22,6 +22,7 @@ const helmet = require('helmet');
 
 // Import Models
 const Appointment = require('./models/Appointment');
+const { generateDailyExternalId } = require('./utils/dailyExternalId');
 const Article = require('./models/Article');
 const ArticleHistory = require('./models/ArticleHistory');
 const OperationLog = require('./models/OperationLog');
@@ -118,6 +119,20 @@ function sendInternalError(res, logLabel, err) {
     return res.status(500).json({ error: '服务器内部错误，请稍后重试' });
 }
 
+function send404(res) {
+    try {
+        const { render2026, loadBlock } = require('./utils/render2026');
+        return res.status(404).send(render2026({
+            title: '页面未找到 · 404 | 瑞华智策',
+            description: '您访问的页面不存在或已被移动，返回首页继续浏览。',
+            content: loadBlock('404')
+        }));
+    } catch (e) {
+        console.error('404 render failed:', e);
+        return res.status(404).sendFile(path.join(__dirname, '404.html'));
+    }
+}
+
 function escapeHtml(str) {
     if (!str) return '';
     return String(str)
@@ -166,8 +181,17 @@ function sanitizeArticlePayload(body = {}) {
         payload.content = articleHtmlSanitizer.process(payload.content);
     }
     if (typeof payload.summary === 'string') payload.summary = xss(payload.summary);
+    if (typeof payload.seoTitle === 'string') payload.seoTitle = xss(payload.seoTitle);
     if (typeof payload.seoDescription === 'string') payload.seoDescription = xss(payload.seoDescription);
+    if (Array.isArray(payload.seoKeywords)) {
+        payload.seoKeywords = payload.seoKeywords.map(item => xss(String(item)).trim()).filter(Boolean);
+    }
     if (typeof payload.title === 'string') payload.title = xss(payload.title);
+    
+    // Add isOnline and isRecommended fields
+    if (body.isOnline !== undefined) payload.isOnline = !!body.isOnline;
+    if (body.isRecommended !== undefined) payload.isRecommended = !!body.isRecommended;
+    
     return payload;
 }
 
@@ -210,7 +234,7 @@ const injectFooterHTML = (document) => {
                     <span class="hidden md:inline text-slate-700">|</span>
                     <a href="https://beian.miit.gov.cn/" target="_blank" class="hover:text-white transition">沪ICP备12042344号-24</a>
                 </div>
-                <div class="flex gap-6 text-sm text-slate-500"><a href="/privacy/" class="hover:text-white transition">隐私政策</a></div>
+                <div class="flex gap-6 text-sm text-slate-500"><a href="/privacy" class="hover:text-white transition">隐私政策</a></div>
             </div>
         </div>
     </footer>
@@ -413,6 +437,18 @@ app.use((req, res, next) => {
     next();
 });
 
+// Public campaign HTML must be wrapped before express.static serves the raw files.
+const mainSiteCampaignPages = [
+    'fangan/nurture.html',
+    'fangan/rui-hua-solution.html',
+    'fangan/rui-hua-intro.html',
+    'fangan/geo-monitor.html',
+    'fangan/wechat-traffic-analysis.html'
+];
+mainSiteCampaignPages.forEach(file => {
+    app.get('/' + file, (req, res) => renderStaticHtmlWith2026Shell(req, res, 'public/' + file));
+});
+
 app.use(express.static(path.join(__dirname, 'public'), { 
     index: false,
     redirect: false,
@@ -429,7 +465,34 @@ app.use(express.static(path.join(__dirname, 'public'), {
         }
     }
 }));
+const ADMIN_CONSOLE_ROUTES = [
+    '/admin/leads',
+    '/admin/articles',
+    '/admin/cases',
+    '/admin/featured',
+    '/admin/faq',
+    '/admin/experts'
+];
+const ADMIN_CONSOLE_PERMS = [
+    'dashboard:view',
+    'appointment:list',
+    'article:list',
+    'faq:list',
+    'case:list',
+    'page:list',
+    'system:manage'
+];
+const ADMIN_CONSOLE_ROUTE_PERMS = {
+    '/admin/leads': ['lead:list', 'appointment:list'],
+    '/admin/articles': 'article:list',
+    '/admin/cases': 'case:list',
+    '/admin/featured': 'featured-case:list',
+    '/admin/faq': 'faq:list',
+    '/admin/experts': 'expert:list'
+};
 const ADMIN_STATIC_PAGE_PERMS = {
+    '/admin/console.html': ADMIN_CONSOLE_PERMS,
+    ...ADMIN_CONSOLE_ROUTE_PERMS,
     '/admin/dashboard.html': [
         'dashboard:view',
         'article:list',
@@ -492,9 +555,10 @@ app.get(['/admin', '/admin/', '/admin/index.html'], (req, res) => {
 async function requireAdminStaticHtmlPage(req, res, next) {
     try {
         if (req.method !== 'GET' && req.method !== 'HEAD') return next();
-        if (req.path === '/' || req.path === '/index.html' || !req.path.endsWith('.html')) return next();
+        if (req.path === '/' || req.path === '/index.html') return next();
 
         const fullPath = `/admin${req.path}`;
+        if (!req.path.endsWith('.html') && !ADMIN_CONSOLE_ROUTES.includes(fullPath)) return next();
         if (!Object.prototype.hasOwnProperty.call(ADMIN_STATIC_PAGE_PERMS, fullPath)) {
             return res.status(404).sendFile(path.join(__dirname, '404.html'));
         }
@@ -530,6 +594,10 @@ async function requireAdminStaticHtmlPage(req, res, next) {
 }
 
 app.use('/admin', requireAdminStaticHtmlPage);
+app.get(ADMIN_CONSOLE_ROUTES, (req, res) => {
+    setAdminHtmlNoCache(res);
+    res.sendFile(path.join(__dirname, 'admin/console.html'));
+});
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
 // Google site verification file
@@ -544,18 +612,12 @@ app.get('/googled5b214b19ca84994.html', (req, res) => {
 const rootHtmlFiles = [
     'efficiency-diagnostic.html',
     'video-detail.html',
-    'videos.html',
     'privacy.html',
-    'solutions.html',
-    'solutions-hcvm.html',
-    'solutions-ohcvm.html',
-    'about.html',
-    'ai-strategic.html',
     'ai-strategic-special.html'
 ];
 
 rootHtmlFiles.forEach(file => {
-    app.get('/' + file, (req, res) => renderStaticHtmlWithFooter(res, file));
+    app.get('/' + file, (req, res) => renderStaticHtmlWith2026Shell(req, res, file));
 });
 
 // 5. survey redirects
@@ -637,7 +699,7 @@ async function renderArticlePage(req, res, article) {
                 document.head.appendChild(canonical);
             }
             const SITE_URL = process.env.SITE_URL || 'https://www.ruihuaconsulting.com';
-            const articleUrl = `${SITE_URL}/article/${article.slug || article._id}.html`;
+            const articleUrl = `${SITE_URL}/insights/${encodeURIComponent(article.slug || article._id)}`;
             canonical.href = articleUrl;
 
             const cleanSummary = article.summary ? article.summary.replace(/\r?\n/g, ' ') : '';
@@ -932,7 +994,7 @@ async function renderArticlePage(req, res, article) {
                                     if (idx % 3 === 1) colorClass = 'text-purple-600';
                                     if (idx % 3 === 2) colorClass = 'text-emerald-600';
                                     listHtml += `
-                                        <a href="/article/${art.slug}.html" class="block group flex items-start gap-3">
+                                        <a href="/insights/${encodeURIComponent(art.slug)}" class="block group flex items-start gap-3">
                                             <span class="text-sm font-bold ${colorClass} mt-0.5">${idx + 1}.</span>
                                             <div>
                                                 <h5 class="text-sm font-bold text-slate-700 group-hover:text-brand-600 transition leading-snug">${art.title}</h5>
@@ -979,7 +1041,7 @@ async function renderArticlePage(req, res, article) {
             
             // SSR Render Footer
             try {
-                injectFooterHTML(document);
+                inject2026PublicShell(document, req.path);
             } catch (compErr) {
                 console.warn('SSR components rendering skipped:', compErr.message);
             }
@@ -1023,33 +1085,19 @@ app.get('/article.html', async (req, res) => {
     }
 });
 
-// Solutions HCVM Redirects & Serving
-app.get('/solutions-ahcvm/', (req, res) => res.redirect(301, '/solutions-hcvm/'));
-app.get('/solutions-ahcvm.html', (req, res) => res.redirect(301, '/solutions-hcvm/'));
-
-// 7. solutions related routes
-app.get('/solutions/', (req, res) => renderStaticHtmlWithFooter(res, 'solutions.html'));
-app.get('/solutions.html', (req, res) => res.redirect(301, '/solutions/'));
-
-app.get('/solutions-hcvm/', (req, res) => renderStaticHtmlWithFooter(res, 'solutions-hcvm.html'));
-app.get('/solutions-hcvm.html', (req, res) => res.redirect(301, '/solutions-hcvm/'));
-
-// Solutions OHCVM Redirects & Serving
-app.get('/solutions-ohcvm/', (req, res) => renderStaticHtmlWithFooter(res, 'solutions-ohcvm.html'));
-app.get('/solutions-ohcvm.html', (req, res) => res.redirect(301, '/solutions-ohcvm/'));
+// 2026 已替换的 solutions / HCVM / about 旧 URL 由 middleware/legacyRedirects.js 统一处理
 
 // 8. Root-level standalone pages (not in public/)
-app.get('/diagnostic-result.html', (req, res) => renderStaticHtmlWithFooter(res, 'diagnostic-result.html'));
-app.get('/event-registration.html', (req, res) => renderStaticHtmlWithFooter(res, 'event-registration.html'));
-app.get('/sales-toolkit.html', (req, res) => renderStaticHtmlWithFooter(res, 'sales-toolkit.html'));
-app.get('/nurture.html', (req, res) => renderStaticHtmlWithFooter(res, 'nurture.html'));
+app.get('/diagnostic-result.html', (req, res) => renderStaticHtmlWith2026Shell(req, res, 'diagnostic-result.html'));
+app.get('/event-registration.html', (req, res) => renderStaticHtmlWith2026Shell(req, res, 'event-registration.html'));
+app.get('/sales-toolkit.html', (req, res) => renderStaticHtmlWith2026Shell(req, res, 'sales-toolkit.html'));
 
 // Efficiency Diagnostic clean URL
-app.get('/efficiency-diagnostic/', (req, res) => renderStaticHtmlWithFooter(res, 'efficiency-diagnostic.html'));
+app.get('/efficiency-diagnostic/', (req, res) => renderStaticHtmlWith2026Shell(req, res, 'efficiency-diagnostic.html'));
 app.get('/efficiency-diagnostic', (req, res) => res.redirect(301, '/efficiency-diagnostic/'));
 
 // 9. Digital business card
-app.get('/card/wangkun.html', (req, res) => res.sendFile(path.join(__dirname, 'card', 'wangkun.html')));
+app.get('/card/wangkun.html', (req, res) => renderStaticHtmlWith2026Shell(req, res, 'card/wangkun.html'));
 
 // 10. robots.txt (in project root, outside public/)
 app.get('/robots.txt', (req, res) => res.sendFile(path.join(__dirname, 'robots.txt')));
@@ -1071,12 +1119,10 @@ app.get('/baidu_verify_codeva-p4La8BZmYb.html', (req, res) => {
 // Let's search for where the routes end.
 
 // URL Rewrites and Redirects for SEO (Directory Style)
-// 1. about.html -> /about/
-app.get('/about/', (req, res) => renderStaticHtmlWithFooter(res, 'about.html'));
-app.get('/about.html', (req, res) => res.redirect(301, '/about/'));
+// 1. about —— 2026 新站已接管；旧 URL 由 middleware/legacyRedirects.js 处理
 
 // 2. training.html -> /training
-app.get('/training', (req, res) => renderStaticHtmlWithFooter(res, 'training.html'));
+app.get('/training', (req, res) => renderStaticHtmlWith2026Shell(req, res, 'training.html'));
 app.get('/training.html', (req, res) => res.redirect(301, '/training'));
 app.get('/training/', (req, res) => res.redirect(301, '/training'));
 app.get('/raining.html', (req, res) => res.redirect(301, '/training'));
@@ -1123,7 +1169,7 @@ async function renderResourcesPage(req, res) {
 
                 articles.forEach(art => {
                     const date = new Date(art.publishDate).toLocaleDateString('zh-CN', {year:'numeric', month:'2-digit', day:'2-digit'}).replace(/\//g, '-');
-                    const artUrl = art.slug ? `/article/${art.slug}.html` : `article.html?id=${art._id}`;
+                    const artUrl = art.slug ? `/insights/${encodeURIComponent(art.slug)}` : `article.html?id=${art._id}`;
                     const artCategoryName = categoryMap[art.category] || art.category || '推荐';
                     const coverImage = art.coverImage || '/images/default-article.jpg';
 
@@ -1199,7 +1245,7 @@ async function renderResourcesPage(req, res) {
                 "itemListElement": articles.slice(0, 20).map((art, i) => ({
                     "@type": "ListItem",
                     "position": i + 1,
-                    "url": `${SITE_URL}/article/${art.slug || art._id}.html`,
+                    "url": `${SITE_URL}/insights/${encodeURIComponent(art.slug || art._id)}`,
                     "name": art.title,
                     "description": (art.summary || '').substring(0, 200),
                     "datePublished": art.publishDate
@@ -1210,7 +1256,7 @@ async function renderResourcesPage(req, res) {
 
         // Inject Footer
         try {
-            injectFooterHTML(document);
+            inject2026PublicShell(document, req.path);
         } catch (compErr) {
             console.warn('SSR components rendering skipped:', compErr.message);
         }
@@ -1229,16 +1275,6 @@ app.get('/resources.html', (req, res) => res.redirect(301, '/resources/'));
 function injectBreadcrumbSchema(document, filename) {
     const SITE_URL = process.env.SITE_URL || 'https://www.ruihuaconsulting.com';
     const breadcrumbMap = {
-        'solutions-hcvm.html': [
-            { name: '首页', url: SITE_URL },
-            { name: '解决方案', url: `${SITE_URL}/solutions/` },
-            { name: 'AHCVM 自有员工管理' }
-        ],
-        'solutions-ohcvm.html': [
-            { name: '首页', url: SITE_URL },
-            { name: '解决方案', url: `${SITE_URL}/solutions/` },
-            { name: 'OHCVM 外包员工管理' }
-        ],
         'solutions.html': [
             { name: '首页', url: SITE_URL },
             { name: '解决方案' }
@@ -1246,10 +1282,6 @@ function injectBreadcrumbSchema(document, filename) {
         'resources.html': [
             { name: '首页', url: SITE_URL },
             { name: '文章资源' }
-        ],
-        'videos.html': [
-            { name: '首页', url: SITE_URL },
-            { name: '视频中心' }
         ],
         'training.html': [
             { name: '首页', url: SITE_URL },
@@ -1310,6 +1342,37 @@ async function injectSeoTags(document, pagePath) {
     }
 }
 
+// Inject the 2026 public shell into legacy non-NQOC pages while preserving page-specific content.
+function inject2026PublicShell(document, activePath = '') {
+    const { getPublicShell } = require('./utils/render2026');
+    document.querySelectorAll('nav, footer, .mnav, .mega-sheet, .mega-dim, .glass-nav, .site-header, .main-header').forEach(node => node.remove());
+    const shell = getPublicShell(activePath);
+    document.body.insertAdjacentHTML('afterbegin', `${shell.nav}\n${shell.mobileNav}`);
+    const firstScript = document.body.querySelector('script');
+    if (firstScript) firstScript.insertAdjacentHTML('beforebegin', `${shell.footer}\n${shell.drawer}`);
+    else document.body.insertAdjacentHTML('beforeend', `${shell.footer}\n${shell.drawer}`);
+    if (!document.head.querySelector('link[href*="/css/rh2026.css"]')) {
+        document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="/css/rh2026.css?v=20260903"><link rel="stylesheet" href="/css/rh2026-ext.css?v=20260903">');
+    }
+    if (!document.body.querySelector('script[src*="/js/rh2026-engine.js"]')) {
+        document.body.insertAdjacentHTML('beforeend', '<script src="/js/rh2026-engine.js"></script><script src="/js/rh2026-ext.js"></script>');
+    }
+}
+
+const renderStaticHtmlWith2026Shell = async (req, res, filename) => {
+    try {
+        const fs = require('fs');
+        const { JSDOM } = require('jsdom');
+        const html = await fs.promises.readFile(path.join(__dirname, filename), 'utf8');
+        const dom = new JSDOM(html);
+        inject2026PublicShell(dom.window.document, req.path);
+        res.send(dom.serialize());
+    } catch (e) {
+        console.error(`Error rendering ${filename} with 2026 shell:`, e);
+        res.sendFile(path.join(__dirname, filename));
+    }
+};
+
 // Helper function to render static HTML files with injected Footer
 const renderStaticHtmlWithFooter = async (res, filename) => {
     try {
@@ -1325,7 +1388,7 @@ const renderStaticHtmlWithFooter = async (res, filename) => {
 
         await injectSeoTags(document, `/${filename}`);
         injectBreadcrumbSchema(document, filename);
-        injectFooterHTML(document);
+        inject2026PublicShell(document, req.path);
         
         res.send(dom.serialize());
     } catch (e) {
@@ -1344,11 +1407,11 @@ async function injectHomeDynamicContent(document, options = {}) {
 
     try {
         const [articles, faqRows, categories, total] = await Promise.all([
-            Article.find({ status: 'published', isRecommended: true })
+            Article.find({ status: 'published', isOnline: { $ne: false }, isRecommended: true })
                 .sort({ publishDate: -1 })
                 .limit(insightsLimit)
                 .lean(),
-            Faq.find({ status: { $in: ['published', undefined] } })
+            Faq.find({ status: { $in: ['published', undefined] }, isOnline: { $ne: false } })
                 .sort({ order: 1 })
                 .limit(faqLimit)
                 .lean(),
@@ -1387,21 +1450,25 @@ async function injectHomeDynamicContent(document, options = {}) {
 }
 
 // 4. productivity.html -> /productivity/
-app.get('/productivity/', (req, res) => renderStaticHtmlWithFooter(res, 'productivity.html'));
+app.get('/productivity/', (req, res) => renderStaticHtmlWith2026Shell(req, res, 'productivity.html'));
 app.get('/productivity', (req, res) => res.redirect(301, '/productivity/'));
 app.get('/productivity.html', (req, res) => res.redirect(301, '/productivity/'));
 
 // 5. diagnostic.html -> /diagnostic/
-app.get('/diagnostic/', (req, res) => renderStaticHtmlWithFooter(res, 'diagnostic.html'));
+app.get('/diagnostic/', (req, res) => renderStaticHtmlWith2026Shell(req, res, 'diagnostic.html'));
 app.get('/diagnostic', (req, res) => res.redirect(301, '/diagnostic/'));
 app.get('/diagnostic.html', (req, res) => res.redirect(301, '/diagnostic/'));
 
 // 6. videos.html -> /videos/
-app.get('/videos/', (req, res) => renderStaticHtmlWithFooter(res, 'videos.html'));
+app.get('/videos', (req, res) => res.redirect(301, '/videos/'));
+app.get('/videos/', (req, res) => renderStaticHtmlWith2026Shell(req, res, 'videos.html'));
 app.get('/videos.html', (req, res) => res.redirect(301, '/videos/'));
+app.get('/privacy', (req, res) => renderStaticHtmlWith2026Shell(req, res, 'privacy.html'));
+app.get('/privacy.html', (req, res) => res.redirect(301, '/privacy'));
+app.get('/privacy/', (req, res) => res.redirect(301, '/privacy'));
 
 // 7. ai-strategic-special.html -> /ai-strategic-special/
-app.get('/ai-strategic-special/', (req, res) => res.sendFile(path.join(__dirname, 'ai-strategic-special.html')));
+app.get('/ai-strategic-special/', (req, res) => renderStaticHtmlWith2026Shell(req, res, 'ai-strategic-special.html'));
 app.get('/ai-strategic-special', (req, res) => res.redirect(301, '/ai-strategic-special/'));
 app.get('/ai-strategic-special.html', (req, res) => res.redirect(301, '/ai-strategic-special/'));
 
@@ -1409,17 +1476,29 @@ app.get('/ai-strategic-special.html', (req, res) => res.redirect(301, '/ai-strat
 // Handle /index.html redirection to root
 app.get('/index.html', (req, res) => {
     if (process.env.NODE_ENV === 'development') {
-        renderStaticHtmlWithFooter(res, 'index.html');
+        renderStaticHtmlWith2026Shell(req, res, 'index.html');
     } else {
         res.redirect(301, '/');
     }
 });
 
-// Serve index.html for root path with Cache-Control
-app.get('/', (req, res) => {
-    // Cache for 1 hour (3600s), but validate with ETag
-    res.set('Cache-Control', 'public, max-age=3600');
-    renderStaticHtmlWithFooter(res, 'index.html');
+// Serve 2026 home for root path
+app.get('/', async (req, res) => {
+    try {
+        const { render2026 } = require('./utils/render2026');
+        const { buildHome } = require('./routes/frontendRoutes2026');
+        res.set('Cache-Control', 'public, max-age=600');
+        res.send(render2026({
+            title: '瑞华智策 · AI 时代组织进化全生命周期服务商',
+            description: '瑞华智策：AI 赋能培训、AI 转型咨询、AI 落地陪跑三位一体，陪企业走完 AI 转型全程。',
+            canonical: 'https://www.ruihuaconsulting.com/',
+            content: await buildHome()
+        }));
+    } catch (e) {
+        console.error('SSR / (2026 home) failed:', e);
+        res.set('Cache-Control', 'public, max-age=3600');
+        renderStaticHtmlWith2026Shell(req, res, 'index.html');
+    }
 });
 
 // --- SEO: Sitemap.xml ---
@@ -1429,17 +1508,24 @@ app.get('/sitemap.xml', async (req, res) => {
         
         // Static Pages (file = 用于读取真实修改时间作为 lastmod，避免每天伪造"全站更新"信号)
         const staticPages = [
-            { url: '', file: 'index.html', priority: 1.0, changefreq: 'weekly' },
-            { url: 'solutions/', file: 'solutions.html', priority: 0.9, changefreq: 'weekly' },
-            { url: 'solutions-hcvm/', file: 'solutions-hcvm.html', priority: 0.8, changefreq: 'monthly' },
-            { url: 'solutions-ohcvm/', file: 'solutions-ohcvm.html', priority: 0.8, changefreq: 'monthly' },
+            { url: '', file: 'views/2026/page-blocks/home.html', priority: 1.0, changefreq: 'weekly' },
+            { url: 'solutions', file: 'views/2026/page-blocks/solutions.html', priority: 0.9, changefreq: 'weekly' },
+            { url: 'solutions/training', file: 'views/2026/page-blocks/p-training.html', priority: 0.8, changefreq: 'monthly' },
+            { url: 'solutions/consulting', file: 'views/2026/page-blocks/p-consulting.html', priority: 0.8, changefreq: 'monthly' },
+            { url: 'solutions/fde', file: 'views/2026/page-blocks/p-fde.html', priority: 0.8, changefreq: 'monthly' },
+            { url: 'hcvm', file: 'views/2026/page-blocks/hcvm.html', priority: 0.8, changefreq: 'monthly' },
+            { url: 'cases', file: 'views/2026/page-blocks/cases.html', priority: 0.9, changefreq: 'weekly' },
+            { url: 'insights', file: 'views/2026/page-blocks/i-industry.html', priority: 0.9, changefreq: 'weekly' },
+            { url: 'insights/industry', file: 'views/2026/page-blocks/i-industry.html', priority: 0.7, changefreq: 'weekly' },
+            { url: 'insights/thinktank', file: 'views/2026/page-blocks/i-thinktank.html', priority: 0.8, changefreq: 'monthly' },
+            { url: 'about', file: 'views/2026/page-blocks/about.html', priority: 0.7, changefreq: 'monthly' },
+            { url: 'about/team', file: 'views/2026/page-blocks/about-team.html', priority: 0.7, changefreq: 'monthly' },
+            { url: 'contact', file: 'views/2026/page-blocks/contact.html', priority: 0.7, changefreq: 'monthly' },
             { url: 'resources/', file: 'resources.html', priority: 0.9, changefreq: 'weekly' },
+            { url: 'videos/', file: 'videos.html', priority: 0.7, changefreq: 'weekly' },
             { url: 'productivity/', file: 'productivity.html', priority: 0.8, changefreq: 'weekly' },
             { url: 'diagnostic/', file: 'diagnostic.html', priority: 0.8, changefreq: 'weekly' },
-            { url: 'videos/', file: 'videos.html', priority: 0.7, changefreq: 'weekly' },
             { url: 'training/', file: 'training.html', priority: 0.7, changefreq: 'monthly' },
-            { url: 'ai-strategic/', file: 'ai-strategic.html', priority: 0.7, changefreq: 'monthly' },
-            { url: 'about/', file: 'about.html', priority: 0.7, changefreq: 'monthly' },
             { url: 'nqoc/', file: 'public/nqoc/index.html', priority: 0.7, changefreq: 'weekly' },
             { url: 'privacy/', file: 'privacy.html', priority: 0.3, changefreq: 'yearly' }
         ];
@@ -1465,8 +1551,8 @@ app.get('/sitemap.xml', async (req, res) => {
     </url>`;
         });
 
-        // Add Dynamic Articles（仅收录已发布且有 slug 的文章；无 slug 的文章路由无法解析会 404）
-        const articles = await Article.find({ status: 'published', slug: { $exists: true, $nin: [null, ''] } }, 'slug publishDate updatedAt');
+        // Add Dynamic Articles（仅收录已发布且有 slug 的行业洞察文章）
+        const articles = await Article.find({ status: 'published', isOnline: { $ne: false }, slug: { $exists: true, $nin: [null, ''] } }, 'slug publishDate updatedAt');
         articles.forEach(article => {
             if (!article.slug) return;
             const date = article.updatedAt || article.publishDate || new Date();
@@ -1474,10 +1560,39 @@ app.get('/sitemap.xml', async (req, res) => {
 
             xml += `
     <url>
-        <loc>${SITE_URL}/article/${article.slug}.html</loc>
+        <loc>${SITE_URL}/insights/${encodeURIComponent(article.slug)}</loc>
         <lastmod>${lastmod}</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.6</priority>
+    </url>`;
+        });
+
+        // Add Dynamic Cases（已发布且有 slug 的案例）
+        const Case = require('./models/Case');
+        const cases = await Case.find({ status: 'published', isOnline: { $ne: false }, slug: { $exists: true, $nin: [null, ''] } }, 'slug updatedAt createdAt');
+        cases.forEach(c => {
+            if (!c.slug) return;
+            const date = c.updatedAt || c.createdAt || new Date();
+            const lastmod = new Date(date).toISOString().split('T')[0];
+            xml += `
+    <url>
+        <loc>${SITE_URL}/cases/${encodeURIComponent(c.slug)}</loc>
+        <lastmod>${lastmod}</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>`;
+        });
+
+        // Add published video details
+        const videos = await Video.find({ status: 'published', slug: { $exists: true, $nin: [null, ''] } }, 'slug updatedAt createdAt');
+        videos.forEach(video => {
+            const lastmod = new Date(video.updatedAt || video.createdAt || new Date()).toISOString().split('T')[0];
+            xml += `
+    <url>
+        <loc>${SITE_URL}/video/${encodeURIComponent(video.slug)}/</loc>
+        <lastmod>${lastmod}</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
     </url>`;
         });
 
@@ -1587,7 +1702,7 @@ const upload = multer({
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB for high-res covers
     fileFilter: (req, file, cb) => {
         const allowedExt = /jpeg|jpg|png|gif|webp|pdf|doc|docx|xls|xlsx/;
-        const allowedMime = /image\/jpeg|image\/jpg|image\/png|image\/gif|image\/webp|application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document|application\/vnd\.ms-excel|application\/vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet/;
+        const allowedMime = /image\/jpeg|image\/jpg|image\/png|image\/gif|image\/webp|application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document|application\/vnd\.ms-excel|application\/vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet|application\/octet-stream/;
         const extname = allowedExt.test(path.extname(file.originalname).toLowerCase());
         const mimetype = allowedMime.test((file.mimetype || '').toLowerCase());
         if (mimetype && extname) {
@@ -1844,6 +1959,40 @@ app.post('/api/logout', (req, res) => {
     res.json({ success: true });
 });
 
+app.put('/api/auth/password', authRequired, async (req, res) => {
+    try {
+        const currentPassword = String(req.body.currentPassword || '');
+        const newPassword = String(req.body.newPassword || '');
+        if (!currentPassword || newPassword.length < 8 || !/[a-zA-Z]/.test(newPassword) || !/\d/.test(newPassword)) {
+            return res.status(400).json({ success: false, error: '新密码至少 8 位且需包含字母和数字' });
+        }
+        if (currentPassword === newPassword) {
+            return res.status(400).json({ success: false, error: '新密码不能与当前密码相同' });
+        }
+
+        const admin = await Admin.findById(req.user.id);
+        if (!admin || !admin.isActive) {
+            return res.status(403).json({ success: false, error: '账号已禁用或不存在' });
+        }
+        const currentPasswordMatches = admin.password.startsWith('$') && await bcrypt.compare(currentPassword, admin.password);
+        if (!currentPasswordMatches) {
+            return res.status(400).json({ success: false, error: '当前密码不正确' });
+        }
+
+        const passwordHash = await bcrypt.hash(newPassword, 12);
+        admin.password = passwordHash;
+        admin.lastPasswordChangedAt = new Date();
+        admin.failedLoginCount = 0;
+        admin.lockedUntil = null;
+        await admin.save();
+        clearAdminAuthCookie(res);
+        await logOp('change_password', 'Auth', `User ${admin.username} changed password`, admin.username);
+        res.json({ success: true, message: '密码已修改，请重新登录' });
+    } catch (e) {
+        sendInternalError(res, 'Change Password Error:', e);
+    }
+});
+
 // Token verify
 app.get('/api/auth/verify', authRequired, async (req, res) => {
     const admin = await Admin.findById(req.user.id).populate('roles');
@@ -1999,55 +2148,19 @@ app.get('/api/dashboard/stats', authRequired, requirePerm('dashboard:view'), asy
 });
 
 // --- Article Routes ---
-app.get('/article/:slug', async (req, res) => {
-    try {
-        let slug = req.params.slug;
-        // Strip .html extension if present
-        if (slug.endsWith('.html')) {
-            slug = slug.slice(0, -5);
-        }
-
-        let article = await Article.findOne({ slug, status: 'published' }).populate('authorId');
-
-        // Check if article exists and is published (Feature Flag: ENABLE_STRICT_404, default true)
-        if (process.env.ENABLE_STRICT_404 !== 'false') {
-            if (!article) {
-                // Article not found or deleted
-                res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-                res.status(404).sendFile(path.join(__dirname, '404.html'));
-                return;
-            }
-        }
-
-        // Article exists, send the template with SSR tags
-        await renderArticlePage(req, res, article);
-    } catch (e) {
-        console.error('Article Route Error:', e);
-        res.status(500).send('Internal Server Error');
-    }
+app.get('/article/:slug', (req, res) => {
+    const slug = req.params.slug.endsWith('.html') ? req.params.slug.slice(0, -5) : req.params.slug;
+    return res.redirect(301, `/insights/${encodeURIComponent(slug)}`);
 });
 
-// Also handle the case where .html is part of the url explicitly if the above doesn't catch it
-app.get('/article/:slug.html', async (req, res) => {
-    try {
-        let slug = req.params.slug;
-        const article = await Article.findOne({ slug, status: 'published' }).populate('authorId');
-        if (!article && process.env.ENABLE_STRICT_404 !== 'false') {
-            res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-            res.status(404).sendFile(path.join(__dirname, '404.html'));
-            return;
-        }
-        await renderArticlePage(req, res, article);
-    } catch (e) {
-        console.error('Article HTML Route Error:', e);
-        res.status(500).send('Internal Server Error');
-    }
+app.get('/article/:slug.html', (req, res) => {
+    return res.redirect(301, `/insights/${encodeURIComponent(req.params.slug)}`);
 });
 
 // --- Article API ---
 app.get('/api/articles', async (req, res) => {
     try {
-        const { keyword, category, featured, page, limit, status, tag } = req.query;
+        const { keyword, category, featured, page, limit, status, tag, zone, contentStatus } = req.query;
         let query = {};
         
         if (keyword && keyword.length <= 200) {
@@ -2064,7 +2177,10 @@ app.get('/api/articles', async (req, res) => {
         }
 
         query.status = 'published';
+        query.isOnline = { $ne: false };
         if (status === 'published') query.status = 'published';
+        if (zone) query.zone = zone;
+        if (contentStatus) query.contentStatus = contentStatus;
 
         if (tag) {
             query.tags = tag;
@@ -2075,12 +2191,17 @@ app.get('/api/articles', async (req, res) => {
             const skip = (page - 1) * limit;
             const total = await Article.countDocuments(query);
             const data = await Article.find(query)
+                .populate('authorId')
                 .sort({ publishDate: -1 })
                 .skip(parseInt(skip))
                 .limit(parseInt(limit));
-            
+            const resolved = data.map(a => {
+                const o = a.toObject ? a.toObject() : a;
+                o.author = getResolvedArticleAuthor(a);
+                return o;
+            });
             res.json({
-                data,
+                data: resolved,
                 pagination: {
                     total,
                     page: parseInt(page),
@@ -2089,8 +2210,13 @@ app.get('/api/articles', async (req, res) => {
             });
         } else {
             // Backward compatibility for non-paginated calls (if any)
-            articles = await Article.find(query).sort({ publishDate: -1 });
-            res.json(articles);
+            articles = await Article.find(query).populate('authorId').sort({ publishDate: -1 });
+            const resolved = articles.map(a => {
+                const o = a.toObject ? a.toObject() : a;
+                o.author = getResolvedArticleAuthor(a);
+                return o;
+            });
+            res.json(resolved);
         }
     } catch (e) {
         return sendInternalError(res, null, e);
@@ -2099,7 +2225,7 @@ app.get('/api/articles', async (req, res) => {
 
 app.get('/api/admin/articles', authRequired, requirePerm('article:list'), async (req, res) => {
     try {
-        const { keyword, category, featured, page, limit, status, tag } = req.query;
+        const { keyword, category, featured, page, limit, status, tag, zone, contentStatus, isOnline } = req.query;
         let query = {};
         if (keyword && keyword.length <= 200) {
             const regex = new RegExp(escapeRegex(keyword), 'i');
@@ -2117,6 +2243,9 @@ app.get('/api/admin/articles', authRequired, requirePerm('article:list'), async 
         if (tag) {
             query.tags = tag;
         }
+        if (zone) query.zone = zone;
+        if (contentStatus) query.contentStatus = contentStatus;
+        if (isOnline === 'true' || isOnline === 'false') query.isOnline = isOnline === 'true';
         let articles;
         if (page && limit) {
             const skip = (page - 1) * limit;
@@ -2137,9 +2266,9 @@ app.get('/api/articles/detail/query', async (req, res) => {
         if (!slug) return res.status(400).json({ error: 'Slug is required' });
         
         // Increment views without triggering update hooks/timestamps issues
-        await Article.updateOne({ slug, status: 'published' }, { $inc: { views: 1 } });
+        await Article.updateOne({ slug, status: 'published', isOnline: { $ne: false } }, { $inc: { views: 1 } });
         
-        const article = await Article.findOne({ slug, status: 'published' }).populate('authorId');
+        const article = await Article.findOne({ slug, status: 'published', isOnline: { $ne: false } }).populate('authorId');
         if (!article) return res.status(404).json({ error: 'Article not found' });
         const result = article.toObject ? article.toObject() : article;
         result.author = getResolvedArticleAuthor(article);
@@ -2158,9 +2287,9 @@ app.get('/api/articles/:id', async (req, res) => {
             return res.status(404).json({ error: 'Invalid article id' });
         }
         
-        await Article.updateOne({ _id: id, status: 'published' }, { $inc: { views: 1 } });
+        await Article.updateOne({ _id: id, status: 'published', isOnline: { $ne: false } }, { $inc: { views: 1 } });
         
-        const article = await Article.findOne({ _id: id, status: 'published' }).populate('authorId');
+        const article = await Article.findOne({ _id: id, status: 'published', isOnline: { $ne: false } }).populate('authorId');
         if (!article) return res.status(404).json({ error: 'Article not found' });
         const result = article.toObject ? article.toObject() : article;
         result.author = getResolvedArticleAuthor(article);
@@ -2203,8 +2332,8 @@ app.post('/api/articles', authRequired, requirePerm('article:create'), async (re
         if (!newArticle.publishDate) newArticle.publishDate = now;
         if (!newArticle.updatedAt) newArticle.updatedAt = now;
         
-        // Handle slug if not provided
-        if (!newArticle.slug) newArticle.slug = 'art-' + now.getTime();
+        // Handle slug if not provided: 自动生成 SEO 友好 slug（AI 英文关键词优先，回退拼音）
+        if (!newArticle.slug) newArticle.slug = await generateSeoSlug(newArticle.title, Article);
         await newArticle.save();
         
         // Update category count
@@ -2244,6 +2373,10 @@ app.put('/api/articles/:id', authRequired, requirePerm('article:edit'), async (r
                 title: oldArt.title,
                 content: oldArt.content,
                 summary: oldArt.summary,
+                seoTitle: oldArt.seoTitle,
+                seoDescription: oldArt.seoDescription,
+                seoKeywords: oldArt.seoKeywords,
+                qa: oldArt.qa,
                 coverImage: oldArt.coverImage,
                 tags: oldArt.tags,
                 status: oldArt.status,
@@ -2259,7 +2392,7 @@ app.put('/api/articles/:id', authRequired, requirePerm('article:edit'), async (r
         );
         
         // Handle category count update if changed
-        if (oldArt && oldArt.category !== payload.category) {
+        if (oldArt && Object.prototype.hasOwnProperty.call(payload, 'category') && oldArt.category !== payload.category) {
              if (oldArt.category) await Category.updateOne({ code: oldArt.category }, { $inc: { articleCount: -1 } });
              if (payload.category) await Category.updateOne({ code: payload.category }, { $inc: { articleCount: 1 } });
         }
@@ -2292,14 +2425,44 @@ const Author = require('./models/Author'); // Import Author Model
 // --- Author Management Routes ---
 app.get('/api/authors', async (req, res) => {
     try {
-        const authors = await Author.find().sort({ createdAt: -1 });
+        const authors = await Author.find().sort({ order: 1, createdAt: -1 });
         res.json(authors);
     } catch (e) {
         return sendInternalError(res, null, e);
     }
 });
 
-app.post('/api/authors', authRequired, requirePerm('article:create'), async (req, res) => {
+app.get('/api/admin/authors', authRequired, requirePerm('expert:list'), async (req, res) => {
+    try {
+        const authors = await Author.find().sort({ order: 1, createdAt: -1 });
+        res.json(authors);
+    } catch (e) {
+        return sendInternalError(res, null, e);
+    }
+});
+
+app.put('/api/authors/reorder', authRequired, requirePerm('expert:edit'), async (req, res) => {
+    try {
+        const items = req.body.items;
+        if (!Array.isArray(items) || items.some((item, index) => !item.id || item.order !== index + 1)) {
+            return res.status(400).json({ error: '专家排序必须从 1 开始且连续' });
+        }
+        const ids = items.map(item => String(item.id));
+        if (new Set(ids).size !== ids.length) return res.status(400).json({ error: '专家不能重复' });
+        const existingCount = await Author.countDocuments({ _id: { $in: ids } });
+        if (existingCount !== ids.length) return res.status(400).json({ error: '专家不存在' });
+        if (items.length) {
+            await Author.bulkWrite(items.map(item => ({
+                updateOne: { filter: { _id: item.id }, update: { $set: { order: item.order, updatedAt: new Date() } } }
+            })));
+        }
+        res.json({ success: true });
+    } catch (e) {
+        return sendInternalError(res, 'Reorder authors failed:', e);
+    }
+});
+
+app.post('/api/authors', authRequired, requirePerm('expert:create'), async (req, res) => {
     try {
         const author = new Author(req.body);
         await author.save();
@@ -2310,7 +2473,7 @@ app.post('/api/authors', authRequired, requirePerm('article:create'), async (req
     }
 });
 
-app.put('/api/authors/:id', authRequired, requirePerm('article:edit'), async (req, res) => {
+app.put('/api/authors/:id', authRequired, requirePerm('expert:edit'), async (req, res) => {
     try {
         const author = await Author.findByIdAndUpdate(req.params.id, { ...req.body, updatedAt: Date.now() }, { new: true });
         if (!author) return res.status(404).json({ error: 'Author not found' });
@@ -2333,7 +2496,7 @@ app.put('/api/authors/:id', authRequired, requirePerm('article:edit'), async (re
     }
 });
 
-app.delete('/api/authors/:id', authRequired, requirePerm('article:delete'), async (req, res) => {
+app.delete('/api/authors/:id', authRequired, requirePerm('expert:delete'), async (req, res) => {
     try {
         await Author.findByIdAndDelete(req.params.id);
         await logOp('delete', 'Author', `Deleted author: ${req.params.id}`, req.user.username);
@@ -2350,8 +2513,8 @@ async function rebuildLLMsTxt() {
         const publicPath = path.join(__dirname, 'public/llms.txt');
         const SITE_URL = process.env.SITE_URL || 'https://www.ruihuaconsulting.com';
 
-        // Fetch all published articles with slugs, deduplicated
-        const articles = await Article.find({ status: 'published', slug: { $exists: true, $nin: [null, ''] } })
+        // Fetch all public articles with slugs, deduplicated
+        const articles = await Article.find({ status: 'published', isOnline: { $ne: false }, slug: { $exists: true, $nin: [null, ''] } })
             .sort({ publishDate: -1 })
             .lean();
 
@@ -2363,12 +2526,23 @@ async function rebuildLLMsTxt() {
             return true;
         });
 
-        let content = '# Ruihua Consulting Knowledge Base\n\n';
+        let content = '# 瑞华智策｜AI 时代组织进化知识库\n\n';
+        content += '> 面向企业管理者、组织负责人和 AI 转型团队，提供 AI 赋能培训、AI 转型咨询、AI 落地陪跑与人力资本价值经营服务。\n';
         content += `> 最后更新：${new Date().toISOString().split('T')[0]}\n`;
         content += `> 文章总数：${unique.length}\n\n`;
+        content += '## 核心页面\n';
+        content += `- 产品与服务: ${SITE_URL}/solutions\n`;
+        content += `- AI 赋能培训: ${SITE_URL}/solutions/training\n`;
+        content += `- AI 转型咨询: ${SITE_URL}/solutions/consulting\n`;
+        content += `- AI 落地陪跑: ${SITE_URL}/solutions/fde\n`;
+        content += `- 人力资本价值经营: ${SITE_URL}/hcvm\n`;
+        content += `- 行业案例: ${SITE_URL}/cases\n`;
+        content += `- 研究中心: ${SITE_URL}/insights\n`;
+        content += `- 关于我们: ${SITE_URL}/about\n`;
+        content += `- 联系我们: ${SITE_URL}/contact\n\n`;
 
         for (const article of unique) {
-            const canonicalUrl = `${SITE_URL}/article/${article.slug}.html`;
+            const canonicalUrl = `${SITE_URL}/insights/${encodeURIComponent(article.slug)}`;
             const summary = (article.summary || '').replace(/\r?\n/g, ' ').substring(0, 200);
             const tags = (article.tags || []).slice(0, 5).filter(Boolean);
             const date = article.publishDate ? new Date(article.publishDate).toISOString().split('T')[0] : '';
@@ -2565,7 +2739,7 @@ app.delete('/api/categories/:id', authRequired, requirePerm('article:delete'), a
 // --- FAQ API ---
 app.get('/api/faqs', async (req, res) => {
     try {
-        const query = {};
+        const query = { status: { $in: ['published', undefined] }, isOnline: { $ne: false } };
         if (req.query.status) {
             query.status = req.query.status;
         }
@@ -2589,15 +2763,15 @@ app.get('/api/home/content', async (req, res) => {
         const skip = (page - 1) * limit;
 
         const [articles, total, categories, faqs] = await Promise.all([
-            Article.find({ status: 'published', isRecommended: true })
+            Article.find({ status: 'published', isOnline: { $ne: false }, isRecommended: true })
                 .sort({ publishDate: -1 })
                 .skip(skip)
                 .limit(limit)
                 .lean(),
-            Article.countDocuments({ status: 'published', isRecommended: true }),
+            Article.countDocuments({ status: 'published', isOnline: { $ne: false }, isRecommended: true }),
             Category.find({}).lean(),
             includeFaqs
-                ? Faq.find({ status: { $in: ['published', undefined] } }).sort({ order: 1 }).limit(faqLimit).lean()
+                ? Faq.find({ status: { $in: ['published', undefined] }, isOnline: { $ne: false } }).sort({ order: 1 }).limit(faqLimit).lean()
                 : Promise.resolve([])
         ]);
 
@@ -2626,7 +2800,7 @@ app.get('/api/home/content', async (req, res) => {
 
 app.get('/api/faqs/:id', async (req, res) => {
     try {
-        const faq = await Faq.findById(req.params.id);
+        const faq = await Faq.findOne({ _id: req.params.id, status: { $in: ['published', undefined] }, isOnline: { $ne: false } });
         if (!faq) return res.status(404).json({ error: 'FAQ not found' });
         res.json(faq);
     } catch (e) {
@@ -2649,6 +2823,27 @@ app.post('/api/faqs', authRequired, requirePerm('faq:create'), async (req, res) 
         res.json({ success: true, data: newFaq });
     } catch (e) {
         return sendInternalError(res, null, e);
+    }
+});
+
+app.put('/api/faqs/reorder', authRequired, requirePerm('faq:edit'), async (req, res) => {
+    try {
+        const items = req.body.items;
+        if (!Array.isArray(items) || items.some((item, index) => !item.id || item.order !== index + 1)) {
+            return res.status(400).json({ error: 'FAQ 排序必须从 1 开始且连续' });
+        }
+        const ids = items.map(item => String(item.id));
+        if (new Set(ids).size !== ids.length) return res.status(400).json({ error: 'FAQ 不能重复' });
+        const existingCount = await Faq.countDocuments({ _id: { $in: ids } });
+        if (existingCount !== ids.length) return res.status(400).json({ error: 'FAQ 不存在' });
+        if (items.length) {
+            await Faq.bulkWrite(items.map(item => ({
+                updateOne: { filter: { _id: item.id }, update: { $set: { order: item.order, updatedAt: new Date() } } }
+            })));
+        }
+        res.json({ success: true });
+    } catch (e) {
+        return sendInternalError(res, 'Reorder FAQs failed:', e);
     }
 });
 
@@ -3092,10 +3287,27 @@ const nqocStorage = multer.diskStorage({
         cb(null, `award-${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`);
     }
 });
-const nqocUpload = multer({ 
+const allowedNqocPhotoMimeTypes = new Set([
+    'image/jpeg',
+    'image/png',
+    'image/webp'
+]);
+const nqocUpload = multer({
     storage: nqocStorage,
-    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        if (allowedNqocPhotoMimeTypes.has(file.mimetype)) return cb(null, true);
+        cb(new Error('照片仅支持 JPG、PNG、WebP 格式'));
+    }
 });
+
+function parseNqocPhotoUploadError(err) {
+    if (!err) return null;
+    if (err.code === 'LIMIT_FILE_SIZE') {
+        return { status: 400, message: '照片大小超限，请控制在 10MB 以内' };
+    }
+    return { status: 400, message: err.message || '照片上传失败，请检查文件后重试' };
+}
 
 // ==========================================
 // Training Applications API
@@ -4079,9 +4291,14 @@ app.post('/api/admin/nqoc/debate/config', authRequired, requireAnyPerm(['nqoc:ed
 // ==========================================
 
 // Public API to submit expert application (supports multipart for photo upload)
-app.post('/api/nqoc/experts/apply', nqocUpload.single('photo'), async (req, res) => {
-    try {
-        const fields = req.body || {};
+app.post('/api/nqoc/experts/apply', (req, res) => {
+    nqocUpload.single('photo')(req, res, async (uploadErr) => {
+        if (uploadErr) {
+            const parsed = parseNqocPhotoUploadError(uploadErr);
+            return res.status(parsed.status).json({ success: false, message: parsed.message });
+        }
+        try {
+            const fields = req.body || {};
         // Parse arrays sent as JSON string or comma-separated
         let activities = [];
         if (fields.activities) {
@@ -4132,29 +4349,22 @@ app.post('/api/nqoc/experts/apply', nqocUpload.single('photo'), async (req, res)
             return res.status(400).json({ success: false, message: '"个人官方照片"为必填项' });
         }
 
-        // 处理照片上传 - 上传至火山引擎TOS: nqoc/zhuanjia/
-        let photoUrl = '';
-        if (req.file) {
-            if (useTosUpload) {
-                try {
-                    const filePath = path.join(__dirname, 'public', 'uploads', 'nqoc', req.file.filename);
-                    const objectKey = 'nqoc/zhuanjia/' + req.file.filename;
-                    const tosUrl = await uploadLocalFileToTos(filePath, objectKey, req.file.mimetype || 'image/jpeg');
-                    if (tosUrl) {
-                        photoUrl = tosUrl;
-                        // 上传成功后删除本地文件
-                        try { fs.unlinkSync(filePath); } catch {}
-                    } else {
-                        photoUrl = '/uploads/nqoc/' + req.file.filename;
-                    }
-                } catch (tosErr) {
-                    console.error('专家照片上传TOS失败，退回本地存储:', tosErr.message);
-                    photoUrl = '/uploads/nqoc/' + req.file.filename;
-                }
-            } else {
-                photoUrl = '/uploads/nqoc/' + req.file.filename;
-            }
+        // 专家照片必须上传至火山引擎 TOS，不再回退到本地 URL。
+        if (!useTosUpload) {
+            return res.status(503).json({ success: false, message: '照片存储服务未配置，请联系管理员' });
         }
+        const filePath = path.join(__dirname, 'public', 'uploads', 'nqoc', req.file.filename);
+        const objectKey = 'nqoc/zhuanjia/' + req.file.filename;
+        let photoUrl;
+        try {
+            photoUrl = await uploadLocalFileToTos(filePath, objectKey, req.file.mimetype);
+            if (!photoUrl) throw new Error('TOS 未返回照片 URL');
+        } catch (tosErr) {
+            console.error('专家照片上传 TOS 失败:', tosErr.message);
+            try { fs.unlinkSync(filePath); } catch {}
+            return res.status(502).json({ success: false, message: '照片上传失败，请稍后重试' });
+        }
+        try { fs.unlinkSync(filePath); } catch {}
 
         const newApplication = new NqocExpertApplication({
             name,
@@ -4174,12 +4384,20 @@ app.post('/api/nqoc/experts/apply', nqocUpload.single('photo'), async (req, res)
             status: 'pending'
         });
         
-        await newApplication.save();
-        res.json({ success: true, message: '申请提交成功' });
-    } catch (error) {
-        console.error('Submit expert application error:', error);
-        res.status(500).json({ success: false, message: '服务器错误，请稍后重试' });
-    }
+            await newApplication.save();
+            res.json({ success: true, message: '申请提交成功', photoUrl });
+        } catch (error) {
+            console.error('Submit expert application error:', error);
+            if (error?.name === 'ValidationError') {
+                const message = Object.values(error.errors || {}).map(item => item.message).filter(Boolean).join('；');
+                return res.status(400).json({ success: false, message: message || '申请信息校验失败，请检查填写内容' });
+            }
+            if (error?.code === 11000) {
+                return res.status(409).json({ success: false, message: '该邮箱已提交过专家申请' });
+            }
+            return res.status(500).json({ success: false, message: '申请保存失败，请稍后重试' });
+        }
+    });
 });
 
 // Admin API to get applications list
@@ -4399,7 +4617,7 @@ async function generateDeepseekSlug(title) {
                 messages: [
                     {
                         role: 'system', 
-                        content: 'You are an SEO expert. Generate a short, English, URL-friendly slug (lowercase, hyphens only, no special chars) for the article title provided. Return ONLY the slug.'
+                        content: 'You are an SEO URL slug generator. Extract 3 to 5 core English keywords from the given Chinese title, translate them to English, and join with hyphens. Rules: all lowercase, hyphens only, no stop words, no special characters or punctuation. Return ONLY the slug string, no explanation, no quotes.'
                     },
                     {
                         role: 'user', 
@@ -4425,6 +4643,45 @@ async function generateDeepseekSlug(title) {
         console.error('Deepseek API Failed:', e);
         return null; // Fallback to local
     }
+}
+
+// 生成 SEO 友好 slug：AI 英文关键词优先，失败回退拼音并过滤停用词；保证唯一
+async function generateSeoSlug(title, Model) {
+    if (!title) return null;
+    let slug = '';
+
+    // 1) AI 优先：3-5 个英文关键词
+    const aiSlug = await generateDeepseekSlug(title);
+    if (aiSlug) {
+        slug = aiSlug.toLowerCase()
+            .replace(/[^a-z0-9-]/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+        const parts = slug.split('-').filter(Boolean);
+        if (parts.length > 5) slug = parts.slice(0, 5).join('-');
+        if (parts.length < 2) slug = ''; // 单词不足视为失败
+    }
+
+    // 2) 回退：拼音 + 停用词过滤
+    if (!slug) {
+        const stopWords = new Set(['the', 'a', 'an', 'in', 'on', 'at', 'for', 'to', 'of', 'and', 'or', 'with', 'by']);
+        slug = slugify(title, { lowercase: true, separator: '-' })
+            .split('-')
+            .filter(w => w && !stopWords.has(w))
+            .join('-');
+    }
+
+    // 3) 长度限制
+    if (slug.length > 60) slug = slug.slice(0, 60).replace(/-+$/, '');
+    if (!slug) slug = 'post-' + Date.now().toString(36);
+
+    // 4) 唯一性
+    let unique = slug;
+    let i = 1;
+    while (await Model.findOne({ slug: unique })) {
+        unique = `${slug}-${i++}`;
+    }
+    return unique;
 }
 
 async function generateDeepseekText(systemPrompt, userPrompt) {
@@ -4656,7 +4913,7 @@ const uploadAuthor = multer({
     storage: authorStorage,
     limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
     fileFilter: (req, file, cb) => {
-        if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'image/webp') {
+        if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'image/webp' || file.mimetype === 'application/octet-stream') {
             cb(null, true);
         } else {
             cb(new Error('Invalid file type. Only JPG, PNG, WebP allowed.'));
@@ -4673,12 +4930,12 @@ function parseAuthorUploadError(err) {
     return { status: 500, error: '作者头像上传失败，请稍后重试' };
 }
 
-app.post('/api/upload/author/:userId', authRequired, requirePerm('article:edit'), uploadLimiter, (req, res) => {
+app.post('/api/upload/author/:userId', authRequired, requirePerm('expert:edit'), uploadLimiter, (req, res) => {
     uploadAuthor.single('file')(req, res, async (uploadErr) => {
         if (uploadErr) {
             const parsed = parseAuthorUploadError(uploadErr);
             console.error('Author upload middleware error:', uploadErr);
-            await logOp('upload_failed', 'AuthorAvatar', `Author upload middleware failed: ${parsed.error}`, req.user?.username);
+            try { await logOp('upload_failed', 'AuthorAvatar', `Author upload middleware failed: ${parsed.error}`, req.user?.username); } catch {}
             return res.status(parsed.status).json({ success: false, error: parsed.error });
         }
         try {
@@ -4705,13 +4962,13 @@ app.post('/api/upload/author/:userId', authRequired, requirePerm('article:edit')
                     finalUrl = await uploadLocalFileToTos(avatarAbs, objectKey, 'image/webp') || url;
                     try { fs.unlinkSync(avatarAbs); } catch {}
                 } catch (tosErr) {
-                    console.error('TOS author avatar upload failed, fallback to local:', tosErr);
-                    await logOp('upload_warn', 'AuthorAvatar', `TOS failed, fallback local: ${tosErr.message}`, req.user?.username);
-                    notifyTosFallbackAlert(`Author avatar fallback: ${tosErr.message}`);
-                    finalUrl = url;
+                    console.error('TOS author avatar upload failed:', tosErr.message || tosErr);
+                    try { await logOp('upload_failed', 'AuthorAvatar', `TOS upload failed: ${tosErr.message}`, req.user?.username); } catch {}
+                    try { fs.unlinkSync(avatarAbs); } catch {}
+                    return res.status(502).json({ success: false, error: '头像上传至对象存储失败，请稍后重试' });
                 }
             }
-            await logOp('upload', 'AuthorAvatar', `Uploaded avatar for user: ${userId}`, req.user?.username);
+            try { await logOp('upload', 'AuthorAvatar', `Uploaded avatar for user: ${userId}`, req.user?.username); } catch {}
             const hashHex = crypto.createHash('sha256').update(originalBase).digest('hex');
             try {
                 await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '2', directory: url.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'avatar', hashHex });
@@ -4720,9 +4977,14 @@ app.post('/api/upload/author/:userId', authRequired, requirePerm('article:edit')
             }
             return res.json({ success: true, url: finalUrl });
         } catch (e) {
-            console.error('Author upload error:', e);
-            await logOp('upload_failed', 'AuthorAvatar', `Author upload processing failed: ${e.message}`, req.user?.username);
-            return res.status(500).json({ success: false, error: '服务器内部错误' });
+            console.error('Author upload unhandled error:', e.stack || e);
+            try { await logOp('upload_failed', 'AuthorAvatar', `Author upload processing failed: ${e.message}`, req.user?.username); } catch {}
+            try { if (req.file?.path) fs.unlinkSync(req.file.path); } catch {}
+            const isImageProcessingError = e?.name === 'Error' || e?.code === 'EINPUT' || e?.code === 'EINVAL';
+            if (isImageProcessingError) {
+                return res.status(400).json({ success: false, error: '头像文件无法解析，请上传有效的 JPG、PNG 或 WebP 图片' });
+            }
+            return res.status(500).json({ success: false, error: '头像处理失败，请稍后重试' });
         }
     });
 });
@@ -5232,7 +5494,7 @@ app.post('/api/test-dingtalk', authRequired, requirePerm('appointment:list'), as
 // Public submission (no auth)
 app.post('/api/appointments', async (req, res) => {
     try {
-        let { name, phone, company, title, problem, source, verificationCode, ...utmParams } = req.body;
+        let { name, phone, company, department, title, problem, source, verificationCode, ...utmParams } = req.body;
         
         // Channel Tracking: Read from cookies if not provided in body
         if (req.cookies) {
@@ -5264,9 +5526,11 @@ app.post('/api/appointments', async (req, res) => {
         }
 
         const newAppt = new Appointment({
+            externalId: await generateDailyExternalId(),
             name,
             phone,
             company,
+            department,
             title,
             problem,
             source,
@@ -5293,6 +5557,74 @@ app.post('/api/appointments', async (req, res) => {
         console.error('Appointment Error:', e);
         res.status(500).json({ error: '服务器内部错误' });
     }
+});
+
+// Semantic lead API. Legacy /api/appointments routes below remain supported for existing clients.
+app.get('/api/admin/leads', authRequired, requirePerm(['lead:list', 'appointment:list']), async (req, res) => {
+    try {
+        const page = Math.max(parseInt(req.query.page) || 1, 1);
+        const limit = Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 100);
+        const query = {};
+        if (req.query.status) query.status = req.query.status;
+        if (req.query.channel) query.channel = req.query.channel;
+        if (req.query.q) {
+            const keyword = escapeRegex(req.query.q);
+            query.$or = ['name', 'phone', 'company', 'title', 'source', 'channel'].map(field => ({ [field]: { $regex: keyword, $options: 'i' } }));
+        }
+        const [total, data] = await Promise.all([
+            Appointment.countDocuments(query),
+            Appointment.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit)
+        ]);
+        res.json({ success: true, data, pagination: { total, page, pages: Math.ceil(total / limit) } });
+    } catch (e) { return sendInternalError(res, 'List leads error:', e); }
+});
+
+app.get('/api/admin/leads/export', authRequired, requirePerm(['lead:export', 'appointment:export']), async (req, res) => {
+    try {
+        const query = {};
+        if (req.query.status) query.status = req.query.status;
+        if (req.query.channel) query.channel = req.query.channel;
+        const leads = await Appointment.find(query).sort({ createdAt: -1 });
+        const quote = value => `"${String(value || '').replace(/"/g, '""')}"`;
+        const header = ['姓名', '电话', '公司', '职位', '问题', '来源', '状态', '提交时间'];
+        const csv = [header.join(','), ...leads.map(lead => [lead.name, lead.phone, lead.company, lead.title, lead.problem, lead.source, lead.status, lead.createdAt && new Date(lead.createdAt).toLocaleString()].map(quote).join(','))].join('\n');
+        res.type('text/csv; charset=utf-8').attachment('leads.csv').send(Buffer.from('\uFEFF' + csv, 'utf8'));
+    } catch (e) { return res.status(500).json({ error: e.message, stack: e.stack }); }
+});
+
+app.get('/api/admin/leads/:id', authRequired, requirePerm(['lead:list', 'appointment:list']), async (req, res) => {
+    try {
+        const data = await Appointment.findById(req.params.id);
+        if (!data) return res.status(404).json({ success: false, error: '线索不存在' });
+        res.json({ success: true, data });
+    } catch (e) { return sendInternalError(res, 'Get lead error:', e); }
+});
+
+app.patch('/api/admin/leads/:id/status', authRequired, requirePerm(['lead:edit', 'appointment:edit']), async (req, res) => {
+    try {
+        const data = await Appointment.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true, runValidators: true });
+        if (!data) return res.status(404).json({ success: false, error: '线索不存在' });
+        res.json({ success: true, data });
+    } catch (e) { return sendInternalError(res, 'Update lead status error:', e); }
+});
+
+app.patch('/api/admin/leads/:id/remarks', authRequired, requirePerm(['lead:edit', 'appointment:edit']), async (req, res) => {
+    try {
+        const data = await Appointment.findByIdAndUpdate(req.params.id, { remarks: String(req.body.remarks || '') }, { new: true, runValidators: true });
+        if (!data) return res.status(404).json({ success: false, error: '线索不存在' });
+        res.json({ success: true, data });
+    } catch (e) { return sendInternalError(res, 'Update lead remarks error:', e); }
+});
+
+app.post('/api/admin/leads/:id/follow-ups', authRequired, requirePerm(['lead:edit', 'appointment:edit']), async (req, res) => {
+    try {
+        const txt = String(req.body.txt || req.body.text || '').trim();
+        if (!txt) return res.status(400).json({ success: false, error: '跟进内容不能为空' });
+        const note = { ts: new Date(), by: req.user.username || '管理员', txt };
+        const data = await Appointment.findOneAndUpdate({ _id: req.params.id }, { $push: { notes: note } }, { new: true, runValidators: true });
+        if (!data) return res.status(404).json({ success: false, error: '线索不存在' });
+        res.json({ success: true, data });
+    } catch (e) { return sendInternalError(res, 'Add lead follow-up error:', e); }
 });
 
 app.get('/api/appointments', authRequired, requirePerm('appointment:list'), async (req, res) => {
@@ -5329,11 +5661,15 @@ app.get('/api/appointments', authRequired, requirePerm('appointment:list'), asyn
 
 app.put('/api/appointments/:id', authRequired, requirePerm('appointment:edit'), async (req, res) => {
     try {
-        const { status, remarks } = req.body;
+        const { status, remarks, notes } = req.body;
+        const update = {};
+        if (status !== undefined) update.status = status;
+        if (remarks !== undefined) update.remarks = remarks;
+        if (Array.isArray(notes)) update.notes = notes;
         const appt = await Appointment.findByIdAndUpdate(
-            req.params.id, 
-            { status, remarks }, // Assuming we might want remarks later, or just status
-            { new: true }
+            req.params.id,
+            update,
+            { new: true, runValidators: true }
         );
         await logOp('update', 'Appointment', `Updated status to ${status} for: ${appt.name}`, req.user.username);
         res.json({ success: true, data: appt });
@@ -5342,7 +5678,7 @@ app.put('/api/appointments/:id', authRequired, requirePerm('appointment:edit'), 
     }
 });
 
-app.delete('/api/appointments/:id', authRequired, requirePerm('appointment:delete'), async (req, res) => {
+app.delete('/api/appointments/:id', authRequired, requirePerm(['lead:delete', 'appointment:delete']), async (req, res) => {
     try {
         await Appointment.findByIdAndDelete(req.params.id);
         await logOp('delete', 'Appointment', `Deleted appointment: ${req.params.id}`, req.user.username);
@@ -5353,7 +5689,7 @@ app.delete('/api/appointments/:id', authRequired, requirePerm('appointment:delet
 });
 
 // Export appointments (CSV)
-app.get('/api/appointments/export', authRequired, requirePerm('appointment:export'), async (req, res) => {
+app.get('/api/appointments/export', authRequired, requirePerm(['lead:export', 'appointment:export']), async (req, res) => {
     try {
         const status = req.query.status;
         const sortOrder = parseInt(req.query.sort) || -1;
@@ -5366,8 +5702,8 @@ app.get('/api/appointments/export', authRequired, requirePerm('appointment:expor
         const appointments = await Appointment.find(query).sort({ createdAt: sortOrder });
         
         // Convert to CSV
-        const fields = ['name', 'phone', 'company', 'title', 'problem', 'source', 'createdAt'];
-        const header = ['姓名', '电话', '公司', '职位', '问题', '来源', '提交时间', 'UTM Source', 'UTM Medium', 'UTM Campaign', 'UTM Term', 'UTM Content'];
+        const fields = ['name', 'phone', 'company', 'department', 'title', 'problem', 'source', 'createdAt'];
+        const header = ['姓名', '电话', '公司', '部门', '职位', '问题', '来源', '提交时间', 'UTM Source', 'UTM Medium', 'UTM Campaign', 'UTM Term', 'UTM Content'];
         
         let csv = header.join(',') + '\n';
         appointments.forEach(appt => {
@@ -5375,6 +5711,7 @@ app.get('/api/appointments/export', authRequired, requirePerm('appointment:expor
                 `"${appt.name || ''}"`,
                 `"${appt.phone || ''}"`,
                 `"${appt.company || ''}"`,
+                `"${appt.department || ''}"`,
                 `"${appt.title || ''}"`,
                 `"${appt.problem || ''}"`,
                 `"${appt.source || ''}"`,
@@ -5942,7 +6279,7 @@ app.get('/video/:slug/', async (req, res) => {
     try {
         await Video.updateOne({ slug: req.params.slug, status: 'published' }, { $inc: { views: 1 } });
         const video = await Video.findOne({ slug: req.params.slug, status: 'published' }).populate('speakers.authorId');
-        if (!video) return res.status(404).sendFile(path.join(__dirname, '404.html'));
+        if (!video) return send404(res);
 
         // SEO SSR logic for Video detail
         const fs = require('fs');
@@ -5953,7 +6290,7 @@ app.get('/video/:slug/', async (req, res) => {
 
         // SSR Render Footer
         try {
-            injectFooterHTML(document);
+            inject2026PublicShell(document, req.path);
         } catch (compErr) {
             console.warn('SSR components rendering skipped:', compErr.message);
         }
@@ -6418,13 +6755,26 @@ require('./routes/videoEmbedRoutes')(app, authRequired, requirePerm, logOp);
 require('./routes/activityRoutes')(app, authRequired, requirePerm, logOp);
 require('./routes/activityTemplateRoutes')(app, authRequired, requirePerm, logOp);
 require('./routes/surveyRoutes')(app, authRequired, requirePerm, logOp);
+require('./routes/contentRoutes')(app, authRequired, requirePerm, logOp, generateSeoSlug);
+require('./routes/appointmentAttributionRoutes')(app, authRequired, requirePerm);
+require('./routes/frontendRoutes2026')(app);
 
 // 404 Handler
 app.use((req, res, next) => {
     if (req.path.startsWith('/api') || req.xhr) {
         return res.status(404).json({ error: 'Not Found' });
     }
-    res.status(404).sendFile(path.join(__dirname, '404.html'));
+    try {
+        const { render2026, loadBlock } = require('./utils/render2026');
+        res.status(404).send(render2026({
+            title: '页面未找到 · 404 | 瑞华智策',
+            description: '您访问的页面不存在或已被移动，返回首页继续浏览。',
+            content: loadBlock('404')
+        }));
+    } catch (e) {
+        console.error('404 render failed:', e);
+        res.status(404).sendFile(path.join(__dirname, '404.html'));
+    }
 });
 
 // Global Error Handler

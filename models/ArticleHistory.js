@@ -6,7 +6,9 @@ const articleHistorySchema = new mongoose.Schema({
   content: String,
   qa: [{ question: String, answer: String, isManualEdited: { type: Boolean, default: false } }], // Q&A 问答对
   summary: String, // GEO 摘要
+  seoTitle: String,
   seoDescription: String, // SEO 摘要
+  seoKeywords: [String],
   coverImage: String,
   tags: [String],
   status: String,

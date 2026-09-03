@@ -7,12 +7,21 @@ const legacyRedirects = (req, res, next) => {
     }
 
     const redirects = {
-        '/solutions-hcvm.html': '/solutions-hcvm/',
-        '/solutions-ahcvm.html': '/solutions-hcvm/',
-        '/solutions-ohcvm.html': '/solutions-ohcvm/',
-        '/solutions-hcvm': '/solutions-hcvm/',
-        '/solutions-ahcvm': '/solutions-hcvm/',
-        '/solutions-ohcvm': '/solutions-ohcvm/'
+        // 2026 新站已替换的页面：旧 URL 统一跳到新规范 URL
+        '/solutions/': '/solutions',
+        '/solutions.html': '/solutions',
+        '/solutions-hcvm/': '/hcvm',
+        '/solutions-hcvm.html': '/hcvm',
+        '/solutions-hcvm': '/hcvm',
+        '/solutions-ahcvm/': '/hcvm',
+        '/solutions-ahcvm.html': '/hcvm',
+        '/solutions-ahcvm': '/hcvm',
+        '/about/': '/about',
+        '/about.html': '/about',
+
+        '/solutions-ohcvm/': '/solutions',
+        '/solutions-ohcvm.html': '/solutions',
+        '/solutions-ohcvm': '/solutions'
     };
 
     if (redirects[req.path]) {

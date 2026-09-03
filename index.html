@@ -1,1065 +1,288 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="scroll-smooth">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="format-detection" content="telephone=no" />
-    <meta name="theme-color" content="#4f46e5" />
-    <meta name="applicable-device" content="pc,mobile" />
-    <title>瑞华智策-人力资本价值经营一体化解决方案_AI原生的本土咨询机构</title>
-    <meta name="description" content="瑞华智策（人瑞人才旗下），专注为大中型企业提供AI时代“人力资本价值经营”一体化解决方案。以创新的咨询方式高效导入“人力资本价值经营”的思想和方法论，再通过自主研发的 ©HCVM 数智平台落地，最终助力企业实现可持续的人效提升与利润增长。" />
-    <meta name="keywords" content="瑞华智策,人力资本价值经营,人力资源咨询,管理咨询" />
-    <!-- Open Graph：微信/微博/QQ 分享卡片 -->
+    <title>瑞华智策 · AI 时代组织进化全生命周期服务商</title>
+    <meta name="description" content="瑞华智策：AI 赋能培训、AI 转型咨询、AI 落地陪跑三位一体，陪企业走完 AI 转型全程。" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="瑞华智策" />
-    <meta property="og:title" content="瑞华智策-人力资本价值经营一体化解决方案_AI原生的本土咨询机构" />
-    <meta property="og:description" content="瑞华智策（人瑞人才旗下），专注为大中型企业提供AI时代“人力资本价值经营”一体化解决方案，助力企业实现可持续的人效提升与利润增长。" />
-    <meta property="og:url" content="https://www.ruihuaconsulting.com/" />
-    <meta property="og:image" content="https://www.ruihuaconsulting.com/images/logo.png" />
-    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/home-mobile.css" />
-    <link rel="stylesheet" href="/css/tailwind.css" />
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="shortcut icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/favicon.ico">
-    <link rel="canonical" href="https://www.ruihuaconsulting.com/" />
-    <link rel="alternate" hreflang="zh-CN" href="https://www.ruihuaconsulting.com/" />
+    <meta property="og:title" content="瑞华智策 · AI 时代组织进化全生命周期服务商" />
+    <meta property="og:description" content="瑞华智策：AI 赋能培训、AI 转型咨询、AI 落地陪跑三位一体，陪企业走完 AI 转型全程。" />
+    <meta name="twitter:card" content="summary_large_image" />
     
-    <!-- Schema.org JSON-LD -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "瑞华智策",
-      "url": "https://www.ruihuaconsulting.com",
-      "logo": "https://www.ruihuaconsulting.com/images/logo.png",
-      "description": "瑞华智策（人瑞人才旗下）提供“咨询+技术+服务”一体化的人力资本价值经营解决方案，助力企业构建AI时代的韧性组织。",
-      "sameAs": [
-        "https://www.renruihr.com"
-      ],
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "telephone": "+86-400-175-0886",
-        "contactType": "customer service",
-        "areaServed": "CN",
-        "availableLanguage": "Chinese"
-      }
-    }
-    </script>
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "瑞华智策官网",
-      "url": "https://www.ruihuaconsulting.com",
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": "https://www.ruihuaconsulting.com/search?q={search_term_string}",
-        "query-input": "required name=search_term_string"
-      }
-    }
-    </script>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700;900&family=JetBrains+Mono:wght@500;700&display=swap" />
+    <link rel="stylesheet" href="/css/rh2026.css" />
+    <link rel="stylesheet" href="/css/rh2026-ext.css" />
 </head>
-<body class="bg-white text-slate-800 antialiased selection:bg-brand-100 selection:text-brand-900">
+<body>
+    <div class="a-prog" id="aProg"></div>
 
-    <header class="fixed w-full z-50 glass-nav transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <div class="flex items-center gap-2">
-                    <a href="/" class="flex items-center gap-2" title="瑞华智策首页">
-                        <img src="/images/logo.png" alt="瑞华智策 Logo" class="h-8 w-auto" />
-                    </a>
+    <nav class="nav" id="nav">
+  <a class="logo" href="/"><img src="data:image/png;base64,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" alt="瑞华智策 RUIHUA CONSULTING" data-sx="s1"></a>
+  <div class="nav-links" id="navLinks">
+    <a href="/">首页</a>
+    <a href="/solutions" class="nav-mt" data-menu="products">产品与服务 <span class="caret">▾</span></a>
+    <a href="/cases" class="nav-mt" data-menu="cases">行业案例 <span class="caret">▾</span></a>
+    <a href="/insights" class="nav-mt" data-menu="research">研究中心 <span class="caret">▾</span></a>
+    <a href="/nqoc" target="_blank" rel="noopener" class="nq">新质组织 <span class="hot">HOT</span></a>
+    <a href="/about" class="nav-mt" data-menu="about">关于我们 <span class="caret">▾</span></a>
+  </div>
+  <div class="nav-right" data-sx="s2">
+    <button type="button" class="btn" data-sx="s3" data-evt-click="e1">AI 顾问</button>
+    <a class="btn btn-ink" href="/contact">预约诊断<span class="arr">→</span></a>
+    <button class="burger" id="burger" aria-label="打开菜单" data-evt-click="e2"><i></i><i></i><i></i></button>
+  </div>
 
-                </div>
-                <nav class="hidden lg:flex space-x-2" aria-label="桌面端导航">
-                    <a href="/" class="nav-link font-semibold text-brand-700 bg-brand-50" title="首页">首页</a>
-                    <div class="relative group inline-block">
-    <a href="/solutions/" class="nav-link flex items-center gap-1" title="解决方案">
-        解决方案
-        <i class="fas fa-chevron-down text-[10px] transition-transform duration-300 group-hover:rotate-180"></i>
-    </a>
-    <div class="absolute left-1/2 -translate-x-1/2 top-full pt-4 w-[24rem] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-50">
-        <div class="bg-white rounded-2xl shadow-2xl shadow-brand-500/10 border border-slate-100 overflow-hidden p-3 relative">
-            <!-- Decorative background -->
-            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-brand-50 to-white rounded-bl-full -z-10 opacity-60"></div>
-            
-            <a href="/solutions-hcvm/" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all">
-                <div class="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center shrink-0 group-hover/item:bg-brand-600 group-hover/item:text-white transition-colors shadow-sm">
-                    <i class="fas fa-chess-knight text-lg"></i>
-                </div>
-                <div>
-                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-brand-700 mb-0.5">人力资本价值经营</div>
-                    <div class="text-[11px] text-slate-500">HCVM体系 (自有员工)</div>
-                </div>
-            </a>
-            
-            <a href="/solutions-ohcvm/" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all mt-1">
-                <div class="w-10 h-10 rounded-xl bg-[#00f0ff]/10 text-[#00a0ff] flex items-center justify-center shrink-0 group-hover/item:bg-[#00a0ff] group-hover/item:text-white transition-colors shadow-sm">
-                    <i class="fas fa-network-wired text-lg"></i>
-                </div>
-                <div>
-                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-[#00a0ff] mb-0.5">全场景一体化用工</div>
-                    <div class="text-[11px] text-slate-500">OHCVM体系 (外包员工)</div>
-                </div>
-            </a>
-            
-            <div class="h-px w-full bg-gradient-to-r from-transparent via-slate-100 to-transparent my-2"></div>
-            
-            <a href="/training" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all">
-                <div class="w-10 h-10 rounded-xl bg-fuchsia-100 text-fuchsia-600 flex items-center justify-center shrink-0 group-hover/item:bg-fuchsia-600 group-hover/item:text-white transition-colors shadow-sm">
-                    <i class="fas fa-chalkboard-teacher text-lg"></i>
-                </div>
-                <div>
-                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-fuchsia-600 mb-0.5">企业AI落地咨询式培训</div>
-                    <div class="text-[11px] text-slate-500">高管工作坊与共创蓝图</div>
-                </div>
-            </a>
+  <div class="mega-sheet" id="megaSheet" aria-hidden="true">
+    <div class="mega-pane" data-pane="products"><div class="m-in">
+        <div class="m-cols">
+          <div class="m-group">AI 转型三位一体</div>
+          <a class="m-item" href="/solutions/training" data-prev="training"><b>AI 赋能培训</b><span>人才工作坊与技能实训 · 12 门课</span></a>
+          <a class="m-item" href="/solutions/consulting" data-prev="consulting"><b>AI 转型咨询</b><span>新增长引擎 × 碳硅共智</span></a>
+          <a class="m-item" href="/solutions/fde" data-prev="fde"><b>AI 落地陪跑</b><span>现场部署 · 持续运营 · 能力转移</span></a>
+          <div class="m-group" data-sx="s4">价值经营</div>
+          <a class="m-item" href="/hcvm" data-prev="hcvm"><b>人力资本价值经营</b><span>HCVM · 管理+技术双轮驱动</span></a>
+          <a class="m-item" href="/cases" data-prev="fde"><b>行业案例</b><span>27 个真实交付 · 8 个行业</span></a>
         </div>
-    </div>
-</div>
-                    <div class="relative group inline-block">
-    <a href="/resources/" class="nav-link flex items-center gap-1" title="行业洞察">
-        行业洞察
-        <i class="fas fa-chevron-down text-[10px] transition-transform duration-300 group-hover:rotate-180"></i>
-    </a>
-    <div class="absolute left-1/2 -translate-x-1/2 top-full pt-4 w-[16rem] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-50">
-        <div class="bg-white rounded-2xl shadow-2xl shadow-brand-500/10 border border-slate-100 overflow-hidden p-3 relative">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-brand-50 to-white rounded-bl-full -z-10 opacity-60"></div>
-            
-            <a href="/resources/" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all">
-                <div class="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center shrink-0 group-hover/item:bg-brand-600 group-hover/item:text-white transition-colors shadow-sm">
-                    <i class="fas fa-book-open text-lg"></i>
-                </div>
-                <div>
-                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-brand-700 mb-0.5">经营智库</div>
-                    <div class="text-[11px] text-slate-500">文章、白皮书与报告</div>
-                </div>
-            </a>
-            
-            <a href="/videos" class="group/item flex items-start gap-4 p-3 rounded-xl hover:bg-brand-50/60 transition-all mt-1">
-                <div class="w-10 h-10 rounded-xl bg-[#00f0ff]/10 text-[#00a0ff] flex items-center justify-center shrink-0 group-hover/item:bg-[#00a0ff] group-hover/item:text-white transition-colors shadow-sm">
-                    <i class="fas fa-video text-lg"></i>
-                </div>
-                <div>
-                    <div class="text-sm font-bold text-slate-800 group-hover/item:text-[#00a0ff] mb-0.5">值得看见</div>
-                    <div class="text-[11px] text-slate-500">视频访谈与活动回放</div>
-                </div>
-            </a>
+        <div class="m-prev" id="megaPrev"><span class="cap" id="megaCap">TRAINING</span></div>
+      </div></div>
+    <div class="mega-pane" data-pane="cases"><div class="m-in">
+        <div class="m-cols">
+          <div class="m-group">按行业浏览 · 27 个真实交付</div>
+          <a class="m-item" href="/cases/industry/manufacturing" data-prev="fde" data-cap="MANUFACTURING"><b>制造业</b><span>海尔智家 · 鑫方盛 · TCL 实业等</span></a>
+          <a class="m-item" href="/cases/industry/retail" data-prev="training" data-cap="RETAIL"><b>零售快消</b><span>伊利 · 茶颜悦色 · 鸣鸣很忙</span></a>
+          <a class="m-item" href="/cases/industry/finance" data-prev="consulting" data-cap="FINANCE"><b>金融财税</b><span>中国银行 · 招商银行 · 慧算账</span></a>
+          <a class="m-item" href="/cases" data-prev="hcvm" data-cap="ALL CASES"><b>全部案例</b><span>8 个行业筛选 · 全文详情</span></a>
         </div>
-    </div>
-</div>
-                    <a href="/nqoc" class="nav-link" title="新质组织研究">新质组织研究<span class="inline-flex items-center justify-center px-1.5 py-[1px] ml-1.5 text-[9px] font-black tracking-wider text-white uppercase bg-gradient-to-r from-[#ff6a00] to-[#ee0979] rounded-tl-md rounded-tr-md rounded-br-md rounded-bl-sm shadow-sm -translate-y-1 relative">HOT<span class="absolute top-0 right-0 w-1.5 h-1.5 bg-white rounded-full opacity-30 animate-ping"></span></span></a>
-                    <a href="/#cases" class="nav-link" title="成功案例">成功案例</a>
-                    <a href="/about/" class="nav-link" title="关于我们">关于我们</a>
-                </nav>
-                <div class="hidden md:flex items-center space-x-4">
-                    <button onclick="toggleSearch()" class="text-slate-500 hover:text-brand-600 transition-colors p-2 rounded-full hover:bg-slate-50" aria-label="AI Search">
-                        <i class="fas fa-search text-lg"></i>
-                    </button>
-                    <a href="/productivity/" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-full font-medium transition shadow-lg shadow-brand-500/20 hover:-translate-y-0.5 text-sm" title="预约专家咨询">
-                        预约专家咨询
-                    </a>
-                </div>
-                <button class="lg:hidden p-2 rounded-lg hover:bg-slate-100" onclick="toggleMobileMenu()" aria-label="切换移动端菜单">
-                    <i class="fas fa-bars text-slate-600 text-xl"></i>
-                </button>
-            </div>
+        <div class="m-prev"></div>
+      </div></div>
+    <div class="mega-pane" data-pane="research"><div class="m-in">
+        <div class="m-cols">
+          <div class="m-group">研究与方法论</div>
+          <a class="m-item" href="/insights" data-prev="consulting" data-cap="INSIGHTS"><b>行业洞察</b><span>三大智库 · AI 转型趋势与场景分析</span></a>
+          <a class="m-item" href="/insights" data-prev="hcvm" data-cap="THINK TANK"><b>经营智库</b><span>R=B×O 方法论与管理实践框架</span></a>
+          <a class="m-item" href="/nqoc" target="_blank" rel="noopener" data-prev="training" data-cap="NQOC"><b>中国新质组织研究 ↗</b><span>北大光华 × 中国经营报联合发起</span></a>
         </div>
-        <nav id="mobileMenu" class="hidden lg:hidden bg-white border-t border-slate-100 px-4 py-4" aria-label="移动端导航">
-            <div class="flex flex-col space-y-2">
-                <a href="/" class="mobile-nav-link font-semibold text-brand-700 bg-brand-50" title="首页">首页</a>
-                <div class="flex flex-col border-b border-slate-50 pb-2 mb-2">
-    <a href="/solutions/"  class="mobile-nav-link" title="解决方案">解决方案</a>
-    <div class="flex flex-col pl-4 mt-2 space-y-2 border-l-2 border-brand-100">
-        <a href="/solutions-hcvm/" class="text-sm text-slate-500 hover:text-brand-700 py-1">人力资本价值经营</a>
-        <a href="/solutions-ohcvm/" class="text-sm text-slate-500 hover:text-brand-700 py-1">全场景一体化用工</a>
-        <a href="/training" class="text-sm text-slate-500 hover:text-brand-700 py-1">企业AI落地咨询式培训</a>
-    </div>
-</div>
-                <div class="flex flex-col border-b border-slate-50 pb-2 mb-2">
-    <a href="/resources/" class="mobile-nav-link" title="行业洞察">行业洞察</a>
-    <div class="flex flex-col pl-4 mt-2 space-y-2 border-l-2 border-brand-100">
-        <a href="/resources/" class="text-sm text-slate-500 hover:text-brand-700 py-1">经营智库</a>
-        <a href="/videos" class="text-sm text-slate-500 hover:text-brand-700 py-1">值得看见</a>
-    </div>
-</div>
-                <a href="/nqoc" class="mobile-nav-link" title="新质组织研究">新质组织研究<span class="inline-flex items-center justify-center px-1.5 py-[1px] ml-1.5 text-[9px] font-black tracking-wider text-white uppercase bg-gradient-to-r from-[#ff6a00] to-[#ee0979] rounded-tl-md rounded-tr-md rounded-br-md rounded-bl-sm shadow-sm -translate-y-1 relative">HOT<span class="absolute top-0 right-0 w-1.5 h-1.5 bg-white rounded-full opacity-30 animate-ping"></span></span></a>
-                <a href="/#cases" class="mobile-nav-link" title="成功案例">成功案例</a>
-                <a href="/about/" class="mobile-nav-link" title="关于我们">关于我们</a>
-                <button onclick="toggleSearch()" class="mobile-nav-link text-left flex items-center gap-2 text-slate-600 hover:text-brand-600">
-                    <i class="fas fa-search"></i> 智能搜索
-                </button>
-                <a href="/productivity/" class="bg-brand-600 text-white font-medium py-3 px-4 rounded-lg text-center mt-2" title="预约专家咨询">预约专家咨询</a>
-            </div>
-        </nav>
-    </header>
-
-    <main>
-        <section class="pt-32 pb-24 relative overflow-hidden bg-slate-50/50 hero-bg-combined">
-            <div class="absolute inset-0 bg-grid-pattern opacity-60 z-0"></div>
-            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-[800px] h-[800px] bg-gradient-to-br from-brand-50 to-blue-50 rounded-full blur-3xl opacity-60 animate-blob hero-blob-delay-1"></div>
-            <div class="home-shell relative z-10">
-                <div class="grid lg:grid-cols-2 gap-12 items-center">
-                    <div>
-                        <div class="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-gradient-to-r from-brand-100 to-blue-100 border border-brand-200 text-brand-700 text-xs font-bold tracking-wide mb-6">
-                            <i class="fas fa-microchip"></i>
-                            <span id="hero-tag">AI 原生的本土咨询机构</span> 
-                        </div>
-                        <h1 class="font-extrabold text-slate-900 leading-tight tracking-tight mb-6 home-hero__title">
-                            <span class="text-gradient block text-4xl sm:text-5xl md:text-6xl home-hero__title-main">重塑人力资本价值</span>
-                            <span class="block mt-2 text-2xl sm:text-3xl md:text-4xl text-slate-800 tracking-normal font-bold home-hero__title-sub">助力企业人效提升和利润增长</span>
-                        </h1>
-                        <p class="text-slate-600 mb-8 leading-relaxed text-base max-w-2xl" id="hero-subtitle">
-                            为大中型企业提供“人力资本价值经营”一体化解决方案，以创新的咨询方式高效导入原创思想和方法论，通过自主研发的 ©HCVM 数智平台落地。
-                        </p>
-                        
-                        <div class="hero-capability-list scrollbar-hide edge-scroll-pad">
-                            <!-- 管理咨询 -->
-                            <div class="hero-capability-item">
-                                <div class="hero-capability-item-icon orange">
-                                    <i class="fas fa-compass"></i>
-                                </div>
-                                <span class="font-bold text-slate-800 text-xs sm:text-sm">管理咨询</span>
-                            </div>
-                            
-                            <span class="text-slate-300 text-lg sm:text-xl font-light shrink-0">+</span>
-                            
-                            <!-- 数智平台 -->
-                            <div class="hero-capability-item">
-                                <div class="hero-capability-item-icon blue">
-                                    <i class="fas fa-network-wired"></i>
-                                </div>
-                                <span class="font-bold text-slate-800 text-xs sm:text-sm">数智平台</span>
-                            </div>
-                            
-                            <span class="text-slate-300 text-lg sm:text-xl font-light shrink-0">+</span>
-                            
-                            <!-- 陪伴式服务 -->
-                            <div class="hero-capability-item">
-                                <div class="hero-capability-item-icon purple">
-                                    <i class="fas fa-handshake"></i>
-                                </div>
-                                <span class="font-bold text-slate-800 text-xs sm:text-sm">陪伴式服务</span>
-                            </div>
-                        </div>
-
-                        <div class="flex flex-col sm:flex-row gap-4">
-                            <a href="/productivity/" id="hero-main-btn" class="hero-cta-primary" title="预约组织人效体检">
-                                <i class="fas fa-calendar-check"></i>
-                                预约组织人效体检
-                                <i class="fas fa-arrow-right ml-1"></i>
-                            </a>
-                        </div>
-                        <div class="mt-8 pt-5 border-t border-slate-200/60">
-                            <p class="text-xs text-slate-400 mb-3">依托人瑞人才（<span class="font-medium text-slate-500">6919.HK</span>）深耕行业15年的服务底蕴</p>
-                            <div class="partner-logos partner-logo-track scrollbar-hide edge-scroll-pad">
-                                <img src="/images/geely.png" alt="吉利" class="h-6 sm:h-7 partner-logo-item">
-                                <img src="/images/bgi.png" alt="华大" class="h-6 sm:h-7 partner-logo-item">
-                                <img src="/images/zhaoshang.png" alt="招商" class="h-7 sm:h-8 partner-logo-item">
-                                <img src="/images/douyin.png" alt="抖音" class="h-6 sm:h-7 partner-logo-item">
-                                <img src="/images/xiaohongshu.png" alt="小红书" class="h-5 sm:h-6 partner-logo-item">
-                                <img src="/images/xiaomi.png" alt="小米" class="h-7 sm:h-8 partner-logo-item">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="relative hidden md:flex justify-center items-center h-[420px] lg:h-[480px]">
-                        <div class="hero-wheel-container animate-float"><img src="/images/hc-value-wheel.png" alt="价值环" class="hero-wheel-image" id="hero-image" /></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="mission" class="py-24 bg-white overflow-hidden">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-20 relative">
-                    <span class="text-brand-600 font-bold tracking-widest uppercase text-sm bg-brand-50 px-4 py-1.5 rounded-full inline-block mb-4">Mission & Solution</span>
-                    <h2 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">从资源红利到<span class="text-brand-600 relative inline-block">价值红利<svg class="absolute w-full h-3 -bottom-1 left-0 text-brand-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="8" fill="none"/></svg></span>的跃迁</h2>
-                    <p class="text-slate-600 max-w-2xl mx-auto text-base leading-relaxed whitespace-nowrap">我们深入理解企业在人力资本经营中的核心挑战，并提供针对性的系统化解决方案。</p>
-                </div>
-
-                <!-- Interactive Mission Grid -->
-                <div class="relative mb-20">
-                    <!-- Mobile Tabs -->
-                    <div class="flex md:hidden justify-center gap-4 mb-8">
-                        <button id="tab-challenges" onclick="switchMissionTab('challenges')" class="mission-tab-btn active" aria-label="切换到企业挑战">
-                            企业挑战
-                        </button>
-                        <button id="tab-solutions" onclick="switchMissionTab('solutions')" class="mission-tab-btn inactive" aria-label="切换到我们的方案">
-                            我们的方案
-                        </button>
-                    </div>
-
-                    <!-- Connector Line (Desktop) -->
-                    <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-slate-200 to-transparent transform -translate-x-1/2 z-0"></div>
-                    
-                    <div class="grid md:grid-cols-2 gap-8 md:gap-12 relative z-10" id="mission-interaction-container">
-                        <!-- Left Column: Challenges -->
-                        <div class="space-y-6" id="mission-challenges">
-                            <div class="text-center md:text-right mb-8">
-                                <h3 class="text-2xl font-bold text-slate-800 inline-flex items-center gap-3">企业面临的挑战
-                                </h3>
-                            </div>
-                            
-                            <!-- Challenge Items -->
-                            <article class="mission-card challenge group" data-index="1">
-                                <div class="mission-card-content">
-                                    <div class="icon-box bg-[#EA5504]/5 text-[#EA5504] group-hover:bg-[#EA5504] group-hover:text-white">
-                                        <i class="fas fa-chart-line"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-lg font-bold text-slate-800 mb-2">人力成本持续攀升</h4>
-                                        <p class="text-sm text-slate-500 leading-relaxed">人工成本占比逐年上升，刚性支出挤压企业利润空间，传统降本方式已触及天花板。</p>
-                                    </div>
-                                </div>
-                                <div class="connector-point right"></div>
-                            </article>
-
-                            <article class="mission-card challenge group" data-index="2">
-                                <div class="mission-card-content">
-                                    <div class="icon-box bg-[#EA5504]/5 text-[#EA5504] group-hover:bg-[#EA5504] group-hover:text-white">
-                                        <i class="fas fa-calculator"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-lg font-bold text-slate-800 mb-2">组织效能难以量化</h4>
-                                        <p class="text-sm text-slate-500 leading-relaxed">缺乏科学的人效评估体系，人才账本算不清，管理决策依赖经验而非数据支撑。</p>
-                                    </div>
-                                </div>
-                                <div class="connector-point right"></div>
-                            </article>
-
-                            <article class="mission-card challenge group" data-index="3">
-                                <div class="mission-card-content">
-                                    <div class="icon-box bg-[#EA5504]/5 text-[#EA5504] group-hover:bg-[#EA5504] group-hover:text-white">
-                                        <i class="fas fa-robot"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-lg font-bold text-slate-800 mb-2">AI 转型路径不清</h4>
-                                        <p class="text-sm text-slate-500 leading-relaxed">数字化投入巨大但业务价值难以体现，缺乏懂业务、懂管理、懂技术的复合型落地路径。</p>
-                                    </div>
-                                </div>
-                                <div class="connector-point right"></div>
-                            </article>
-
-                            <article class="mission-card challenge group" data-index="4">
-                                <div class="mission-card-content">
-                                    <div class="icon-box bg-[#EA5504]/5 text-[#EA5504] group-hover:bg-[#EA5504] group-hover:text-white">
-                                        <i class="fas fa-project-diagram"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-lg font-bold text-slate-800 mb-2">管理变革落地困难</h4>
-                                        <p class="text-sm text-slate-500 leading-relaxed">顶层设计与基层执行脱节，咨询方案束之高阁，缺乏持续运营和陪伴式服务。</p>
-                                    </div>
-                                </div>
-                                <div class="connector-point right"></div>
-                            </article>
-                        </div>
-
-                        <!-- Right Column: Solutions -->
-                        <div class="space-y-6 hidden md:block" id="mission-solutions">
-                            <div class="text-center md:text-left mb-8">
-                                <h3 class="text-2xl font-bold text-brand-violet inline-flex items-center gap-3 flex-row-reverse md:flex-row">
-                                    瑞华智策的解决之道
-                                </h3>
-                            </div>
-
-                            <!-- Solution Items -->
-                            <article class="mission-card solution group" data-index="1">
-                                <div class="connector-point left"></div>
-                                <div class="mission-card-content">
-                                    <div class="icon-box bg-brand-violet-10 text-brand-violet group-hover-bg-brand-violet group-hover-text-white">
-                                        <i class="fas fa-coins"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-lg font-bold text-slate-800 mb-2">构建价值经营体系</h4>
-                                        <p class="text-sm text-slate-500 leading-relaxed">从"成本中心"转向"利润中心"，通过 ROHC 框架精准量化人才 ROI，实现成本结构优化。</p>
-                                    </div>
-                                </div>
-                            </article>
-
-                            <article class="mission-card solution group" data-index="2">
-                                <div class="connector-point left"></div>
-                                <div class="mission-card-content">
-                                    <div class="icon-box bg-brand-violet-10 text-brand-violet group-hover-bg-brand-violet group-hover-text-white">
-                                        <i class="fas fa-chart-pie"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-lg font-bold text-slate-800 mb-2">数智化平台赋能</h4>
-                                        <p class="text-sm text-slate-500 leading-relaxed">搭建经营决策看板与人效仪表盘，实现数据实时透视，让每一次管理动作都有据可依。</p>
-                                    </div>
-                                </div>
-                            </article>
-
-                            <article class="mission-card solution group" data-index="3">
-                                <div class="connector-point left"></div>
-                                <div class="mission-card-content">
-                                    <div class="icon-box bg-brand-violet-10 text-brand-violet group-hover-bg-brand-violet group-hover-text-white">
-                                        <i class="fas fa-microchip"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-lg font-bold text-slate-800 mb-2">AI 场景化落地</h4>
-                                        <p class="text-sm text-slate-500 leading-relaxed">部署 AI Agent 智能体集群（招聘、培训、绩效等），重构业务流程，释放组织创造力。</p>
-                                    </div>
-                                </div>
-                            </article>
-
-                            <article class="mission-card solution group" data-index="4">
-                                <div class="connector-point left"></div>
-                                <div class="mission-card-content">
-                                    <div class="icon-box bg-brand-violet-10 text-brand-violet group-hover-bg-brand-violet group-hover-text-white">
-                                        <i class="fas fa-hands-helping"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-lg font-bold text-slate-800 mb-2">全周期陪伴式服务</h4>
-                                        <p class="text-sm text-slate-500 leading-relaxed">"咨询+技术+运营"一体化交付，确保方案从设计到落地无缝衔接，对结果负责。</p>
-                                    </div>
-                                </div>
-                            </article>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Value Cards (Bottom 3) -->
-                <div class="grid md:grid-cols-3 gap-6">
-                    <article class="value-card bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl border border-slate-100 text-center transition-all duration-300 group">
-                        
-                        <div class="text-xs font-bold text-purple-500 uppercase tracking-wider mb-3">Strategy</div>
-                        <h4 class="text-xl font-bold text-slate-900 mb-2">管理咨询</h4>
-                        <p class="text-sm text-slate-500">顶层设计与体系规划</p>
-                    </article>
-                    <article class="value-card bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl border border-slate-100 text-center transition-all duration-300 group">
-                        
-                        <div class="text-xs font-bold text-blue-500 uppercase tracking-wider mb-3">Technology</div>
-                        <h4 class="text-xl font-bold text-slate-900 mb-2">数智化建设</h4>
-                        <p class="text-sm text-slate-500">平台搭建与工具赋能</p>
-                    </article>
-                    <article class="value-card bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl border border-slate-100 text-center transition-all duration-300 group">
-                        
-                        <div class="text-xs font-bold text-indigo-500 uppercase tracking-wider mb-3">Operation</div>
-                        <h4 class="text-xl font-bold text-slate-900 mb-2">陪伴式服务</h4>
-                        <p class="text-sm text-slate-500">持续运营与效果达成</p>
-                    </article>
-                </div>
-            </div>
-        </section>
-
-        <section id="dual-engine" class="py-24 bg-slate-50 overflow-hidden">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-16">
-                    <span class="text-brand-600 font-bold tracking-widest uppercase text-sm">Core Methodology</span>
-                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-4 mb-4">"管理+技术"双轮驱动核心体系</h2>
-                    <p class="text-slate-600 max-w-3xl mx-auto text-base home-dual-engine__desc">通过管理轮与技术轮的深度咬合，实现从战略解码到价值分配的完整闭环</p>
-                </div>
-                <div class="grid lg:grid-cols-2 gap-8 items-stretch">
-                    <!-- Management Wheel: Value Creation (Clean, Professional, ROI-Focused) -->
-                    <article class="dual-wheel-card management group">
-                        <!-- Subtle Background Elements -->
-                        <div class="absolute top-0 right-0 w-64 h-64 bg-brand-50/60 rounded-full blur-3xl -mr-16 -mt-16 opacity-60 pointer-events-none"></div>
-                        
-                        <div class="relative z-10 h-full flex flex-col">
-                            <!-- Header -->
-                            <div class="flex items-start gap-5 mb-8">
-                                
-                                <div>
-                                    <span class="inline-block text-xs font-bold text-brand-500 uppercase tracking-widest mb-1">Human Capital</span>
-                                    <h3 class="text-2xl font-bold text-slate-900 tracking-tight">管理轮：价值创造</h3>
-                                </div>
-                            </div>
-                            
-                            <p class="text-slate-600 mb-10 text-sm lg:text-base leading-relaxed font-medium whitespace-nowrap">
-                                用<span class="text-brand-600 font-bold bg-brand-50 px-1 rounded">ROI思维</span>贯通人才管理，从战略解码到价值分配形成闭环。
-                            </p>
-                            
-                            <div class="grid sm:grid-cols-2 gap-4 flex-grow content-start">
-                                <div class="dual-wheel-feature-card management-feature-card group/card">
-                                    <div class="flex justify-between items-start mb-3">
-                                        <div class="flex items-center gap-3">
-                                            <div class="dual-wheel-feature-icon management">
-                                                <i class="fas fa-bullseye text-base"></i>
-                                            </div>
-                                            <h4 class="font-bold text-slate-900 text-sm">战略解码与目标管理</h4>
-                                        </div>
-                                        <i class="fas fa-arrow-right dual-wheel-arrow"></i>
-                                    </div>
-                                    <p class="text-xs text-slate-500 leading-relaxed">校准目标路径，确保经营目标与个人绩效对齐</p>
-                                </div>
-                                <div class="dual-wheel-feature-card management-feature-card group/card">
-                                    <div class="flex justify-between items-start mb-3">
-                                        <div class="flex items-center gap-3">
-                                            <div class="dual-wheel-feature-icon management">
-                                                <i class="fas fa-sitemap text-base"></i>
-                                            </div>
-                                            <h4 class="font-bold text-slate-900 text-sm">组织发展与能力建设</h4>
-                                        </div>
-                                        <i class="fas fa-arrow-right dual-wheel-arrow"></i>
-                                    </div>
-                                    <p class="text-xs text-slate-500 leading-relaxed">打造敏捷组织架构，提升人均产出与组织韧性</p>
-                                </div>
-                                <div class="dual-wheel-feature-card management-feature-card group/card">
-                                    <div class="flex justify-between items-start mb-3">
-                                        <div class="flex items-center gap-3">
-                                            <div class="dual-wheel-feature-icon management">
-                                                <i class="fas fa-chart-line text-base"></i>
-                                            </div>
-                                            <h4 class="font-bold text-slate-900 text-sm">人力资本价值评价</h4>
-                                        </div>
-                                        <i class="fas fa-arrow-right dual-wheel-arrow"></i>
-                                    </div>
-                                    <p class="text-xs text-slate-500 leading-relaxed">从"成本视角"转向"资本视角"，科学量化人才ROI</p>
-                                </div>
-                                <div class="dual-wheel-feature-card management-feature-card group/card">
-                                    <div class="flex justify-between items-start mb-3">
-                                        <div class="flex items-center gap-3">
-                                            <div class="dual-wheel-feature-icon management">
-                                                <i class="fas fa-handshake text-base"></i>
-                                            </div>
-                                            <h4 class="font-bold text-slate-900 text-sm">价值分配与激励机制</h4>
-                                        </div>
-                                        <i class="fas fa-arrow-right dual-wheel-arrow"></i>
-                                    </div>
-                                    <p class="text-xs text-slate-500 leading-relaxed">建立基于贡献的分配机制，激发组织活力</p>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-
-                    <!-- Technology Wheel: Digital Empowerment (Light Tech, Modern, Airy) -->
-                    <article class="dual-wheel-card tech group">
-                        <!-- Tech Background Elements -->
-                        <div class="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.03)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
-                        <div class="absolute top-0 right-0 w-80 h-80 bg-blue-100/40 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none"></div>
-                        
-                        <div class="relative z-10 h-full flex flex-col">
-                            <!-- Header -->
-                            <div class="flex items-start gap-5 mb-8">
-                                
-                                <div>
-                                    <span class="inline-block text-xs font-bold text-blue-500 uppercase tracking-widest mb-1">AI Technology</span>
-                                    <h3 class="text-2xl font-bold text-slate-900 tracking-tight">技术轮：数智赋能</h3>
-                                </div>
-                            </div>
-                            
-                            <p class="text-slate-600 mb-10 text-sm lg:text-base leading-relaxed font-medium whitespace-nowrap home-tech-wheel__desc">
-                                AI重构业务场景，打通数据孤岛，实现 <span class="text-blue-600 font-bold bg-blue-50 px-1 rounded">决策智能化</span>。
-                            </p>
-                            
-                            <!-- Tech Grid -->
-                            <div class="grid sm:grid-cols-2 gap-4 flex-grow content-start">
-                                <!-- Card 1 -->
-                                <div class="dual-wheel-feature-card tech-feature-card group/card">
-                                    <div class="flex justify-between items-start mb-3">
-                                        <div class="dual-wheel-feature-icon tech">
-                                            <i class="fas fa-chart-pie text-lg"></i>
-                                        </div>
-                                        <i class="fas fa-arrow-right dual-wheel-arrow"></i>
-                                    </div>
-                                    <h4 class="font-bold text-slate-900 text-sm mb-1">经营决策看板 (BI)</h4>
-                                    <p class="text-xs text-slate-500 leading-relaxed">实时展现人力资本ROI、利润预测</p>
-                                </div>
-                                
-                                <!-- Card 2 -->
-                                <div class="dual-wheel-feature-card tech-feature-card group/card">
-                                    <div class="flex justify-between items-start mb-3">
-                                        <div class="dual-wheel-feature-icon tech">
-                                            <i class="fas fa-robot text-lg"></i>
-                                        </div>
-                                        <i class="fas fa-arrow-right dual-wheel-arrow"></i>
-                                    </div>
-                                    <h4 class="font-bold text-slate-900 text-sm mb-1">AI Agent 智能体</h4>
-                                    <p class="text-xs text-slate-500 leading-relaxed">实时绩效、工时统计、技能陪练Agent</p>
-                                </div>
-                                
-                                <!-- Card 3 -->
-                                <div class="dual-wheel-feature-card tech-feature-card group/card">
-                                    <div class="flex justify-between items-start mb-3">
-                                        <div class="dual-wheel-feature-icon tech">
-                                            <i class="fas fa-database text-lg"></i>
-                                        </div>
-                                        <i class="fas fa-arrow-right dual-wheel-arrow"></i>
-                                    </div>
-                                    <h4 class="font-bold text-slate-900 text-sm mb-1">统一数据底座</h4>
-                                    <p class="text-xs text-slate-500 leading-relaxed">打通 ERP+CRM+HRM 异构系统</p>
-                                </div>
-                                
-                                <!-- Card 4 -->
-                                <div class="dual-wheel-feature-card tech-feature-card group/card">
-                                    <div class="flex justify-between items-start mb-3">
-                                        <div class="dual-wheel-feature-icon tech">
-                                            <i class="fas fa-brain text-lg"></i>
-                                        </div>
-                                        <i class="fas fa-arrow-right dual-wheel-arrow"></i>
-                                    </div>
-                                    <h4 class="font-bold text-slate-900 text-sm mb-1">企业知识沉淀</h4>
-                                    <p class="text-xs text-slate-500 leading-relaxed">利用 RAG 技术构建组织大脑</p>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-                </div>
-                <div class="mt-12 bg-gradient-to-r from-brand-50 via-white to-blue-50 rounded-2xl p-8 border border-slate-100">
-                    <div class="flex flex-row items-center justify-center gap-4 md:gap-16 home-drive__container">
-                        <div class="flex items-center gap-2 md:gap-4 text-left">
-                            
-                            <div>
-                                <p class="font-bold text-slate-800 text-sm md:text-lg whitespace-nowrap">管理驱动</p>
-                                <p class="text-xs md:text-sm text-slate-500 whitespace-nowrap">价值创造</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-1 md:gap-2">
-                            <i class="fas fa-arrows-left-right text-lg md:text-2xl text-slate-300 hidden md:block"></i>
-                            <div class="w-10 h-10 md:w-16 md:h-16 bg-gradient-to-br from-brand-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg shrink-0">
-                                <i class="fas fa-bolt text-white text-base md:text-xl"></i>
-                            </div>
-                            <i class="fas fa-arrows-left-right text-lg md:text-2xl text-slate-300 hidden md:block"></i>
-                        </div>
-                        <div class="flex items-center gap-2 md:gap-4 text-left">
-                            
-                            <div>
-                                <p class="font-bold text-slate-800 text-sm md:text-lg whitespace-nowrap">数智驱动</p>
-                                <p class="text-xs md:text-sm text-slate-500 whitespace-nowrap">管理优化</p>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="text-center text-slate-600 mt-6 font-medium">双轮深度咬合，形成<span class="text-brand-600 font-bold">「管理提需求 → 技术来实现 → 数据反哺管理」</span>的正向循环</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="py-24 bg-slate-50 relative overflow-hidden">
-            <div class="absolute inset-0 bg-grid-pattern opacity-50 pointer-events-none"></div>
-            <div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-white via-transparent to-transparent opacity-60 pointer-events-none"></div>
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div class="text-center mb-16">
-                    <span class="text-brand-600 font-bold tracking-widest uppercase text-sm">Core Business Solutions</span>
-                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-3 mb-4">覆盖全周期的两大核心解决方案</h2>
-                    <p class="text-slate-600 max-w-2xl mx-auto text-base">针对企业内部员工与外部灵活用工的不同痛点，提供分层分级的数智化管理闭环。</p>
-                </div>
-                <div class="grid md:grid-cols-2 gap-8">
-                    <!-- Card 1: HCVM -->
-                    <article class="group relative rounded-3xl bg-white border border-brand-violet-20 p-8 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer" onclick="window.location.href='/solutions-hcvm/'">
-                        <!-- Top Gradient/Blob -->
-                        <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-brand-violet-20 to-purple-50 rounded-bl-full -mr-8 -mt-8 opacity-50 transition-transform group-hover:scale-110 pointer-events-none"></div>
-
-                        <div class="relative z-10 h-full flex flex-col">
-
-                            <!-- Title -->
-                            <div class="flex items-baseline gap-2 mb-6">
-                                <h3 class="text-2xl font-bold text-slate-900">人力资本价值经营一体化解决方案</h3>
-                                <span class="text-xl font-bold text-brand-violet">(HCVM)</span>
-                            </div>
-                            
-                            <!-- Core Concept -->
-                            <div class="bg-brand-violet-5 rounded-xl p-5 mb-6 border border-brand-violet-10">
-                                <strong class="block text-brand-violet mb-2 text-sm">核心理念：</strong>
-                                <p class="text-slate-600 text-sm leading-relaxed">以“人”为中心，关注人效与ROI，建立价值评估分配机制，激发组织活力。</p>
-                            </div>
-                            
-                            <!-- Details -->
-                            <div class="space-y-3 mb-8 flex-grow">
-                                <div class="flex items-start gap-3">
-                                    <span class="px-2 py-1 bg-brand-violet-10 text-brand-violet text-xs font-bold rounded shrink-0">适用对象</span>
-                                    <span class="text-slate-600 text-sm">整个组织或研发、销售、服务等核心团队</span>
-                                </div>
-                                <div class="flex items-start gap-3">
-                                    <span class="px-2 py-1 bg-brand-violet-10 text-brand-violet text-xs font-bold rounded shrink-0">核心价值</span>
-                                    <span class="text-slate-600 text-sm">算清人才账，分好利益饼</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Link -->
-                            <div class="flex items-center text-brand-violet font-bold group-hover:gap-2 transition-all">
-                                了解详细方案 <i class="fas fa-arrow-right ml-2"></i>
-                            </div>
-                        </div>
-                    </article>
-
-                    <!-- Card 2: OHCVM -->
-                    <article class="group relative rounded-3xl bg-white border border-brand-blue-20 p-8 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer" onclick="window.location.href='/solutions-ohcvm/'">
-                        <!-- Top Gradient/Blob -->
-                        <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-brand-blue-20 to-blue-50 rounded-bl-full -mr-8 -mt-8 opacity-50 transition-transform group-hover:scale-110 pointer-events-none"></div>
-
-                        <div class="relative z-10 h-full flex flex-col">
-                            <!-- Badge 02 -->
-                            
-                            
-                            <!-- Title -->
-                            <div class="flex items-baseline gap-2 mb-6">
-                                <h3 class="text-2xl font-bold text-slate-900">全场景用工一体化解决方案</h3>
-                                <span class="text-xl font-bold text-brand-blue">(OHCVM)</span>
-                            </div>
-                            
-                            <!-- Core Concept -->
-                            <div class="bg-brand-blue-5 rounded-xl p-5 mb-6 border border-brand-blue-10">
-                                <strong class="block text-brand-blue mb-2 text-sm">核心理念：</strong>
-                                <p class="text-slate-600 text-sm leading-relaxed">以“事”为中心，关注合规与成本，构建透明高效的供应链，降低用工风险。</p>
-                            </div>
-                            
-                            <!-- Details -->
-                            <div class="space-y-3 mb-8 flex-grow">
-                                <div class="flex items-start gap-3">
-                                    <span class="px-2 py-1 bg-brand-blue-10 text-brand-blue text-xs font-bold rounded shrink-0">适用对象</span>
-                                    <span class="text-slate-600 text-sm">灵活用工、业务外包、人力外包场景</span>
-                                </div>
-                                <div class="flex items-start gap-3">
-                                    <span class="px-2 py-1 bg-brand-blue-10 text-brand-blue text-xs font-bold rounded shrink-0">核心价值</span>
-                                    <span class="text-slate-600 text-sm">合规、降本、增效、避险</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Link -->
-                            <div class="flex items-center text-brand-blue font-bold group-hover:gap-2 transition-all">
-                                了解详细方案 <i class="fas fa-arrow-right ml-2"></i>
-                            </div>
-                        </div>
-                    </article>
-                </div>
-            </div>
-        </section>
-
-        <section id="cases" class="py-24 bg-slate-900 text-white relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-brand-900 to-transparent opacity-30 pointer-events-none"></div>
-            <div class="absolute bottom-0 left-0 w-96 h-96 bg-blue-900/20 rounded-full blur-[100px] pointer-events-none"></div>
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div class="text-center mb-12">
-                    <span class="text-brand-400 font-bold tracking-widest uppercase text-sm">Success Stories</span>
-                    <h2 class="text-3xl md:text-4xl font-bold mt-2">行业标杆客户的价值实践</h2>
-                    <p class="text-slate-400 mt-4 max-w-2xl mx-auto text-base">从“研发效能”到“灵活用工”，瑞华智策助力企业实现全场景的人力资本价值最大化。</p>
-                </div>
-                <div class="flex justify-center mb-16">
-                    <div class="inline-flex bg-slate-800 rounded-full p-1.5 shadow-inner border border-slate-700/50" role="tablist">
-                        <button id="tab-1-btn" class="tab-btn active px-8 py-3 rounded-full text-sm font-bold transition-all duration-300 bg-brand-600 text-white shadow-lg" role="tab" aria-selected="true" aria-controls="tab-1-content"><i class="fas fa-code-branch mr-2"></i>研发体系效能变革</button>
-                        <button id="tab-2-btn" class="tab-btn px-8 py-3 rounded-full text-sm font-bold transition-all duration-300 text-slate-400 hover:text-white" role="tab" aria-selected="false" aria-controls="tab-2-content"><i class="fas fa-users-cog mr-2"></i>全场景用工数智化</button>
-                    </div>
-                </div>
-                <div id="tab-1-content" class="tab-content active transition-all duration-500 opacity-100 translate-y-0" role="tabpanel" aria-labelledby="tab-1-btn">
-                    <div class="grid lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
-                        <div class="lg:col-span-5 flex flex-col h-full">
-                            <article class="bg-white/5 backdrop-blur-sm p-8 rounded-2xl border border-white/10 h-full flex flex-col hover:bg-white/10 transition duration-300">
-                                <div class="flex items-center gap-3 mb-8">
-                                    <div class="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center text-red-400 text-xl border border-red-500/30"><i class="fas fa-chart-pie"></i></div>
-                                    <div><h3 class="text-xl font-bold text-white">某大型国有上市企业</h3><p class="text-xs text-slate-400 mt-1">员工 3万+ | 研发占比 21% | 研发成本占比 78%</p></div>
-                                </div>
-                                <h4 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-6 border-l-2 border-red-500 pl-3">核心痛点 (Pain Points)</h4>
-                                <ul class="flex flex-col gap-5 justify-center flex-grow">
-                                    <li class="bg-slate-800/50 p-5 rounded-lg border border-slate-700/50"><div class="flex items-start gap-3"><i class="fas fa-times-circle text-red-400 mt-1 flex-shrink-0"></i><div><strong class="text-slate-200 block mb-1">研发成本“黑箱”</strong><p class="text-xs text-slate-400 leading-relaxed">投入巨大但无法精准统计，无法与项目产出对应，投入产出分析失效。</p></div></div></li>
-                                    <li class="bg-slate-800/50 p-5 rounded-lg border border-slate-700/50"><div class="flex items-start gap-3"><i class="fas fa-times-circle text-red-400 mt-1 flex-shrink-0"></i><div><strong class="text-slate-200 block mb-1">整体人效低下</strong><p class="text-xs text-slate-400 leading-relaxed">部门墙高耸，跨部门调配难，忙闲严重不均，无法发挥规模效应。</p></div></div></li>
-                                    <li class="bg-slate-800/50 p-5 rounded-lg border border-slate-700/50"><div class="flex items-start gap-3"><i class="fas fa-times-circle text-red-400 mt-1 flex-shrink-0"></i><div><strong class="text-slate-200 block mb-1">激励缺乏依据</strong><p class="text-xs text-slate-400 leading-relaxed">缺乏工时与绩效记录，奖金分配“凭感觉”，沦为大锅饭。</p></div></div></li>
-                                </ul>
-                            </article>
-                        </div>
-                        <div class="lg:col-span-4 flex flex-col h-full">
-                            <article class="bg-gradient-to-b from-brand-900/40 to-slate-800/40 backdrop-blur-sm p-8 rounded-2xl border border-brand-500/20 h-full flex flex-col relative overflow-hidden group">
-                                <div class="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-2xl -mr-10 -mt-10 group-hover:bg-brand-500/20 transition duration-500"></div>
-                                <h4 class="text-sm font-bold text-brand-300 uppercase tracking-wider mb-8 border-l-2 border-brand-500 pl-3">解决方案耦合落地</h4>
-                                <div class="flex flex-col justify-between flex-grow relative z-10 py-2">
-                                    <div class="relative pl-8 border-l border-brand-500/30 pb-6"><span class="absolute -left-1.5 top-0 w-3 h-3 rounded-full bg-brand-500 shadow-[0_0_10px_rgba(124,58,237,0.5)]"></span><h5 class="text-white font-bold text-sm mb-2">全流程闭环管理</h5><p class="text-xs text-slate-400 leading-relaxed"><span class="text-brand-200">事前</span>预算/预测 → <span class="text-brand-200">事中</span>实时采集监控 → <span class="text-brand-200">事后</span>价值分配。</p></div>
-                                    <div class="relative pl-8 border-l border-brand-500/30 pb-6"><span class="absolute -left-1.5 top-0 w-3 h-3 rounded-full bg-brand-500 shadow-[0_0_10px_rgba(124,58,237,0.5)]"></span><h5 class="text-white font-bold text-sm mb-2">“双线”数智化协同</h5><p class="text-xs text-slate-400 leading-relaxed">打破部门墙，实现“组织角色”与“项目角色”双线管理，跨部门任务协同与人才共享。</p></div>
-                                    <div class="relative pl-8 border-l border-brand-500/30"><span class="absolute -left-1.5 top-0 w-3 h-3 rounded-full bg-brand-500 shadow-[0_0_10px_rgba(124,58,237,0.5)]"></span><h5 class="text-white font-bold text-sm mb-2">分角色智能看板</h5><p class="text-xs text-slate-400 leading-relaxed"><strong>项目经理：</strong>进度/成本/风险<br><strong>部门经理：</strong>工时/营收/能力<br><strong>开发人员：</strong>任务/产出/质量</p></div>
-                                </div>
-                            </article>
-                        </div>
-                        <div class="lg:col-span-3 flex flex-col h-full">
-                            <article class="bg-gradient-to-br from-brand-600 to-brand-800 p-8 rounded-2xl shadow-2xl relative h-full flex flex-col justify-between overflow-hidden">
-                                <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2228%22%20height%3D%2249%22%20viewBox%3D%220%200%2028%2049%22%3E%3Cg%20fill-rule%3D%22evenodd%22%3E%3Cg%20id%3D%22hexagons%22%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.1%22%20fill-rule%3D%22nonzero%22%3E%3Cpath%20d%3D%22M13.99%209.25l13%207.5v15l-13%207.5L1%2031.75v-15l12.99-7.5zM3%2017.9v12.7l10.99%206.34%2011-6.35V17.9l-11-6.34L3%2017.9zM0%2015l12.98-7.5V0h-2v6.35L0%2012.69v2.3zm0%2018.5L12.98%2041v8h-2v-6.85L0%2035.81v-2.3zM15%200v7.5L27.99%2015H28v-2.31h-.01L17%206.35V0h-2zm0%2049v-8l12.99-7.5H28v2.31h-.01L17%2042.15V49h-2z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-10"></div>
-                                <div>
-                                    <h4 class="text-white font-bold mb-8 flex items-center gap-2"><i class="fas fa-trophy text-yellow-300"></i> 项目核心成果</h4>
-                                    <div class="mb-8"><div class="text-5xl font-extrabold text-white mb-2 tracking-tight">+30%</div><div class="text-xs text-brand-100 uppercase font-bold tracking-wider">整体研发效率提升</div></div>
-                                    <div class="mb-8"><div class="text-5xl font-extrabold text-white mb-2 tracking-tight">3.8<span class="text-2xl ml-1">亿元</span></div><div class="text-xs text-brand-100 uppercase font-bold tracking-wider">年度人工成本节约</div></div>
-                                    <div class="space-y-3 mt-8"><div class="flex items-center gap-2 text-xs text-brand-50"><i class="fas fa-check"></i> 成本分拆路径清晰</div><div class="flex items-center gap-2 text-xs text-brand-50"><i class="fas fa-check"></i> 激励机制公平透明</div><div class="flex items-center gap-2 text-xs text-brand-50"><i class="fas fa-check"></i> 核心团队显著稳定</div></div>
-                                </div>
-                                <div class="mt-8 pt-6 border-t border-white/20 text-center"><span class="text-[10px] text-brand-200 block">基于6000名研发人员节省20%人力测算</span></div>
-                            </article>
-                        </div>
-                    </div>
-                </div>
-                <div id="tab-2-content" class="tab-content hidden transition-all duration-500 opacity-0 translate-y-4" role="tabpanel" aria-labelledby="tab-2-btn">
-                    <div class="grid lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
-                        <div class="lg:col-span-5 flex flex-col h-full">
-                            <article class="bg-white/5 backdrop-blur-sm p-8 rounded-2xl border border-white/10 h-full flex flex-col hover:bg-white/10 transition duration-300">
-                                <div class="flex items-center gap-3 mb-8">
-                                    <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 text-xl border border-blue-500/30"><i class="fas fa-store"></i></div>
-                                    <div><h3 class="text-xl font-bold text-white">某知名零售连锁集团</h3><p class="text-xs text-slate-400 mt-1">门店 2000+ | 灵活用工占比 40% | 季节性波动大</p></div>
-                                </div>
-                                <h4 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-6 border-l-2 border-blue-500 pl-3">核心痛点 (Pain Points)</h4>
-                                <ul class="flex flex-col gap-5 justify-center flex-grow">
-                                    <li class="bg-slate-800/50 p-5 rounded-lg border border-slate-700/50"><div class="flex items-start gap-3"><i class="fas fa-exclamation-triangle text-yellow-400 mt-1 flex-shrink-0"></i><div><strong class="text-slate-200 block mb-1">合规风险高企</strong><p class="text-xs text-slate-400 leading-relaxed">外包、兼职、实习等多种用工形式混杂，法律界限模糊，用工风险不可控。</p></div></div></li>
-                                    <li class="bg-slate-800/50 p-5 rounded-lg border border-slate-700/50"><div class="flex items-start gap-3"><i class="fas fa-random text-yellow-400 mt-1 flex-shrink-0"></i><div><strong class="text-slate-200 block mb-1">供应商管理混乱</strong><p class="text-xs text-slate-400 leading-relaxed">数百家供应商缺乏统一标准，价格不透明，人员调配效率低，对账繁琐。</p></div></div></li>
-                                    <li class="bg-slate-800/50 p-5 rounded-lg border border-slate-700/50"><div class="flex items-start gap-3"><i class="fas fa-database text-yellow-400 mt-1 flex-shrink-0"></i><div><strong class="text-slate-200 block mb-1">人才数据“黑箱”</strong><p class="text-xs text-slate-400 leading-relaxed">外部人员信息留存在供应商手中，企业无法沉淀人才库，重复招聘成本高。</p></div></div></li>
-                                </ul>
-                            </article>
-                        </div>
-                        <div class="lg:col-span-4 flex flex-col h-full">
-                            <article class="bg-gradient-to-b from-blue-900/40 to-slate-800/40 backdrop-blur-sm p-8 rounded-2xl border border-blue-500/20 h-full flex flex-col relative overflow-hidden group">
-                                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl -mr-10 -mt-10 group-hover:bg-blue-500/20 transition duration-500"></div>
-                                <h4 class="text-sm font-bold text-blue-300 uppercase tracking-wider mb-8 border-l-2 border-blue-500 pl-3">OHCVM 平台赋能</h4>
-                                <div class="flex flex-col justify-between flex-grow relative z-10 py-2">
-                                    <div class="relative pl-8 border-l border-blue-500/30 pb-6"><span class="absolute -left-1.5 top-0 w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></span><h5 class="text-white font-bold text-sm mb-2">合规风控 Agent</h5><p class="text-xs text-slate-400 leading-relaxed">内置法律法规库，对合同签订、保险缴纳、工时限制等进行实时预警，将风险拦截在事前。</p></div>
-                                    <div class="relative pl-8 border-l border-blue-500/30 pb-6"><span class="absolute -left-1.5 top-0 w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></span><h5 class="text-white font-bold text-sm mb-2">统一供应商协作门户</h5><p class="text-xs text-slate-400 leading-relaxed">实现需求发布、简历推选、面试评价、考勤结算的全流程在线化与标准化管理。</p></div>
-                                    <div class="relative pl-8 border-l border-blue-500/30"><span class="absolute -left-1.5 top-0 w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></span><h5 class="text-white font-bold text-sm mb-2">人才资产私域化</h5><p class="text-xs text-slate-400 leading-relaxed">自动归集外部人员评价数据，构建企业专属的“灵活用工人才库”，实现二次返聘零成本。</p></div>
-                                </div>
-                            </article>
-                        </div>
-                        <div class="lg:col-span-3 flex flex-col h-full">
-                            <article class="bg-gradient-to-br from-blue-600 to-blue-800 p-8 rounded-2xl shadow-2xl relative h-full flex flex-col justify-between overflow-hidden">
-                                <div class="absolute inset-0 opacity-5 pointer-events-none case-stripe-bg"></div>
-                                <div>
-                                    <h4 class="text-white font-bold mb-8 flex items-center gap-2"><i class="fas fa-chart-line text-yellow-300"></i> 项目核心成果</h4>
-                                    <div class="mb-8"><div class="text-5xl font-extrabold text-white mb-2 tracking-tight">-20%</div><div class="text-xs text-blue-100 uppercase font-bold tracking-wider">综合用工成本降低</div></div>
-                                    <div class="mb-8"><div class="text-5xl font-extrabold text-white mb-2 tracking-tight">100%</div><div class="text-xs text-blue-100 uppercase font-bold tracking-wider">合规风险管控率</div></div>
-                                    <div class="space-y-3 mt-8"><div class="flex items-center gap-2 text-xs text-blue-50"><i class="fas fa-check"></i> 供应商优胜劣汰</div><div class="flex items-center gap-2 text-xs text-blue-50"><i class="fas fa-check"></i> 招聘周期缩短50%</div><div class="flex items-center gap-2 text-xs text-blue-50"><i class="fas fa-check"></i> 结算准确率 99.9%</div></div>
-                                </div>
-                                <div class="mt-8 pt-6 border-t border-white/20 text-center"><span class="text-[10px] text-blue-200 block">实现了从“被动管控”到“主动经营”的转变</span></div>
-                            </article>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="whyus" class="py-24 bg-white">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-16">
-                    <span class="text-brand-600 font-bold tracking-widest uppercase text-sm">Why Ruihua</span>
-                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-4">为什么瑞华智策值得您选择？</h2>
-                    <p class="text-slate-600 max-w-2xl mx-auto mt-4 text-base">不仅仅是咨询，更是企业价值增长的合伙人</p>
-                </div>
-                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                    <article class="bg-slate-50 rounded-2xl p-6 border border-slate-100 hover:shadow-xl hover:border-brand-200 transition duration-300 group">
-                        <div class="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-brand-600 shadow-sm mb-6 group-hover:bg-brand-600 group-hover:text-white transition"><i class="fas fa-ruler-combined text-2xl"></i></div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-4">行业定制</h3>
-                        <ul class="space-y-3"><li class="flex items-start gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 mt-1 flex-shrink-0"></i><span>提供行业对标的人效基线</span></li><li class="flex items-start gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 mt-1 flex-shrink-0"></i><span>深入行业业务场景，进行人力资本价值经营指标设计</span></li><li class="flex items-start gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 mt-1 flex-shrink-0"></i><span>数字化系统集成与 AI 化逐步升级</span></li></ul>
-                    </article>
-                    <article class="bg-slate-50 rounded-2xl p-6 border border-slate-100 hover:shadow-xl hover:border-brand-200 transition duration-300 group">
-                        <div class="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-brand-600 shadow-sm mb-6 group-hover:bg-brand-600 group-hover:text-white transition"><i class="fas fa-crosshairs text-2xl"></i></div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-4">经营为轴</h3>
-                        <ul class="space-y-3"><li class="flex items-start gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 mt-1 flex-shrink-0"></i><span>从经营目标切入的问题解构及方案设计</span></li><li class="flex items-start gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 mt-1 flex-shrink-0"></i><span>确保咨询方案和数智化建设深度耦合</span></li><li class="flex items-start gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 mt-1 flex-shrink-0"></i><span>共同服务于企业的价值经营</span></li></ul>
-                    </article>
-                    <article class="bg-slate-50 rounded-2xl p-6 border border-slate-100 hover:shadow-xl hover:border-brand-200 transition duration-300 group">
-                        <div class="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-brand-600 shadow-sm mb-6 group-hover:bg-brand-600 group-hover:text-white transition"><i class="fas fa-chart-line text-2xl"></i></div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-4">效果导向</h3>
-                        <ul class="space-y-3"><li class="flex items-start gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 mt-1 flex-shrink-0"></i><span>15年沉淀的扎实的交付效果的组织能力</span></li><li class="flex items-start gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 mt-1 flex-shrink-0"></i><span>众多头部客户案例的背书</span></li><li class="flex items-start gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 mt-1 flex-shrink-0"></i><span>所有服务的价值锚点都是和客户一起"拿到结果"</span></li></ul>
-                    </article>
-                    <article class="bg-slate-50 rounded-2xl p-6 border border-slate-100 hover:shadow-xl hover:border-brand-200 transition duration-300 group">
-                        <div class="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-brand-600 shadow-sm mb-6 group-hover:bg-brand-600 group-hover:text-white transition"><i class="fas fa-infinity text-2xl"></i></div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-4">终身陪伴</h3>
-                        <ul class="space-y-3"><li class="flex items-start gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 mt-1 flex-shrink-0"></i><span>提供陪伴客户持续进化的一站式服务</span></li><li class="flex items-start gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 mt-1 flex-shrink-0"></i><span>根据客户组织的发展阶段，有机推进"适配服务"</span></li><li class="flex items-start gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 mt-1 flex-shrink-0"></i><span>扎实取得阶段性突破</span></li></ul>
-                    </article>
-                </div>
-                
-                <div class="bg-gradient-to-br from-brand-600 to-brand-800 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden shadow-2xl">
-                    <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-                    <div class="absolute bottom-0 left-0 w-64 h-64 bg-blue-500 opacity-10 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none"></div>
-                    <div class="relative z-10 text-center">
-                        
-                        <div class="max-w-4xl mx-auto space-y-6 text-brand-50 leading-relaxed text-sm md:text-base">
-                            <p>我们做的，是把传统“业财人融合”升级为<strong class="text-white text-lg mx-1">“业财人价值融合”</strong>，这是数字化时代组织管理的一次跃迁。</p>
-                            <p>这种简化不是偷工减料，而是战略聚焦——抓住<strong class="text-white text-lg mx-1">“人”</strong>这个价值创造的核心生产要素，实现人效到利润的增长突破。</p>
-                            <div class="bg-white/10 rounded-xl p-6 border border-white/10 mt-8">
-                                <p class="mb-4">作为客户现有管理资源和数字化资源的<span class="font-bold text-white">整合者</span>、<span class="font-bold text-white">改造者</span>、<span class="font-bold text-white">应用者</span>，我们努力提供的是：</p>
-                                <div class="text-lg md:text-xl font-bold text-white max-w-5xl mx-auto">
-                                    由<span class="text-yellow-300">多行业人效数据对标</span>和<span class="text-yellow-300">【管理+技术】落地实践</span>支撑的，帮助客户将人效提升 <span class="text-3xl text-yellow-300 mx-1">20%</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="insights" class="py-24 bg-slate-50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-16">
-                    <span class="text-brand-600 font-bold tracking-widest uppercase text-sm">Research & Insights</span>
-                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-4">瑞华智策研究中心</h2>
-                    <p class="text-slate-600 max-w-2xl mx-auto mt-4 text-base">获取最新的 AI 战略、组织效能与人力资本价值经营洞察</p>
-                </div>
-                
-                <div id="insights-container" data-limit="3" data-page="1" data-has-more="false" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- 
-                        Article Module (Research Center)
-                        - Content is loaded dynamically via main.js (loadResearchInsights)
-                        - If API fails, the static content below is preserved/restored as fallback.
-                        - Ensure static content structure matches the JS template.
-                    -->
-                </div>
-                <div id="insights-actions" class="flex justify-center mt-10">
-                    <button id="insights-load-more" type="button" class="hidden px-6 py-2.5 rounded-full bg-brand-600 text-white font-semibold hover:bg-brand-700 transition-colors">
-                        加载更多
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <section id="faq" class="py-24 bg-white">
-            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-16">
-                    <span class="text-brand-600 font-bold tracking-widest uppercase text-sm">FAQ</span>
-                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-4">常见问题</h2>
-                    <p class="text-slate-600 mt-4 text-base">瑞华智策如何帮助企业在 AI 时代完成组织升级？</p>
-                </div>
-                <dl id="faq-list" class="space-y-8">
-                    <!-- 
-                        FAQ Module
-                        - Content is loaded dynamically via main.js (loadFaqData)
-                        - If API fails, static content is preserved.
-                        - Toggle logic is handled by main.js (toggleFaq)
-                    -->
-                    <!-- FAQ 项目示例 - 将由 JavaScript 动态填充 -->
-                    
-                </dl>
-                <div id="faq-status" class="mt-6 text-center text-sm text-slate-500"></div>
-            </div>
-        </section>
-
-        <section id="contact" class="py-24 bg-slate-50 relative border-t border-slate-100">
-            <div class="max-w-4xl mx-auto px-4 text-center">
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-6 home-cta__title">战略机遇稍纵即逝，您从哪里起步？</h2>
-                <p class="text-base text-slate-600 mb-10 home-cta__desc">不要让您的企业在 AI 浪潮中掉队，让数据告诉您：<br class="hidden home-cta__br"><strong class="text-slate-800 home-cta__highlight">利润增长潜力在哪里？</strong></p>
-                <div class="bg-slate-900 p-10 rounded-3xl shadow-2xl relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-full h-full overflow-hidden opacity-30">
-                        <div class="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-r from-brand-600 to-transparent rounded-full blur-[100px] animate-pulse"></div>
-                    </div>
-                    <div class="relative z-10">
-                        <div class="flex justify-center mb-4">
-                            <span class="inline-block bg-gradient-to-r from-brand-500 to-brand-600 text-white text-xs px-4 py-1.5 rounded-full font-bold uppercase tracking-wider animate-pulse-slow">
-                                限时免费
-                            </span>
-                        </div>
-                        <h3 class="text-2xl md:text-3xl font-bold text-white mb-2">预约『组织人效快速体检』</h3>
-                        <p class="text-slate-400 mb-8">快速诊断，发现您的人效提升空间</p>  
-                       <div class="grid md:grid-cols-3 gap-4 mb-8 text-left">
-                         <div class="bg-white/5 rounded-xl p-4 backdrop-blur flex items-center gap-3"><i class="fas fa-check-circle text-brand-400"></i><p class="text-sm text-slate-300 m-0">组织效能现状评估</p></div>
-                         <div class="bg-white/5 rounded-xl p-4 backdrop-blur flex items-center gap-3"><i class="fas fa-check-circle text-brand-400"></i><p class="text-sm text-slate-300 m-0">人力资本ROI分析</p></div>
-                         <div class="bg-white/5 rounded-xl p-4 backdrop-blur flex items-center gap-3"><i class="fas fa-check-circle text-brand-400"></i><p class="text-sm text-slate-300 m-0">优化路径建议报告</p></div>
-                        </div>
-                        <div class="flex flex-col sm:flex-row justify-center gap-4">
-                            <a href="/productivity/" class="bg-white hover:bg-slate-100 text-slate-900 px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:-translate-y-1 transition w-full sm:w-auto flex items-center justify-center gap-2" title="立即预约诊断">
-                                <i class="fas fa-calendar-check"></i> 立即预约诊断
-                            </a>
-                        </div>
-                        <p class="text-sm text-slate-500 mt-8"><i class="fas fa-handshake mr-2"></i>期待与您携手共赴AI时代的人力资本价值经营之旅！</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer id="footer-container" role="contentinfo"></footer>
-
-    <script src="/js/image-loader.js"></script>
-   
-    <div id="searchModal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0" id="searchBackdrop"></div>
-        
-        <div class="fixed inset-0 z-10 overflow-y-auto">
-            <div class="flex min-h-full items-start justify-center p-4 text-center sm:p-0 pt-20">
-                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl opacity-0 translate-y-4 scale-95" id="searchPanel">
-                    
-                    <!-- Search Header -->
-                    <div class="relative bg-white p-4 sm:p-6 border-b border-slate-100">
-                        <div class="absolute right-4 top-4">
-                            <button onclick="toggleSearch()" class="text-slate-400 hover:text-slate-500 focus:outline-none" aria-label="关闭搜索">
-                                <span class="sr-only">Close</span>
-                                <i class="fas fa-times text-xl"></i>
-                            </button>
-                        </div>
-                        <div class="flex items-center gap-4 pr-8">
-                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-50 flex items-center justify-center text-brand-600">
-                                <i class="fas fa-robot text-lg"></i>
-                            </div>
-                            <div class="flex-grow relative">
-                                <input type="text" id="searchInput" 
-                                    class="w-full border-0 bg-transparent py-2 pl-0 pr-4 text-slate-900 placeholder:text-slate-400 focus:ring-0 sm:text-lg leading-6 outline-none" 
-                                    placeholder="向瑞华 AI 提问 (例如: 如何提升人效?)"
-                                    autocomplete="off">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Search Content -->
-                    <div class="bg-slate-50/50 min-h-[300px] max-h-[60vh] overflow-y-auto p-4 sm:p-6" id="searchResults">
-                        
-                        <!-- Initial State: Suggested Questions -->
-                        <div id="searchSuggestions">
-                            <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">猜你想问</h3>
-                            <div class="flex flex-wrap gap-2">
-                                <button onclick="fillSearch('什么是AHCVM?')" class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors shadow-sm">
-                                    <i class="fas fa-question-circle mr-2 text-brand-400"></i>什么是AHCVM?
-                                </button>
-                                <button onclick="fillSearch('如何降低研发成本?')" class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors shadow-sm">
-                                    <i class="fas fa-chart-line mr-2 text-brand-400"></i>如何降低研发成本?
-                                </button>
-                                <button onclick="fillSearch('OHCVM是什么?')" class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors shadow-sm">
-                                    <i class="fas fa-users mr-2 text-brand-400"></i>OHCVM是什么?
-                                </button>
-                                <button onclick="fillSearch('AI Agent如何应用?')" class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:border-brand-300 hover:text-brand-600 transition-colors shadow-sm">
-                                    <i class="fas fa-robot mr-2 text-brand-400"></i>AI Agent如何应用?
-                                </button>
-                            </div>
-                            
-                            <div class="mt-8">
-                                <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">热门主题</h3>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <a href="/solutions-hcvm/" class="group flex items-center gap-3 p-3 rounded-xl hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-slate-100">
-                                        <div class="w-10 h-10 rounded-lg bg-brand-violet-10 text-brand-violet flex items-center justify-center group-hover-bg-brand-violet group-hover-text-white transition-colors">
-                                            <i class="fas fa-user-tie"></i>
-                                        </div>
-                                        <div>
-                                            <div class="text-sm font-bold text-slate-700 group-hover-text-brand-violet">自有员工管理</div>
-                                            <div class="text-xs text-slate-400">AHCVM解决方案</div>
-                                        </div>
-                                    </a>
-                                    <a href="/solutions-ohcvm/" class="group flex items-center gap-3 p-3 rounded-xl hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-slate-100">
-                                        <div class="w-10 h-10 rounded-lg bg-brand-blue-10 text-brand-blue flex items-center justify-center group-hover-bg-brand-blue group-hover-text-white transition-colors">
-                                            <i class="fas fa-network-wired"></i>
-                                        </div>
-                                        <div>
-                                            <div class="text-sm font-bold text-slate-700 group-hover-text-brand-blue">外包员工管理</div>
-                                            <div class="text-xs text-slate-400">OHCVM解决方案</div>
-                                        </div>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Loading State (Hidden) -->
-                        <div id="searchLoading" class="hidden py-12 text-center">
-                            <div class="inline-block w-12 h-12 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center mb-4 animate-bounce">
-                                <i class="fas fa-brain text-xl"></i>
-                            </div>
-                            <h3 class="text-lg font-medium text-slate-900 mb-1">AI 正在思考...</h3>
-                            <p class="text-slate-500 text-sm">正在分析您的需求并检索知识库</p>
-                        </div>
-
-                        <!-- Results State (Hidden) -->
-                        <div id="searchResultList" class="hidden space-y-6">
-                            <!-- Results will be injected here -->
-                        </div>
-                        
-                        <!-- No Results State (Hidden) -->
-                        <div id="searchNoResults" class="hidden py-12 text-center">
-                            <div class="inline-block w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mb-4">
-                                <i class="fas fa-search text-xl"></i>
-                            </div>
-                            <h3 class="text-lg font-medium text-slate-900 mb-1">未找到相关内容</h3>
-                            <p class="text-slate-500 text-sm">换个关键词试试，或者直接咨询专家。</p>
-                            <a href="/productivity/" class="inline-block mt-4 text-brand-600 font-medium hover:text-brand-700" title="预约专家咨询">预约专家咨询 &rarr;</a>
-                        </div>
-
-                    </div>
-                    
-                    <div class="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-slate-100">
-                        <span class="text-xs text-slate-400 flex items-center">
-                            <i class="fas fa-bolt text-yellow-400 mr-1"></i> Powered by Ruihua AI Engine
-                        </span>
-                    </div>
-                </div>
-            </div>
+        <div class="m-prev"></div>
+      </div></div>
+    <div class="mega-pane" data-pane="about"><div class="m-in">
+        <div class="m-cols">
+          <div class="m-group">关于瑞华智策</div>
+          <a class="m-item" href="/about" data-prev="hcvm" data-cap="ABOUT"><b>公司介绍</b><span>AI 原生咨询公司 · 人瑞人才全资子公司</span></a>
+          <a class="m-item" href="/about/team" data-prev="training" data-cap="TEAM"><b>团队基因</b><span>先自己跑通，再服务客户</span></a>
+          <a class="m-item" href="/contact" data-prev="consulting" data-cap="CONTACT"><b>联系我们</b><span>400-175-0886 · 预约诊断</span></a>
         </div>
-    </div>
+        <div class="m-prev"></div>
+      </div></div>
+  </div>
+</nav>
+<div class="mega-dim" id="megaDim"></div>
 
-    <script src="/js/script.js"></script>
-    <script src="/js/main.js"></script>
-    <script src="/js/success-stories-tabs.js"></script>
+
+    <div class="mnav" id="mnav">
+  <a href="/">首页<em>→</em></a>
+  <div class="mg">产品与服务</div>
+  <a href="/solutions">总览 · AI 转型三位一体<em>→</em></a>
+  <a href="/solutions/training">AI 赋能培训<em>12 门课</em></a>
+  <a href="/solutions/consulting">AI 转型咨询<em>→</em></a>
+  <a href="/solutions/fde">AI 落地陪跑<em>FDE</em></a>
+  <a href="/hcvm">人力资本价值经营<em>HCVM</em></a>
+  <div class="mg">案例与研究</div>
+  <a href="/cases">行业案例<em>27 例</em></a>
+  <a href="/insights">行业洞察<em>三大智库</em></a>
+  <a href="/insights">经营智库<em>R=B×O</em></a>
+  <div class="mg">更多</div>
+  <a href="/nqoc" target="_blank" rel="noopener">新质组织<em>HOT</em></a>
+  <a href="/about">关于我们<em>→</em></a>
+  <div class="mn-cta">
+    <a class="btn btn-ink" href="/contact">预约诊断 →</a>
+    <button type="button" class="btn mn-ai" data-evt-click="e3">AI 顾问</button>
+  </div>
+</div>
+
+
+    <div class="j3d-scroll" id="heroWrap" data-sx="s6">
+  <section class="j3d" id="hero">
+    <div class="j3d-view">
+      <div class="j3d-stage">
+        <div class="j3d-room" id="j3dRoom"></div>
+      </div>
+      <div class="j3d-fog f1"></div>
+      <div class="j3d-fog f2"></div>
+      <div class="j3d-scrim"></div>
+    </div>
+    <div class="j3d-ui" id="j3dUi">
+    <div class="j3d-txt">
+      <div class="tl-inner">
+        <h1>企业的 AI 转型，<br>始于几个<em>具体的问题</em>。</h1>
+        <div class="ctas">
+          <a class="btn btn-cream" href="/contact">预约「AI 场景诊断」<span class="arr">→</span></a>
+          <button class="btn btn-oline" data-evt-click="e5">先问问 AI 顾问</button>
+        </div>
+        <div class="tl-chips" id="tlChips"></div>
+      </div>
+    </div>
+    <div class="demo-win demo-mini" id="demoWin" data-evt-click="e5" title="点击继续和 AI 顾问对话">
+    <div class="dw-bar"><span class="d1"></span><span class="d2"></span><span class="d3"></span>
+      <span class="dw-t">瑞华 AI 顾问</span></div>
+    <div class="dw-body2">
+      <div class="dm me"><span>AI 转型该从哪切入？</span></div>
+      <div class="dm ai"><span id="dmType"></span><i class="caret2" id="dmCaret"></i></div>
+      <div class="dm-srcs" id="dmSrcs" data-sx="s7">
+        <span>● 已检索 常见问题</span><em>点击继续对话 →</em>
+      </div>
+    </div>
+  </div>
+    </div><!-- /.j3d-ui -->
+  </section>
+</div>
+
+<!-- ============ 内容区（占位） ============ -->
+<main id="homeMain" class="tl-main">
+  <div class="home-lw tl-lw reveal" data-sx="s8">
+    <div class="lw-cap" data-sx="s9">这些企业的 AGENT，已经在真实业务流里上岗</div>
+    <div class="lw"><div class="lw-track" id="lwHome"></div></div>
+  </div>
+
+  <section class="tl-sec reveal" id="home-svc">
+    <div class="eyeb">Products &amp; Services</div>
+    <h2>三位一体，<em>陪企业走完 AI 转型全程</em>。</h2>
+    <p class="ld2">培训解决「人会不会」，咨询解决「往哪走」，陪跑解决「落不落得下去」，人力资本价值经营把人的价值算清楚——可单独采购，也可组合成一体化方案。</p>
+    <div class="pv-grid">
+      <div class="pv-card" data-evt-click="e9">
+        <div class="art" data-art="training"></div><div class="scrim"></div>
+        <div class="txt"><span class="pk">01 · TRAINING</span><h3>AI 赋能培训</h3>
+          <p>四条路径分角色培养，12 门课全部带可落地的成果物。</p><span class="go3">进入产品 →</span></div>
+      </div>
+      <div class="pv-card" data-evt-click="e10">
+        <div class="art" data-art="consulting"></div><div class="scrim"></div>
+        <div class="txt"><span class="pk">02 · CONSULTING</span><h3>AI 转型咨询</h3>
+          <p>AI 驱动的新增长引擎打造 × 组织管理机制优化（碳硅共智）。</p><span class="go3">进入产品 →</span></div>
+      </div>
+      <div class="pv-card" data-evt-click="e11">
+        <div class="art" data-art="fde"></div><div class="scrim"></div>
+        <div class="txt"><span class="pk">03 · FDE</span><h3>AI 落地陪跑</h3>
+          <p>现场部署 + 持续运营 + 能力转移，把 Agent 从「演示」拽进「业务流」。</p><span class="go3">进入产品 →</span></div>
+      </div>
+      <div class="pv-card" data-evt-click="e12">
+        <div class="art" data-art="hcvm"></div><div class="scrim"></div>
+        <div class="txt"><span class="pk">04 · HCVM</span><h3>人力资本价值经营</h3>
+          <p>以「管理+技术」双轮驱动，实现客户、企业与人才的价值共赢。</p><span class="go3">进入产品 →</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="tl-hr"></div>
+
+  <section class="tl-sec reveal">
+    <div class="eyeb">Evidence</div>
+    <h2>不讲概念，<em>只讲跑出来的数字</em>。</h2>
+    <p class="ld2">以下数字全部来自公开交付结果，每一个都能在行业案例里找到完整故事。</p>
+    <div class="tl-stats">
+      <div class="tl-stat"><b>3秒</b><span class="l">工单响应</span><span class="s">某物业集团 · 原 120 秒</span></div>
+      <div class="tl-stat"><b>3周→1周</b><span class="l">招聘总耗时</span><span class="s">某人力资源服务集团</span></div>
+      <div class="tl-stat"><b>70%+</b><span class="l">高频问询自动处理</span><span class="s">华住集团 · 10000+ 门店</span></div>
+      <div class="tl-stat"><b>262</b><span class="l">员工自建智能体</span><span class="s">海尔智家 · 全民开发者</span></div>
+    </div>
+  </section>
+
+  <section class="tl-sec reveal">
+    <div class="eyeb">Success Stories</div>
+    <h2>每个行业，都有<em>已经跑通的场景</em>。</h2>
+    <p class="ld2">27 个真实交付案例，覆盖 8 个行业——点进去看完整的问题、方案与结果。</p>
+    <div class="tl-cards3">
+      <div class="tl-card" data-evt-click="e13"><span class="k">MANUFACTURING</span><h3>制造业</h3><p>海尔智家 262 个员工自建智能体、鑫方盛千万级 SKU 自动归类、TCL 编码效率 ↑70%+。</p><span class="go">看制造业案例 →</span></div>
+      <div class="tl-card" data-evt-click="e14"><span class="k">RETAIL</span><h3>零售快消</h3><p>伊利 4 万一线用上对话级 Agent、茶颜悦色招聘 2 天→30 分钟、鸣鸣很忙万店 AI 巡检。</p><span class="go">看零售案例 →</span></div>
+      <div class="tl-card" data-evt-click="e15"><span class="k">FINANCE</span><h3>金融财税</h3><p>中国银行 4000+ AI 模型落地、招商银行 AISE 能力沉淀、慧算账一个会计带 N 个数字员工。</p><span class="go">看金融案例 →</span></div>
+    </div>
+    <p data-sx="s10"><a href="/cases" data-sx="s11">查看全部 27 个案例 →</a></p>
+  </section>
+
+  <div class="tl-hr"></div>
+
+  <section class="tl-sec reveal">
+    <div class="eyeb">Research</div>
+    <h2>方法论持续新鲜，<em>研究先于交付</em>。</h2>
+    <p class="ld2">三大智库的行业洞察 + R=B×O 经营方法论，联合北大光华、中国经营报的新质组织研究。</p>
+    <div class="tl-cards3">
+      <div class="tl-card" data-evt-click="e16"><span class="k">INSIGHTS</span><h3>行业洞察</h3><p>CIO 数智化转型 / CEO 经营增长 / CHO 人效提升三大智库，追踪 AI 转型落地的真问题。</p><span class="go">读洞察 →</span></div>
+      <div class="tl-card" data-evt-click="e16"><span class="k">THINK TANK</span><h3>经营智库</h3><p>R=B×O 理论内核与管理实践框架：增长诊断、碳硅共智组织设计、人效经营模型。</p><span class="go">看方法论 →</span></div>
+      <div class="tl-card" data-evt-click="e17"><span class="k">NQOC</span><h3>中国新质组织研究</h3><p>联合北大光华管理学院、中国经营报发起——碳基与硅基共智、协同进化。</p><span class="go">进入迷你站 ↗</span></div>
+    </div>
+  </section>
+
+  <section class="tl-sec tl-faq reveal" id="home-faq">
+    <div class="eyeb">FAQ</div>
+    <h2>决策者最常问的<em>六个问题</em>。</h2>
+    <p class="ld2">从哪切入、多久见效、投入多少、风险在哪——先把这些想清楚，再谈转型。</p>
+      <details class="faq-item"><summary>企业 AI 转型应该从哪个场景切入？<span class="ic">＋</span></summary><div class="a">不要从最复杂的核心业务开始。优先选择高频、高人力、流程相对标准化的场景——比如客服工单、招聘筛选、费用报销。这类场景数据积累充分、容错空间大、见效快，能在 2-4 周内验证 AI 价值，建立团队信心后再逐步扩展到核心业务环节。瑞华智策在战略诊断阶段，会结合企业业务目标和数据现状，筛选出投入产出比最高的切入场景，避免"大而全"导致的项目拖延和资源浪费。</div></details>
+      <details class="faq-item"><summary>企业部署 AI Agent 需要多长时间见效？<span class="ic">＋</span></summary><div class="a">分两个阶段：原型验证通常 2-4 周，用真实业务数据跑通核心链路，看到初步效果；完整部署并产生可量化的业务结果，一般需要 4-8 周，具体取决于场景复杂度、系统对接难度和数据准备情况。关键不是追求快，而是确保每一步都可验证、可衡量。瑞华智策采用三位一体交付模式，团队深入业务现场，边部署边调优，缩短从"能看到效果"到"能稳定运行"的周期。</div></details>
+      <details class="faq-item"><summary>企业 AI 转型需要多大的投入？<span class="ic">＋</span></summary><div class="a">投入分三块：平台工具费（SaaS 订阅或私有化部署）、实施服务费（场景配置、系统对接、训练调优）、内部人力投入（业务团队参与共创）。具体金额因企业规模和场景复杂度差异较大，但相比从零自建 AI 团队，依托成熟平台加专业咨询的方式通常能节省 60% 以上的试错成本。建议先通过战略诊断明确范围，再给出精准预算，避免盲目投入。</div></details>
+      <details class="faq-item"><summary>如何评估企业 AI 转型的投入产出比？<span class="ic">＋</span></summary><div class="a">不要只算"省了多少人力"。建议从三个维度衡量：效率提升（工单响应时间、处理量变化）、能力扩展（新增了哪些原来做不到的事）、质量改善（错误率、合规率变化）。在战略诊断阶段就定义好可量化的指标和基线，上线后按周期对比。瑞华智策在每个陪跑项目中都会建立量化看板，让投入产出清晰可见，而不是靠感觉判断"好像有效果"。</div></details>
+      <details class="faq-item"><summary>企业 AI 转型最大的风险是什么？<span class="ic">＋</span></summary><div class="a">最大风险不是技术不成熟，而是场景选错和组织没跟上。场景选错——投入大量资源做了个没人用的 Agent；组织没跟上——AI 上线了但流程没改、团队不会用、管理层不持续关注。技术问题有工程方案可以解决，但组织和认知问题往往被忽视。瑞华智策的三位一体交付模式正是针对这个风险：不仅交付技术，更深入业务现场推动流程变革和团队赋能，确保 Agent 真正用起来。</div></details>
+      <details class="faq-item"><summary>基于 WorkBuddy 怎么交付？WorkBuddy 和瑞华智策是什么关系？<span class="ic">＋</span></summary><div class="a">瑞华智策是腾讯 WorkBuddy 企业版生态伙伴（授权编号 100049719305），基于 WorkBuddy 提供 SaaS 版即开即用，适合快速验证核心场景。交付流程包含四步：选（场景优先级清单）→育（Agent 部署与系统打通）→用（训练团队驾驭 AI）→优（审计调优与持续运营），确保 Agent 从演示到上岗再到自主运营的全生命周期落地。</div></details>
+  </section>
+
+  <div class="tl-cta reveal"><div class="in">
+    <h2>先做一次轻量的「AI 场景诊断」</h2>
+    <p>快速定位你组织的进化起点。提交后顾问将在 1 个工作日内联系你——也可以先找 AI 顾问聊两句。</p>
+    <a class="btn btn-cream" href="/contact" data-sx="s12">预约诊断<span class="arr">→</span></a>
+  </div></div>
+</main>
+
+
+    <footer class="footer">
+  <div class="f-inner">
+    <div class="f-word">让 AI <em>长进组织里</em>。</div>
+    <div class="f-cols">
+      <div class="f-col"><div class="h">产品与服务</div>
+        <a href="/solutions/training">AI 赋能培训</a><a href="/solutions/consulting">AI 转型咨询</a><a href="/solutions/fde">AI 落地陪跑</a><a href="/hcvm">人力资本价值经营</a></div>
+      <div class="f-col"><div class="h">行业案例</div>
+        <a href="/cases/industry/manufacturing">制造业</a><a href="/cases/industry/retail">零售快消</a><a href="/cases/industry/finance">金融财税</a><a href="/cases">全部案例</a></div>
+      <div class="f-col"><div class="h">研究中心</div>
+        <a href="/insights">行业洞察</a><a href="/insights">经营智库</a><a href="/insights">新质组织研究</a></div>
+      <div class="f-col"><div class="h">关于我们</div>
+        <a href="/about">公司介绍</a><a href="/about/team">团队基因</a><a href="/contact">联系我们</a></div>
+      <div class="f-col"><div class="h">联系</div>
+        <a href="/contact">400-175-0886</a><a href="/contact">预约诊断</a><a href="/about">上海 · 北京 · 深圳 · 成都</a>
+        <div data-sx="s5">瑞华智策公众号</div>
+        <img class="f-qr" src="data:image/jpeg;base64,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" alt="瑞华智策公众号二维码"></div>
+    </div>
+    <div class="f-base">
+      <span>© 2026 瑞华智策 · AI 时代组织进化全生命周期服务商</span>
+      <span>沪ICP备12042344号-24（占位）</span>
+    </div>
+  </div>
+</footer>
+
+
+    <div class="cmodal" id="cmodal"><div class="mask" data-evt-click="e4"></div><div class="panel"></div></div>
+
+<button class="fab" data-evt-click="e5"><span class="dot"></span>AI 顾问</button>
+
+<aside class="drawer" id="drawer" aria-label="AI 顾问">
+  <div class="dw-resize" id="dwResize" title="拖拽调整宽度"></div>
+  <div class="dw-head">
+    <div class="dw-ava">瑞</div>
+    <div>
+      <div class="dw-title">瑞华 AI 顾问 <span class="st"></span></div>
+      <div class="dw-sub">基于官网内容与 27 个行业案例回答 · 不代替正式咨询</div>
+    </div>
+    <button class="dw-close" data-evt-click="e6" aria-label="关闭">✕</button>
+  </div>
+  <div class="dw-body" id="dwBody"></div>
+  <div class="chips" id="dwChips"></div>
+  <div class="dw-input">
+    <input id="dwInput" type="text" placeholder="问点什么，比如「部署要多久见效」…" data-evt-keydown="e7">
+    <button data-evt-click="e8" aria-label="发送">➤</button>
+  </div>
+</aside>
+
+
+    
+    <script src="/js/rh2026-engine.js"></script>
+    <script src="/js/rh2026-ext.js"></script>
 </body>
 </html>

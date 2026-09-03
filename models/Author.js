@@ -5,6 +5,7 @@ const authorSchema = new mongoose.Schema({
   avatar: String, // URL to image
   desc: String, // Short description (Title/Role)
   detail: String, // Long HTML/Text description
+  order: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

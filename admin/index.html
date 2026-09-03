@@ -2,29 +2,85 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>瑞华智策 - 后台登录</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>瑞华智策 · 后台登录</title>
+    <meta name="theme-color" content="#211e28">
+    <link rel="stylesheet" href="/admin/admin-login.css">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="shortcut icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/favicon.ico">
 </head>
-<body class="admin-login-body">
-    <div class="login-box">
-        <h4 class="text-center mb-4">CMS 登录</h4>
-        <form id="loginForm">
-            <div class="mb-3">
-                <label class="form-label text-muted small">账号</label>
-                <input type="text" id="u" class="form-control" placeholder="请输入账号" required>
+<body>
+    <main class="login-shell">
+        <section class="login-intro" aria-label="瑞华智策管理后台">
+            <div class="brand">
+                <span class="brand-bar" aria-hidden="true"></span>
+                <span>
+                    <strong>瑞华智策</strong>
+                    <small>ADMIN CONSOLE</small>
+                </span>
             </div>
-            <div class="mb-4">
-                <label class="form-label text-muted small">密码</label>
-                <input type="password" id="p" class="form-control" placeholder="请输入密码" required>
+            <div class="intro-copy">
+                <p class="eyebrow">RUIHUA DIGITAL OPERATIONS</p>
+                <h1>让每一次内容更新，<br>都有迹可循。</h1>
+                <p>统一管理官网内容、业务线索与运营数据，为团队提供清晰、稳定的数字化工作台。</p>
             </div>
-            <button type="submit" class="btn btn-brand">进入后台</button>
-        </form>
-    </div>
-    <script src="js/login.js"></script>
+            <div class="intro-foot">
+                <span class="status-dot" aria-hidden="true"></span>
+                <span>管理服务正常运行</span>
+                <span class="divider" aria-hidden="true"></span>
+                <span>仅限授权人员访问</span>
+            </div>
+        </section>
+
+        <section class="login-panel">
+            <form class="login-card" id="loginForm">
+                <div class="mobile-brand brand">
+                    <span class="brand-bar" aria-hidden="true"></span>
+                    <span>
+                        <strong>瑞华智策</strong>
+                        <small>ADMIN CONSOLE</small>
+                    </span>
+                </div>
+                <div class="card-head">
+                    <p class="step">SECURE ACCESS / 01</p>
+                    <h2>登录管理后台</h2>
+                    <p>请输入管理员账号与密码继续。</p>
+                </div>
+
+                <div id="loginError" class="login-error" role="alert" aria-live="polite"></div>
+
+                <div class="field">
+                    <label for="u">账号</label>
+                    <div class="input-wrap">
+                        <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 20c.8-4.1 3.3-6 7.5-6s6.7 1.9 7.5 6"></path></svg>
+                        <input type="text" id="u" name="username" autocomplete="username" placeholder="请输入账号" required autofocus>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="label-row">
+                        <label for="p">密码</label>
+                        <span>区分大小写</span>
+                    </div>
+                    <div class="input-wrap">
+                        <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+                        <input type="password" id="p" name="password" autocomplete="current-password" placeholder="请输入密码" required>
+                        <button type="button" class="password-toggle" id="togglePassword" aria-label="显示密码" aria-pressed="false">显示</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-button">
+                    <span class="button-label">进入后台</span>
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"></path></svg>
+                </button>
+
+                <p class="security-note">
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.7 2.8 8.2 7 10 4.2-1.8 7-5.3 7-10V6l-7-3Z"></path><path d="m9.5 12 1.7 1.7 3.6-4"></path></svg>
+                    登录信息将通过加密通道安全传输
+                </p>
+            </form>
+            <footer>© 2026 瑞华智策 · RUIHUA CONSULTING</footer>
+        </section>
+    </main>
+    <script src="/admin/js/login.js"></script>
 </body>
 </html>

@@ -22,6 +22,7 @@ function loadAppointments(page = 1) {
                     <td>${app.name || '-'}</td>
                     <td>${app.phone || '-'}</td>
                     <td>${app.company || '-'}</td>
+                    <td>${app.department || '-'}</td>
                     <td>${app.title || '-'}</td>
                     <td style="max-width: 200px;" class="text-truncate" title="${app.problem || ''}">${app.problem || '-'}</td>
                     <td>${app.source || '-'}</td>
@@ -50,7 +51,7 @@ function loadAppointments(page = 1) {
             // Pagination
             renderAppointmentPagination(data.pagination);
         } else {
-            tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-muted">暂无预约记录</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="11" class="text-center py-4 text-muted">暂无预约记录</td></tr>';
         }
     })
     .catch(err => {

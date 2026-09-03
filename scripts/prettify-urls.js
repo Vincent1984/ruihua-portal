@@ -3,10 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
 
-const filesToProcess = [
-    'solutions-hcvm.html',
-    'solutions-ohcvm.html'
-];
+const filesToProcess = [];
 
 const rootDir = path.join(__dirname, '..');
 const baseUrl = 'https://www.ruihuaconsulting.com';

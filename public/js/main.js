@@ -245,7 +245,7 @@ async function loadResearchInsights() {
     container.innerHTML = '';
     articles.forEach(article => {
       if (!article || !article._id) return;
-      const link = article.slug ? `/article/${article.slug}.html` : `/article.html?id=${article._id}`;
+      const link = article.slug ? `/insights/${encodeURIComponent(article.slug)}` : `/article.html?id=${article._id}`;
       const card = document.createElement('a');
       card.href = link;
       card.className = 'bg-white rounded-2xl shadow-md border border-slate-100 overflow-hidden transition-all duration-300 hover:shadow-xl group flex flex-col h-full block cursor-pointer';
@@ -339,7 +339,7 @@ async function loadMoreResearchInsights() {
     }
     articles.forEach((article) => {
       if (!article || !article._id) return;
-      const link = article.slug ? `/article/${article.slug}.html` : `/article.html?id=${article._id}`;
+      const link = article.slug ? `/insights/${encodeURIComponent(article.slug)}` : `/article.html?id=${article._id}`;
       const publishDate = article.publishDate ? new Date(article.publishDate).toLocaleDateString('zh-CN', {
         year: 'numeric',
         month: '2-digit',
@@ -612,14 +612,14 @@ const searchKB = [
         keywords: ['hcvm', '自有员工', '内部员工', '人效', 'roi'],
         title: 'HCVM 自有员工价值经营解决方案',
         desc: '针对企业核心职能团队（研发、销售等），通过数字化平台与AI赋能，实现从人效量化到价值跃迁的完整闭环。',
-        url: '/solutions-hcvm/',
+        url: '/hcvm',
         type: '解决方案'
     },
     {
         keywords: ['ohcvm', '外部用工', '外包', '灵活用工', '合规', '风控'],
         title: 'OHCVM 外部用工价值经营解决方案',
         desc: '针对企业外包与灵活用工场景，提供全流程合规风控、成本优化与人才资产化管理服务。',
-        url: 'solutions-ohcvm.html',
+        url: '/solutions',
         type: '解决方案'
     },
     {

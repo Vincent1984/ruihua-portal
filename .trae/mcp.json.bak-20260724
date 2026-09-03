@@ -1,0 +1,60 @@
+{
+  "mcpServers": {
+    "dingtalk-minutes": {
+      "command": "/usr/bin/python3",
+      "args": [
+        "/Users/nic/Documents/Claude/dingtalk-connector/mcp_server.py"
+      ],
+      "env": {
+        "DINGTALK_APP_KEY": "dingjp6t1qzf0rrp7fr2",
+        "DINGTALK_APP_SECRET": "km2KtgYfKEh7gSLpbptOiLOwu-bbCwS77RcHg1oIy8C0ZzsrcHX3odU06geVCoNm",
+        "DINGTALK_UNION_ID": "XBb00R1uVab7iPCJXiSvSvyQiEiE"
+      }
+    },
+    "volc-dns": {
+      "command": "/usr/bin/python3",
+      "args": [
+        "/Users/nic/Documents/Claude/mcp-servers/volc_dns_mcp.py"
+      ],
+      "env": {
+        "VOLCENGINE_ACCESS_KEY": "REPLACE_WITH_YOUR_AK",
+        "VOLCENGINE_SECRET_KEY": "REPLACE_WITH_YOUR_SK"
+      }
+    },
+    "volc-tos": {
+      "command": "/usr/bin/python3",
+      "args": [
+        "/Users/nic/Documents/Claude/mcp-servers/tos_mcp.py"
+      ],
+      "env": {
+        "TOS_ACCESS_KEY": "AKLTNzBkZjdkNjRkNWJkNDAwMzkyNTcxZmQwY2FiODU3OTM",
+        "TOS_SECRET_KEY": "T1RWbFlUSXpNV05oTkRjMU5EbG1OR0V4T1RNd01UTXpPV0V5WkdGaFlqYw==",
+        "TOS_BUCKET_NAME": "ruihua-portal",
+        "TOS_REGION": "cn-shanghai",
+        "TOS_ENDPOINT": "https://tos-cn-shanghai.volces.com",
+        "TOS_PUBLIC_URL": "https://ruihua-portal.tos-cn-shanghai.volces.com"
+      }
+    },
+    "sms": {
+      "command": "/usr/bin/python3",
+      "args": [
+        "/Users/nic/Documents/Claude/mcp-servers/sms_mcp.py"
+      ],
+      "env": {
+        "SMS_API_URL": "https://rcs.uninets.com.cn/uninetsOutInterface/domesticSmsSend",
+        "SMS_USERNAME": "rrxt",
+        "SMS_PASSWORD": "Renrui123"
+      }
+    },
+    "dingtalk-robot": {
+      "command": "/usr/bin/python3",
+      "args": [
+        "/Users/nic/Documents/Claude/mcp-servers/dingtalk_robot_mcp.py"
+      ],
+      "env": {
+        "DINGTALK_WEBHOOK_URL": "https://oapi.dingtalk.com/robot/send?access_token=862cc9da41b5779bbdb9d3c967e9da553ae0ea59e45f9e67cf3e3dd0af48e77f",
+        "DINGTALK_SECRET": "SECed8d93cf0a8a5fb61938069393315e4074109958ea40da68657a913b21d9d5f9"
+      }
+    }
+  }
+}
