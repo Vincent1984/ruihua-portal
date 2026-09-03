@@ -1,1 +1,11 @@
 node_modules
+
+# 本地 MongoDB 二进制与数据目录，勿提交
+.mongodb/
+
+# 含明文密钥的 Trae MCP 配置，勿提交
+.trae/mcp.json
+
+# 本地环境变量与密钥，勿提交
+.env
+.env.production
