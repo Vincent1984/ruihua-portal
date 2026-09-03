@@ -6,6 +6,16 @@ const ROOT = path.join(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(ROOT, relative), 'utf8');
 
 describe('SEO 与 GEO 全站优化', function () {
+    it('AI 顾问来源链接使用真实 SSR 路径而不是旧 Hash 路由', function () {
+        const engine = read('public/js/rh2026-engine.js');
+        assert.match(engine, /location\.assign\(|window\.location\.href/);
+        assert.doesNotMatch(engine, /location\.hash=h/);
+        assert.match(engine, /new URL\(h,\s*location\.origin\)/);
+        const source = read('new/rh2026.html');
+        assert.doesNotMatch(source, /location\.hash=h/);
+        assert.match(source, /new URL\(h,\s*location\.origin\)/);
+    });
+
     it('旧文章入口统一 301 到新版洞察规范 URL', function () {
         const server = read('server.js');
         assert.match(server, /res\.redirect\(301, `\/insights\/\$\{encodeURIComponent\([^)]+\)\}`\)/);

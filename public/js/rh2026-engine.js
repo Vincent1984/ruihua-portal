@@ -406,18 +406,34 @@ function openDrawer(){
   dwOpenedAt=Date.now();
   drawer.classList.add('open');
   if(!opened){opened=true;
-    aiMsg(`你好，我是瑞华的 AI 顾问，已接入官网<strong>全站内容检索</strong>——产品与服务、27 个行业案例、12 门课程、研究中心文章都能搜到，来源可一键跳转。<strong>可以问我怎么切入、怎么部署、怎么管混合员工</strong>，也可以直接搜任何站内内容。<span class="demo-tag">演示态 · 检索来自站内真实索引，回答未接入大模型</span>`);
+    if(RH_TALK.length>0){
+      RH_TALK.forEach(m=>{
+        if(m.r==='me'){meMsg(m.t);}
+        else if(m.r==='ai'){
+          let extra='';
+          if(m.rag&&m.rag.length)extra+=`<div class="rag">${m.rag.map(r=>`<span>● ${r}</span>`).join('')}</div>`;
+          if(m.src&&m.src.length)extra+=`<div class="srcs">${m.src.map(s=>`<a href="${s[2]||''}${s[3]?'#'+s[3]:''}" class="src" onclick="goSrc('${s[2]||''}','${s[3]||''}'); return false;" title="点击前往">${esc(s[0])}<em>${esc(s[1])} →</em></a>`).join('')}</div>`;
+          aiMsg(m.html||m.t,extra);
+        }
+      });
+    }else{
+      aiMsg(`你好，我是瑞华的 AI 顾问，已接入官网<strong>全站内容检索</strong>——产品与服务、27 个行业案例、12 门课程、研究中心文章都能搜到，来源可一键跳转。<strong>可以问我怎么切入、怎么部署、怎么管混合员工</strong>，也可以直接搜任何站内内容。<span class="demo-tag">演示态 · 检索来自站内真实索引，回答未接入大模型</span>`);
+    }
   }
   setTimeout(()=>document.getElementById('dwInput').focus(),350);
 }
 function closeDrawer(){drawer.classList.remove('open')}
-/* 来源卡跳转：关抽屉 → 切路由 → 定位到具体板块 */
+/* 来源卡跳转：关抽屉 → 切真实 SSR 路由 → 定位到具体板块 */
 function goSrc(h,el){
   if(!h)return;
   closeDrawer();
-  const scrollToEl=()=>{if(el){const t=document.getElementById(el);if(t)t.scrollIntoView({behavior:'smooth',block:'start'})}};
-  if(location.hash===h){ if(el)scrollToEl(); else route(); }
-  else{ location.hash=h; if(el)setTimeout(scrollToEl,380); }
+  const target=new URL(h,location.origin);
+  if(el)target.hash=el;
+  if(target.pathname===location.pathname){
+    if(el){const t=document.getElementById(el);if(t)t.scrollIntoView({behavior:'smooth',block:'start'})}
+    return;
+  }
+  window.location.assign(target.href);
 }
 /* 点击抽屉外任意位置收起；Esc 同样收起 */
 document.addEventListener('click',e=>{
@@ -464,9 +480,9 @@ function ask(q){
     document.getElementById(tid).remove();
     let extra='';
     if(hit.rag&&hit.rag.length)extra+=`<div class="rag">${hit.rag.map(r=>`<span>● ${r}</span>`).join('')}</div>`;
-    if(hit.src&&hit.src.length)extra+=`<div class="srcs">${hit.src.map(s=>`<a href="#${s[2]||''}" class="src" onclick="goSrc('${s[2]||''}','${s[3]||''}'); return false;" title="点击前往">${esc(s[0])}<em>${esc(s[1])} →</em></a>`).join('')}</div>`;
+    if(hit.src&&hit.src.length)extra+=`<div class="srcs">${hit.src.map(s=>`<a href="${s[2]||''}${s[3]?'#'+s[3]:''}" class="src" onclick="goSrc('${s[2]||''}','${s[3]||''}'); return false;" title="点击前往">${esc(s[0])}<em>${esc(s[1])} →</em></a>`).join('')}</div>`;
     aiMsg(hit.a,extra);
-    RH_TALK.push({r:'ai',t:_stripHTML(hit.a),rag:hit.rag||[],src:hit.src||[]});
+    RH_TALK.push({r:'ai',t:_stripHTML(hit.a),html:hit.a,rag:hit.rag||[],src:hit.src||[]});
     saveTalk();
     answers++;
     if((hit.lead||answers>=2)&&!leadShown){leadShown=true;setTimeout(showLead,900)}
@@ -476,11 +492,11 @@ function showLead(){
   body.insertAdjacentHTML('beforeend',`
   <div class="lead-card" id="leadCard">
     <div class="t">要不要把你的情况发给顾问？</div>
-    <div class="s">留下联系方式，顾问会带着刚才聊到的内容，24 小时内给你初步建议。</div>
+    <div class="s">留下您的联系方式，顾问会在1个工作日内给您联系。</div>
     <input id="ldName" placeholder="怎么称呼您">
     <input id="ldTel" type="tel" inputmode="tel" maxlength="20" placeholder="手机号">
     <button onclick="submitLead()">发给顾问</button>
-    <div class="pp">提交即代表同意《隐私政策》· 仅用于本次咨询联络</div>
+    <div class="pp">提交即代表同意<a href="/privacy">隐私政策</a>· 仅用于本次咨询联络</div>
   </div>`);
   body.scrollTop=body.scrollHeight;
 }
@@ -509,10 +525,15 @@ async function submitLead(){
   
   try{
     const response=await fetch('/api/appointments/website',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    if(!response.ok)throw new Error('submit failed');
+    if(!response.ok){
+      const errText=await response.text();
+      console.error('Submit failed:',response.status,errText);
+      throw new Error('submit failed');
+    }
     document.getElementById('leadCard').innerHTML=`<div class="ok">✓ 已收到，顾问会在 24 小时内联系你</div>`;
     try{sessionStorage.removeItem('rh_talk');RH_TALK.length=0;}catch(e){}
   }catch(error){
+    console.error('Lead submit error:',error);
     if(btn) { btn.disabled = false; btn.textContent = '发给顾问'; }
     fieldErr(tEl,'提交失败，请稍后重试');
   }
@@ -811,7 +832,7 @@ function openCase(i){
     ${c.prob&&c.prob.length?`<h5>遇到的问题</h5><ul>${li(c.prob)}</ul>`:''}
     ${c.goal&&c.goal.length?`<h5>希望实现的目标</h5><ul>${li(c.goal)}</ul>`:''}
     ${c.sol&&c.sol.length?`<h5>解决方案</h5><ul>${li(c.sol)}</ul>`:''}
-    ${(c.stats.length||c.resBody.length)?`<h5>带来的结果</h5>${c.resBody.map(x=>`<p>${x}</p>`).join('')}
+    ${(c.stats.length||c.resBody.length)?`<h5>项目成果</h5>${c.resBody.map(x=>`<p>${x}</p>`).join('')}
       ${c.stats.length?`<div class="stat-grid">${c.stats.map(x=>`<div class="stat"><b>${x[0]}</b><i>${x[1]}</i></div>`).join('')}</div>`:''}`:''}
     <div class="cm-cta">
       <div class="t">想在你的企业复制这个场景？<span>先做一次轻量的 AI 场景诊断，顾问 1 个工作日内联系你。</span></div>
@@ -951,16 +972,12 @@ function updateProgress(){
   const bar=document.getElementById('aProg');
   const article=document.querySelector('.page[data-page="article-detail"].on');
   const b=article?.querySelector('.a-body');
-  const percent=article?.querySelector('[data-reading-percent]');
-  const readingBar=article?.querySelector('[data-reading-bar]');
-  if(!b){if(bar)bar.style.width='0';if(percent)percent.textContent='0%';if(readingBar)readingBar.style.width='0%';return}
+  if(!b){if(bar)bar.style.width='0';return}
   const r=b.getBoundingClientRect();
   const total=Math.max(r.height-innerHeight+240,1);
   const done=Math.min(Math.max(-r.top+120,0),total);
   const value=Math.round(done/total*100);
   if(bar)bar.style.width=value+'%';
-  if(percent)percent.textContent=value+'%';
-  if(readingBar)readingBar.style.width=value+'%';
   /* 目录滚动高亮 */
   if(!tocHeads.length)return;
   let cur=0;
@@ -1645,4 +1662,22 @@ function animReset(scope){
   new IntersectionObserver(([e]) =>
     document.body.classList.toggle('dw-vis', e.isIntersecting),
     { threshold: .12 }).observe(dw);
+})();
+
+/* FAQ 手风琴效果：同时只展开一个 */
+(function(){
+  const faqSections = [document.getElementById('home-faq'), ...document.querySelectorAll('.case-faq')];
+  faqSections.forEach(faqSection => {
+    if(!faqSection) return;
+    const items = faqSection.querySelectorAll('.faq-item');
+    items.forEach(item => {
+      item.addEventListener('toggle', () => {
+        if(item.open) {
+          items.forEach(other => {
+            if(other !== item && other.open) other.open = false;
+          });
+        }
+      });
+    });
+  });
 })();

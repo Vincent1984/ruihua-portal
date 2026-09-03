@@ -392,7 +392,7 @@ function buildArticleDetail(article, author, qa, relatedArticles = []) {
     if (text) tocItems.push({ id, text, level });
     return `<h${level}${attrs} id="${id}">${content}</h${level}>`;
   });
-  const tocHtml = `<nav class="a-toc" aria-label="本文目录"><div class="h"><span>本文目录</span><b data-reading-percent>0%</b></div><div class="a-toc-progress" aria-hidden="true"><i data-reading-bar></i></div><div class="a-toc-links"><a href="#article-summary">核心摘要</a>${tocItems.length ? tocItems.map(item => `<a class="level-${item.level}" href="#${item.id}">${esc(item.text)}</a>`).join('') : '<a href="#article-content">正文内容</a>'}</div></nav>`;
+  const tocHtml = `<nav class="a-toc" aria-label="本文目录"><div class="h"><span>本文目录</span></div><div class="a-toc-links"><a href="#article-summary">核心摘要</a>${tocItems.length ? tocItems.map(item => `<a class="level-${item.level}" href="#${item.id}">${esc(item.text)}</a>`).join('') : '<a href="#article-content">正文内容</a>'}</div></nav>`;
   const qaHtml = qa.length ? `<section class="a-faq"><div class="a-block-label">FAQ</div><h2>常见问题</h2>${qa.map(x => `<div class="a-faq-item"><h3>${esc(x.question)}</h3><p>${esc(String(x.answer).replace(/<[^>]+>/g, ''))}</p></div>`).join('')}</section>` : '';
   const relatedHtml = relatedArticles.length ? `<section class="a-rel"><div class="h">相关文章</div>${relatedArticles.map(item => `<a class="r" href="/insights/${encodeURIComponent(item.slug)}"><span>${esc(item.title)}</span><em>${item.publishDate ? new Date(item.publishDate).toLocaleDateString('zh-CN') : '行业洞察'}</em></a>`).join('')}</section>` : '';
   return `<div class="page on" data-page="article-detail"><header class="a-hero"><div class="wrap"><div class="a-bc"><a href="/">首页</a> › <a href="/insights">行业洞察</a> › <a href="${categoryHref}">${esc(category)}</a></div><h1>${esc(article.title)}</h1><div class="a-meta"><span>发布时间：<b>${published}</b></span><span>作者：<b>${esc(authorName)}</b></span><span>阅读量：<b>${article.views || 0}</b></span><span>更新时间：<b>${updated}</b></span></div></div></header><main class="a-main"><article><div class="a-abs" id="article-summary"><div class="h">CORE SUMMARY · 核心摘要</div><p>${esc(summary)}</p></div><div class="a-body"><div class="article-content" id="article-content">${bodyWithAnchors}</div>${qaHtml}${relatedHtml}<p class="case-detail-back"><a href="/insights">← 返回行业洞察</a></p></div></article><aside class="a-side">${tocHtml}<section class="a-author"><div class="h">作者</div><div class="row">${avatar}<div><div class="nm">${esc(authorName)}</div><div class="ti">${esc(authorTitle)}</div></div></div><p>${esc(authorBio)}</p></section><section class="a-promo"><span class="chip">⚡ 限时免费诊断</span><div class="t">企业 AI 场景诊断</div><p>从业务价值、数据基础与落地难度出发，识别最值得优先启动的 AI 场景，形成可执行的场景清单。</p><a href="/contact">预约场景诊断 <span>→</span></a></section></aside></main></div>`;
@@ -458,7 +458,7 @@ function buildCaseDetail(c, relatedCases = []) {
     <main class="section case-detail-section"><div class="cm-body case-detail-body">
       <div class="case-report-layout">
         <aside class="case-report-index" aria-label="案例章节导航">
-          <span class="case-index-eyebrow">CASE REPORT</span>
+          <span class="case-index-eyebrow">CASE REVIEW</span>
           <strong>项目复盘</strong>
           <nav><a href="#case-overview"><i>00</i>项目概览</a><a href="#case-step-01"><i>01</i>遇到的问题</a><a href="#case-step-02"><i>02</i>期望目标</a><a href="#case-step-03"><i>03</i>解决方案</a><a href="#case-impact"><i>04</i>项目成果</a></nav>
           <span class="case-index-progress" aria-hidden="true"></span>
@@ -475,7 +475,7 @@ function buildCaseDetail(c, relatedCases = []) {
             ${story('case-solution', 'case-step-03', '03', '解决方案', c.solutions)}
           </div>
           <section class="case-results" id="case-impact">
-            <div class="case-results-head"><div><div class="case-section-label"><span>04</span>DELIVERED IMPACT</div><h2>带来的结果</h2></div><p>从关键业务指标到工作方式转变，项目价值被持续验证并留在组织内部。</p></div>
+            <div class="case-results-head"><div><div class="case-section-label"><span>04</span>DELIVERED IMPACT</div><h2>项目成果</h2></div><p>从关键业务指标到工作方式转变，项目价值被持续验证并留在组织内部。</p></div>
             ${results ? `<div class="case-result-grid">${results}</div>` : `<div class="case-results-empty"><span>RESULTS IN PROGRESS</span><p>项目成果正在持续沉淀，详细效果数据将在完成验证后更新。</p></div>`}
           </section>
         </div>

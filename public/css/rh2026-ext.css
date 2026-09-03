@@ -16,9 +16,15 @@
 [data-sx="s15"][data-sx="s15"]{font-size:20px}
 [data-sx="s16"][data-sx="s16"]{font-style:normal;display:block;color:var(--sage-ink);font-weight:700;margin-top:6px}
 [data-sx="s17"][data-sx="s17"]{font-size:20px;margin-top:34px}
-[data-sx="s18"][data-sx="s18"]{background:var(--dark);border-color:var(--dark);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-top:14px}
-[data-sx="s19"][data-sx="s19"]{color:#fafafb}
-[data-sx="s20"][data-sx="s20"]{color:#9c95ac}
+.training-custom-banner{background:#211e28!important;border:0!important;border-radius:16px;padding:22px 24px;display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:nowrap;margin-top:14px;min-height:112px;overflow:hidden;position:relative}
+.training-custom-banner::after{content:"✳";position:absolute;right:31%;bottom:-20px;color:rgba(255,255,255,.06);font-size:82px;line-height:1;pointer-events:none}
+.training-custom-banner>div{min-width:0;position:relative;z-index:1}
+.training-custom-banner .btn{flex-shrink:0;position:relative;z-index:1;background:#fafafb;color:#211e28;border:0;font-size:15px;padding:14px 28px;min-height:48px}
+.training-custom-banner .btn:hover{background:#fff;box-shadow:0 10px 26px rgba(250,250,251,.2)}
+[data-sx="s19"][data-sx="s19"]{color:#fafafb;font-size:18px;font-weight:800;line-height:1.5;margin-bottom:7px}
+[data-sx="s20"][data-sx="s20"]{color:#9c95ac;font-size:15px;line-height:1.7}
+.training-custom-banner:hover{transform:none;box-shadow:none;border-color:transparent;background:#211e28}
+@media(max-width:640px){.training-custom-banner{align-items:flex-start;flex-direction:column;gap:18px;padding:20px;min-height:0}.training-custom-banner .btn{width:100%;justify-content:center}.training-custom-banner [data-sx="s19"]{font-size:16px}.training-custom-banner [data-sx="s20"]{font-size:13px}}
 [data-sx="s21"][data-sx="s21"]{font-style:normal;display:block;color:var(--purple);font-weight:700;margin-top:6px}
 [data-sx="s22"][data-sx="s22"]{display:block;margin-top:26px}
 [data-sx="s23"][data-sx="s23"]{margin-top:6px}

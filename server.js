@@ -1357,9 +1357,12 @@ function inject2026PublicShell(document, activePath = '') {
     const rhExtCss = document.head.querySelector('link[href*="/css/rh2026-ext.css"]');
     if (rhExtCss) rhExtCss.setAttribute('href', '/css/rh2026-ext.css?v=20260903');
     else document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="/css/rh2026-ext.css?v=20260903">');
-    if (!document.body.querySelector('script[src*="/js/rh2026-engine.js"]')) {
-        document.body.insertAdjacentHTML('beforeend', '<script src="/js/rh2026-engine.js?v=20260903n"></script><script src="/js/rh2026-ext.js?v=20260903"></script>');
-    }
+    const rhEngine = document.body.querySelector('script[src*="/js/rh2026-engine.js"]');
+    if (rhEngine) rhEngine.setAttribute('src', '/js/rh2026-engine.js?v=20260903o');
+    else document.body.insertAdjacentHTML('beforeend', '<script src="/js/rh2026-engine.js?v=20260903o"></script>');
+    const rhExt = document.body.querySelector('script[src*="/js/rh2026-ext.js"]');
+    if (rhExt) rhExt.setAttribute('src', '/js/rh2026-ext.js?v=20260903');
+    else document.body.insertAdjacentHTML('beforeend', '<script src="/js/rh2026-ext.js?v=20260903"></script>');
 }
 
 const renderStaticHtmlWith2026Shell = async (req, res, filename) => {
@@ -1411,7 +1414,7 @@ async function injectHomeDynamicContent(document, options = {}) {
     try {
         const [articles, faqRows, categories, total] = await Promise.all([
             Article.find({ status: 'published', isOnline: { $ne: false }, isRecommended: true })
-                .sort({ publishDate: -1 })
+                .sort({ top: -1, publishDate: -1 })
                 .limit(insightsLimit)
                 .lean(),
             Faq.find({ status: { $in: ['published', undefined] }, isOnline: { $ne: false } })
@@ -2767,7 +2770,7 @@ app.get('/api/home/content', async (req, res) => {
 
         const [articles, total, categories, faqs] = await Promise.all([
             Article.find({ status: 'published', isOnline: { $ne: false }, isRecommended: true })
-                .sort({ publishDate: -1 })
+                .sort({ top: -1, publishDate: -1 })
                 .skip(skip)
                 .limit(limit)
                 .lean(),
@@ -5558,6 +5561,69 @@ app.post('/api/appointments', async (req, res) => {
         res.json({ success: true, message: '提交成功' });
     } catch (e) {
         console.error('Appointment Error:', e);
+        res.status(500).json({ error: '服务器内部错误' });
+    }
+});
+
+// Website form submission (AI advisor, contact form, etc. - no verification code required)
+app.post('/api/appointments/website', async (req, res) => {
+    try {
+        let { name, phone, company, department, title, problem, source, leadPage, trigger, device, trail, talk, intents, email, landing_page, referrer, ...utmParams } = req.body;
+        
+        // Channel Tracking: Read from cookies if not provided in body
+        if (req.cookies) {
+             if (!utmParams.utm_source && req.cookies.utm_source) utmParams.utm_source = req.cookies.utm_source;
+             if (!utmParams.utm_medium && req.cookies.utm_medium) utmParams.utm_medium = req.cookies.utm_medium;
+             if (!utmParams.utm_campaign && req.cookies.utm_campaign) utmParams.utm_campaign = req.cookies.utm_campaign;
+             if (!utmParams.utm_term && req.cookies.utm_term) utmParams.utm_term = req.cookies.utm_term;
+             if (!utmParams.utm_content && req.cookies.utm_content) utmParams.utm_content = req.cookies.utm_content;
+        }
+
+        // Basic validation
+        if (!name || !phone) {
+            return res.status(400).json({ error: '姓名和电话为必填项' });
+        }
+
+        // Phone validation
+        if (!/^1[3-9]\d{9}$/.test(phone)) {
+            return res.status(400).json({ error: '请输入有效的11位手机号码' });
+        }
+
+        const newAppt = new Appointment({
+            externalId: await generateDailyExternalId(),
+            name,
+            phone,
+            company: company || '',
+            department: department || '',
+            title: title || '',
+            problem: problem || '',
+            source: source || leadPage || location.pathname,
+            leadPage: leadPage || '',
+            trigger: trigger || '官网表单',
+            device: device || 'unknown',
+            trail: trail || [],
+            talk: talk || [],
+            intents: intents || [],
+            email: email || '',
+            landing_page: landing_page || '',
+            referrer: referrer || '',
+            ...utmParams,
+            status: 'new',
+            createdAt: new Date()
+        });
+
+        await newAppt.save();
+        
+        // 发送钉钉通知（独立异常处理）
+        try {
+            await sendDingTalkNotification(newAppt);
+        } catch (dingTalkError) {
+            console.error('DingTalk notification failed:', dingTalkError);
+        }
+        
+        res.json({ success: true, message: '提交成功' });
+    } catch (e) {
+        console.error('Website appointment error:', e);
         res.status(500).json({ error: '服务器内部错误' });
     }
 });

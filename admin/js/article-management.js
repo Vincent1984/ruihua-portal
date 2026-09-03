@@ -1292,7 +1292,22 @@ async function loadStudioData(type, id) {
         } else {
             document.getElementById('artSlug').value = data.slug || '';
             document.getElementById('caseClient').value = data.client || '';
-            document.getElementById('caseIndustry').value = data.industry || '';
+            
+            // 确保行业字段正确回显
+            const industryEl = document.getElementById('caseIndustry');
+            const savedIndustry = data.industry || '';
+            if (industryEl) {
+                // 如果保存的行业不在选项中，添加它
+                const existingOption = Array.from(industryEl.options).find(opt => opt.value === savedIndustry);
+                if (savedIndustry && !existingOption) {
+                    const newOption = document.createElement('option');
+                    newOption.value = savedIndustry;
+                    newOption.textContent = savedIndustry;
+                    industryEl.insertBefore(newOption, industryEl.options[1]); // 插入到第二个位置
+                }
+                industryEl.value = savedIndustry;
+            }
+            
             document.getElementById('artStatus').value = data.status || 'published';
             document.getElementById('caseOnlineBtn').className = data.isOnline !== false ? 'switch on' : 'switch';
             document.getElementById('artFeaturedBtn').className = data.featured ? 'switch on' : 'switch';
@@ -1339,12 +1354,25 @@ async function loadStudioAuthors() {
     } catch(e) { console.warn('加载作者列表失败', e); }
 }
 
+let saveInProgress = false;
+
 async function saveStudioData() {
+    if (saveInProgress) {
+        console.warn('保存正在进行中，忽略重复请求');
+        return;
+    }
+    
     try {
+        saveInProgress = true;
         const type = window.studioType;
         const id = window.studioId;
         const title = document.getElementById('studioTitleInput').value.trim();
         if(!title) throw new Error('标题不能为空');
+        
+        const token = sessionStorage.getItem('token');
+        if (!token) {
+            throw new Error('登录已过期，请重新登录');
+        }
         
         const content = window.wangEditorInstance ? window.wangEditorInstance.getHtml() : '';
         const cover = document.getElementById('artCover').value;
@@ -1408,6 +1436,14 @@ async function saveStudioData() {
                 const idx = line.indexOf(':');
                 return idx > 0 ? { label: line.slice(0, idx).trim(), value: line.slice(idx + 1).trim() } : { label: line.trim(), value: '' };
             }).filter(x => x.label);
+            
+            const industryEl = document.getElementById('caseIndustry');
+            const industry = industryEl ? industryEl.value.trim() : '';
+            if (!industry) {
+                if (industryEl) industryEl.focus();
+                throw new Error('行业分类不能为空');
+            }
+            
             payload = {
                 title,
                 background: document.getElementById('caseOverviewInput').value.trim(),
@@ -1417,7 +1453,7 @@ async function saveStudioData() {
                 featured,
                 isOnline: document.getElementById('caseOnlineBtn').classList.contains('on'),
                 client: document.getElementById('caseClient').value,
-                industry: document.getElementById('caseIndustry').value,
+                industry: industry,
                 tags: document.getElementById('caseTags').value.split(/[,，]/).map(x => x.trim()).filter(Boolean),
                 stats,
                 problems: lineToList(document.getElementById('caseProblems').value),
@@ -1429,9 +1465,15 @@ async function saveStudioData() {
         
         const response = await fetch(url, {
             method: id ? 'PUT' : 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + sessionStorage.getItem('token') },
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
             body: JSON.stringify(payload)
         });
+        
+        if (response.status === 401) {
+            sessionStorage.removeItem('token');
+            throw new Error('登录已过期，请重新登录');
+        }
+        
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.message || errorData.error || `保存失败（${response.status}）`);
@@ -1442,7 +1484,15 @@ async function saveStudioData() {
         else loadCases();
         toast('保存成功');
     } catch(e) {
-        alert(e.message);
+        if (e.message.includes('登录已过期')) {
+            if (confirm('登录已过期，是否跳转到登录页？')) {
+                window.location.href = '/admin/index.html';
+            }
+        } else {
+            alert(e.message);
+        }
+    } finally {
+        saveInProgress = false;
     }
 }
 
@@ -2376,9 +2426,9 @@ function togglePublishDate() {
     const wrapper = document.getElementById('publishDateWrapper');
     if (wrapper) {
         if (status === 'scheduled') {
-            wrapper.classList.remove('d-none');
+            wrapper.style.display = 'block';
         } else {
-            wrapper.classList.add('d-none');
+            wrapper.style.display = 'none';
         }
     }
 }
