@@ -2,7 +2,7 @@
 
 > 面向企业管理者、组织负责人和 AI 转型团队，提供 AI 赋能培训、AI 转型咨询、AI 落地陪跑与人力资本价值经营服务。
 > 最后更新：2026-09-03
-> 文章总数：12
+> 文章总数：14
 
 ## 核心页面
 - 产品与服务: https://www.ruihuaconsulting.com/solutions
@@ -14,6 +14,18 @@
 - 研究中心: https://www.ruihuaconsulting.com/insights
 - 关于我们: https://www.ruihuaconsulting.com/about
 - 联系我们: https://www.ruihuaconsulting.com/contact
+
+## 测试版-2026 上半年企业 AI 应用成熟度观察
+- URL: https://www.ruihuaconsulting.com/insights/enterprise-ai-application-maturity-2026-h1
+- Date: 2026-09-03
+- Tags: AI应用成熟度, 代AI跃迁, 工作流可控
+- Summary: 2026年中国大模型市场规模将破700亿元，但企业需警惕“大模型囤积症”——重部署轻应用。破局关键：一是从对话式AI跃迁至代理式AI，实现“可控自主”，需业务本体与分级置信度机制保障安全；二是拥抱Vibe Coding，通过业务规则显式化，实现高质量内建开发；三是完成从“数据连通”到“语义重构”的进
+
+## 测试版-2026 上半年企业 AI 应用成熟度观察
+- URL: https://www.ruihuaconsulting.com/insights/enterprise-ai-maturity-2026-01
+- Date: 2026-09-03
+- Tags: AI应用成熟度, 代AI跃迁, 工作流可控
+- Summary: 2026年中国大模型市场规模将破700亿元，但企业需警惕“大模型囤积症”——重部署轻应用。破局关键：一是从对话式AI跃迁至代理式AI，实现“可控自主”，需业务本体与分级置信度机制保障安全；二是拥抱Vibe Coding，通过业务规则显式化，实现高质量内建开发；三是完成从“数据连通”到“语义重构”的进
 
 ## 央国企 AI 化转型规划：从合规动作到经营抓手
 - URL: https://www.ruihuaconsulting.com/insights/central-soes-ai-transformation-planning

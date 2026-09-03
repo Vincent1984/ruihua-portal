@@ -9,8 +9,8 @@
     --line: #e7e4eb;
     --danger: #b3261e;
     --serif: "Noto Serif SC", "Songti SC", serif;
-    --sans: "PingFang SC", "Microsoft YaHei", sans-serif;
-    --mono: "SFMono-Regular", Consolas, monospace;
+    --sans: "MiSans", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --mono: "MiSans", "PingFang SC", "Microsoft YaHei", sans-serif;
     --ease: cubic-bezier(.2, 0, 0, 1);
 }
 

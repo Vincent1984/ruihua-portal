@@ -11,8 +11,8 @@
   --p-300:#bda5ff; --p-50:#f6f3ff; --p-200:#dbcdff;
   --sage:#d6e893; --sage-ink:#50630c; --data-ink:#677d16;      /* S200 / S700 / S600 */
   --serif:"Noto Serif SC","Songti SC",serif;
-  --sans:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif;
-  --mono:"JetBrains Mono",Consolas,monospace;
+  --sans:"MiSans","PingFang SC","Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif;
+  --mono:"MiSans","PingFang SC","Microsoft YaHei",Arial,sans-serif;
   --ease:cubic-bezier(.2,0,0,1);
 }
 *{margin:0;padding:0;box-sizing:border-box}

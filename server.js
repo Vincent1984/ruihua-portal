@@ -1352,8 +1352,8 @@ function inject2026PublicShell(document, activePath = '') {
     if (firstScript) firstScript.insertAdjacentHTML('beforebegin', `${shell.footer}\n${shell.drawer}`);
     else document.body.insertAdjacentHTML('beforeend', `${shell.footer}\n${shell.drawer}`);
     const rhCss = document.head.querySelector('link[href*="/css/rh2026.css"]');
-    if (rhCss) rhCss.setAttribute('href', '/css/rh2026.css?v=20260903');
-    else document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="/css/rh2026.css?v=20260903">');
+    if (rhCss) rhCss.setAttribute('href', '/css/rh2026.css?v=20260903m');
+    else document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="/css/rh2026.css?v=20260903m">');
     const rhExtCss = document.head.querySelector('link[href*="/css/rh2026-ext.css"]');
     if (rhExtCss) rhExtCss.setAttribute('href', '/css/rh2026-ext.css?v=20260903');
     else document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="/css/rh2026-ext.css?v=20260903">');

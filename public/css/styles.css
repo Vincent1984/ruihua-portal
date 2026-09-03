@@ -48,7 +48,7 @@
 
 /* 基础排版 */
 body {
-  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "MiSans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
   line-height: 1.6;
   letter-spacing: 0.02em;
   -webkit-font-smoothing: antialiased;

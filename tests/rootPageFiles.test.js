@@ -30,6 +30,14 @@ describe('2026 根页面文件替换', function () {
         assert.match(extCss, /\{height:44px;display:block\}/);
     });
 
+    it('网站数字与英文统一使用 MiSans 字体', function () {
+        const css = fs.readFileSync(path.join(ROOT, 'public', 'css', 'rh2026.css'), 'utf8');
+
+        assert.match(css, /--sans:[^;]*MiSans/i);
+        assert.match(css, /--mono:[^;]*MiSans/i);
+        assert.match(css, /body\{[^}]*font-family:var\(--sans\)/);
+    });
+
     it('新版根页面只使用外联 CSS、JavaScript 和事件绑定', function () {
         for (const filename of Object.keys(pages)) {
             const html = fs.readFileSync(path.join(ROOT, filename), 'utf8');
