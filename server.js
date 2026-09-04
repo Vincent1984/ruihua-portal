@@ -22,7 +22,7 @@ const helmet = require('helmet');
 
 // Import Models
 const Appointment = require('./models/Appointment');
-const { generateDailyExternalId } = require('./utils/dailyExternalId');
+const { generateDailyExternalId, saveWithUniqueExternalId } = require('./utils/dailyExternalId');
 const Article = require('./models/Article');
 const ArticleHistory = require('./models/ArticleHistory');
 const OperationLog = require('./models/OperationLog');
@@ -5588,9 +5588,7 @@ app.post('/api/appointments/website', async (req, res) => {
         if (!/^1[3-9]\d{9}$/.test(phone)) {
             return res.status(400).json({ error: '请输入有效的11位手机号码' });
         }
-
         const newAppt = new Appointment({
-            externalId: await generateDailyExternalId(),
             name,
             phone,
             company: company || '',
@@ -5612,7 +5610,7 @@ app.post('/api/appointments/website', async (req, res) => {
             createdAt: new Date()
         });
 
-        await newAppt.save();
+        await saveWithUniqueExternalId(newAppt);
         
         // 发送钉钉通知（独立异常处理）
         try {

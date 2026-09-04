@@ -1,5 +1,5 @@
 const Appointment = require('../models/Appointment');
-const { generateDailyExternalId } = require('../utils/dailyExternalId');
+const { saveWithUniqueExternalId } = require('../utils/dailyExternalId');
 
 const TRACKING_FIELDS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'landing_page', 'referrer'];
 
@@ -53,8 +53,7 @@ function registerAppointmentAttributionRoutes(app, authRequired, requirePerm) {
       }
 
       const attribution = buildAttribution(req.body, req.cookies);
-      const appointment = await Appointment.create({
-        externalId: await generateDailyExternalId(),
+      const appointment = new Appointment({
         name,
         phone,
         company: clean(req.body.company, 200),
@@ -72,6 +71,7 @@ function registerAppointmentAttributionRoutes(app, authRequired, requirePerm) {
         talk: Array.isArray(req.body.talk) ? req.body.talk.slice(0, 100) : [],
         ...attribution
       });
+      await saveWithUniqueExternalId(appointment);
       res.status(201).json({ success: true, id: appointment._id, externalId: appointment.externalId });
     } catch (error) {
       console.error('Website appointment submission failed:', error);

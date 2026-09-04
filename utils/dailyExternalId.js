@@ -16,4 +16,15 @@ async function generateDailyExternalId(now = new Date()) {
   }
 }
 
-module.exports = { generateDailyExternalId };
+async function saveWithUniqueExternalId(document, generateId = generateDailyExternalId) {
+  for (;;) {
+    document.externalId = await generateId();
+    try {
+      return await document.save();
+    } catch (error) {
+      if (error.code !== 11000 || !error.keyPattern?.externalId) throw error;
+    }
+  }
+}
+
+module.exports = { generateDailyExternalId, saveWithUniqueExternalId };
