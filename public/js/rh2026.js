@@ -1160,7 +1160,8 @@ async function submitForm(e){
   try{
     const response=await fetch('/api/appointments/website',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     if(!response.ok)throw new Error('submit failed');
-    form.innerHTML='<div class="ok-msg">✓ 提交成功，顾问将在 1 个工作日内联系你</div>';
+    form.classList.add('is-success');
+    form.innerHTML='<div class="ok-msg" role="status" aria-live="polite"><div class="ok-msg__mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="m14 25 7 7 14-16"/></svg></div><div class="ok-msg__eyebrow"><span>REQUEST RECEIVED</span><i></i></div><h2>预约信息已确认</h2><p>感谢你的信任。顾问会结合提交的信息提前了解需求，并在 <strong>1 个工作日内</strong>与你联系。</p><div class="ok-msg__steps"><span><b>01</b>信息已入库</span><span><b>02</b>顾问研判</span><span><b>03</b>电话沟通</span></div><div class="ok-msg__note">请留意来电，我们期待与你聊聊。</div></div>';
     try{sessionStorage.removeItem('rh_talk');RH_TALK.length=0;}catch(e){}
   }catch(error){
     button.disabled=false; button.textContent='提交预约 →';

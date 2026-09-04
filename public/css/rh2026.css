@@ -551,7 +551,30 @@ a.art:hover{border-color:var(--p-200);transform:translateY(-5px);box-shadow:0 20
 .form .cbs label{display:inline-flex;align-items:center;gap:6px;font-weight:700;
   color:var(--ink-2);background:var(--cream);border:1px solid var(--line);border-radius:999px;
   padding:7px 14px;margin:0;cursor:pointer;font-size:12.5px}
-.form .ok-msg{font-size:14px;font-weight:800;color:var(--sage-ink);text-align:center;padding:20px 0}
+.form.is-success{position:relative;display:flex;align-items:center;min-height:430px;padding:0;overflow:hidden;
+  border-color:rgba(124,77,255,.2);background:linear-gradient(145deg,#fff 0%,#fbf9ff 58%,#f2edff 100%);
+  box-shadow:0 24px 70px rgba(46,32,86,.1)}
+.form.is-success::before{content:"";position:absolute;width:310px;height:310px;right:-145px;top:-170px;
+  border:1px solid rgba(124,77,255,.16);border-radius:50%;box-shadow:0 0 0 46px rgba(124,77,255,.035),0 0 0 92px rgba(124,77,255,.025)}
+.form.is-success::after{content:"RUIHUA / 2026";position:absolute;right:25px;bottom:19px;font:700 9px/1 var(--mono);
+  letter-spacing:.18em;color:rgba(46,32,86,.28)}
+.form .ok-msg{position:relative;width:100%;padding:56px 58px 52px;text-align:left;color:var(--ink);animation:successIn .55s var(--ease) both}
+.ok-msg__mark{display:grid;place-items:center;width:58px;height:58px;margin-bottom:27px;border-radius:50%;color:#fff;
+  background:var(--purple);box-shadow:0 12px 28px rgba(94,53,177,.25),0 0 0 8px rgba(124,77,255,.08)}
+.ok-msg__mark svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.ok-msg__eyebrow{display:flex;align-items:center;gap:12px;margin-bottom:12px;font:700 10px/1 var(--mono);letter-spacing:.18em;color:var(--purple)}
+.ok-msg__eyebrow i{display:block;width:42px;height:1px;background:var(--purple);opacity:.45}
+.form .ok-msg h2{margin:0;font-family:var(--serif);font-size:clamp(27px,3vw,38px);font-weight:700;letter-spacing:-.03em;color:var(--ink)}
+.form .ok-msg p{max-width:500px;margin:15px 0 30px;font-size:14px;font-weight:400;line-height:1.85;color:var(--ink-2)}
+.form .ok-msg p strong{color:var(--purple);font-weight:800}
+.ok-msg__steps{display:flex;align-items:center;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 0}
+.ok-msg__steps span{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.ok-msg__steps span+span::before{content:"";width:26px;height:1px;margin:0 14px;background:var(--line)}
+.ok-msg__steps b{font:700 9px/1 var(--mono);letter-spacing:.08em;color:var(--purple)}
+.ok-msg__note{margin-top:19px;font-size:11.5px;color:var(--ink-3)}
+@keyframes successIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media(max-width:640px){.form.is-success{min-height:400px}.form .ok-msg{padding:42px 28px}.ok-msg__steps{align-items:flex-start;gap:11px;flex-direction:column}.ok-msg__steps span+span::before{display:none}}
+@media(prefers-reduced-motion:reduce){.form .ok-msg{animation:none}}
 .contact-side{font-size:13.5px;color:var(--ink-2);line-height:2.1;margin-top:26px}
 .contact-side b{color:var(--ink)}
 .contact-side button{background:transparent;border:none;box-shadow:none;color:var(--purple);font-weight:600;padding:0;border-bottom:2px solid var(--purple);border-radius:0;transition:opacity .16s var(--ease)}

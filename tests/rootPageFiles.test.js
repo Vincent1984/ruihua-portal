@@ -38,6 +38,18 @@ describe('2026 根页面文件替换', function () {
         assert.match(css, /body\{[^}]*font-family:var\(--sans\)/);
     });
 
+    it('联系表单提交成功后展示完整确认回执', function () {
+        const script = fs.readFileSync(path.join(ROOT, 'public', 'js', 'rh2026-engine.js'), 'utf8');
+        const css = fs.readFileSync(path.join(ROOT, 'public', 'css', 'rh2026.css'), 'utf8');
+
+        assert.match(script, /class="ok-msg"[^>]*role="status"/);
+        assert.match(script, /class="ok-msg__mark"/);
+        assert.match(script, /预约信息已确认/);
+        assert.match(script, /1 个工作日内/);
+        assert.match(css, /\.form\.is-success/);
+        assert.match(css, /\.ok-msg__mark/);
+    });
+
     it('新版根页面只使用外联 CSS、JavaScript 和事件绑定', function () {
         for (const filename of Object.keys(pages)) {
             const html = fs.readFileSync(path.join(ROOT, filename), 'utf8');

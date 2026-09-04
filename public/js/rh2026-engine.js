@@ -406,19 +406,7 @@ function openDrawer(){
   dwOpenedAt=Date.now();
   drawer.classList.add('open');
   if(!opened){opened=true;
-    if(RH_TALK.length>0){
-      RH_TALK.forEach(m=>{
-        if(m.r==='me'){meMsg(m.t);}
-        else if(m.r==='ai'){
-          let extra='';
-          if(m.rag&&m.rag.length)extra+=`<div class="rag">${m.rag.map(r=>`<span>● ${r}</span>`).join('')}</div>`;
-          if(m.src&&m.src.length)extra+=`<div class="srcs">${m.src.map(s=>`<a href="${s[2]||''}${s[3]?'#'+s[3]:''}" class="src" onclick="goSrc('${s[2]||''}','${s[3]||''}'); return false;" title="点击前往">${esc(s[0])}<em>${esc(s[1])} →</em></a>`).join('')}</div>`;
-          aiMsg(m.html||m.t,extra);
-        }
-      });
-    }else{
-      aiMsg(`你好，我是瑞华的 AI 顾问，已接入官网<strong>全站内容检索</strong>——产品与服务、27 个行业案例、12 门课程、研究中心文章都能搜到，来源可一键跳转。<strong>可以问我怎么切入、怎么部署、怎么管混合员工</strong>，也可以直接搜任何站内内容。<span class="demo-tag">演示态 · 检索来自站内真实索引，回答未接入大模型</span>`);
-    }
+    aiMsg(`你好，我是瑞华的 AI 顾问，已接入官网<strong>全站内容检索</strong>——产品与服务、27 个行业案例、12 门课程、研究中心文章都能搜到，来源可一键跳转。<strong>可以问我怎么切入、怎么部署、怎么管混合员工</strong>，也可以直接搜任何站内内容。<span class="demo-tag">演示态 · 检索来自站内真实索引，回答未接入大模型</span>`);
   }
   setTimeout(()=>document.getElementById('dwInput').focus(),350);
 }
@@ -482,7 +470,7 @@ function ask(q){
     if(hit.rag&&hit.rag.length)extra+=`<div class="rag">${hit.rag.map(r=>`<span>● ${r}</span>`).join('')}</div>`;
     if(hit.src&&hit.src.length)extra+=`<div class="srcs">${hit.src.map(s=>`<a href="${s[2]||''}${s[3]?'#'+s[3]:''}" class="src" onclick="goSrc('${s[2]||''}','${s[3]||''}'); return false;" title="点击前往">${esc(s[0])}<em>${esc(s[1])} →</em></a>`).join('')}</div>`;
     aiMsg(hit.a,extra);
-    RH_TALK.push({r:'ai',t:_stripHTML(hit.a),html:hit.a,rag:hit.rag||[],src:hit.src||[]});
+    RH_TALK.push({r:'ai',t:_stripHTML(hit.a),rag:hit.rag||[],src:hit.src||[]});
     saveTalk();
     answers++;
     if((hit.lead||answers>=2)&&!leadShown){leadShown=true;setTimeout(showLead,900)}
@@ -492,7 +480,7 @@ function showLead(){
   body.insertAdjacentHTML('beforeend',`
   <div class="lead-card" id="leadCard">
     <div class="t">要不要把你的情况发给顾问？</div>
-    <div class="s">留下您的联系方式，顾问会在1个工作日内给您联系。</div>
+    <div class="s">留下联系方式，顾问会带着刚才聊到的内容，24 小时内给你初步建议。</div>
     <input id="ldName" placeholder="怎么称呼您">
     <input id="ldTel" type="tel" inputmode="tel" maxlength="20" placeholder="手机号">
     <button onclick="submitLead()">发给顾问</button>
@@ -525,15 +513,10 @@ async function submitLead(){
   
   try{
     const response=await fetch('/api/appointments/website',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    if(!response.ok){
-      const errText=await response.text();
-      console.error('Submit failed:',response.status,errText);
-      throw new Error('submit failed');
-    }
+    if(!response.ok)throw new Error('submit failed');
     document.getElementById('leadCard').innerHTML=`<div class="ok">✓ 已收到，顾问会在 24 小时内联系你</div>`;
     try{sessionStorage.removeItem('rh_talk');RH_TALK.length=0;}catch(e){}
   }catch(error){
-    console.error('Lead submit error:',error);
     if(btn) { btn.disabled = false; btn.textContent = '发给顾问'; }
     fieldErr(tEl,'提交失败，请稍后重试');
   }
@@ -1180,7 +1163,8 @@ async function submitForm(e){
   try{
     const response=await fetch('/api/appointments/website',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     if(!response.ok)throw new Error('submit failed');
-    form.innerHTML='<div class="ok-msg">✓ 提交成功，顾问将在 1 个工作日内联系你</div>';
+    form.classList.add('is-success');
+    form.innerHTML='<div class="ok-msg" role="status" aria-live="polite"><div class="ok-msg__mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="m14 25 7 7 14-16"/></svg></div><div class="ok-msg__eyebrow"><span>REQUEST RECEIVED</span><i></i></div><h2>预约信息已确认</h2><p>感谢你的信任。顾问会结合提交的信息提前了解需求，并在 <strong>1 个工作日内</strong>与你联系。</p><div class="ok-msg__steps"><span><b>01</b>信息已入库</span><span><b>02</b>顾问研判</span><span><b>03</b>电话沟通</span></div><div class="ok-msg__note">请留意来电，我们期待与你聊聊。</div></div>';
     try{sessionStorage.removeItem('rh_talk');RH_TALK.length=0;}catch(e){}
   }catch(error){
     button.disabled=false; button.textContent='提交预约 →';
