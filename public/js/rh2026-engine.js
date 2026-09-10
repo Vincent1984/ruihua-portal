@@ -1359,8 +1359,8 @@ function animReset(scope){
   const room = document.getElementById('j3dRoom');
   if (!root || !room || !root.classList.contains('j3d')) return;
 
-  /* 图片源：字符卡片（21 个业务词） + 面性图标卡片，全部品牌色、无外链 */
-  const WORDS=['AI','Agent','FDE','data','token','Agentic','数据','大模型','智能体','碳硅','碳基','硅基','AI 战队','人效','陪跑','转型','部署','知识库','智库','RUIHUA CONSULTING','瑞华智策'];
+  /* 图片源：字符卡片（业务词） + 面性图标卡片，全部品牌色、无外链 */
+  const WORDS=['AI','Agent','FDE','data','token','Agentic','数据','智能体','碳硅','碳基','硅基','AI 战队','人效','陪跑','转型','部署','知识库','智库','瑞华智策','碳硅混合','词元','共智','培训','咨询','AI+HR'];
   const IMGS = [];
   WORDS.forEach((w,i)=>IMGS.push('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(tileWordSVG(w,PAL[i%PAL.length],264,165))));
   /* 面性图标：亮色底 + 品牌色实心图形（原版六色板） */
@@ -1375,7 +1375,7 @@ function animReset(scope){
     cell: 200,
     duration: 26,
     tileW: 176, tileH: 110,
-    wallFill: 0.34, volFill: 0.20,
+    wallFill: 0.25, volFill: 0.13,
     parallax: 4.5,               /* 视差加大一档 */
     shiftX: 30, shiftY: 20,      /* 鼠标横移 / 纵移的最大位移（px） */
     ds: 2,

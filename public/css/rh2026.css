@@ -637,6 +637,8 @@ body.home-on .nav .btn-ink:hover{background:var(--p-300)}
 .dw-ava{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--purple-hi),#aa00ff);
   display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;
   font-family:var(--serif);font-size:16px;flex-shrink:0}
+.dw-ava.dw-ava-v{overflow:hidden;border-radius:50%;background:#ece6ff;box-shadow:0 0 0 2px var(--p-200)}
+.dw-video{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.06)}
 .dw-title{font-size:15px;font-weight:800;display:flex;align-items:center;gap:7px}
 .dw-title .st{width:7px;height:7px;border-radius:50%;background:#819b24}
 .dw-sub{font-size:11.5px;color:var(--ink-3);line-height:1.5}
@@ -2830,3 +2832,30 @@ a.m-item.sub b{font-size:15px}
 .ind-tabs a{font:700 12.5px var(--sans);color:var(--ink-2);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 16px;text-decoration:none;display:inline-block}
 .ind-tabs a.act{background:var(--purple-hi);border-color:var(--purple-hi);color:#fff}
 .nav-links a.act,.mnav a.act{color:var(--p-300)}
+
+/* 首页行动按钮：与 09-10 参考稿统一 */
+.btn-cream,.nav-right .btn-ink{background:#e3dbe9;color:var(--ink)}
+.btn-cream:hover,.nav-right .btn-ink:hover{background:#ece5f0;box-shadow:0 14px 34px rgba(189,165,255,.28),0 0 0 6px rgba(189,165,255,.12)}
+body.home-on .nav .btn-ink,body:not(.home-on) .nav .btn-ink{background:#e3dbe9 !important;color:var(--ink) !important}
+body.home-on .nav .btn-ink:hover,body:not(.home-on) .nav .btn-ink:hover{background:#ece5f0 !important}
+.tl-inner .ctas{display:flex;gap:14px;flex-wrap:wrap}
+.tl-inner .ctas .btn{min-width:212px;padding-left:24px;padding-right:24px;justify-content:center}
+.nav-right .btn{min-width:128px;justify-content:center}
+@media (max-width:560px){.tl-inner .ctas .btn{min-width:0;flex:1 1 auto}}
+@media (prefers-reduced-motion:reduce){.tl-inner .ctas .btn{transition:none}}
+
+/* 小瑞悬浮入口：视频头像 + 在线标签 */
+.fab.fab-av{padding:6px 18px 6px 6px;gap:12px;background:rgba(33,30,40,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.14);box-shadow:0 14px 36px rgba(33,30,40,.35)}
+.fab.fab-av:hover{background:rgba(94,53,177,.82);transform:translateY(-2px)}
+.fab .fab-face{position:relative;width:56px;height:56px;border-radius:50%;overflow:hidden;flex:0 0 auto;background:#ece6ff;box-shadow:0 0 0 2px rgba(255,255,255,.75)}
+.fab .fab-video{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.06)}
+.fab .fab-ring{position:absolute;left:6px;top:6px;width:56px;height:56px;border-radius:50%;border:2px solid rgba(189,165,255,.9);animation:fabRing 2.6s ease-out infinite;pointer-events:none}
+@keyframes fabRing{0%{transform:scale(1);opacity:.9}100%{transform:scale(1.55);opacity:0}}
+.fab .fab-tag{display:flex;flex-direction:column;align-items:flex-start;line-height:1.2;text-align:left}
+.fab .fab-tag b{font-size:14px;font-weight:800;color:#fff}
+.fab .fab-tag small{display:flex;align-items:center;gap:5px;margin-top:3px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.62)}
+.fab .fab-tag small::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--sage);box-shadow:0 0 0 3px rgba(214,232,147,.25)}
+@media (max-width:560px){.fab.fab-av{padding:5px;gap:0}.fab .fab-tag{display:none}}
+@media (prefers-reduced-motion:reduce){.fab .fab-ring{animation:none;opacity:0}}
+/* 首页 logo 恢复彩色，其他页面保持反白 */
+body.home-on .logo img{filter:none}
