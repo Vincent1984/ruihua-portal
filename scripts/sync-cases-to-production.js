@@ -239,7 +239,11 @@ async function main() {
   if (result.failed.length || verification.missingSlugs.length) process.exitCode = 2;
 }
 
-main().catch(error => {
-  console.error(error.message);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch(error => {
+    console.error(error.message);
+    process.exit(1);
+  });
+}
+
+module.exports = { getArg, hasArg, normalizeBaseUrl, promptHidden, requestJson, writeReport };

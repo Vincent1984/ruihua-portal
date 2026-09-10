@@ -1946,8 +1946,8 @@ body:not(.home-on) .f-qr{border-color:rgba(255,255,255,.15)}
 }
 
 .cs-hero{padding-top:40px}
-.cs-hero .a-bc{margin-bottom:14px;font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
-.cs-hero .a-bc a{color:var(--ink-2);text-decoration:none}
+.cs-hero .a-bc{margin-bottom:14px;font-family:var(--mono);font-size:11.5px;color:var(--d-sub)}
+.cs-hero .a-bc a{color:var(--d-text);text-decoration:none}
 .cs-hero .a-bc a:hover{color:var(--purple)}
 .cs-tags{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
 .cs-tags .ind{display:inline-block;font-size:11px;font-weight:800;color:#fff;background:var(--purple);border-radius:999px;padding:3px 10px;letter-spacing:.04em}
@@ -1956,7 +1956,7 @@ body:not(.home-on) .f-qr{border-color:rgba(255,255,255,.15)}
 .cs-kpis .s{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:10px 16px;min-width:150px}
 .cs-kpis .s b{display:block;font-family:var(--mono);font-size:20px;font-weight:700;color:#ffd87e;line-height:1.2}
 .cs-kpis .s i{font-style:normal;font-size:11.5px;font-weight:600;color:var(--d-sub)}
-.cs-main{padding-top:40px;display:grid;grid-template-columns:1fr 300px;gap:24px;max-width:1180px;margin:0 auto}
+.cs-main{padding-top:40px;display:grid;grid-template-columns:1fr 300px;gap:24px;width:calc(100% - 68px);max-width:1252px;margin:0 auto}
 .cs-body{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 36px 34px;box-shadow:0 12px 32px rgba(94,53,177,.08)}
 .csd-sec{padding:22px 0;border-bottom:1px solid var(--line)}
 .csd-sec:last-of-type{border-bottom:0}
@@ -2863,3 +2863,9 @@ body.home-on .nav .btn-ink:hover,body:not(.home-on) .nav .btn-ink:hover{backgrou
 @media (prefers-reduced-motion:reduce){.fab .fab-ring{animation:none;opacity:0}}
 /* 首页 logo 恢复彩色，其他页面保持反白 */
 body.home-on .logo img{filter:none}
+
+/* ㊻ 小瑞悬浮入口：可拖拽摆放 */
+.fab.fab-av{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;z-index:65}
+.fab.fab-av.dragging{cursor:grabbing;transition:none;box-shadow:0 22px 52px rgba(33,30,40,.5)}
+.fab.fab-av.dragging .fab-ring{animation:none;opacity:0}
+.fab.fab-av.moved{right:auto;bottom:auto}

@@ -4290,9 +4290,19 @@ app.post('/api/upload/fetch-url', authRequired, requirePerm('upload:write'), asy
         }
 
         const localUrl = `/uploads/${filename}`;
-        
-        // If TOS is enabled, we could also upload it to TOS, but for now we just return the local URL 
-        // to keep it simple and fulfill the requirement.
+        if (useTosUpload) {
+            try {
+                const uploadedKey = localUrl.replace(/^\/+/, '');
+                const tosUrl = await uploadLocalFileToTos(filepath, uploadedKey, contentType);
+                if (tosUrl) {
+                    try { fs.unlinkSync(filepath); } catch {}
+                    return res.json({ success: true, url: tosUrl });
+                }
+            } catch (tosErr) {
+                console.error('TOS upload failed for fetched image, use local path:', tosErr);
+                notifyTosFallbackAlert(`Fetched image upload fallback: ${tosErr.message}`);
+            }
+        }
         res.json({ success: true, url: localUrl });
     } catch (e) {
         console.error('Fetch URL error:', e);

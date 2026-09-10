@@ -2114,6 +2114,36 @@ function animReset(scope){
   root.querySelector('.rhg-map').addEventListener('mouseleave',()=>{stop();if(!rm)timer=setInterval(lit,1100)});
 })();
 
+/* ㊻ 小瑞悬浮入口：按住可拖到任意位置（松手后吸附在视口内，位移 < 6px 视为点击 → 打开抽屉） */
+(function(){
+  const fab=document.getElementById('fab'); if(!fab)return;
+  const M=12; let id=null,sx=0,sy=0,ox=0,oy=0,moved=false,placed=false;
+  const clamp=(x,y)=>{const r=fab.getBoundingClientRect();
+    return [Math.min(Math.max(M,x),innerWidth-r.width-M),Math.min(Math.max(M,y),innerHeight-r.height-M)]};
+  const put=(x,y)=>{const [cx,cy]=clamp(x,y);fab.style.left=cx+'px';fab.style.top=cy+'px';placed=true;fab.classList.add('moved')};
+  fab.addEventListener('pointerdown',e=>{
+    if(e.button!==undefined&&e.button!==0)return;
+    const r=fab.getBoundingClientRect(); id=e.pointerId; sx=e.clientX; sy=e.clientY; ox=r.left; oy=r.top; moved=false;
+    fab.setPointerCapture(id); fab.classList.add('dragging');
+  });
+  fab.addEventListener('pointermove',e=>{
+    if(id===null||e.pointerId!==id)return;
+    const dx=e.clientX-sx, dy=e.clientY-sy;
+    if(!moved&&Math.hypot(dx,dy)<6)return;
+    moved=true; e.preventDefault(); put(ox+dx,oy+dy);
+  });
+  const end=e=>{
+    if(id===null||(e.pointerId!==undefined&&e.pointerId!==id))return;
+    try{fab.releasePointerCapture(id)}catch(_){}
+    id=null; fab.classList.remove('dragging');
+    if(!moved)openDrawer();
+  };
+  fab.addEventListener('pointerup',end); fab.addEventListener('pointercancel',end);
+  fab.addEventListener('click',e=>{if(moved){e.preventDefault();e.stopPropagation()}},true);
+  fab.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openDrawer()}});
+  addEventListener('resize',()=>{if(!placed)return;const r=fab.getBoundingClientRect();put(r.left,r.top)});
+})();
+
 /* FAQ 手风琴效果：同时只展开一个 */
 (function(){
   const faqSections = [document.getElementById('home-faq'), ...document.querySelectorAll('.case-faq')];

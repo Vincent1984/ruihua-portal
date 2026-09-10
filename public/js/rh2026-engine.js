@@ -1359,8 +1359,8 @@ function animReset(scope){
   const room = document.getElementById('j3dRoom');
   if (!root || !room || !root.classList.contains('j3d')) return;
 
-  /* 图片源：字符卡片（业务词） + 面性图标卡片，全部品牌色、无外链 */
-  const WORDS=['AI','Agent','FDE','data','token','Agentic','数据','智能体','碳硅','碳基','硅基','AI 战队','人效','陪跑','转型','部署','知识库','智库','瑞华智策','碳硅混合','词元','共智','培训','咨询','AI+HR'];
+  /* 图片源：字符卡片（21 个业务词） + 面性图标卡片，全部品牌色、无外链 */
+  const WORDS=['AI','Agent','FDE','data','token','Agentic','数据','大模型','智能体','碳硅','碳基','硅基','AI 战队','人效','陪跑','转型','部署','知识库','智库','RUIHUA CONSULTING','瑞华智策'];
   const IMGS = [];
   WORDS.forEach((w,i)=>IMGS.push('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(tileWordSVG(w,PAL[i%PAL.length],264,165))));
   /* 面性图标：亮色底 + 品牌色实心图形（原版六色板） */
@@ -1375,7 +1375,7 @@ function animReset(scope){
     cell: 200,
     duration: 26,
     tileW: 176, tileH: 110,
-    wallFill: 0.25, volFill: 0.13,
+    wallFill: 0.34, volFill: 0.20,
     parallax: 4.5,               /* 视差加大一档 */
     shiftX: 30, shiftY: 20,      /* 鼠标横移 / 纵移的最大位移（px） */
     ds: 2,
@@ -2113,6 +2113,36 @@ function animReset(scope){
   }else start();
   root.querySelector('.rhg-map').addEventListener('mouseenter',()=>{if(!rm){stop();lit();timer=setInterval(lit,480)}});
   root.querySelector('.rhg-map').addEventListener('mouseleave',()=>{stop();if(!rm)timer=setInterval(lit,1100)});
+})();
+
+/* ㊻ 小瑞悬浮入口：按住可拖到任意位置（松手后吸附在视口内，位移 < 6px 视为点击 → 打开抽屉） */
+(function(){
+  const fab=document.getElementById('fab'); if(!fab)return;
+  const M=12; let id=null,sx=0,sy=0,ox=0,oy=0,moved=false,placed=false;
+  const clamp=(x,y)=>{const r=fab.getBoundingClientRect();
+    return [Math.min(Math.max(M,x),innerWidth-r.width-M),Math.min(Math.max(M,y),innerHeight-r.height-M)]};
+  const put=(x,y)=>{const [cx,cy]=clamp(x,y);fab.style.left=cx+'px';fab.style.top=cy+'px';placed=true;fab.classList.add('moved')};
+  fab.addEventListener('pointerdown',e=>{
+    if(e.button!==undefined&&e.button!==0)return;
+    const r=fab.getBoundingClientRect(); id=e.pointerId; sx=e.clientX; sy=e.clientY; ox=r.left; oy=r.top; moved=false;
+    fab.setPointerCapture(id); fab.classList.add('dragging');
+  });
+  fab.addEventListener('pointermove',e=>{
+    if(id===null||e.pointerId!==id)return;
+    const dx=e.clientX-sx, dy=e.clientY-sy;
+    if(!moved&&Math.hypot(dx,dy)<6)return;
+    moved=true; e.preventDefault(); put(ox+dx,oy+dy);
+  });
+  const end=e=>{
+    if(id===null||(e.pointerId!==undefined&&e.pointerId!==id))return;
+    try{fab.releasePointerCapture(id)}catch(_){}
+    id=null; fab.classList.remove('dragging');
+    if(!moved)openDrawer();
+  };
+  fab.addEventListener('pointerup',end); fab.addEventListener('pointercancel',end);
+  fab.addEventListener('click',e=>{if(moved){e.preventDefault();e.stopPropagation()}},true);
+  fab.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openDrawer()}});
+  addEventListener('resize',()=>{if(!placed)return;const r=fab.getBoundingClientRect();put(r.left,r.top)});
 })();
 
 /* FAQ 手风琴效果：同时只展开一个 */
