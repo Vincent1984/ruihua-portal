@@ -89,10 +89,18 @@ function clearCache() {
 
 function getPublicShell(activePath = '') {
   const c = loadCache();
+  let footer = c.footer;
+  if (_globalConfigCache) {
+    footer = fill(footer, '<!--CONFIG_TEL-->', escAttr(_globalConfigCache.tel));
+    footer = fill(footer, '<!--CONFIG_MAIL-->', escAttr(_globalConfigCache.mail));
+    footer = fill(footer, '<!--CONFIG_ICP-->', escAttr(_globalConfigCache.icp));
+    footer = fill(footer, '<!--CONFIG_CITIES-->', escAttr(_globalConfigCache.cities));
+    footer = fill(footer, '<!--CONFIG_QR-->', escAttr(_globalConfigCache.qr));
+  }
   return {
     nav: markActive(c.nav, activePath),
     mobileNav: markActive(c.mobileNav, activePath),
-    footer: c.footer,
+    footer,
     drawer: c.drawer
   };
 }
