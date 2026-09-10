@@ -18,13 +18,22 @@ const BASE = path.join(ROOT, 'views', '2026', 'base.html');
 const PARTIAL_DIR = path.join(ROOT, 'views', '2026', 'partials');
 
 let _cache = null;
-let _globalConfigCache = null;
+// 全局配置缓存：初始给默认值，保证 DB 未就绪时占位符也能被替换掉
+let _globalConfigCache = {
+  tel: '400-175-0886',
+  mail: 'rxzj@renruihr.com',
+  icp: '沪ICP备12042344号-24',
+  cities: '上海 · 北京 · 深圳 · 成都',
+  qr: ''
+};
+let _configLoading = null;
 
 async function reloadGlobalConfig() {
-  try {
-    const GlobalConfig = require('../models/GlobalConfig');
-    const doc = await GlobalConfig.findOne({ key: 'website' }).lean();
-    if (doc) {
+  if (_configLoading) return _configLoading;
+  _configLoading = (async () => {
+    try {
+      const GlobalConfig = require('../models/GlobalConfig');
+      const doc = (await GlobalConfig.findOne({ key: 'website' }).lean()) || {};
       _globalConfigCache = {
         tel: doc.tel || '400-175-0886',
         mail: doc.mail || 'rxzj@renruihr.com',
@@ -32,10 +41,13 @@ async function reloadGlobalConfig() {
         cities: Array.isArray(doc.cities) && doc.cities.length ? doc.cities.join(' · ') : '上海 · 北京 · 深圳 · 成都',
         qr: doc.qr || 'data:image/jpeg;base64,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'
       };
+    } catch (e) {
+      console.error('Failed to reload global config:', e);
+    } finally {
+      _configLoading = null;
     }
-  } catch (e) {
-    console.error('Failed to reload global config:', e);
-  }
+  })();
+  return _configLoading;
 }
 // Initial load (will be ready quickly after server starts)
 reloadGlobalConfig();
@@ -90,13 +102,11 @@ function clearCache() {
 function getPublicShell(activePath = '') {
   const c = loadCache();
   let footer = c.footer;
-  if (_globalConfigCache) {
-    footer = fill(footer, '<!--CONFIG_TEL-->', escAttr(_globalConfigCache.tel));
-    footer = fill(footer, '<!--CONFIG_MAIL-->', escAttr(_globalConfigCache.mail));
-    footer = fill(footer, '<!--CONFIG_ICP-->', escAttr(_globalConfigCache.icp));
-    footer = fill(footer, '<!--CONFIG_CITIES-->', escAttr(_globalConfigCache.cities));
-    footer = fill(footer, '<!--CONFIG_QR-->', escAttr(_globalConfigCache.qr));
-  }
+  footer = fill(footer, '<!--CONFIG_TEL-->', escAttr(_globalConfigCache.tel));
+  footer = fill(footer, '<!--CONFIG_MAIL-->', escAttr(_globalConfigCache.mail));
+  footer = fill(footer, '<!--CONFIG_ICP-->', escAttr(_globalConfigCache.icp));
+  footer = fill(footer, '<!--CONFIG_CITIES-->', escAttr(_globalConfigCache.cities));
+  footer = fill(footer, '<!--CONFIG_QR-->', escAttr(_globalConfigCache.qr));
   return {
     nav: markActive(c.nav, activePath),
     mobileNav: markActive(c.mobileNav, activePath),
@@ -221,13 +231,11 @@ function render2026({ title = '瑞华智策', description = '', keywords = '', c
   html = fill(html, '<!--CONTENT-->', content);
   html = fill(html, '<!--PRESCRIPT-->', preScript ? `<script>${preScript}</script>` : '');
   
-  if (_globalConfigCache) {
-    html = fill(html, '<!--CONFIG_TEL-->', escAttr(_globalConfigCache.tel));
-    html = fill(html, '<!--CONFIG_MAIL-->', escAttr(_globalConfigCache.mail));
-    html = fill(html, '<!--CONFIG_ICP-->', escAttr(_globalConfigCache.icp));
-    html = fill(html, '<!--CONFIG_CITIES-->', escAttr(_globalConfigCache.cities));
-    html = fill(html, '<!--CONFIG_QR-->', escAttr(_globalConfigCache.qr));
-  }
+  html = fill(html, '<!--CONFIG_TEL-->', escAttr(_globalConfigCache.tel));
+  html = fill(html, '<!--CONFIG_MAIL-->', escAttr(_globalConfigCache.mail));
+  html = fill(html, '<!--CONFIG_ICP-->', escAttr(_globalConfigCache.icp));
+  html = fill(html, '<!--CONFIG_CITIES-->', escAttr(_globalConfigCache.cities));
+  html = fill(html, '<!--CONFIG_QR-->', escAttr(_globalConfigCache.qr));
   
   return html;
 }

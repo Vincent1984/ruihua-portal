@@ -1400,6 +1400,7 @@ const renderStaticHtmlWith2026Shell = async (req, res, filename) => {
         const html = await fs.promises.readFile(path.join(__dirname, filename), 'utf8');
         const dom = new JSDOM(html);
         inject2026PublicShell(dom.window.document, req.path);
+        res.set('Cache-Control', 'no-cache');
         res.send(dom.serialize());
     } catch (e) {
         console.error(`Error rendering ${filename} with 2026 shell:`, e);
@@ -1521,7 +1522,7 @@ app.get('/', async (req, res) => {
     try {
         const { render2026 } = require('./utils/render2026');
         const { buildHome } = require('./routes/frontendRoutes2026');
-        res.set('Cache-Control', 'public, max-age=600');
+        res.set('Cache-Control', 'no-cache');
         res.send(render2026({
             title: '瑞华智策 · AI 时代组织进化全生命周期服务商',
             description: '瑞华智策：AI 赋能培训、AI 转型咨询、AI 落地陪跑三位一体，陪企业走完 AI 转型全程。',
@@ -1530,7 +1531,7 @@ app.get('/', async (req, res) => {
         }));
     } catch (e) {
         console.error('SSR / (2026 home) failed:', e);
-        res.set('Cache-Control', 'public, max-age=3600');
+        res.set('Cache-Control', 'no-cache');
         renderStaticHtmlWith2026Shell(req, res, 'index.html');
     }
 });

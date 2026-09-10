@@ -108,7 +108,7 @@ module.exports = function (app) {
     try {
       const cases = (await Case.find({ status: 'published', isOnline: { $ne: false } }).sort({ order: 1, createdAt: -1 }).lean())
         .filter(c => c.slug && c.slug.trim());
-      res.set('Cache-Control', 'public, max-age=600');
+      res.set('Cache-Control', 'no-cache');
       res.send(render2026({
         title: '行业案例 | 瑞华智策',
         description: '瑞华智策真实落地的 AI Agent 行业案例，覆盖制造、教育、零售、金融、物业等行业。',
@@ -128,7 +128,7 @@ module.exports = function (app) {
     try {
       const cases = (await Case.find({ status: 'published', isOnline: { $ne: false } }).sort({ order: 1, createdAt: -1 }).lean())
         .filter(c => c.slug && c.slug.trim());
-      res.set('Cache-Control', 'public, max-age=600');
+      res.set('Cache-Control', 'no-cache');
       res.send(render2026({
         title: `${activeInd} AI Agent 案例 | 瑞华智策`,
         description: `瑞华智策${activeInd} AI Agent 落地案例、实施方案与业务成果。`,
@@ -206,7 +206,7 @@ module.exports = function (app) {
           }))
         });
       }
-      res.set('Cache-Control', 'public, max-age=600');
+      res.set('Cache-Control', 'no-cache');
       res.send(render2026({
         title,
         description: desc,
@@ -234,7 +234,7 @@ module.exports = function (app) {
       const articles = await Article.find({ zone: { $ne: 'thinktank' }, status: 'published', isOnline: { $ne: false } })
         .sort({ publishDate: -1, updatedAt: -1 }).populate('authorId').lean();
       const content = buildInsightsList(articles);
-      res.set('Cache-Control', 'public, max-age=600');
+      res.set('Cache-Control', 'no-cache');
       res.send(render2026({
         title: '研究中心 · 行业洞察 | 瑞华智策',
         description: 'CIO/CEO/CHO 三大智库，追踪 AI 转型落地的真问题。',
@@ -251,6 +251,7 @@ module.exports = function (app) {
   app.get('/insights/industry', async (req, res) => {
     try {
       const articles = await Article.find({ zone: { $ne: 'thinktank' }, status: 'published', isOnline: { $ne: false } }).sort({ publishDate: -1, updatedAt: -1 }).populate('authorId').lean();
+      res.set('Cache-Control', 'no-cache');
       res.send(render2026({ title: '行业洞察 | 瑞华智策', description: 'CIO 数智化转型 / CEO 经营增长 / CHO 人效提升三大智库。', canonical: 'https://www.ruihuaconsulting.com/insights/industry', content: buildInsightsList(articles), activePath: '/insights/industry', preScript: articlesPreScript(articles) }));
     } catch (e) {
       res.status(500).send('服务器错误');
@@ -260,6 +261,7 @@ module.exports = function (app) {
   app.get('/insights/thinktank', async (req, res) => {
     try {
       const articles = await Article.find({ zone: 'thinktank', status: 'published', isOnline: { $ne: false } }).sort({ publishDate: -1, updatedAt: -1 }).populate('authorId').lean();
+      res.set('Cache-Control', 'no-cache');
       res.send(render2026({ title: '经营智库 · R=B×O | 瑞华智策', description: 'R=B×O 理论内核与管理实践框架：增长诊断、碳硅共智组织设计、人效经营模型。', canonical: 'https://www.ruihuaconsulting.com/insights/thinktank', content: buildThinktankList(articles), activePath: '/insights/thinktank' }));
     } catch (e) {
       console.error('SSR /insights/thinktank failed:', e);
@@ -274,7 +276,7 @@ module.exports = function (app) {
     try {
       const articles = await Article.find({ category, status: 'published', isOnline: { $ne: false } })
         .sort({ publishDate: -1, updatedAt: -1 }).populate('authorId').lean();
-      res.set('Cache-Control', 'public, max-age=600');
+      res.set('Cache-Control', 'no-cache');
       res.send(render2026({
         title: `${category} | 瑞华智策行业洞察`,
         description: `${category}的 AI 转型趋势、方法论与企业实践洞察。`,
@@ -367,7 +369,7 @@ module.exports = function (app) {
       try {
         const content = loadBlock(cfg.block);
         if (!content) return notFound(res);
-        res.set('Cache-Control', 'public, max-age=600');
+        res.set('Cache-Control', 'no-cache');
         res.send(render2026({ title: cfg.title, description: cfg.description, canonical: `https://www.ruihuaconsulting.com${url}`, content, activePath: url }));
       } catch (e) {
         console.error(`SSR ${url} failed:`, e);

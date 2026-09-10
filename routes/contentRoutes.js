@@ -254,7 +254,7 @@ module.exports = function (app, authRequired, requirePerm, logOp, generateSeoSlu
       try {
         const { reloadGlobalConfig } = require('../utils/render2026');
         if (typeof reloadGlobalConfig === 'function') {
-          reloadGlobalConfig();
+          await reloadGlobalConfig();
         }
       } catch (err) {
         console.error('Failed to notify render2026 of global config update:', err);
