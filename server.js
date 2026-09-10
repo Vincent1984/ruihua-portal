@@ -1371,10 +1371,14 @@ function inject2026PublicShell(document, activePath = '') {
     const { getPublicShell } = require('./utils/render2026');
     document.querySelectorAll('nav, footer, .mnav, .mega-sheet, .mega-dim, .glass-nav, .site-header, .main-header').forEach(node => node.remove());
     const shell = getPublicShell(activePath);
+    let drawerHtml = shell.drawer;
+    if (activePath === '/privacy') {
+        drawerHtml = drawerHtml.replace(/<button class="fab fab-av"[\s\S]*?<\/button>/, '');
+    }
     document.body.insertAdjacentHTML('afterbegin', `${shell.nav}\n${shell.mobileNav}`);
     const firstScript = document.body.querySelector('script');
-    if (firstScript) firstScript.insertAdjacentHTML('beforebegin', `${shell.footer}\n${shell.drawer}`);
-    else document.body.insertAdjacentHTML('beforeend', `${shell.footer}\n${shell.drawer}`);
+    if (firstScript) firstScript.insertAdjacentHTML('beforebegin', `${shell.footer}\n${drawerHtml}`);
+    else document.body.insertAdjacentHTML('beforeend', `${shell.footer}\n${drawerHtml}`);
     const rhCss = document.head.querySelector('link[href*="/css/rh2026.css"]');
     if (rhCss) rhCss.setAttribute('href', '/css/rh2026.css?v=20260903m');
     else document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="/css/rh2026.css?v=20260903m">');
