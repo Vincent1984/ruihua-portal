@@ -692,6 +692,10 @@ body.home-on .nav .btn-ink:hover{background:var(--p-300)}
   width:46px;font-size:16px;cursor:pointer}
 .dw-input button:hover{background:var(--p-600)}
 .dw-input button:active{background:var(--p-700)}
+.drawer{background:rgba(250,249,253,.84);backdrop-filter:blur(22px) saturate(1.25);-webkit-backdrop-filter:blur(22px) saturate(1.25);border-left:1px solid rgba(124,77,255,.14)}
+.dw-head{background:rgba(246,243,255,.55);border-bottom-color:rgba(124,77,255,.12)}
+.msg.ai .bubble{background:rgba(255,255,255,.62);border-color:rgba(124,77,255,.12)}
+.dw-input{background:rgba(255,255,255,.35)}
 .typing{display:inline-flex;gap:4px;padding:4px 2px}
 .typing i{width:6px;height:6px;border-radius:50%;background:var(--ink-3);animation:tp 1s infinite}
 .typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
