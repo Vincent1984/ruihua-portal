@@ -2145,6 +2145,14 @@ function animReset(scope){
   addEventListener('resize',()=>{if(!placed)return;const r=fab.getBoundingClientRect();put(r.left,r.top)});
 })();
 
+/* ㊼ 小瑞头像视频：微信 / iOS 拦截 autoplay 时，用首个用户手势兜底起播 */
+(function(){
+  const vids=document.querySelectorAll('.fab-video,.dw-video'); if(!vids.length)return;
+  const kick=()=>{vids.forEach(v=>{const p=v.play();if(p&&p.catch)p.catch(()=>{})})};
+  kick();
+  ['touchstart','click','visibilitychange'].forEach(t=>addEventListener(t,kick,{passive:true}));
+})();
+
 /* FAQ 手风琴效果：同时只展开一个 */
 (function(){
   const faqSections = [document.getElementById('home-faq'), ...document.querySelectorAll('.case-faq')];

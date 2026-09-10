@@ -44,7 +44,7 @@ const efficiencyQuizData = require('./config/efficiencyQuizData'); // Import Eff
 const XLSX = require('xlsx'); // Import xlsx
 const xss = require('xss');
 const { slugify } = require('transliteration');
-const { toDigitsFromSha256, clipDigits, ensureUniqueDigits } = require('./utils/numericName');
+const { toDigitsFromSha256, clipDigits } = require('./utils/numericName');
 const FileNameMap = require('./models/FileNameMap');
 const { renderInsightCard, renderFaqItem } = require('./utils/homeContentRenderer');
 const domainNormalizer = require('./middleware/domainNormalizer');
@@ -115,9 +115,9 @@ const tosClient = useTosUpload
     })
     : null;
 if (useTosUpload) {
-    console.log(`[UPLOAD] TOS object storage enabled for /api/upload (endpoint: ${tosEndpoint})`);
+    console.log(`[UPLOAD] TOS object storage enabled (endpoint: ${tosEndpoint})`);
 } else {
-    console.log('[UPLOAD] TOS object storage disabled, fallback to local public/uploads');
+    console.warn('[UPLOAD] TOS object storage disabled: uploads will be rejected. Please configure TOS_ACCESS_KEY / TOS_SECRET_KEY / TOS_BUCKET_NAME / TOS_PUBLIC_URL');
 }
 
 function sendInternalError(res, logLabel, err) {
@@ -1682,34 +1682,9 @@ mongoose.connect(mongoUrl)
     });
 
 // Multer Config for Uploads
-function ensureDirSync(dir) {
-    try {
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-        }
-    } catch (e) {
-        console.error('EnsureDir failed:', e);
-    }
-}
-
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const dir = path.join(__dirname, 'public/uploads/');
-        ensureDirSync(dir);
-        cb(null, dir);
-    },
-    filename: function (req, file, cb) {
-        const base = path.basename(file.originalname).replace(/\.[^.]+$/, '');
-        const digitsRaw = toDigitsFromSha256(base + String(Date.now()));
-        const digits30 = clipDigits(digitsRaw, 30);
-        const ext = path.extname(file.originalname).toLowerCase();
-        cb(null, digits30 + ext);
-    }
-});
-
-// Fix File Upload Vulnerability: Limit file size and type
+// 统一走火山引擎 TOS：文件仅保存在内存中，不再写入网站目录（public/uploads）
 const upload = multer({ 
-    storage: storage,
+    storage: multer.memoryStorage(),
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB for high-res covers
     fileFilter: (req, file, cb) => {
         const allowedExt = /jpeg|jpg|png|gif|webp|pdf|doc|docx|xls|xlsx/;
@@ -1740,10 +1715,8 @@ function toTosPublicUrl(key) {
     return `${base}/${String(key).replace(/^\/+/, '')}`;
 }
 
-async function uploadLocalFileToTos(localAbsPath, objectKey, contentType) {
+async function uploadBufferToTos(fileBuffer, objectKey, contentType) {
     if (!useTosUpload || !tosClient) return null;
-    if (!fs.existsSync(localAbsPath)) return null;
-    const fileBuffer = await fs.promises.readFile(localAbsPath);
     await tosClient.send(
         new PutObjectCommand({
             Bucket: process.env.TOS_BUCKET_NAME,
@@ -1757,12 +1730,6 @@ async function uploadLocalFileToTos(localAbsPath, objectKey, contentType) {
     return toTosPublicUrl(objectKey);
 }
 
-const tosFallbackAlertState = {
-    windowStart: 0,
-    windowCount: 0,
-    lastSentAt: 0
-};
-
 function buildSignedDingTalkWebhookUrl() {
     const webhookUrl = process.env.DINGTALK_WEBHOOK_URL;
     const secret = process.env.DINGTALK_SECRET;
@@ -1772,48 +1739,6 @@ function buildSignedDingTalkWebhookUrl() {
     const stringToSign = `${timestamp}\n${secret}`;
     const sign = crypto.createHmac('sha256', secret).update(stringToSign).digest('base64');
     return `${webhookUrl}&timestamp=${timestamp}&sign=${encodeURIComponent(sign)}`;
-}
-
-async function notifyTosFallbackAlert(reason) {
-    try {
-        const now = Date.now();
-        const windowMs = 5 * 60 * 1000;
-        const threshold = 3;
-        const cooldownMs = 10 * 60 * 1000;
-        if (now - tosFallbackAlertState.windowStart > windowMs) {
-            tosFallbackAlertState.windowStart = now;
-            tosFallbackAlertState.windowCount = 0;
-        }
-        tosFallbackAlertState.windowCount += 1;
-        if (tosFallbackAlertState.windowCount < threshold) return;
-        if (now - tosFallbackAlertState.lastSentAt < cooldownMs) return;
-        tosFallbackAlertState.lastSentAt = now;
-
-        const finalUrl = buildSignedDingTalkWebhookUrl();
-        if (!finalUrl) {
-            console.error(`[ALERT][TOS_FALLBACK] ${reason}`);
-            return;
-        }
-        const message = {
-            msgtype: 'markdown',
-            markdown: {
-                title: 'TOS 上传回退告警',
-                text: `## TOS 上传回退告警\n\n` +
-                    `- 时间：${new Date(now).toLocaleString('zh-CN')}\n` +
-                    `- 环境：${process.env.NODE_ENV || 'unknown'}\n` +
-                    `- 桶：${process.env.TOS_BUCKET_NAME || '(empty)'}\n` +
-                    `- 原因：${reason}\n` +
-                    `\n> 5分钟内累计触发达到阈值，已触发告警，请检查 AK/SK、权限、Endpoint 与网络。`
-            }
-        };
-        await axios.post(finalUrl, message, {
-            headers: { 'Content-Type': 'application/json' },
-            timeout: 10000
-        });
-        console.error(`[ALERT][TOS_FALLBACK] ${reason}`);
-    } catch (err) {
-        console.error('notifyTosFallbackAlert failed:', err.message);
-    }
 }
 
 function normalizeRoleIds(roleIds) {
@@ -2344,26 +2269,14 @@ const NqocExpertApplication = require('./models/NqocExpertApplication');
 
 
 // File Upload configuration for public NQOC
-const nqocStorage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const dir = path.join(__dirname, 'public', 'uploads', 'nqoc');
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-        }
-        cb(null, dir);
-    },
-    filename: function (req, file, cb) {
-        const ext = path.extname(file.originalname);
-        cb(null, `award-${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`);
-    }
-});
 const allowedNqocPhotoMimeTypes = new Set([
     'image/jpeg',
     'image/png',
     'image/webp'
 ]);
+// 统一走火山引擎 TOS：文件仅保存在内存中，不再写入网站目录（public/uploads）
 const nqocUpload = multer({
-    storage: nqocStorage,
+    storage: multer.memoryStorage(),
     limits: { fileSize: 10 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         if (allowedNqocPhotoMimeTypes.has(file.mimetype)) return cb(null, true);
@@ -2491,7 +2404,19 @@ app.post('/api/nqoc/awards/apply', nqocUpload.single('file'), async (req, res) =
 
         let fileUrl = '';
         if (req.file) {
-            fileUrl = `/uploads/nqoc/${req.file.filename}`;
+            // 申报材料必须上传至火山引擎 TOS，不再写入本地网站目录。
+            if (!useTosUpload) {
+                return res.status(503).json({ success: false, error: '文件存储服务未配置，请联系管理员' });
+            }
+            const ext = (path.extname(req.file.originalname) || '').toLowerCase();
+            const objectKey = `uploads/nqoc/award-${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`;
+            try {
+                fileUrl = await uploadBufferToTos(req.file.buffer, objectKey, req.file.mimetype);
+                if (!fileUrl) throw new Error('TOS 未返回文件地址');
+            } catch (tosErr) {
+                console.error('NQOC award file upload TOS failed:', tosErr.message || tosErr);
+                return res.status(502).json({ success: false, error: '文件上传失败，请稍后重试' });
+            }
         }
 
         const newApplication = new NqocAwardApplication({
@@ -3419,22 +3344,20 @@ app.post('/api/nqoc/experts/apply', (req, res) => {
             return res.status(400).json({ success: false, message: '"个人官方照片"为必填项' });
         }
 
-        // 专家照片必须上传至火山引擎 TOS，不再回退到本地 URL。
+        // 专家照片必须上传至火山引擎 TOS，不再写入本地网站目录。
         if (!useTosUpload) {
             return res.status(503).json({ success: false, message: '照片存储服务未配置，请联系管理员' });
         }
-        const filePath = path.join(__dirname, 'public', 'uploads', 'nqoc', req.file.filename);
-        const objectKey = 'nqoc/zhuanjia/' + req.file.filename;
+        const photoExt = (path.extname(req.file.originalname) || '').toLowerCase();
+        const objectKey = 'nqoc/zhuanjia/' + Date.now() + '-' + crypto.randomBytes(4).toString('hex') + photoExt;
         let photoUrl;
         try {
-            photoUrl = await uploadLocalFileToTos(filePath, objectKey, req.file.mimetype);
+            photoUrl = await uploadBufferToTos(req.file.buffer, objectKey, req.file.mimetype);
             if (!photoUrl) throw new Error('TOS 未返回照片 URL');
         } catch (tosErr) {
             console.error('专家照片上传 TOS 失败:', tosErr.message);
-            try { fs.unlinkSync(filePath); } catch {}
             return res.status(502).json({ success: false, message: '照片上传失败，请稍后重试' });
         }
-        try { fs.unlinkSync(filePath); } catch {}
 
         const newApplication = new NqocExpertApplication({
             name,
@@ -3960,27 +3883,9 @@ Return ONLY valid JSON.`;
 });
 
 // --- Upload API ---
-// Update storage to handle author paths if needed, or just use a smart filename
-// For simplicity and robustness, we'll stick to a flat structure or date-based, 
-// but user asked for /uploads/authors/{user_id}/. 
-// Let's create a specific upload endpoint for authors.
-
-const authorStorage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const fs = require('fs');
-        const userId = req.params.userId || 'default';
-        const dir = path.join(__dirname, `public/uploads/authors/${userId}`);
-        if (!fs.existsSync(dir)){
-            fs.mkdirSync(dir, { recursive: true });
-        }
-        cb(null, dir);
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
+// 作者头像统一走火山引擎 TOS：文件仅保存在内存中，不再写入网站目录。
 const uploadAuthor = multer({ 
-    storage: authorStorage,
+    storage: multer.memoryStorage(),
     limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
     fileFilter: (req, file, cb) => {
         if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'image/webp' || file.mimetype === 'application/octet-stream') {
@@ -4014,34 +3919,28 @@ app.post('/api/upload/author/:userId', authRequired, requirePerm('expert:edit'),
             if (!/^[a-zA-Z0-9_-]{1,64}$/.test(userId)) {
                 return res.status(400).json({ success: false, error: 'Invalid user id' });
             }
-            const dir = path.join(__dirname, `public/uploads/authors/${userId}`);
-            ensureDirSync(dir);
             const originalBase = path.basename(req.file.originalname).replace(/\.[^.]+$/, '');
             const digitsRaw = toDigitsFromSha256(originalBase + String(Date.now()));
             const digits30 = clipDigits(digitsRaw, 30);
-            const uniqueDigits = ensureUniqueDigits(dir, digits30);
-            const avatarAbs = path.join(dir, uniqueDigits + '2.webp');
-            await sharp(req.file.path).resize(256, 256, { fit: 'cover' }).webp({ quality: 85 }).toFile(avatarAbs);
-            try { fs.unlinkSync(req.file.path); } catch {}
-            const publicRoot = path.join(__dirname, 'public');
-            const url = avatarAbs.replace(publicRoot, '').replace(/\\/g, '/');
-            let finalUrl = url;
-            if (useTosUpload) {
-                try {
-                    const objectKey = url.replace(/^\/+/, '');
-                    finalUrl = await uploadLocalFileToTos(avatarAbs, objectKey, 'image/webp') || url;
-                    try { fs.unlinkSync(avatarAbs); } catch {}
-                } catch (tosErr) {
-                    console.error('TOS author avatar upload failed:', tosErr.message || tosErr);
-                    try { await logOp('upload_failed', 'AuthorAvatar', `TOS upload failed: ${tosErr.message}`, req.user?.username); } catch {}
-                    try { fs.unlinkSync(avatarAbs); } catch {}
-                    return res.status(502).json({ success: false, error: '头像上传至对象存储失败，请稍后重试' });
-                }
+            const objectKey = `uploads/authors/${userId}/${digits30}2.webp`;
+            const directory = `uploads/authors/${userId}`;
+            const avatarBuffer = await sharp(req.file.buffer).resize(256, 256, { fit: 'cover' }).webp({ quality: 85 }).toBuffer();
+            if (!useTosUpload) {
+                return res.status(503).json({ success: false, error: '对象存储服务未配置，请联系管理员' });
+            }
+            let finalUrl;
+            try {
+                finalUrl = await uploadBufferToTos(avatarBuffer, objectKey, 'image/webp');
+                if (!finalUrl) throw new Error('TOS 未返回头像地址');
+            } catch (tosErr) {
+                console.error('TOS author avatar upload failed:', tosErr.message || tosErr);
+                try { await logOp('upload_failed', 'AuthorAvatar', `TOS upload failed: ${tosErr.message}`, req.user?.username); } catch {}
+                return res.status(502).json({ success: false, error: '头像上传至对象存储失败，请稍后重试' });
             }
             try { await logOp('upload', 'AuthorAvatar', `Uploaded avatar for user: ${userId}`, req.user?.username); } catch {}
             const hashHex = crypto.createHash('sha256').update(originalBase).digest('hex');
             try {
-                await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '2', directory: url.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'avatar', hashHex });
+                await FileNameMap.create({ originalName: originalBase, numericName: digits30 + '2', directory, ext: 'webp', variant: 'avatar', hashHex });
             } catch (mapErr) {
                 console.error('FileNameMap avatar create failed:', mapErr.message);
             }
@@ -4049,7 +3948,6 @@ app.post('/api/upload/author/:userId', authRequired, requirePerm('expert:edit'),
         } catch (e) {
             console.error('Author upload unhandled error:', e.stack || e);
             try { await logOp('upload_failed', 'AuthorAvatar', `Author upload processing failed: ${e.message}`, req.user?.username); } catch {}
-            try { if (req.file?.path) fs.unlinkSync(req.file.path); } catch {}
             const isImageProcessingError = e?.name === 'Error' || e?.code === 'EINPUT' || e?.code === 'EINVAL';
             if (isImageProcessingError) {
                 return res.status(400).json({ success: false, error: '头像文件无法解析，请上传有效的 JPG、PNG 或 WebP 图片' });
@@ -4072,112 +3970,71 @@ app.post('/api/upload', authRequired, requirePerm('upload:write'), uploadLimiter
             if (!req.file) {
                 return res.status(400).json({ success: false, error: '未检测到上传文件' });
             }
-            const uploadedAbs = path.join(__dirname, 'public/uploads', req.file.filename);
-            
             // Magic number validation for non-image files
             if (!(req.file.mimetype && req.file.mimetype.startsWith('image/'))) {
-                const header = Buffer.alloc(8);
-                try {
-                    const fd = fs.openSync(uploadedAbs, 'r');
-                    fs.readSync(fd, header, 0, 8, 0);
-                    fs.closeSync(fd);
-                } catch { /* file just written; fall through */ }
+                const header = req.file.buffer.subarray(0, 8);
                 const hex = header.toString('hex').toUpperCase();
                 // PDF: %PDF  |  DOCX/XLSX/PPTX: PK (ZIP)  |  plain text: no binary marker
-                const allowedDocs = ['PDF', 'ZIP', 'TEXT'];
                 let magicType = null;
                 if (hex.startsWith('25504446')) magicType = 'PDF';
                 else if (hex.startsWith('504B0304') || hex.startsWith('504B0506') || hex.startsWith('504B0708')) magicType = 'ZIP';
                 else if (!hex.match(/^(00|FF|[89A-F][0A-F])/)) magicType = 'TEXT'; // likely text file (not binary)
                 
                 if (!magicType) {
-                    try { fs.unlinkSync(uploadedAbs); } catch {}
                     return res.status(400).json({ success: false, error: '不支持的文件格式，仅允许 PDF、Office 文档和图片' });
                 }
             }
             
-            // If image, do local processing: convert to webp + thumbnail, store in date-based directory
+            // 统一走火山引擎 TOS：不写入网站目录
+            if (!useTosUpload) {
+                return res.status(503).json({ success: false, error: '对象存储服务未配置，请联系管理员' });
+            }
+
+            // If image, process in memory: convert to webp + thumbnail
             if (req.file.mimetype && req.file.mimetype.startsWith('image/')) {
                 const now = new Date();
                 const year = String(now.getFullYear());
                 const month = String(now.getMonth() + 1).padStart(2, '0');
-                const baseDir = path.join(__dirname, 'public/uploads/images', year, month);
-                ensureDirSync(baseDir);
                 const originalBase = path.basename(req.file.originalname).replace(/\.[^.]+$/, '');
                 const digitsRaw = toDigitsFromSha256(originalBase + String(Date.now()));
                 const digits30 = clipDigits(digitsRaw, 30);
-                const uniqueDigits = ensureUniqueDigits(baseDir, digits30);
-                const webpAbs = path.join(baseDir, uniqueDigits + '0.webp');
-                const thumbAbs = path.join(baseDir, uniqueDigits + '1.webp');
+                const directory = `uploads/images/${year}/${month}`;
+                const objectKey = `${directory}/${digits30}0.webp`;
+                const thumbKey = `${directory}/${digits30}1.webp`;
                 try {
-                    await sharp(uploadedAbs).resize({ width: 1440, withoutEnlargement: true }).webp({ quality: 82 }).toFile(webpAbs);
-                    await sharp(uploadedAbs).resize({ width: 480, height: 480, fit: 'inside', withoutEnlargement: true }).webp({ quality: 80 }).toFile(thumbAbs);
-                    try { fs.unlinkSync(uploadedAbs); } catch {}
-                    const publicRoot = path.join(__dirname, 'public');
-                    const url = webpAbs.replace(publicRoot, '').replace(/\\/g, '/');
-                    const thumb = thumbAbs.replace(publicRoot, '').replace(/\\/g, '/');
-                    let finalUrl = url;
-                    let finalThumb = thumb;
-                    if (useTosUpload) {
-                        try {
-                            const objectKey = url.replace(/^\/+/, '');
-                            const thumbKey = thumb.replace(/^\/+/, '');
-                            finalUrl = await uploadLocalFileToTos(webpAbs, objectKey, 'image/webp') || url;
-                            finalThumb = await uploadLocalFileToTos(thumbAbs, thumbKey, 'image/webp') || thumb;
-                            try { fs.unlinkSync(webpAbs); } catch {}
-                            try { fs.unlinkSync(thumbAbs); } catch {}
-                        } catch (tosErr) {
-                            console.error('TOS upload failed, fallback to local image path:', tosErr);
-                            await logOp('upload_warn', 'Image', `TOS failed, fallback local: ${tosErr.message}`, req.user?.username);
-                            notifyTosFallbackAlert(`Image upload fallback: ${tosErr.message}`);
-                            finalUrl = url;
-                            finalThumb = thumb;
-                        }
-                    }
-                    await logOp('upload', 'Image', `Image processed: ${url}`, req.user?.username);
+                    const webpBuffer = await sharp(req.file.buffer).resize({ width: 1440, withoutEnlargement: true }).webp({ quality: 82 }).toBuffer();
+                    const thumbBuffer = await sharp(req.file.buffer).resize({ width: 480, height: 480, fit: 'inside', withoutEnlargement: true }).webp({ quality: 80 }).toBuffer();
+                    const finalUrl = await uploadBufferToTos(webpBuffer, objectKey, 'image/webp');
+                    const finalThumb = await uploadBufferToTos(thumbBuffer, thumbKey, 'image/webp');
+                    if (!finalUrl || !finalThumb) throw new Error('TOS 未返回图片地址');
+                    await logOp('upload', 'Image', `Image processed: ${objectKey}`, req.user?.username);
                     const hashHex = crypto.createHash('sha256').update(originalBase).digest('hex');
                     try {
-                        await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '0', directory: url.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'main', hashHex });
-                        await FileNameMap.create({ originalName: originalBase, numericName: uniqueDigits + '1', directory: thumb.replace(/\/[^\/]+$/, ''), ext: 'webp', variant: 'thumb', hashHex });
+                        await FileNameMap.create({ originalName: originalBase, numericName: digits30 + '0', directory: '/' + directory, ext: 'webp', variant: 'main', hashHex });
+                        await FileNameMap.create({ originalName: originalBase, numericName: digits30 + '1', directory: '/' + directory, ext: 'webp', variant: 'thumb', hashHex });
                     } catch (mapErr) {
                         console.error('FileNameMap image create failed:', mapErr.message);
                     }
-                    return res.json({ success: true, url: finalUrl || url, thumb: finalThumb || thumb });
-                } catch (sharpErr) {
-                    console.error('Sharp process error, fallback to original:', sharpErr);
-                    await logOp('upload_warn', 'Image', `Sharp failed, fallback original: ${req.file.filename}`, req.user?.username);
-                    const localUrl = '/uploads/' + req.file.filename;
-                    if (useTosUpload) {
-                        try {
-                            const uploadedKey = localUrl.replace(/^\/+/, '');
-                            const tosUrl = await uploadLocalFileToTos(uploadedAbs, uploadedKey, req.file.mimetype || 'application/octet-stream');
-                            try { fs.unlinkSync(uploadedAbs); } catch {}
-                            return res.json({ success: true, url: tosUrl || localUrl });
-                        } catch (tosErr) {
-                            console.error('TOS upload failed in sharp fallback, use local path:', tosErr);
-                            notifyTosFallbackAlert(`Sharp fallback upload: ${tosErr.message}`);
-                            return res.json({ success: true, url: localUrl });
-                        }
-                    }
-                    return res.json({ success: true, url: localUrl });
+                    return res.json({ success: true, url: finalUrl, thumb: finalThumb });
+                } catch (imgErr) {
+                    console.error('Image process/upload error:', imgErr);
+                    await logOp('upload_failed', 'Image', `Image processing failed: ${imgErr.message}`, req.user?.username);
+                    return res.status(502).json({ success: false, error: '图片上传失败，请稍后重试' });
                 }
             }
-            // Non-image: keep original disk path
-            await logOp('upload', 'File', `File uploaded: ${req.file.filename}`, req.user?.username);
-            const localUrl = '/uploads/' + req.file.filename;
-            if (useTosUpload) {
-                try {
-                    const fileKey = localUrl.replace(/^\/+/, '');
-                    const tosUrl = await uploadLocalFileToTos(uploadedAbs, fileKey, req.file.mimetype || 'application/octet-stream');
-                    try { fs.unlinkSync(uploadedAbs); } catch {}
-                    return res.json({ success: true, url: tosUrl || localUrl });
-                } catch (tosErr) {
-                    console.error('TOS upload failed for non-image, use local path:', tosErr);
-                    notifyTosFallbackAlert(`File upload fallback: ${tosErr.message}`);
-                    return res.json({ success: true, url: localUrl });
-                }
+            // Non-image: upload original buffer to TOS
+            const ext = (path.extname(req.file.originalname) || '').toLowerCase();
+            const fileKey = `uploads/files/${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`;
+            try {
+                const tosUrl = await uploadBufferToTos(req.file.buffer, fileKey, req.file.mimetype || 'application/octet-stream');
+                if (!tosUrl) throw new Error('TOS 未返回文件地址');
+                await logOp('upload', 'File', `File uploaded: ${fileKey}`, req.user?.username);
+                return res.json({ success: true, url: tosUrl });
+            } catch (tosErr) {
+                console.error('File upload TOS failed:', tosErr.message || tosErr);
+                await logOp('upload_failed', 'File', `File upload failed: ${tosErr.message}`, req.user?.username);
+                return res.status(502).json({ success: false, error: '文件上传失败，请稍后重试' });
             }
-            return res.json({ success: true, url: localUrl });
         } catch (e) {
             console.error('Upload processing error:', e);
             await logOp('upload_failed', 'Image', `Upload processing failed: ${e.message}`, req.user?.username);
@@ -4259,52 +4116,48 @@ app.post('/api/upload/fetch-url', authRequired, requirePerm('upload:write'), asy
         else if (contentType === 'image/webp') ext = '.webp';
         else ext = '.jpg';
 
-        const filename = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`;
-        const dir = path.join(__dirname, 'public', 'uploads');
-        ensureDirSync(dir);
-        
-        const filepath = path.join(dir, filename);
-        
-        // Stream with 10MB hard cap (accounts for missing Content-Length)
-        const MAX_BYTES = 10 * 1024 * 1024;
-        let received = 0;
-        const hwm = 64 * 1024;
-        const dest = fs.createWriteStream(filepath, { highWaterMark: hwm });
-        response.body.on('data', (chunk) => {
-            received += chunk.length;
-            if (received > MAX_BYTES) {
-                response.body.destroy();
-                dest.destroy();
-                try { fs.unlinkSync(filepath); } catch {}
-            }
-        });
-        response.body.pipe(dest);
+         const filename = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`;
 
-        await new Promise((resolve, reject) => {
-            dest.on('finish', resolve);
-            dest.on('error', reject);
-        });
+         // 统一走火山引擎 TOS：不写入网站目录
+         if (!useTosUpload) {
+             return res.status(503).json({ error: '对象存储服务未配置，请联系管理员' });
+         }
 
-        if (received > MAX_BYTES) {
-            return res.status(400).json({ error: 'Image file exceeds maximum size of 10MB' });
-        }
+         // Accumulate response into memory with a 10MB hard cap (accounts for missing Content-Length)
+         const MAX_BYTES = 10 * 1024 * 1024;
+         const chunks = [];
+         let received = 0;
+         let tooLarge = false;
+         await new Promise((resolve, reject) => {
+             response.body.on('data', (chunk) => {
+                 received += chunk.length;
+                 if (received > MAX_BYTES) {
+                     tooLarge = true;
+                     response.body.destroy();
+                     resolve();
+                     return;
+                 }
+                 chunks.push(chunk);
+             });
+             response.body.on('end', resolve);
+             response.body.on('error', reject);
+         });
 
-        const localUrl = `/uploads/${filename}`;
-        if (useTosUpload) {
-            try {
-                const uploadedKey = localUrl.replace(/^\/+/, '');
-                const tosUrl = await uploadLocalFileToTos(filepath, uploadedKey, contentType);
-                if (tosUrl) {
-                    try { fs.unlinkSync(filepath); } catch {}
-                    return res.json({ success: true, url: tosUrl });
-                }
-            } catch (tosErr) {
-                console.error('TOS upload failed for fetched image, use local path:', tosErr);
-                notifyTosFallbackAlert(`Fetched image upload fallback: ${tosErr.message}`);
-            }
-        }
-        res.json({ success: true, url: localUrl });
-    } catch (e) {
+         if (tooLarge) {
+             return res.status(400).json({ error: 'Image file exceeds maximum size of 10MB' });
+         }
+
+         const imageBuffer = Buffer.concat(chunks);
+         const objectKey = `uploads/${filename}`;
+         try {
+             const tosUrl = await uploadBufferToTos(imageBuffer, objectKey, contentType);
+             if (!tosUrl) throw new Error('TOS 未返回图片地址');
+             return res.json({ success: true, url: tosUrl });
+         } catch (tosErr) {
+             console.error('Fetched image TOS upload failed:', tosErr.message || tosErr);
+             return res.status(502).json({ error: '图片上传失败，请稍后重试' });
+         }
+     } catch (e) {
         console.error('Fetch URL error:', e);
         res.status(500).json({ error: e.message });
     }

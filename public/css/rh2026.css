@@ -2438,7 +2438,6 @@ a.m-item.sub b{font-size:15px}
 /* ㉜ Agent 页选育用优：备注字号缩小、左对齐 */
 .cyc-close{font-size:13px !important;color:var(--ink-3) !important;margin:18px 0 0 !important;padding:0 !important;text-align:left !important;font-weight:500 !important}
 .cyc-r dd.get{display:block}
-.cyc-r dd.get br+*{}
 /* ㉝ 0909 全局检查：字号三档（正文 15 / 卡片 14 / 注脚 13）已在原规则内收敛；账本 dt 20、卡片 h4 17、关于页 H1 与产品页同级 */
 .ed-ledger dt{font-size:20px}
 .cyc-r dt{font-size:20px}
