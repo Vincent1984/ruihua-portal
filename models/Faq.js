@@ -39,9 +39,8 @@ const faqSchema = new mongoose.Schema({
 });
 
 // 更新时自动设置 updatedAt
-faqSchema.pre('save', function(next) {
+faqSchema.pre('save', function () {
   this.updatedAt = Date.now();
-  next();
 });
 
 // 添加索引
