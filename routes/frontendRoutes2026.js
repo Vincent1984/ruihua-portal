@@ -2,6 +2,7 @@ const Case = require('../models/Case');
 const Article = require('../models/Article');
 const Faq = require('../models/Faq');
 const { render2026, loadBlock } = require('../utils/render2026');
+const { getResolvedArticleAuthor } = require('../utils/articleHelpers');
 
 // 2026 版前台多页 SSR 路由：首页 / 案例列表 / 案例详情
 // 挂载：require('./routes/frontendRoutes2026')(app);
@@ -20,6 +21,47 @@ const INSIGHT_CATEGORY_SLUGS = {
   'CHO 人效提升智库': 'cho-workforce-efficiency'
 };
 const SLUG_INSIGHT_CATEGORIES = Object.fromEntries(Object.entries(INSIGHT_CATEGORY_SLUGS).map(([category, slug]) => [slug, category]));
+const INSIGHT_CATEGORY_LABELS = {
+  cio: 'CIO 数智化转型智库',
+  ceo: 'CEO 经营增长智库',
+  cho: 'CHO 人效提升智库'
+};
+const categoryLabel = (category, fallback = '行业洞察') => {
+  const raw = String(category || '').trim();
+  if (!raw) return fallback;
+  return INSIGHT_CATEGORY_LABELS[raw.toLowerCase()] || raw;
+};
+// 文章 → 前端 _mapArticle 所需原始字段（author 已解析为快照），用于 window.__ARTICLES__ 注入
+function serializeArticlesForInject(articles) {
+  return articles.map(a => {
+    const author = getResolvedArticleAuthor(a);
+    return {
+      _id: a._id,
+      slug: a.slug || '',
+      category: a.category || '',
+      zone: a.zone || 'industry',
+      contentStatus: a.contentStatus || 'full',
+      title: a.title || '',
+      summary: a.summary || '',
+      seoDescription: a.seoDescription || '',
+      content: a.content || '',
+      sourceUrl: a.sourceUrl || '',
+      publishDate: a.publishDate || null,
+      updatedAt: a.updatedAt || a.publishDate || null,
+      views: a.views || 0,
+      author: {
+        name: author.name || '',
+        avatar: author.avatar || '',
+        desc: author.desc || '',
+        detail: author.detail || ''
+      }
+    };
+  });
+}
+function articlesPreScript(articles) {
+  const json = JSON.stringify(serializeArticlesForInject(articles)).replace(/</g, '\\u003c');
+  return `window.__ARTICLES__=${json};`;
+}
 const absoluteUrl = value => {
   const raw = String(value || '');
   if (!raw) return '';
@@ -189,7 +231,7 @@ module.exports = function (app) {
       return res.redirect(301, `/insights/category/${INSIGHT_CATEGORY_SLUGS[req.query.category]}`);
     }
     try {
-      const articles = await Article.find({ status: 'published', isOnline: { $ne: false } })
+      const articles = await Article.find({ zone: { $ne: 'thinktank' }, status: 'published', isOnline: { $ne: false } })
         .sort({ publishDate: -1, updatedAt: -1 }).populate('authorId').lean();
       const content = buildInsightsList(articles);
       res.set('Cache-Control', 'public, max-age=600');
@@ -197,7 +239,8 @@ module.exports = function (app) {
         title: '研究中心 · 行业洞察 | 瑞华智策',
         description: 'CIO/CEO/CHO 三大智库，追踪 AI 转型落地的真问题。',
         canonical: 'https://www.ruihuaconsulting.com/insights',
-        content
+        content,
+        preScript: articlesPreScript(articles)
       }));
     } catch (e) {
       console.error('SSR /insights failed:', e);
@@ -207,15 +250,21 @@ module.exports = function (app) {
 
   app.get('/insights/industry', async (req, res) => {
     try {
-      const articles = await Article.find({ status: 'published', isOnline: { $ne: false } }).sort({ publishDate: -1, updatedAt: -1 }).populate('authorId').lean();
-      res.send(render2026({ title: '行业洞察 | 瑞华智策', description: 'CIO 数智化转型 / CEO 经营增长 / CHO 人效提升三大智库。', canonical: 'https://www.ruihuaconsulting.com/insights/industry', content: buildInsightsList(articles), activePath: '/insights/industry' }));
+      const articles = await Article.find({ zone: { $ne: 'thinktank' }, status: 'published', isOnline: { $ne: false } }).sort({ publishDate: -1, updatedAt: -1 }).populate('authorId').lean();
+      res.send(render2026({ title: '行业洞察 | 瑞华智策', description: 'CIO 数智化转型 / CEO 经营增长 / CHO 人效提升三大智库。', canonical: 'https://www.ruihuaconsulting.com/insights/industry', content: buildInsightsList(articles), activePath: '/insights/industry', preScript: articlesPreScript(articles) }));
     } catch (e) {
       res.status(500).send('服务器错误');
     }
   });
 
-  app.get('/insights/thinktank', (req, res) => {
-    res.send(render2026({ title: '经营智库 · R=B×O | 瑞华智策', description: 'R=B×O 理论内核与管理实践框架。', canonical: 'https://www.ruihuaconsulting.com/insights/thinktank', content: loadBlock('i-thinktank'), activePath: '/insights/thinktank' }));
+  app.get('/insights/thinktank', async (req, res) => {
+    try {
+      const articles = await Article.find({ zone: 'thinktank', status: 'published', isOnline: { $ne: false } }).sort({ publishDate: -1, updatedAt: -1 }).populate('authorId').lean();
+      res.send(render2026({ title: '经营智库 · R=B×O | 瑞华智策', description: 'R=B×O 理论内核与管理实践框架：增长诊断、碳硅共智组织设计、人效经营模型。', canonical: 'https://www.ruihuaconsulting.com/insights/thinktank', content: buildThinktankList(articles), activePath: '/insights/thinktank' }));
+    } catch (e) {
+      console.error('SSR /insights/thinktank failed:', e);
+      res.status(500).send('服务器错误');
+    }
   });
 
   app.get('/insights/category/:categorySlug', async (req, res) => {
@@ -231,7 +280,8 @@ module.exports = function (app) {
         description: `${category}的 AI 转型趋势、方法论与企业实践洞察。`,
         canonical: `https://www.ruihuaconsulting.com/insights/category/${categorySlug}`,
         content: buildInsightsList(articles, category),
-        activePath: '/insights'
+        activePath: '/insights',
+        preScript: articlesPreScript(articles)
       }));
     } catch (e) {
       console.error('SSR /insights/category/:categorySlug failed:', e);
@@ -305,10 +355,10 @@ module.exports = function (app) {
     '/solutions/training': { block: 'p-training', title: 'AI 赋能培训 · 12 门课带成果物 | 瑞华智策', description: '四条路径分角色培养，12 门课全部带可落地的成果物，解决「人会不会用 AI」。' },
     '/solutions/consulting': { block: 'p-consulting', title: 'AI 转型咨询 · 碳硅共智 | 瑞华智策', description: 'AI 驱动的新增长引擎打造 × 组织管理机制优化，解决「往哪走」。' },
     '/solutions/fde': { block: 'p-fde', title: 'AI 落地陪跑 · FDE | 瑞华智策', description: '现场部署 + 持续运营 + 能力转移，把 Agent 从演示拽进业务流。' },
+    '/solutions/eco': { block: 'p-eco', title: '生态用工管理咨询 · 瑞华智策', description: '基于人瑞人才 15 年灵活用工服务经验，以「管理咨询 + 数智化平台」双轮驱动，重构用工结构、合规管理与效能治理。' },
+    '/solutions/overseas': { block: 'p-overseas', title: 'HR 出海管理咨询 · 瑞华智策', description: '依托人瑞人才 23 个国家与地区的自有属地团队，从咨询方案到海外本土落地，全流程陪伴中国企业出海。' },
     '/hcvm': { block: 'hcvm', title: '人力资本价值经营 · HCVM | 瑞华智策', description: '以管理+技术双轮驱动，实现客户、企业与人才的价值共赢。' },
-    '/insights/thinktank': { block: 'i-thinktank', title: '经营智库 · R=B×O | 瑞华智策', description: 'R=B×O 理论内核与管理实践框架：增长诊断、碳硅共智组织设计、人效经营模型。' },
     '/about': { block: 'about', title: '关于我们 · AI 原生咨询公司 | 瑞华智策', description: '瑞华智策：人瑞人才全资子公司，AI 原生的本土咨询机构。' },
-    '/about/team': { block: 'about-team', title: '团队基因 · 瑞华智策', description: '瑞华智策团队基因：AI 工程化、管理咨询与陪伴服务的复合型团队，先自己跑通，再服务客户。' },
     '/contact': { block: 'contact', title: '联系我们 · 预约诊断 | 瑞华智策', description: '400-175-0886。预约「AI 场景诊断」，顾问 1 个工作日内联系你。' }
   };
 
@@ -329,18 +379,33 @@ module.exports = function (app) {
   module.exports.buildHome = buildHome;
 };
 
+// 行业缩略图（PNG，由 scripts/generate-case-pngs.js 生成）
+const INDUSTRY_THUMB = Object.fromEntries(
+  Object.entries(INDUSTRY_SLUGS).map(([industry, slug]) => [industry, `/images/cases/${slug}.png`])
+);
+const thumbImg = industry => {
+  const src = INDUSTRY_THUMB[industry] || INDUSTRY_THUMB['其他'];
+  return `<img src="${src}" alt="${esc(industry || '案例')}" loading="lazy">`;
+};
+
 function buildCaseCards(cases) {
   if (!cases.length) return '<p class="case-empty">暂无已发布案例。</p>';
   return cases.map(raw => {
     const c = toCaseDB(raw);
-    const summary = c.bg.length > 64 ? `${c.bg.slice(0, 64)}…` : c.bg;
-    const tags = c.tags.length
-      ? `<div class="ctags">${c.tags.map(x => `<span>${esc(x)}</span>`).join('')}</div>` : '';
+    const summary = c.bg.length > 96 ? `${c.bg.slice(0, 96)}…` : c.bg;
+    const thumb = thumbImg(c.ind);
+    const tags = c.tags.length ? c.tags.map(x => `<span>${esc(x)}</span>`).join('') : '';
     const stats = c.stats.length
-      ? `<div class="nums">${c.stats.slice(0, 2).map(x => `<span><b>${esc(x[1])}</b><i>${esc(x[0])}</i></span>`).join('')}</div>` : '';
+      ? `<div class="nums">${c.stats.slice(0, 2).map(x => `<span><b>${esc(x[1])}</b><i>${esc(x[0])}</i></span>`).join('')}</div>` : '<div class="nums"></div>';
     return `<a class="case-card" href="/cases/${encodeURIComponent(c.slug)}" data-industry="${esc(c.ind)}">
-      <div class="chead"><span class="ind">${esc(c.ind)}</span></div>
-      ${tags}<h4>${esc(c.title)}</h4><p>${esc(summary)}</p>${stats}
+      <span class="cthumb">${thumb}</span>
+      <div class="cbody">
+        <div class="cmeta"><span class="ind">${esc(c.ind)}</span>${tags}</div>
+        <h4>${esc(c.title)}</h4>
+        <p>${esc(summary)}</p>
+      </div>
+      ${stats}
+      <span class="cgo">→</span>
     </a>`;
   }).join('');
 }
@@ -360,10 +425,23 @@ function buildInsightsList(articles, activeCategory = '全部') {
     const href = category === '全部' ? '/insights' : `/insights/category/${INSIGHT_CATEGORY_SLUGS[category]}`;
     return `<a href="${href}"${category === activeCategory ? ' class="act"' : ''}>${esc(category)}</a>`;
   }).join('');
-  const listHtml = articles.length ? articles.map(article => `<a class="art" href="/insights/${encodeURIComponent(article.slug)}"><div class="art-head"><span class="tk">${esc(article.category || '行业洞察')}</span><span class="go2">阅读全文 →</span></div><span class="t">${esc(article.title)}</span><span class="d">${esc(article.summary || article.seoDescription || '')}</span><span class="m">${article.publishDate ? new Date(article.publishDate).toLocaleDateString('zh-CN') : ''} · ${esc((article.authorId || article.author || {}).name || '瑞华智策研究团队')} · 阅读 ${article.views || 0}</span></a>`).join('') : '<p>暂无已发布文章。</p>';
+  const listHtml = articles.length ? articles.map(article => `<a class="art" href="/insights/${encodeURIComponent(article.slug)}"><div class="art-head"><span class="tk">${esc(categoryLabel(article.category))}</span><span class="go2">阅读全文 →</span></div><span class="t">${esc(article.title)}</span><span class="d">${esc(article.summary || article.seoDescription || '')}</span><span class="m">${article.publishDate ? new Date(article.publishDate).toLocaleDateString('zh-CN') : ''} · ${esc((article.authorId || article.author || {}).name || '瑞华智策研究团队')} · 阅读 ${article.views || 0}</span></a>`).join('') : '<p>暂无已发布文章。</p>';
   return loadBlock('i-industry')
     .replace('<div class="ind-tabs" id="insTabs"></div>', `<div class="ind-tabs" id="insTabs">${tabsHtml}</div>`)
     .replace('<div id="insList"></div>', `<div id="insList">${listHtml}</div>`);
+}
+
+function buildThinktankList(articles) {
+  const stLabel = { full: ['st-full', '全文入站'], toc: ['st-guide', '章节导读'], soon: ['st-soon', '即将发布'] };
+  const listHtml = articles.length ? articles.map(a => {
+    const st = stLabel[a.contentStatus] || stLabel.full;
+    const date = a.publishDate ? new Date(a.publishDate).toLocaleDateString('zh-CN') : '';
+    const authorName = (a.authorId || a.author || {}).name || '瑞华智策研究团队';
+    const href = a.slug ? `/insights/${encodeURIComponent(a.slug)}` : '/insights';
+    const stHtml = (a.contentStatus === 'full' || a.contentStatus === 'toc') ? '' : `<span class="st-tag ${st[0]}">${st[1]}</span>`;
+    return `<a class="art" href="${href}"><div class="art-head"><span class="tk">${esc(categoryLabel(a.category, '方法论'))}</span>${stHtml}<span class="go2">${a.contentStatus === 'full' ? '阅读全文' : '查看导读'} →</span></div><span class="t">${esc(a.title)}</span><span class="d">${esc(a.summary || a.seoDescription || '')}</span><span class="m">${date} · ${esc(authorName)} · 阅读 ${a.views || 0}</span></a>`;
+  }).join('') : '<p style="font-size:13px;color:var(--ink-3)">方法论实践文章正在整理中，敬请期待。</p>';
+  return loadBlock('i-thinktank').replace('<div id="ttList"></div>', `<div id="ttList">${listHtml}</div>`);
 }
 
 function buildArticleDetail(article, author, qa, relatedArticles = []) {
@@ -371,7 +449,7 @@ function buildArticleDetail(article, author, qa, relatedArticles = []) {
   const updated = article.updatedAt ? new Date(article.updatedAt).toLocaleDateString('zh-CN') : published;
   const summary = article.summary || article.seoDescription || '';
   const authorName = author.name || '瑞华智策研究团队';
-  const category = article.category || '行业洞察';
+  const category = categoryLabel(article.category);
   const categorySlug = INSIGHT_CATEGORY_SLUGS[category];
   const categoryHref = categorySlug ? `/insights/category/${categorySlug}` : '/insights';
   const authorTitle = author.desc || '企业 AI 转型与新质组织研究';
@@ -410,85 +488,64 @@ function buildCaseDetail(c, relatedCases = []) {
     .replace(/&gt;/gi, '>')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
-  const overview = plainTextFromHtml(c.background) || '聚焦业务真实场景，以 AI Agent 与组织协同推动成果落地。';
-  const list = items => (items || []).map(x => `<li>${esc(x)}</li>`).join('');
+  
+  const bg = plainTextFromHtml(c.background);
+  const indHref = `/cases/industry/${industrySlugOf(c.industry || '其他')}`;
+  const ind = esc(c.industry || '其他');
+  const title = esc(c.title || '');
   const tags = (c.tags || []).map(x => `<span>${esc(x)}</span>`).join('');
-  const stats = (c.stats && c.stats.length)
-    ? `<div class="case-hero-stats">${c.stats.slice(0, 4).map(x => `<div class="stat"><b>${esc(x.value)}</b><i>${esc(x.label)}</i></div>`).join('')}</div>` : '';
-  const looksLikeResultValue = value => /\d|%|↑|↓|→|倍|小时|分钟|天|周/.test(String(value || ''));
-  const normalizeResultPair = (first, second) => {
-    const firstValue = String(first || '');
-    const secondValue = String(second || '');
-    if (looksLikeResultValue(secondValue) && !looksLikeResultValue(firstValue)) {
-      return { value: secondValue, label: firstValue };
-    }
-    return { value: firstValue, label: secondValue };
-  };
-  const resultItems = (c.resultTags || []).reduce((items, item, index, source) => {
-    if (index % 2 === 0) items.push(normalizeResultPair(item, source[index + 1]));
-    return items;
-  }, []);
-  const impactItems = resultItems.length
-    ? resultItems
-    : (c.stats || []).filter(x => x && (x.value || x.label)).map(x => normalizeResultPair(x.value, x.label));
-  const results = impactItems.map(({ value, label }, index) => `<div class="case-result-item">
-    <span class="case-result-index">${String(index + 1).padStart(2, '0')}</span><strong class="case-result-value">${esc(value)}</strong>${label ? `<p class="case-result-label">${esc(label)}</p>` : ''}
-  </div>`).join('');
-  const story = (className, id, number, title, items) => (items && items.length) ? `<article class="case-story-card ${className}" id="${id}">
-    <div class="case-story-kicker"><span>${number}</span>${title}</div><ul>${list(items)}</ul>
-  </article>` : '';
-  const related = relatedCases.length ? `<section class="case-related" aria-labelledby="related-cases-title">
-    <div class="case-section-head"><div><span>RELATED CASES</span><h2 id="related-cases-title">更多${esc(c.industry || '')}实践</h2></div><a href="/cases/industry/${industrySlugOf(c.industry)}">查看全部 →</a></div>
-    <div class="case-grid">${buildCaseCards(relatedCases)}</div>
-  </section>` : '';
-  const faqs = buildCaseFaq(c);
-  const faq = faqs.length ? `<section class="case-faq" aria-labelledby="case-faq-title">
-    <div class="case-section-head"><div><span>FAQ</span><h2 id="case-faq-title">常见问题</h2></div></div>
-    <div class="faq-list">${faqs.map(f => `<details class="faq-item"><summary>${esc(f.q)}<span class="ic">＋</span></summary><div class="a">${esc(f.a)}</div></details>`).join('')}</div>
-  </section>` : '';
+  const stats = (c.stats || []).filter(s => s && (s.label || s.value)).map(s => `<div class="s"><b>${esc(s.value)}</b><i>${esc(s.label)}</i></div>`).join('');
+  const kpis = stats ? `<div class="cs-kpis">${stats}</div>` : '';
+  
+  const li = a => (a || []).map(x => `<li>${esc(x)}</li>`).join('');
+  const sec = (t, inner) => `<section class="csd-sec"><h5>${t}</h5>${inner}</section>`;
+  
+  const same = relatedCases.map(rc => {
+    return `<a class="r" href="/cases/${encodeURIComponent(rc.slug)}">
+      <span class="cthumb">${thumbImg(rc.industry)}</span>
+      <span>${esc(rc.title)}</span>
+    </a>`;
+  }).join('');
+  
+  const resBody = (c.resultTags || []).length 
+    ? c.resultTags.map(x => `<p>${esc(x)}</p>`).join('') 
+    : '';
+
   return `
   <div class="page on" data-page="case-detail">
-    <div class="case-detail-hero"><div class="case-detail-wrap">
-      <nav class="case-breadcrumb" aria-label="面包屑"><a href="/">首页</a><span>／</span><a href="/cases">行业案例</a><span>／</span><strong>${esc(c.title)}</strong></nav>
-      <div class="case-hero-meta"><span class="case-industry">${esc(c.industry || '其他')}</span>${tags ? `<div class="ctags">${tags}</div>` : ''}</div>
-      <h1>${esc(c.title)}</h1>
-      ${c.client ? `<p class="case-client">客户 · ${esc(c.client)}</p>` : ''}
-      ${stats}
+    <div class="a-hero cs-hero"><div class="wrap">
+      <div class="a-bc"><a href="/">首页</a> › <a href="/cases">客户案例</a> › <a href="${indHref}">${ind}</a></div>
+      <div class="cs-tags"><span class="ind">${ind}</span>${tags}</div>
+      <h1>${title}</h1>
+      ${kpis}
     </div></div>
-    <main class="section case-detail-section"><div class="cm-body case-detail-body">
-      <div class="case-report-layout">
-        <aside class="case-report-index" aria-label="案例章节导航">
-          <span class="case-index-eyebrow">CASE REVIEW</span>
-          <strong>项目复盘</strong>
-          <nav><a href="#case-overview"><i>00</i>项目概览</a><a href="#case-step-01"><i>01</i>遇到的问题</a><a href="#case-step-02"><i>02</i>期望目标</a><a href="#case-step-03"><i>03</i>解决方案</a><a href="#case-impact"><i>04</i>项目成果</a></nav>
-          <span class="case-index-progress" aria-hidden="true"></span>
-        </aside>
-        <div class="case-report-content">
-          <section class="case-overview" id="case-overview">
-            <div class="case-section-label"><span>00</span>PROJECT OVERVIEW</div>
-            <h2>项目概览</h2>
-            <div class="case-overview-content"><p>${esc(overview).replace(/\n/g, '<br>')}</p></div>
-          </section>
-          <div class="case-story-grid" id="case-story">
-            ${story('case-problem', 'case-step-01', '01', '遇到的问题', c.problems)}
-            ${story('case-goal', 'case-step-02', '02', '希望实现的目标', c.goals)}
-            ${story('case-solution', 'case-step-03', '03', '解决方案', c.solutions)}
-          </div>
-          <section class="case-results" id="case-impact">
-            <div class="case-results-head"><div><div class="case-section-label"><span>04</span>DELIVERED IMPACT</div><h2>项目成果</h2></div><p>从关键业务指标到工作方式转变，项目价值被持续验证并留在组织内部。</p></div>
-            ${results ? `<div class="case-result-grid">${results}</div>` : `<div class="case-results-empty"><span>RESULTS IN PROGRESS</span><p>项目成果正在持续沉淀，详细效果数据将在完成验证后更新。</p></div>`}
-          </section>
+    <div class="a-main cs-main">
+      <div class="cs-body">
+        ${bg ? sec('项目背景', `<p>${bg.replace(/\n/g, '<br>')}</p>`) : ''}
+        ${c.problems && c.problems.length ? sec('遇到的问题', `<ul>${li(c.problems)}</ul>`) : ''}
+        ${c.goals && c.goals.length ? sec('希望实现的目标', `<ul>${li(c.goals)}</ul>`) : ''}
+        ${c.solutions && c.solutions.length ? sec('解决方案', `<ul>${li(c.solutions)}</ul>`) : ''}
+        ${resBody ? sec('带来的结果', resBody) : ''}
+        
+        <div class="cm-cta">
+          <div class="t">想在你的企业复制这个场景？<span>先做一次轻量的 AI 场景诊断，顾问 1 个工作日内联系你。</span></div>
+          <a class="btn" style="background:var(--purple-hi);color:#fff;border:0" href="/contact">预约「AI 场景诊断」<span class="arr">→</span></a>
+          <button class="btn" style="border-color:var(--hair);color:var(--ink)" data-evt-click="e1">问 AI 顾问</button>
         </div>
       </div>
-      ${faq}
-      ${related}
-      <div class="cm-cta">
-        <div class="t">想在你的企业复制这个场景？<span>先做一次轻量的 AI 场景诊断，顾问 1 个工作日内联系你。</span></div>
-        <a class="btn case-detail-primary" href="/contact">预约「AI 场景诊断」<span class="arr">→</span></a>
-        <button class="btn case-detail-ai" data-action="open-drawer">问 AI 顾问</button>
+      <div class="a-side">
+        <div class="cs-side"><div class="h">${ind} · 更多案例</div>
+          ${same || '<p class="none">该行业暂无其他案例</p>'}
+          <a class="all" href="/cases">查看全部案例 →</a>
+        </div>
+        <div class="a-promo">
+          <span class="chip chip-a">⚡ 限时免费评估</span>
+          <div class="t">组织人效智能体检Agent</div>
+          <p>通过科学的诊断模型，为你精准定位组织效能痛点，量化人力资本投资回报。</p>
+          <a href="/contact">预约体验 →</a>
+        </div>
       </div>
-      <p class="case-detail-back"><a href="/cases">← 返回全部案例</a></p>
-    </div></main>
+    </div>
   </div>`;
 }
 
@@ -530,7 +587,7 @@ async function buildHome() {
   let html = loadBlock('home');
   const [featured, faqs] = await Promise.all([
     Case.find({ status: 'published', isOnline: { $ne: false }, featured: true }).sort({ featuredOrder: 1, createdAt: -1 }).limit(3).lean(),
-    Faq.find({ status: { $in: ['published', undefined] }, isOnline: { $ne: false } }).sort({ order: 1 }).limit(6).lean()
+    Faq.find({ isActive: true }).sort({ order: 1 }).limit(6).lean()
   ]);
   html = html.replace('<!--HOME_FEATURED-->', buildHomeFeatured(featured));
   html = html.replace('<!--HOME_FAQ-->', buildHomeFaq(faqs));

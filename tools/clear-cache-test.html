@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ Hover 效果测试</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #1a1a1a;
+      color: #fff;
+      padding: 40px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    h1 {
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+    .instructions {
+      max-width: 800px;
+      margin: 0 auto 40px;
+      padding: 24px;
+      background: rgba(124, 77, 255, 0.1);
+      border: 2px solid rgba(124, 77, 255, 0.5);
+      border-radius: 16px;
+    }
+    .instructions h2 {
+      color: #7c4dff;
+      margin-bottom: 16px;
+    }
+    .instructions ol {
+      margin-left: 24px;
+      line-height: 2;
+    }
+    .instructions code {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'SF Mono', Consolas, monospace;
+      color: #7c4dff;
+    }
+    .test-buttons {
+      text-align: center;
+      margin: 40px 0;
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+    }
+    .btn {
+      padding: 16px 32px;
+      background: #7c4dff;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn:hover {
+      background: #6a3fef;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(124, 77, 255, 0.3);
+    }
+    .btn-secondary {
+      background: rgba(124, 77, 255, 0.2);
+    }
+    .status-box {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 24px;
+      background: rgba(45, 39, 58, 0.5);
+      border: 1px solid rgba(124, 77, 255, 0.3);
+      border-radius: 16px;
+    }
+    .status-box h3 {
+      color: #7c4dff;
+      margin-bottom: 16px;
+    }
+    .check-item {
+      padding: 12px;
+      margin: 8px 0;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .check-item.pass {
+      border-left: 4px solid #4caf50;
+    }
+    .check-item.fail {
+      border-left: 4px solid #f44336;
+    }
+    .icon {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .code-block {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 16px;
+      border-radius: 8px;
+      font-family: 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🔧 FAQ Hover 效果测试</h1>
+    <p>验证缓存是否清除，Hover 效果是否正确</p>
+  </div>
+
+  <div class="instructions">
+    <h2>🚨 如何彻底清除缓存</h2>
+    <ol>
+      <li><strong>Chrome / Edge</strong>
+        <ul style="margin-left: 24px; margin-top: 8px;">
+          <li>按 <code>Ctrl+Shift+Delete</code> (Windows) 或 <code>Cmd+Shift+Delete</code> (Mac)</li>
+          <li>选择"缓存的图片和文件"</li>
+          <li>时间范围选择"全部时间"</li>
+          <li>点击"清除数据"</li>
+        </ul>
+      </li>
+      <li><strong>Safari</strong>
+        <ul style="margin-left: 24px; margin-top: 8px;">
+          <li>按 <code>Cmd+Option+E</code> 清空缓存</li>
+          <li>或者：Safari 菜单 → 偏好设置 → 高级 → 显示开发菜单</li>
+          <li>开发 → 清空缓存</li>
+        </ul>
+      </li>
+      <li><strong>Firefox</strong>
+        <ul style="margin-left: 24px; margin-top: 8px;">
+          <li>按 <code>Ctrl+Shift+Delete</code></li>
+          <li>勾选"缓存"</li>
+          <li>点击"立即清除"</li>
+        </ul>
+      </li>
+      <li style="margin-top: 16px; color: #7c4dff; font-weight: bold;">
+        清除缓存后，按 <code>Ctrl+F5</code> 或 <code>Cmd+Shift+R</code> 强制刷新页面
+      </li>
+    </ol>
+  </div>
+
+  <div class="test-buttons">
+    <a href="http://localhost:3000/" class="btn" target="_blank">
+      打开首页测试
+    </a>
+    <button class="btn btn-secondary" onclick="runDiagnostic()">
+      运行诊断
+    </button>
+    <button class="btn btn-secondary" onclick="checkCSSVersion()">
+      检查 CSS 版本
+    </button>
+  </div>
+
+  <div class="status-box">
+    <h3>📋 预期的正确效果</h3>
+    <div class="check-item pass">
+      <span class="icon">✅</span>
+      <span><strong>正常状态：</strong>深色背景 + 浅紫色边框</span>
+    </div>
+    <div class="check-item pass">
+      <span class="icon">✅</span>
+      <span><strong>Hover 状态：</strong>深色背景（不变）+ 紫色光晕边框</span>
+    </div>
+    <div class="check-item pass">
+      <span class="icon">✅</span>
+      <span><strong>Hover 文字：</strong>标题变白色</span>
+    </div>
+    <div class="check-item fail">
+      <span class="icon">❌</span>
+      <span><strong>错误效果：</strong>Hover 时背景变白色或浅紫色</span>
+    </div>
+  </div>
+
+  <div class="status-box">
+    <h3>🔍 诊断结果</h3>
+    <div id="diagnostic-result">
+      <p style="text-align: center; color: #999;">点击"运行诊断"按钮开始检测</p>
+    </div>
+  </div>
+
+  <div class="status-box">
+    <h3>📝 当前 CSS 版本信息</h3>
+    <div id="css-version">
+      <p style="text-align: center; color: #999;">点击"检查 CSS 版本"按钮查看</p>
+    </div>
+  </div>
+
+  <script>
+    async function checkCSSVersion() {
+      const versionDiv = document.getElementById('css-version');
+      versionDiv.innerHTML = '<p style="color: #999;">检查中...</p>';
+
+      try {
+        const timestamp = Date.now();
+        const response = await fetch(`http://localhost:3000/css/rh2026.css?v=${timestamp}`);
+        const css = await response.text();
+
+        // 检查关键规则
+        const checks = [
+          {
+            name: '第 1161 行：.tl-faq .faq-item:hover 无 background',
+            regex: /\.tl-faq\s+\.faq-item:hover\{[^}]*border-color:transparent[^}]*(?!background:rgba\(124,77,255,\.15\))[^}]*\}/,
+            expected: true
+          },
+          {
+            name: '第 2617 行：.faq-item:hover 无 background:var(--p-50)',
+            regex: /\.faq-item:hover\{border-color:var\(--purple\)\}/,
+            expected: true
+          },
+          {
+            name: '错误规则：background:var(--p-50) 不应存在',
+            regex: /\.faq-item:hover\{[^}]*background:var\(--p-50\)/,
+            expected: false
+          },
+          {
+            name: '错误规则：background:rgba(124,77,255,.15) 不应存在',
+            regex: /\.tl-faq\s+\.faq-item:hover\{[^}]*background:rgba\(124,77,255,\.15\)/,
+            expected: false
+          }
+        ];
+
+        let html = '<div style="font-size: 14px;">';
+        html += `<p><strong>CSS 大小：</strong>${(css.length / 1024).toFixed(2)} KB</p>`;
+        html += `<p><strong>检查时间：</strong>${new Date().toLocaleString()}</p>`;
+        html += '<hr style="margin: 16px 0; border: none; border-top: 1px solid rgba(124, 77, 255, 0.3);">';
+
+        checks.forEach(check => {
+          const found = check.regex.test(css);
+          const pass = found === check.expected;
+          const icon = pass ? '✅' : '❌';
+          const status = pass ? 'pass' : 'fail';
+          html += `<div class="check-item ${status}">
+            <span class="icon">${icon}</span>
+            <span>${check.name}</span>
+          </div>`;
+        });
+
+        // 显示关键代码片段
+        const hoverMatch = css.match(/\.tl-faq\s+\.faq-item:hover\{[^}]+\}/);
+        if (hoverMatch) {
+          html += '<h4 style="margin-top: 16px; color: #7c4dff;">实际 CSS 代码：</h4>';
+          html += `<div class="code-block">${hoverMatch[0].replace(/\n/g, '<br>')}</div>`;
+        }
+
+        html += '</div>';
+        versionDiv.innerHTML = html;
+
+      } catch (error) {
+        versionDiv.innerHTML = `<p style="color: #f44336;">❌ 检查失败：${error.message}</p>`;
+      }
+    }
+
+    async function runDiagnostic() {
+      const resultDiv = document.getElementById('diagnostic-result');
+      resultDiv.innerHTML = '<p style="color: #999;">诊断中...</p>';
+
+      setTimeout(() => {
+        const html = `
+          <div style="font-size: 14px;">
+            <p style="margin-bottom: 16px;">请在首页执行以下检查：</p>
+            <ol style="line-height: 2;">
+              <li>打开 http://localhost:3000/</li>
+              <li>按 F12 打开开发者工具</li>
+              <li>切换到 Console 标签</li>
+              <li>粘贴以下代码并回车：</li>
+            </ol>
+            <div class="code-block">
+const faq = document.querySelector('.tl-faq .faq-item');<br>
+const styles = getComputedStyle(faq);<br>
+console.log('正常背景:', styles.backgroundColor);<br>
+<br>
+faq.addEventListener('mouseenter', () => {<br>
+&nbsp;&nbsp;const hoverStyles = getComputedStyle(faq);<br>
+&nbsp;&nbsp;console.log('Hover 背景:', hoverStyles.backgroundColor);<br>
+&nbsp;&nbsp;console.log('Hover 边框:', hoverStyles.borderColor);<br>
+&nbsp;&nbsp;console.log('Hover 阴影:', hoverStyles.boxShadow);<br>
+});<br>
+<br>
+console.log('✅ 现在将鼠标悬停到 FAQ 卡片上...');
+            </div>
+            <p style="margin-top: 16px; color: #7c4dff; font-weight: bold;">
+              预期结果：正常背景和 Hover 背景应该相同（深色）
+            </p>
+          </div>
+        `;
+        resultDiv.innerHTML = html;
+      }, 500);
+    }
+
+    // 页面加载时自动检查 CSS
+    window.addEventListener('load', () => {
+      setTimeout(checkCSSVersion, 1000);
+    });
+  </script>
+</body>
+</html>

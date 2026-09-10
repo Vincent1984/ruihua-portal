@@ -1,4 +1,5 @@
 /* 本文件由 scripts/build-rh2026-engine.js 自动生成，请勿手改。源：public/js/rh2026.js */
+
 /* ================= 首页数据：五个买家问题（chips） ================= */
 const HERO_QS=[
   {who:'CEO', q:'AI 转型该从哪切入？'},
@@ -260,41 +261,44 @@ function tileSolidSVG(m,pal,s){
 (function(){
   const box=document.getElementById('tlChips');
   if(!box)return;
-  const preset=box.querySelectorAll('button[data-q]');
-  if(preset.length){
-    /* SSR 已预渲染：仅绑定事件，保证源码可见（GEO 友好） */
-    preset.forEach(b=>b.onclick=()=>askFromMap(b.dataset.q));
-  }else{
-    /* 兜底：容器为空时动态生成 */
-    HERO_QS.forEach(x=>{
-      const b=document.createElement('button');
-      b.innerHTML=`<b>${x.who}</b>${x.q}`;
-      b.onclick=()=>askFromMap(x.q);
-      box.appendChild(b);
-    });
-  }
+  HERO_QS.forEach(x=>{
+    const b=document.createElement('button');
+    b.innerHTML=`<b>${x.who}</b>${x.q}`;
+    b.onclick=()=>askFromMap(x.q);
+    box.appendChild(b);
+  });
 })();
 (function(){
   const el=document.getElementById('dmType');
   if(!el)return;
-  /* 优先使用 SSR 预渲染文案，回退到内置常量 */
-  const TXT=(el.textContent||'').trim()||'不要从最复杂的核心业务开始。优先选高频、高人力、流程标准化的场景，通常 2–4 周就能验证价值。';
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches){
-    el.textContent=TXT;
-    document.getElementById('dmCaret').style.display='none';
-    document.getElementById('dmSrcs').style.opacity='1';
-    return;
+  const win=document.getElementById('demoWin');
+  const meEl=win.querySelector('.dm.me span'), caret=document.getElementById('dmCaret'), srcs=document.getElementById('dmSrcs');
+  const PAIRS=[
+    ['AI 转型该从哪切入？','不要从最复杂的核心业务开始。优先选高频、高人力、流程标准化的场景，通常 2–4 周就能验证价值。','常见问题'],
+    ['混合员工怎么管？','先把岗位拆成任务，分清人做、Agent 做、混合做；再建碳硅双轨绩效，让「人 + AI」的产出可衡量、可激励。','AI 时代的 HR 管理咨询'],
+    ['多久能见效？','原型验证 2–4 周，用真实业务数据跑通核心链路；完整部署并产生可量化结果一般 4–8 周。','交付方法'],
+    ['Agent 怎么接进系统？','两种形态按数据安全要求选：主流平台企业版即开即用；数据敏感场景私有化部署，全链路运行在自有环境。','Agent 落地全周期服务'],
+  ];
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){meEl.textContent=PAIRS[0][0];el.textContent=PAIRS[0][1];caret.style.display='none';srcs.style.opacity='1';return;}
+  let idx=0;
+  function paused(){return document.hidden||!document.body.classList.contains('home-on')||win.offsetParent===null}
+  function typeInto(node,txt,step,ms,cb){let i=0;(function t(){if(paused()){setTimeout(t,400);return}i=Math.min(txt.length,i+step);node.textContent=txt.slice(0,i);if(i<txt.length)setTimeout(t,ms);else cb&&cb();})();}
+  function round(first){
+    const [q,a,tag]=PAIRS[idx%PAIRS.length];
+    srcs.style.opacity='0'; caret.style.display='none'; el.textContent='';
+    srcs.querySelector('span').textContent='● 已检索 '+tag;
+    const go=()=>{
+      /* 问题：首轮直接显示，后续轮次逐字敲入 */
+      const ask=first?(cb=>{meEl.textContent=q;cb()}):(cb=>{meEl.textContent='';typeInto(meEl,q,1,55,cb)});
+      ask(()=>{
+        el.innerHTML='<span class="typing"><i></i><i></i><i></i></span>';
+        setTimeout(()=>{el.textContent='';caret.style.display='';typeInto(el,a,2,34,()=>{caret.style.display='none';srcs.style.opacity='1';idx++;setTimeout(()=>round(false),4200);});},first?700:900);
+      });
+    };
+    setTimeout(go,first?1900:0);
   }
-  let i=0;
-  setTimeout(function tick(){
-    if(i<=TXT.length){
-      el.textContent=TXT.slice(0,i); i+=2;
-      setTimeout(tick,34);
-    }else{
-      document.getElementById('dmCaret').style.display='none';
-      document.getElementById('dmSrcs').style.opacity='1';
-    }
-  },1900);
+  round(true);
 })();
 
 /* ================= 滚动：导航阴影 + 区块入场 + 文章阅读进度 ================= */
@@ -533,8 +537,8 @@ const __noAnim=matchMedia('(prefers-reduced-motion: reduce)').matches;
 function heroArt(kind,W,H){
   W=W||1600;H=H||900;
   const gid='g-'+kind+'-'+(++_artN);
-  const AC={training:'#d6e893',consulting:'#bda5ff',fde:'#fdcaae',hcvm:'#ffecc1'}[kind]||'#bda5ff';
-  const r=_rng({training:7,consulting:23,fde:41,hcvm:61}[kind]||7);
+  const AC={training:'#d6e893',consulting:'#bda5ff',fde:'#fdcaae',hcvm:'#ffecc1',eco:'#d6e893',overseas:'#fdcaae',insights:'#d6e893',thinktank:'#ffecc1',about:'#bda5ff',team:'#d6e893',contact:'#fdcaae',cases:'#ffecc1',manufacturing:'#fdcaae',retail:'#d6e893',finance:'#ffecc1'}[kind]||'#bda5ff';
+  const r=_rng({training:7,consulting:23,fde:41,hcvm:61,eco:191,overseas:211,insights:83,thinktank:97,about:113,team:131,contact:151,cases:173,manufacturing:227,retail:239,finance:251}[kind]||7);
   const AN=!__noAnim;
   let s='';
   /* 底：径向紫光 + 高光渐晕 + 细网格 */
@@ -555,7 +559,7 @@ function heroArt(kind,W,H){
     const t=Math.min(w,hh)*.3;
     let o=`<g opacity="${op}">`;
     if(AN)o+=`<animate attributeName="opacity" values="${op};${(op*.35).toFixed(2)};${op}" dur="${(3.5+r()*4).toFixed(1)}s" begin="${(r()*4).toFixed(1)}s" repeatCount="indefinite"/>`;
-    o+=`<rect x="${x}" y="${y}" width="${w}" height="${hh}" fill="${c}" fill-opacity=".13" stroke="${c}" stroke-width="2"/>`;
+    o+=`<rect class="tk" x="${x}" y="${y}" width="${w}" height="${hh}" fill="${c}" fill-opacity=".13" stroke="${c}" stroke-width="2"/>`;
     [[x,y,1],[x+w,y,-1],[x,y+hh,1],[x+w,y+hh,-1]].forEach(([cx,cy,dx])=>{
       o+=`<line x1="${cx}" y1="${cy}" x2="${cx+dx*t}" y2="${cy}" stroke="${c}" stroke-width="3.5"/>`;
       o+=`<line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy+(cy>y?-1:1)*t}" stroke="${c}" stroke-width="3.5"/>`;});
@@ -585,6 +589,93 @@ function heroArt(kind,W,H){
       const cellOp=.25+r()*.4;
       s+=`<rect x="${W*.85+gx*46}" y="${H*.40+gy*46}" width="38" height="38" rx="6" fill="${AC}" fill-opacity="${cellOp}">${AN?`<animate attributeName="fill-opacity" values="${cellOp};${Math.min(.9,cellOp+.4)};${cellOp}" dur="${2+r()*3}s" begin="${r()*2}s" repeatCount="indefinite"/>`:''}</rect>`;}
     s+=tick(W*.845,H*.385,150,150,'#bda5ff',.75);
+  }else if(kind==='insights'){
+    /* 行业洞察：三条智库趋势线从同一原点分岔，各自带脉冲读数点 */
+    const ox=W*.30,oy=H*.74;
+    [['#bda5ff',.30,0],[AC,.42,1],['#ffecc1',.54,2]].forEach(([c,k,i])=>{
+      let pts=[];for(let j=0;j<=10;j++){const t=j/10;pts.push([ox+t*W*.62,oy-Math.pow(t,1.35)*H*k-Math.sin(t*6+i)*H*.02])}
+      const d='M '+pts.map(p=>p[0].toFixed(0)+' '+p[1].toFixed(0)).join(' L ');
+      s+=`<path d="${d}" fill="none" stroke="${c}" stroke-width="3.5" stroke-opacity=".85"/>`;
+      s+=`<path d="${d}" fill="none" stroke="#fff" stroke-width="3.5" stroke-opacity=".5" stroke-dasharray="16 220">${AN?`<animate attributeName="stroke-dashoffset" from="0" to="-472" dur="${5+i}s" repeatCount="indefinite"/>`:''}</path>`;
+      const e=pts[10];
+      s+=`<circle cx="${e[0]}" cy="${e[1]}" r="11" fill="${c}"/><circle cx="${e[0]}" cy="${e[1]}" r="20" fill="none" stroke="${c}" stroke-width="2" stroke-opacity=".5">${AN?`<animate attributeName="r" values="20;32" dur="2.8s" begin="${i*.6}s" repeatCount="indefinite"/><animate attributeName="stroke-opacity" values=".5;0" dur="2.8s" begin="${i*.6}s" repeatCount="indefinite"/>`:''}</circle>`;
+    });
+    s+=`<circle cx="${ox}" cy="${oy}" r="12" fill="#fff" fill-opacity=".9"/>`;
+    for(let i=0;i<4;i++)s+=`<line x1="${ox}" y1="${oy-i*H*.18}" x2="${ox+12}" y2="${oy-i*H*.18}" stroke="#bda5ff" stroke-opacity=".6" stroke-width="2"/>`;
+  }else if(kind==='thinktank'){
+    /* 经营智库：R = B × O —— 两个方块相乘，交集即结果，外围公式刻度 */
+    const cx=W*.70,cy=H*.54,S=H*.36;
+    const sq=(dx,dy,c,rot,op)=>`<g transform="rotate(${rot} ${cx+dx} ${cy+dy})"><rect x="${cx+dx-S/2}" y="${cy+dy-S/2}" width="${S}" height="${S}" rx="18" fill="${c}" fill-opacity="${op}" stroke="${c}" stroke-width="3" stroke-opacity=".9"/></g>`;
+    s+=sq(-S*.28,0,'#bda5ff',-8,.14)+sq(S*.28,0,AC,8,.14);
+    s+=`<rect x="${cx-S*.2}" y="${cy-S*.3}" width="${S*.4}" height="${S*.6}" rx="14" fill="#fff" fill-opacity=".16" stroke="#fff" stroke-opacity=".6" stroke-width="2">${AN?`<animate attributeName="fill-opacity" values=".16;.3;.16" dur="3.6s" repeatCount="indefinite"/>`:''}</rect>`;
+    const T=(x,y,t,c,fs)=>`<text x="${x}" y="${y}" text-anchor="middle" fill="${c}" font-family="'JetBrains Mono',ui-monospace,monospace" font-size="${fs}" font-weight="700">${t}</text>`;
+    s+=T(cx-S*.52,cy-S*.5,'B','#bda5ff',34)+T(cx+S*.52,cy-S*.5,'O',AC,34)+T(cx,cy+S*.62+34,'R','#fff',40);
+    s+=T(cx,cy-S*.62,'B × O = R','#fff',22);
+    for(let i=0;i<7;i++){const y=H*.18+i*H*.1;s+=`<line x1="${W*.30}" y1="${y}" x2="${W*.30+(i%3?18:34)}" y2="${y}" stroke="#bda5ff" stroke-opacity=".55" stroke-width="2"/>`}
+  }else if(kind==='about'){
+    /* 公司介绍：五层架构台阶，自下而上逐层发亮，顶层一颗碳硅共智核心 */
+    const bw=W*.46,x0=W*.36,y0=H*.88,lh=H*.11;
+    for(let i=0;i<5;i++){const w=bw-i*bw*.13,x=x0+(bw-w)/2,y=y0-i*lh-lh*.8,op=.12+i*.09;
+      s+=`<rect x="${x}" y="${y}" width="${w}" height="${lh*.8}" rx="10" fill="#7c4dff" fill-opacity="${op}" stroke="${i>=2?AC:'#7c4dff'}" stroke-opacity=".8" stroke-width="2">${AN?`<animate attributeName="fill-opacity" values="${op};${op+.18};${op}" dur="4s" begin="${i*.5}s" repeatCount="indefinite"/>`:''}</rect>`;
+      s+=`<line x1="${x-30}" y1="${y+lh*.4}" x2="${x-8}" y2="${y+lh*.4}" stroke="${AC}" stroke-opacity=".6" stroke-width="2"/>`;}
+    const tx=x0+bw/2,ty=y0-5*lh-lh*.55;
+    s+=`<circle cx="${tx}" cy="${ty}" r="16" fill="${AC}"/><circle cx="${tx}" cy="${ty}" r="30" fill="none" stroke="${AC}" stroke-width="2" stroke-opacity=".5">${AN?`<animate attributeName="r" values="30;46" dur="3s" repeatCount="indefinite"/><animate attributeName="stroke-opacity" values=".5;0" dur="3s" repeatCount="indefinite"/>`:''}</circle>`;
+    s+=`<circle cx="${tx-26}" cy="${ty}" r="7" fill="#fff" fill-opacity=".85"/><circle cx="${tx+26}" cy="${ty}" r="7" fill="#7c4dff"/>`;
+  }else if(kind==='team'){
+    /* 团队基因：碳硅双螺旋，两条正弦链 + 横档 */
+    const x0=W*.30,x1=W*.94,cy=H*.5,A=H*.2,N=40;
+    let a='',b='',rungs='';
+    for(let i=0;i<=N;i++){const t=i/N,x=x0+t*(x1-x0),ph=t*Math.PI*3.2;
+      const ya=cy+Math.sin(ph)*A,yb=cy-Math.sin(ph)*A;
+      a+=(i?' L ':'M ')+x.toFixed(0)+' '+ya.toFixed(0);b+=(i?' L ':'M ')+x.toFixed(0)+' '+yb.toFixed(0);
+      if(i%4===0)rungs+=`<line x1="${x}" y1="${ya}" x2="${x}" y2="${yb}" stroke="#fff" stroke-opacity="${.18+Math.abs(Math.cos(ph))*.4}" stroke-width="2"/><circle cx="${x}" cy="${ya}" r="6" fill="#bda5ff"/><circle cx="${x}" cy="${yb}" r="6" fill="${AC}"/>`;}
+    s+=rungs+`<path d="${a}" fill="none" stroke="#bda5ff" stroke-width="3.5" stroke-opacity=".9"/><path d="${b}" fill="none" stroke="${AC}" stroke-width="3.5" stroke-opacity=".9"/>`;
+    s+=`<path d="${a}" fill="none" stroke="#fff" stroke-width="3.5" stroke-opacity=".55" stroke-dasharray="18 260">${AN?`<animate attributeName="stroke-dashoffset" from="0" to="-556" dur="7s" repeatCount="indefinite"/>`:''}</path>`;
+  }else if(kind==='contact'){
+    /* 联系 / 诊断：同心扫描环 + 扫描指针 + 命中点 */
+    const cx=W*.64,cy=H*.52,R=H*.34;
+    for(let i=1;i<=4;i++)s+=`<circle cx="${cx}" cy="${cy}" r="${R*i/4}" fill="none" stroke="#bda5ff" stroke-opacity="${.22+i*.1}" stroke-width="${i===4?3:1.5}" ${i<4?'stroke-dasharray="4 8"':''}/>`;
+    s+=`<line x1="${cx-R}" y1="${cy}" x2="${cx+R}" y2="${cy}" stroke="#bda5ff" stroke-opacity=".3" stroke-width="1.5"/><line x1="${cx}" y1="${cy-R}" x2="${cx}" y2="${cy+R}" stroke="#bda5ff" stroke-opacity=".3" stroke-width="1.5"/>`;
+    s+=`<g>${AN?`<animateTransform attributeName="transform" type="rotate" from="0 ${cx} ${cy}" to="360 ${cx} ${cy}" dur="6s" repeatCount="indefinite"/>`:''}<path d="M ${cx} ${cy} L ${cx+R} ${cy} A ${R} ${R} 0 0 0 ${(cx+R*Math.cos(-.9)).toFixed(0)} ${(cy+R*Math.sin(-.9)).toFixed(0)} Z" fill="${AC}" fill-opacity=".22"/><line x1="${cx}" y1="${cy}" x2="${cx+R}" y2="${cy}" stroke="${AC}" stroke-width="3"/></g>`;
+    [[.55,-.6],[.8,2.1],[.35,3.9]].forEach(([k,th],i)=>{const x=cx+Math.cos(th)*R*k,y=cy+Math.sin(th)*R*k;
+      s+=`<circle cx="${x}" cy="${y}" r="9" fill="${AC}"/><circle cx="${x}" cy="${y}" r="16" fill="none" stroke="${AC}" stroke-width="2" stroke-opacity=".5">${AN?`<animate attributeName="r" values="16;28" dur="2.4s" begin="${i*.8}s" repeatCount="indefinite"/><animate attributeName="stroke-opacity" values=".5;0" dur="2.4s" begin="${i*.8}s" repeatCount="indefinite"/>`:''}</circle>`;});
+    s+=`<circle cx="${cx}" cy="${cy}" r="8" fill="#fff"/>`;
+  }else if(kind==='manufacturing'){
+    /* 制造业：产线传送带 + 依次流过的工件 + 机械臂折线 */
+    const by=H*.66,bx0=W*.34,bx1=W*.96;
+    s+=`<rect x="${bx0}" y="${by}" width="${bx1-bx0}" height="${H*.05}" rx="8" fill="#7c4dff" fill-opacity=".22" stroke="#bda5ff" stroke-opacity=".6" stroke-width="2"/>`;
+    for(let x=bx0+30;x<bx1;x+=64)s+=`<circle cx="${x}" cy="${by+H*.025}" r="7" fill="none" stroke="#bda5ff" stroke-opacity=".55" stroke-width="2"/>`;
+    for(let i=0;i<5;i++){const w=H*.09,x=bx0+i*(bx1-bx0)/5+20,y=by-w-6;
+      s+=`<g>${AN?`<animateTransform attributeName="transform" type="translate" from="0 0" to="${(bx1-bx0)/5} 0" dur="5s" begin="${-i}s" repeatCount="indefinite"/>`:''}<rect x="${x}" y="${y}" width="${w}" height="${w}" rx="8" fill="${i%2?AC:'#7c4dff'}" fill-opacity="${i%2?.55:.35}" stroke="${i%2?AC:'#bda5ff'}" stroke-width="2"/><circle cx="${x+w/2}" cy="${y+w/2}" r="5" fill="#fff" fill-opacity=".85"/></g>`;}
+    const ax=W*.62,ay=by-H*.02;
+    s+=`<polyline points="${ax},${ay} ${ax-W*.06},${ay-H*.22} ${ax+W*.05},${ay-H*.34} ${ax+W*.12},${ay-H*.26}" fill="none" stroke="${AC}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-opacity=".9"/>`;
+    [[ax,ay],[ax-W*.06,ay-H*.22],[ax+W*.05,ay-H*.34]].forEach(([x,y])=>{s+=`<circle cx="${x}" cy="${y}" r="10" fill="#2a2338" stroke="${AC}" stroke-width="3"/>`});
+    s+=`<circle cx="${ax+W*.12}" cy="${ay-H*.26}" r="8" fill="${AC}">${AN?`<animate attributeName="r" values="8;13;8" dur="1.8s" repeatCount="indefinite"/>`:''}</circle>`;
+  }else if(kind==='retail'){
+    /* 零售快消：门店网络点阵逐个点亮 + 一条订单增长线 */
+    for(let i=0;i<9;i++)for(let j=0;j<5;j++){const x=W*.40+i*W*.065+(j%2)*W*.02,y=H*.22+j*H*.14,lit=r()>.55;
+      s+=`<circle cx="${x}" cy="${y}" r="${lit?7:4.5}" fill="${lit?AC:'#bda5ff'}" fill-opacity="${lit?.9:.45}">${AN&&lit?`<animate attributeName="fill-opacity" values=".9;.25;.9" dur="${(2+r()*3).toFixed(1)}s" begin="${(r()*3).toFixed(1)}s" repeatCount="indefinite"/>`:''}</circle>`;}
+    const pts=[];for(let i=0;i<7;i++){pts.push([W*.42+i*W*.085,H*.80-i*H*.075-(i%2?H*.03:0)])}
+    s+=`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${AC}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 8" stroke-opacity=".9">${dashFlow}</polyline>`;
+    pts.forEach(([x,y],i)=>{if(i%2===0)s+=`<circle cx="${x}" cy="${y}" r="9" fill="#2a2338" stroke="${AC}" stroke-width="3"/>`});
+    s+=`<rect x="${W*.44}" y="${H*.10}" width="${W*.16}" height="${H*.08}" rx="14" fill="#7c4dff" fill-opacity=".35" stroke="#bda5ff" stroke-width="2"/><path d="M ${W*.47} ${H*.18} l 0 ${H*.035} l ${W*.025} -${H*.035}" fill="#7c4dff" fill-opacity=".35" stroke="#bda5ff" stroke-width="2"/>`;
+    for(let k=0;k<3;k++)s+=`<circle cx="${W*.49+k*W*.03}" cy="${H*.14}" r="4.5" fill="#fff" fill-opacity=".85">${AN?`<animate attributeName="fill-opacity" values=".85;.25;.85" dur="1.6s" begin="${k*.3}s" repeatCount="indefinite"/>`:''}</circle>`;
+  }else if(kind==='finance'){
+    /* 金融财税：账页横条 + 校验勾 + 盾形合规轮廓 + 上行曲线 */
+    for(let i=0;i<6;i++){const y=H*.28+i*H*.09,w=W*.18+r()*W*.14;
+      s+=`<rect x="${W*.38}" y="${y}" width="${w}" height="${H*.035}" rx="6" fill="#7c4dff" fill-opacity="${.18+i*.05}" stroke="#bda5ff" stroke-opacity=".5" stroke-width="1.5"/>`;
+      s+=`<path d="M ${W*.38+w+26} ${y+H*.018} l 8 8 l 16 -18" fill="none" stroke="${AC}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" stroke-opacity=".9">${AN?`<animate attributeName="stroke-opacity" values=".9;.2;.9" dur="${(2.2+i*.4).toFixed(1)}s" repeatCount="indefinite"/>`:''}</path>`;}
+    const sx=W*.79,sy=H*.46,sw=W*.10,sh=H*.40;
+    s+=`<path d="M ${sx} ${sy} L ${sx+sw} ${sy} L ${sx+sw} ${sy+sh*.55} Q ${sx+sw/2} ${sy+sh} ${sx} ${sy+sh*.55} Z" fill="${AC}" fill-opacity=".14" stroke="${AC}" stroke-width="3" stroke-linejoin="round"/>`;
+    s+=`<path d="M ${sx+sw*.28} ${sy+sh*.42} l ${sw*.16} ${sh*.12} l ${sw*.3} -${sh*.26}" fill="none" stroke="${AC}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
+    s+=`<path d="M ${W*.38} ${H*.88} C ${W*.52} ${H*.86} ${W*.60} ${H*.70} ${W*.76} ${H*.62}" fill="none" stroke="#bda5ff" stroke-width="3" stroke-dasharray="8 10" stroke-opacity=".8">${dashFlow}</path>`;
+  }else if(kind==='cases'){
+    /* 全部案例：八行业格阵，逐格点亮 */
+    const gx0=W*.40,gy0=H*.26,cs=H*.11,gap=H*.03;
+    for(let i=0;i<4;i++)for(let j=0;j<2;j++){const x=gx0+i*(cs+gap),y=gy0+j*(cs+gap)+H*.12,op=.15+r()*.35,c=(i+j)%3===0?AC:'#7c4dff';
+      s+=`<rect x="${x}" y="${y}" width="${cs}" height="${cs}" rx="12" fill="${c}" fill-opacity="${op}" stroke="${c}" stroke-opacity=".7" stroke-width="2">${AN?`<animate attributeName="fill-opacity" values="${op};${Math.min(.85,op+.4)};${op}" dur="${2.5+r()*3}s" begin="${r()*2}s" repeatCount="indefinite"/>`:''}</rect>`;
+      s+=`<circle cx="${x+cs*.5}" cy="${y+cs*.5}" r="6" fill="#fff" fill-opacity=".8"/>`;}
+    s+=`<line x1="${gx0}" y1="${gy0+H*.06}" x2="${gx0+4*cs+3*gap}" y2="${gy0+H*.06}" stroke="${AC}" stroke-opacity=".6" stroke-width="2" stroke-dasharray="6 8">${dashFlow}</line>`;
   }else{
     const cx1=W*.52,cy=H*.52,R1=H*.26,cx2=cx1+R1*1.62;
     [[cx1,R1,'#bda5ff',46,1],[cx2,R1*.8,AC,34,-1]].forEach(([cx,R,c,dur,dir])=>{
@@ -602,7 +693,7 @@ document.querySelectorAll('[data-art]').forEach(el=>{el.innerHTML+=heroArt(el.da
 
 /* ================= Hero 元素下沉：字符卡/面性图标复用到四卡、Mega、产品 hero ================= */
 const DECOR=(()=>{
-  const map={training:['AI',1,[2,1]],consulting:['碳硅',3,[6,3]],fde:['Agent',2,[4,2]],hcvm:['人效',4,[5,4]]};
+  const map={training:['AI',1,[2,1]],consulting:['碳硅',3,[6,3]],fde:['Agent',2,[4,2]],hcvm:['人效',4,[5,4]],eco:['生态用工',1,[3,1]],overseas:['HR 出海',2,[1,2]],insights:['洞察',1,[6,1]],thinktank:['R=B×O',4,[0,4]],about:['碳硅共智',3,[1,3]],team:['基因',1,[4,1]],contact:['诊断',2,[5,2]],cases:['案例',4,[0,4]],manufacturing:['制造',2,[3,2]],retail:['零售',1,[5,1]],finance:['金融',4,[6,4]]};
   const enc=s=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s);
   const out={};
   for(const k in map){
@@ -620,7 +711,7 @@ document.querySelectorAll('.pv-card .art[data-art]').forEach(a=>{
 });
 document.querySelectorAll('.p-hero .art[data-art]').forEach(a=>{
   const pg=a.closest('.page');
-  if(!pg||!['p-training','p-consulting','p-fde','hcvm'].includes(pg.dataset.page))return;
+  if(!pg||!['p-training','p-consulting','p-fde','p-eco','p-overseas','hcvm'].includes(pg.dataset.page))return;
   a.closest('.p-hero').insertAdjacentHTML('beforeend',decoHTML(a.dataset.art,'ph-deco'));
 });
 /* mega 菜单：每个 pane 的条目 hover 切换右侧预览图（淡入缩放动效） */
@@ -687,76 +778,62 @@ document.querySelectorAll('.mega-pane').forEach(pane=>{
   addEventListener('hashchange',closeNow);
 })();
 
-/* ================= 动态 logo 墙（SSR 预渲染 + JS 渐进增强） =================
-   客户名单已在各页面 HTML 中预渲染（源码可见，GEO 友好），此处常量仅作兜底。
-   若 track 已有 .lw-chip，则复用其内容生成无缝滚动副本；否则用常量生成。 */
+/* ================= HCVM 动态 logo 墙 ================= */
 const LW_NAMES=['华为','中国移动','国家电网','阿里巴巴','字节跳动','百度','菜鸟','海信集团','金蝶','新奥集团','国药控股','中国网通','京能集团','白沙集团','江苏核电','纳铁福','中航无线电电子研究所','人瑞人才','新兴铸管','新疆中泰集团','安徽建工集团','江西出版集团','东莞交投集团','盐城国投集团','淮安开控','洛阳文保集团','西安高新'];
 const LW_HOME=['海尔智家','伊利集团','TCL 实业','中国银行','招商银行','万物云','华住集团','中兴通讯','找钢网','游族网络','创梦天地','茶颜悦色','鸣鸣很忙','慧算账','联想开天','鑫方盛集团'];
-const LW_TEAM=['李宁','长安汽车','平安银行','金域医学','TCL','新华三'];
-const _lwChip=n=>`<span class="lw-chip"><span class="dot"></span>${n}</span>`;
-/* 渐进增强：优先复用 SSR 已渲染的 chip，否则用兜底名单生成；末尾补一份动画副本 */
-function hydrateLW(el,fallbackList){
+(function initHomeLW(){
+  const el=document.getElementById('lwHome');
   if(!el)return;
-  let one;
-  if(el.querySelector('.lw-chip')){
-    one=el.innerHTML;                          /* SSR 已预渲染，复用现有内容 */
-  }else{
-    one=fallbackList.map(_lwChip).join('');    /* 兜底动态生成 */
-    el.innerHTML=one;
+  const one=LW_HOME.map(n=>`<span class="lw-chip"><span class="dot"></span>${n}</span>`).join('');
+  el.innerHTML=one+`<span class="lw-dup" style="display:contents">${one}</span>`;
+})();
+/* FDE 页 · 典型场景（可点击→预约诊断）与生态客户自动播放 */
+(function initFdeLW(){
+  const scene=document.getElementById('lwScene'),eco=document.getElementById('lwEco');
+  if(scene){
+    const L=['B2B 营销战队','律所 IP + GEO 获客战队','用工管理战队','营销','销售','客服','研发','HR','财务'];
+    const one=[...L,...L].map(n=>`<a class="lw-chip" href="/contact"><span class="dot"></span>${n}<em>→</em></a>`).join('');
+    scene.innerHTML=one+`<span class="lw-dup" style="display:contents">${one}</span>`;
   }
-  el.insertAdjacentHTML('beforeend',`<span class="lw-dup" style="display:contents">${one}</span>`);
-}
-(function initHomeLW(){ hydrateLW(document.getElementById('lwHome'),LW_HOME); })();
-/* 关于页名单较短：兜底时单组重复 3 次保证循环无缝 */
-(function initTeamLW(){ hydrateLW(document.getElementById('lwTeam'),[...LW_TEAM,...LW_TEAM,...LW_TEAM]); })();
+  if(eco){
+    const L=['蒙牛','李宁','长安汽车','平安银行','金域医学','TCL','新华三'];
+    const one=[...L,...L,...L].map(n=>`<span class="lw-chip"><span class="dot"></span>${n}</span>`).join('');
+    eco.innerHTML=one+`<span class="lw-dup" style="display:contents">${one}</span>`;
+  }
+})();
+/* 关于页 · 客户名称自动播放 */
+const LW_TEAM=['李宁','长安汽车','平安银行','金域医学','TCL','新华三'];
+(function initTeamLW(){
+  const el=document.getElementById('lwTeam');
+  if(!el)return;
+  /* 名单较短：单组重复 3 次保证循环无缝 */
+  const one=[...LW_TEAM,...LW_TEAM,...LW_TEAM].map(n=>`<span class="lw-chip"><span class="dot"></span>${n}</span>`).join('');
+  el.innerHTML=one+`<span class="lw-dup" style="display:contents">${one}</span>`;
+})();
 (function initLW(){
   const top=document.getElementById('lwTop'),bot=document.getElementById('lwBot');
   if(!top)return;
   const half=Math.ceil(LW_NAMES.length/2);
-  hydrateLW(top,LW_NAMES.slice(0,half));
-  hydrateLW(bot,LW_NAMES.slice(half));
+  const chip=n=>`<span class="lw-chip"><span class="dot"></span>${n}</span>`;
+  const fill=(el,list)=>{
+    const one=list.map(chip).join('');
+    el.innerHTML=one+`<span class="lw-dup" style="display:contents">${one}</span>`;
+  };
+  fill(top,LW_NAMES.slice(0,half));
+  fill(bot,LW_NAMES.slice(half));
 })();
 
 /* ================= 子页路由 ================= */
 const ROUTES=['solutions','cases','about','contact','article','hcvm','p-training','p-consulting','p-fde','i-industry','i-thinktank'];
 function route(){
-  // [engine patch] 非首页（无 #heroWrap）不执行 SPA 路由逻辑
-  if(!document.getElementById('heroWrap')) return;
-  const raw=(location.hash||'#/').replace('#/','');
-  let [h,sub]=raw.split('/');
-  if(h==='solutions'&&sub){ h = sub==='hcvm' ? 'hcvm' : 'p-'+sub; sub=''; }
-  if(h==='insights'){ h = sub==='thinktank' ? 'i-thinktank' : 'i-industry'; sub=''; }
-  const CASE_SLUG={manufacturing:'制造业',retail:'零售快消',finance:'金融财税',education:'教育',game:'游戏文娱',trade:'贸易物流',property:'物业地产',other:'其他'};
-  const page=ROUTES.includes(h)?h:'home';
-  document.getElementById('heroWrap').style.display = page==='home'?'':'none';
-  document.getElementById('homeMain').style.display = page==='home'?'':'none';
-  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.dataset.page===page));
-  const navKey = page.startsWith('p-')||page==='hcvm' ? 'solutions' : (page.startsWith('i-') ? 'insights' : page);
-  document.querySelectorAll('#navLinks a').forEach(a=>{
-    const href=a.getAttribute('href');
-    a.classList.toggle('act', href==='#/'+navKey || (page==='home' && href==='#/'));
-  });
-  window.scrollTo(0,0);
-  document.body.classList.toggle('home-on',page==='home');
-  const showScope = page==='home' ? document.getElementById('homeMain')
-    : document.querySelector('.page[data-page="'+page+'"]');
-  if(typeof animReset==='function')animReset(showScope);
-  document.getElementById('aProg').style.width='0';
-  if(page==='article'){renderArticle(sub||'')}
-  else{
-    tocLinks=[];tocHeads=[];
-    if(page==='cases')setCaseIndustry(sub&&CASE_SLUG[sub]?CASE_SLUG[sub]:'全部');
-    if(sub==='team'&&page==='about'){
-      const el=document.getElementById('about-team');
-      if(el)setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),60);
-    }
-    /* 产品 tabs 高亮 */
-    document.querySelectorAll('.p-tabs a').forEach(t=>{
-      t.classList.toggle('on', t.dataset.pt===page || (!t.dataset.pt&&page==='solutions'));
-    });
-  }
+  // SSR owns routing; fragments are section anchors and must never hide the page.
+  const home=!!document.getElementById('heroWrap');
+  document.body.classList.toggle('home-on',home);
+  const current=document.querySelector('.page[data-page]');
+  document.querySelectorAll('.p-tabs a').forEach(a=>a.classList.toggle('on',a.dataset.pt===current?.dataset.page||a.getAttribute('href')===location.pathname));
+  const key=home?'home':location.pathname.split('/')[1];
+  document.querySelectorAll('[data-nav-key]').forEach(a=>a.classList.toggle('act',a.dataset.navKey===key));
 }
-addEventListener('hashchange',route);
 
 /* ===== 移动端菜单 ===== */
 function toggleMnav(force){
@@ -844,12 +921,18 @@ function _fmtDate(d){
   if(isNaN(dt))return String(d).slice(0,10);
   return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
 }
+const INS_CAT_LABEL={cio:'CIO 数智化转型智库',ceo:'CEO 经营增长智库',cho:'CHO 人效提升智库'};
+function _catLabel(cat){
+  const raw=String(cat||'').trim();
+  if(!raw)return '行业洞察';
+  return INS_CAT_LABEL[raw.toLowerCase()]||raw;
+}
 function _mapArticle(a){
   const stateMap={full:'full',toc:'guide',soon:'soon'};
   const authorName=(a.author&&a.author.name)||'瑞华智策';
   return {
     _id:a._id,
-    cat:a.category||'行业洞察',
+    cat:_catLabel(a.category),
     zone:a.zone||'industry',
     state:stateMap[a.contentStatus]||'full',
     title:a.title||'',
@@ -857,7 +940,7 @@ function _mapArticle(a){
     upd:_fmtDate(a.updatedAt||a.publishDate),
     author:authorName,
     views:String(a.views||0),
-    abstract:a.summary||'',
+    abstract:a.summary||a.seoDescription||'',
     body:a.content||'',
     aimg:(a.author&&a.author.avatar)||'',
     aname:authorName,
@@ -871,6 +954,20 @@ function loadArticles(zone){
   if(ART_LOADED)return Promise.resolve(ART_DB);
   if(ART_LOAD_PROMISE)return ART_LOAD_PROMISE;
   const z=zone||'industry';
+  // 优先消费 SSR 注入的全量数据，避免二次请求失败把已渲染内容覆盖成占位
+  const injected=window.__ARTICLES__;
+  if(Array.isArray(injected)&&injected.length){
+    const seen=new Set();
+    ART_DB=injected.map(_mapArticle).filter(a=>{
+      const key=a.slug||a._id;
+      if(seen.has(key))return false;
+      seen.add(key);return true;
+    });
+    ART_LOADED=true;
+    SITE_IX=null;
+    ART_LOAD_PROMISE=Promise.resolve(ART_DB);
+    return ART_LOAD_PROMISE;
+  }
   ART_LOAD_PROMISE=fetch('/api/articles?zone='+encodeURIComponent(z))
     .then(r=>r.ok?r.json():Promise.reject('HTTP '+r.status))
     .then(data=>{
@@ -899,21 +996,42 @@ var TT_DB=[
  {cat:'人效经营',state:'soon',title:'从人均产出到碳硅协同产出：人效指标的 AI 时代升级',desc:'传统人效指标无法衡量 AI 介入后的真实生产力。本文提出「碳硅协同产出」指标体系，附带可落地的人效仪表盘设计方案。',date:'2026-04-15'}
 ];
 const ST_LABEL={full:['st-full','全文入站'],guide:['st-guide','章节导读'],soon:['st-soon','即将发布']};
-function stTag(s){const x=ST_LABEL[s]||ST_LABEL.soon;return `<span class="st-tag ${x[0]}">${x[1]}</span>`}
+function stTag(s){if(s==='full'||s==='guide')return '';const x=ST_LABEL[s]||ST_LABEL.soon;return `<span class="st-tag ${x[0]}">${x[1]}</span>`}
 const INS_TABS=['全部','CIO 数智化转型智库','CEO 经营增长智库','CHO 人效提升智库'];
+const INS_PAGE_SIZE=6;
+var insState={cat:'全部',shown:0};
+function insCard(a){
+  return `<a class="art" href="/insights/${a.slug?encodeURIComponent(a.slug):a._id}">
+    <div class="art-head"><span class="tk">${a.cat}</span>${stTag(a.state)}<span class="go2">${a.state==='full'?'阅读全文':'查看导读'} →</span></div>
+    <span class="t">${a.title}</span>
+    <span class="d">${a.abstract}</span>
+    <span class="m">${a.pub} · ${a.author} · 阅读 ${a.views}</span>
+  </a>`;
+}
+function insMoreBtn(remain){
+  return `<div class="ins-more"><button type="button" class="btn btn-oline" id="insMoreBtn">加载更多（剩余 ${remain} 篇）</button></div>`;
+}
+function appendInsBatch(box,list){
+  const next=list.slice(insState.shown,insState.shown+INS_PAGE_SIZE);
+  insState.shown+=next.length;
+  box.insertAdjacentHTML('beforeend',next.map(insCard).join(''));
+  const old=box.querySelector('.ins-more'); if(old)old.remove();
+  const remain=list.length-insState.shown;
+  if(remain>0){
+    box.insertAdjacentHTML('beforeend',insMoreBtn(remain));
+    box.querySelector('#insMoreBtn').addEventListener('click',()=>appendInsBatch(box,list));
+  }
+  if(typeof animPrep==='function')animPrep(box);
+}
 function renderIns(cat){
   const box=document.getElementById('insList');
   if(!box)return;
   if(!ART_LOADED){box.innerHTML='<p style="font-size:13px;color:var(--ink-3)">加载中…</p>';return}
+  insState={cat,shown:0};
   const list=ART_DB.filter(a=>cat==='全部'||a.cat===cat);
-  box.innerHTML=list.length?list.map(a=>`
-    <a class="art" href="/insights/${a.slug?encodeURIComponent(a.slug):a._id}">
-      <div class="art-head"><span class="tk">${a.cat}</span>${stTag(a.state)}<span class="go2">${a.state==='full'?'阅读全文':'查看导读'} →</span></div>
-      <span class="t">${a.title}</span>
-      <span class="d">${a.abstract}</span>
-      <span class="m">${a.pub} · ${a.author} · 阅读 ${a.views}</span>
-    </a>`).join(''):'<p style="font-size:13px;color:var(--ink-3)">该智库暂无已发布文章。</p>';
-  if(typeof animPrep==='function')animPrep(box);
+  if(!list.length){box.innerHTML='<p style="font-size:13px;color:var(--ink-3)">该智库暂无已发布文章。</p>';return}
+  box.innerHTML='';
+  appendInsBatch(box,list);
 }
 function renderTT(){
   const box=document.getElementById('ttList');
@@ -1195,6 +1313,7 @@ route();
 })();
 
 /* ================= 全站滚动进场 v3：逐卡观察 · 播完摘类还原 hover · 切页重放 ================= */
+document.addEventListener('click',function(e){var a=e.target.closest('a[data-jump]');if(!a)return;var t=document.getElementById(a.getAttribute('data-jump'));if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});}});
 const ANIM_SEL='.mini,.pcard,.tl-card,.case-card,.pv-card,.expert,.course,.stage,.faq-item,.art,.race .rc,.raaid .st,.step7,.tl-stat,.zrow,.zcore,.ol-card,.mod,.track-head,.stat-big';
 var animIO=null;
 function animPrep(root){
@@ -1646,6 +1765,354 @@ function animReset(scope){
   new IntersectionObserver(([e]) =>
     document.body.classList.toggle('dw-vis', e.isIntersecting),
     { threshold: .12 }).observe(dw);
+})();
+
+/* ===== 内页页底星光：慢速漂移 + 闪烁 + 不规则星云渐变（首页隐藏 bg-fx，自动不跑） ===== */
+(function(){
+  const host=document.querySelector('.bg-fx'); if(!host)return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); if(!ctx)return;
+  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const dpr=Math.min(devicePixelRatio||1,1.5);
+  let W=0,H=0; function size(){W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}
+  size(); addEventListener('resize',size);
+  let seed=4242; const rnd=()=>(seed=(seed*1664525+1013904223)%4294967296)/4294967296;
+  const N=innerWidth<760?70:150;
+  const stars=[]; for(let i=0;i<N;i++)stars.push({x:rnd(),y:rnd(),z:.3+rnd()*.7,ph:rnd()*6.28,sp:.4+rnd()*1.2,tint:rnd()<.5,vx:(rnd()-.5)*.004,vy:-(.002+rnd()*.006)});
+  const blobs=[{x:.18,y:.1,r:.42,c:'124,77,255',a:.16,px:.03,py:.02,s:.00013},{x:.86,y:.55,r:.36,c:'124,77,255',a:.09,px:.04,py:.05,s:.0001},{x:.55,y:.95,r:.4,c:'167,137,255',a:.10,px:.05,py:.02,s:.00008},{x:.35,y:.6,r:.3,c:'214,232,147',a:.05,px:.03,py:.04,s:.00011}];
+  let t=0,last=0,raf=null;
+  function draw(now){
+    raf=null;
+    if(document.body.classList.contains('home-on')||document.hidden){raf=requestAnimationFrame(draw);return}
+    if(now-last<33){raf=requestAnimationFrame(draw);return}
+    const dt=Math.min(50,now-last)||16; last=now; t+=dt;
+    ctx.clearRect(0,0,W,H);
+    for(const b of blobs){
+      const bx=(b.x+Math.sin(t*b.s)*b.px)*W, by=(b.y+Math.cos(t*b.s*1.3)*b.py)*H, br=b.r*Math.max(W,H);
+      const g=ctx.createRadialGradient(bx,by,0,bx,by,br);
+      g.addColorStop(0,`rgba(${b.c},${b.a})`); g.addColorStop(.5,`rgba(${b.c},${b.a*.35})`); g.addColorStop(1,`rgba(${b.c},0)`);
+      ctx.fillStyle=g; ctx.fillRect(bx-br,by-br,br*2,br*2);
+    }
+    for(const st of stars){
+      if(!reduce){st.x+=st.vx*dt/16/1000*60; st.y+=st.vy*dt/16/1000*60; if(st.y<-.02){st.y=1.02;st.x=rnd()} if(st.x<-.02)st.x=1.02; if(st.x>1.02)st.x=-.02;}
+      const tw=reduce?1:(.55+.45*Math.sin(st.ph+t*.001*st.sp));
+      ctx.globalAlpha=(.10+st.z*.32)*tw;
+      ctx.fillStyle=st.tint?'#bda5ff':'#f0edf7';
+      const r=(.5+st.z*1.1);
+      ctx.beginPath(); ctx.arc(st.x*W,st.y*H,r,0,6.2832); ctx.fill();
+      if(st.z>.85){ctx.globalAlpha*=.35; ctx.beginPath(); ctx.arc(st.x*W,st.y*H,r*2.6,0,6.2832); ctx.fill();}
+    }
+    ctx.globalAlpha=1;
+    if(reduce)return; raf=requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+/* ===== 首页产品卡横向轨道：JS 驱动的匀速自动播放 + 翻页 / 圆点 ===== */
+(function(){
+  const rail=document.getElementById('pvRail'); if(!rail)return;
+  const track=rail.querySelector('.pv-track'); const cards=track.querySelectorAll('.pv-card'); const N=cards.length/2; if(!N)return;
+  const dots=document.getElementById('pvDots'); const nav=document.getElementById('pvNav');
+  /* 轨道内卡片不参与滚动入场动画（否则从右侧滑入时会逐张「弹起」，且 scale 中量出的步长不准） */
+  cards.forEach(c=>{c.classList.remove('aitem','in');delete c.dataset.anim;delete c.dataset.ad;c.style.transitionDelay='';if(typeof animIO!=='undefined'&&animIO)animIO.unobserve(c);});
+  for(let i=0;i<N;i++){const b=document.createElement('button');b.setAttribute('aria-label','第 '+(i+1)+' 张');b.addEventListener('click',()=>goTo(i));dots.appendChild(b);}
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const SPEED=reduce?0:72; /* px/s */
+  let x=0,step=1,loop=1,hover=false,tween=null,last=null,idleUntil=0;
+  function measure(){const cs=getComputedStyle(track);const gap=parseFloat(cs.columnGap||cs.gap)||20;step=cards[0].offsetWidth+gap;loop=step*N;}
+  measure(); addEventListener('resize',measure);
+  rail.addEventListener('pointerenter',()=>hover=true); rail.addEventListener('pointerleave',()=>hover=false);
+  function apply(){track.style.transform='translate3d('+(-x)+'px,0,0)';const i=Math.round(x/step)%N;dots.querySelectorAll('button').forEach((b,k)=>b.classList.toggle('on',k===i));}
+  function goPx(tx){
+    /* 向左越过头部 / 向右越过尾部：先整体平移一个循环长度，保证补间过程中 x 始终落在轨道有效范围内，头尾无缝循环 */
+    if(tx<0){x+=loop;tx+=loop;}
+    if(tx>=loop*2){x-=loop;tx-=loop;}
+    tween={from:x,to:tx,t0:performance.now(),dur:560}; idleUntil=performance.now()+2600;
+  }
+  function goTo(i){ /* 圆点：按索引就近向前翻 */
+    const cur=Math.round(x/step)%N;let d=i-cur; if(d<0)d+=N; if(d===0)return;
+    goPx((Math.round(x/step)+d)*step);
+  }
+  nav.querySelectorAll('.pv-btn').forEach(b=>b.addEventListener('click',()=>{
+    const dir=+b.dataset.dir; const base=Math.round(x/step)+dir; /* 以最近一张为基准前后翻，避免自动播放漂移几像素时点击只是「归位」像卡住 */
+    goPx(base*step);
+  }));
+  function frame(now){
+    if(last===null)last=now; const dt=Math.min(64,now-last)/1000; last=now;
+    if(tween){const p=Math.min(1,(now-tween.t0)/tween.dur);const e=1-Math.pow(1-p,3);x=tween.from+(tween.to-tween.from)*e;if(p>=1)tween=null;}
+    else if(!hover&&!document.hidden&&now>idleUntil&&document.body.classList.contains('home-on'))x+=SPEED*dt;
+    if(!tween){ if(x>=loop)x-=loop; if(x<0)x+=loop; } else if(x>=loop&&tween.to>=loop){ x-=loop; tween.from-=loop; tween.to-=loop; }
+    apply(); requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
+/* ===== ② 流程图顺序点亮：进入视口后按步点亮，连线高光划过，走完停在全亮 ===== */
+(function(){
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const DEFS=[
+    ['.path4',':scope>div',':scope>em'],
+    ['.band.flow','.f','i'],
+    ['.life8','li',null],
+    ['.raaid','.st',null],
+    ['.cyc','.cyc-r',null],
+    ['.ed-grid4',':scope>div',null],
+    ['.trio',':scope>div',null],
+    ['.vals',':scope>div',null],
+  ];
+  const groups=[];
+  DEFS.forEach(([sel,stepSel,arrowSel])=>{
+    document.querySelectorAll(sel).forEach(g=>{
+      if(g.dataset.seq)return; g.dataset.seq='1';
+      const steps=[...g.querySelectorAll(stepSel)]; if(steps.length<2)return;
+      const arrows=arrowSel?[...g.querySelectorAll(arrowSel)]:[];
+      g.classList.add('seq'); steps.forEach(x=>x.classList.add('seq-step')); arrows.forEach(x=>x.classList.add('seq-arrow'));
+      if(g.matches('.life8')){const bar=document.createElement('span');bar.className='life8-prog';g.appendChild(bar);}
+      groups.push({g,steps,arrows,done:false});
+    });
+  });
+  if(reduce){groups.forEach(o=>{o.g.classList.add('seq-done');o.steps.concat(o.arrows).forEach(x=>x.classList.add('lit'))});return}
+  function play(o){
+    if(o.done)return; o.done=true;
+    const n=o.steps.length, gap=n>6?220:340;
+    o.steps.forEach((st,i)=>setTimeout(()=>{
+      st.classList.add('lit');
+      if(o.arrows[i-1])o.arrows[i-1].classList.add('lit');
+      const bar=o.g.querySelector('.life8-prog'); if(bar)bar.style.width=(6+88*(i/(n-1)))+'%';
+      if(i===n-1)setTimeout(()=>o.g.classList.add('seq-done'),500);
+    },120+i*gap));
+  }
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){const o=groups.find(x=>x.g===e.target);if(o){play(o);io.unobserve(e.target)}}}),{threshold:.35});
+  groups.forEach(o=>io.observe(o.g));
+  /* 路由切换回来时可再播一次 */
+  addEventListener('hashchange',()=>setTimeout(()=>groups.forEach(o=>{const pg=o.g.closest('.page');if(pg&&pg.classList.contains('on')&&o.done){o.done=false;o.g.classList.remove('seq-done');o.steps.concat(o.arrows).forEach(x=>x.classList.remove('lit'));const bar=o.g.querySelector('.life8-prog');if(bar)bar.style.width='0';io.observe(o.g);}}),80));
+})();
+
+/* ===== ③ 产品页 hero：标注框随机扫描高光（像有系统在后台识别、标注）===== */
+(function(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const NS='http://www.w3.org/2000/svg';
+  function scan(svg){
+    const hb=svg.getBoundingClientRect();
+    const tks=[...svg.querySelectorAll('rect.tk')].filter(t=>{const b=t.getBoundingClientRect();return b.top>hb.top+40&&b.bottom<hb.bottom-20&&b.right<hb.right-10}); if(!tks.length)return;
+    const t=tks[Math.floor(Math.random()*tks.length)];
+    const r=document.createElementNS(NS,'rect');
+    ['x','y','width','height'].forEach(a=>r.setAttribute(a,t.getAttribute(a)));
+    r.setAttribute('class','scan'); r.setAttribute('pathLength','100');
+    svg.appendChild(r);
+    setTimeout(()=>r.remove(),1400);
+  }
+  function loop(){
+    const pg=document.querySelector('.page.on'); const svg=pg&&pg.querySelector('.p-hero .art svg');
+    if(svg&&!document.hidden&&scrollY<innerHeight)scan(svg);
+    setTimeout(loop,4000+Math.random()*4000);
+  }
+  setTimeout(loop,2500);
+})();
+
+/* ===== ⑥ 产品页 CTA：顾问会先问的问题，逐字敲入、轮换 ===== */
+(function(){
+  const els=[...document.querySelectorAll('.cta-ask .q[data-qs]')]; if(!els.length)return;
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){els.forEach(el=>{el.textContent=JSON.parse(el.dataset.qs)[0];el.nextElementSibling&&el.nextElementSibling.remove()});return}
+  els.forEach(el=>{
+    const qs=JSON.parse(el.dataset.qs); let i=0,running=false;
+    function cycle(){
+      const pg=el.closest('.page'); if(!pg||!pg.classList.contains('on')||document.hidden){running=false;return}
+      running=true; const q=qs[i%qs.length]; let k=0;
+      (function type(){k++;el.textContent=q.slice(0,k);if(k<q.length)setTimeout(type,48);else setTimeout(()=>{(function del(){k-=3;if(k>0){el.textContent=q.slice(0,k);setTimeout(del,16)}else{el.textContent='';i++;setTimeout(cycle,300)}})()},2600);})();
+    }
+    const io=new IntersectionObserver(es=>{if(es[0].isIntersecting&&!running)cycle()},{threshold:.3});
+    io.observe(el.closest('.cta-grad'));
+    addEventListener('hashchange',()=>{running=false});
+  });
+})();
+
+/* ===== 双向进出场（随滚动进入即入场、离开即退场；再次进入再次入场） ===== */
+(function(){
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const SEL='.tl-stat,.tl-row,.tl-col,.faq-item,.tl-cta .in,.svc4,.gap,.ed-ledger .row,.pcards>div,.feat6>div,.ed-grid4>div,.vals,.trio,.path4,.life8,.raaid,.band,.cs-close,.ed-stats .s,.ed-qa li,.ed-steps li,.ed-fdedef,.ed-two,.ab-layer,.ab-box,.ab-side,.ab-two>*,.ab-lead,.ab-close .two>*,.ed-next a,.osea-pg>*,.geo>div,.ps-band,.ed-quote';
+  const els=[...document.querySelectorAll(SEL)];
+  els.forEach((el,i)=>{el.classList.add('rv2');
+    /* 同一容器内按序错开 */
+    const sib=[...el.parentElement.children].filter(x=>x.classList.contains('rv2'));
+    el.dataset.rvd=(sib.indexOf(el)*90)+'ms'; el.style.setProperty('--rvd',el.dataset.rvd);
+  });
+  if(reduce){els.forEach(el=>el.classList.add('on'));return}
+  const io=new IntersectionObserver(es=>es.forEach(e=>{
+    const el=e.target;
+    if(e.isIntersecting){el.style.setProperty('--rvd',el.dataset.rvd||'0ms');el.classList.add('on');el.dispatchEvent(new CustomEvent('rv2on'));clearTimeout(el._rvt);el._rvt=setTimeout(()=>el.style.setProperty('--rvd','0ms'),900+parseInt(el.dataset.rvd||0));}
+    else if(e.boundingClientRect.top>0){clearTimeout(el._rvt);el.style.setProperty('--rvd',el.dataset.rvd||'0ms');el.classList.remove('on');} /* 只在从下方离开时退场，向上滚出顶部保持可见 */
+  }),{threshold:.12,rootMargin:'0px 0px -6% 0px'});
+  els.forEach(el=>io.observe(el));
+})();
+
+/* ===== 真人叙事卡：入场后逐字「说出」引语（每张只说一次） ===== */
+(function(){
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('.pcards.voice>div').forEach((card,i)=>{
+    const p=card.querySelector('.say'); if(!p)return; const txt=p.dataset.say;
+    if(reduce){p.textContent='「'+txt+'」';return}
+    let said=false;
+    card.addEventListener('rv2on',()=>{
+      if(said)return; said=true;
+      setTimeout(()=>{let k=0;p.classList.add('typing-on');(function t(){k++;p.textContent='「'+txt.slice(0,k)+(k<txt.length?'':'」');if(k<txt.length)setTimeout(t,26);else p.classList.remove('typing-on');})();},350+i*260);
+    });
+  });
+})();
+
+/* ===== 数字计数：入场时数字从 0 滚到目标值（保留前后缀与单位） ===== */
+(function(){
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('.ed-stats .n').forEach(n=>{
+    const raw=n.textContent; if(!/\d/.test(raw))return;
+    const parts=raw.split(/(\d+(?:\.\d+)?)/);
+    n.innerHTML=parts.map((p,i)=>i%2?`<span class="cnt" data-v="${p}">${p}</span>`:p.replace(/</g,'&lt;')).join('');
+    if(reduce)return;
+    const host=n.closest('.s')||n; let ran=false;
+    host.addEventListener('rv2on',()=>{ if(ran)return; ran=true;
+      n.querySelectorAll('.cnt').forEach(c=>{const v=parseFloat(c.dataset.v), dec=(c.dataset.v.split('.')[1]||'').length, t0=performance.now(), dur=900+Math.min(600,v/10);
+        (function f(now){const p=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-p,3); c.textContent=(v*e).toFixed(dec); if(p<1)requestAnimationFrame(f); else c.textContent=c.dataset.v;})(t0);});
+    });
+  });
+})();
+
+/* ㉗ grid4 自动轮播（进入视口时循环点亮，一次一张）+ 出海地图悬停随机点亮国家 */
+(function(){
+  const rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
+})();
+
+/* ㊱ 人瑞全球布局地图组件 */
+(function(){
+  /* ---------- 铁律：23 个国家与地区（分 4 区）。[名称, 经度, 纬度, 标签方位, dx, dy] ---------- */
+  const RHG_SITES = {
+    '欧洲': [
+      ['英国',-0.1,51.5,'l',-26,-12],['荷兰',4.9,52.4,'l',-43,-34],['法国',2.3,48.9,'l',-34,5],['西班牙',-3.7,40.4,'l',-14,0],
+      ['德国',13.4,52.5,'t',0,-18],['瑞典',18.1,59.3,'r',24,-8],['波兰',21,52.2,'r',23,0],['匈牙利',19,47.5,'r',25,13]],
+    '中东 · 非洲': [
+      ['阿联酋',55.3,25.2,'b',0,40],['沙特',46.7,24.7,'l',-22,14],['埃及',31.2,30,'l',-22,22]],
+    '亚太': [
+      ['日本',139.7,35.7,'r',22,0],['中国香港',114.2,22.3,'r',62,-22],['越南',105.8,21,'l',-26,-14],['泰国',100.5,13.8,'l',-26,12],
+      ['马来西亚',101.7,3.1,'l',-26,6],['新加坡',103.8,1.3,'r',23,18],['印尼',106.8,-6.2,'r',31,20],['印度',77.2,28.6,'b',0,23],
+      ['乌兹别克斯坦',69.2,41.3,'r',23,-20]],
+    '美洲': [
+      ['美国',-118.2,34,'r',23,-12],['墨西哥',-99.1,19.4,'r',22,0],['巴西',-46.6,-23.5,'t',0,-22]]
+  };
+  const HUB = [104.1,30.6]; // 中国（成都）为连线枢纽
+  /* 南海诸岛归属范围线 + 东海一段。本图为世界示意图（比例尺远小于 1:1 亿），按公开地图表示规定采用「南海 7 段 + 东海 1 段」：
+     九段线从左起删去第 2、7 段（即左臂中段、右臂中段），钓鱼岛、赤尾屿岛点可不表示。坐标为示意近似值，正式上线前请以审图意见为准。 */
+  const RHG_DASH = [
+    [[109.8,15.6],[110.2,17.2]],   // 南海 · 左臂上段
+    [[108.3,6.8],[108.7,8.4]],     // 南海 · 左臂下段
+    [[110.0,4.0],[109.0,4.7]],     // 南海 · 底部
+    [[112.7,6.5],[111.7,5.7]],     // 南海 · 右臂下段
+    [[116.0,10.7],[115.2,9.5]],    // 南海 · 右臂中下段
+    [[119.0,18.0],[118.7,16.4]],   // 南海 · 右臂上段
+    [[121.6,20.8],[122.0,19.5]],   // 南海 · 巴士海峡段
+    [[123.0,24.2],[123.3,22.8]]    // 东海一段（台湾以东）
+  ];
+  const GRID = {"land":"0:0-2,39-40,53-63,75-77,123-127,131,134-139,150-163;1:0-3,37-38,51-61,63,119-120,150-163;2:1,37,44,49-65,69-70,77,119-122,127-128,130-131,133-134,136-138,140,151-163;3:0-1,36-37,44,46,48,50-70,76-79,119-120,122-127,130-131,135-138,140-141,151-163;4:0-1,23,37,43-44,46-84,104-106,122-128,132-133,136-143,152-162;5:0,21-26,40,43-44,46-84,86,88,90-92,102-111,116-120,123-128,131,133,137-138,140-144,151-163;6:20-29,32,36-38,40-42,44-46,48-94,100-123,127,133-135,137-138,143-145,152-160,162;7:19-30,32,34-44,46-96,102-138,143-146,152-160;8:1-5,18-21,23-27,31-93,95-98,100-134,136-137,143-144,146-147,152-158;9:2-5,17-21,23-27,29-92,103-135,137-138,141-146,152-157;10:16-20,22-93,101-134,144,146,153-156;11:15-19,22-83,85-90,101-133,141-143,146,154-156;12:15-20,23,26-82,86-87,100-108,110-132,141-143,156;13:15,17-19,23-76,85,105,113-133,140-144,146-147;14:9-10,18-19,22-75,84-85,104,115-133,141-147;15:9-10,16-18,22-74,83-85,102-103,115-136,141-148;16:8-9,11,16,18-75,83-84,117-138,140-149;17:8,10-12,14-66,70-77,83,118-138,140-150;18:10-11,13-66,70-75,77,83,119-148,150;19:12-64,71-75,119-144,146,150-151;20:11-50,53-66,73-75,120-146;21:12-17,19-25,27,29-33,36-49,54-64,73-74,120-148;22:12-15,17,19-24,30-33,36-48,56-62,72-73,77,120-143,146;23:8-13,16,18,21-24,31-33,37-48,59-60,71,77,120-143;24:8-11,16,19-22,24-34,36-45,69-70,76,120-142;25:8-11,24-34,37-45,69-70,76,120-141;26:9,13-16,27,29-46,70,74-75,121-141;27:9-16,29-47,72,74,121-140;28:8-18,22,28-47,123-139;29:8-48,123,125-138;30:7-33,36-50,55,124-131,139;31:6-27,29-34,38-56,126-131,139;32:5-27,29-35,37,43-56,125,127-131;33:5-28,30-39,44-56,59-60,128-131,139,142;34:5-28,30-38,45-51,55-60,128-131,135,141;35:5-29,31-37,46-49,55-60,67,129-135,142-143;36:5-29,32-35,46-48,55,57-61,67,132-135;37:5-30,32-33,46-48,57-61,67-68,135-137;38:5-31,35,47-48,54,57,59-61,137,143;39:6-34,47,60,69,138,142,144-147;40:7-34,49,69,139,141-149;41:8-9,11,15-33,56,58,65-66,141-151;42:17-32,57-58,63-65,141-152;43:17-31,57-58,62-65,67-68,70,140-152;44:17-30,58-59,62-64,67-68,72,139-151,153-154;45:17-29,59,64,67,73-77,139-158;46:18-29,73,75-78,80,139-159;47:18-29,62-63,76-77,79,140-159;48:18-29,68,80,141-159;49:18-30,72-74,141-158;50:18-30,34,69-73,77,142-157;51:18-29,33-34,69-74,77-78,143-157;52:18-28,32-34,68-78,144-157;53:18-27,32-33,65-79,87,144-157;54:19-27,32-33,64-80,144-156;55:19-27,32-33,64-81,144-153;56:19-26,64-81,144-153;57:20-26,65-81,144-153;58:20-25,65-81,144-152;59:20-24,65-68,73-80,144-151;60:75-80,143-149;61:76-80,143-149;62:92,143-148;63:92,143-147;64:78-79,90,142-146;65:89,142-145;66:88-89,143-144;67:142-145;68:142-144;69:143-144;70:143-144;71:143-145","cn":"17:67-69;18:67-69;19:65-70;20:51-52,67-72;21:50-53,65-72;22:49-55,63-71;23:49-58,61-70;24:46-66,68;25:46-65;26:47-66;27:48-66;28:48-66;29:49-66;30:51-54,56-67;31:57-66;32:57-65,67;33:57-58,61-63"};   // 点阵底图（7.2px 步距、2.15px 半径的圆点，按行程编码）
+
+  /* ---------- 投影：Miller 柱面，太平洋居中，左边缘经度 -27 ---------- */
+  const W=1180, LON0=-27, k=W/(2*Math.PI);
+  const mil=lat=>1.25*Math.log(Math.tan(Math.PI/4+0.4*lat*Math.PI/180));
+  const yTop=mil(76);
+  const proj=(lon,lat)=>[(((lon-LON0)%360+360)%360)*Math.PI/180*k,(yTop-mil(lat))*k];
+
+  const root=document.getElementById('rhgMap'); if(!root) return;
+  const NS='http://www.w3.org/2000/svg';
+  const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const q in a)e.setAttribute(q,a[q]);if(p)p.appendChild(e);return e};
+  const rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  /* 底图 */
+  const STEP=7.2,R=2.15;
+  const dots=s=>{let d='';s.split(';').forEach(row=>{const [r,cs]=row.split(':');const y=(+r*STEP+STEP/2).toFixed(1);
+    cs.split(',').forEach(seg=>{let [a,b]=seg.split('-').map(Number);if(b===undefined)b=a;
+      for(let c=a;c<=b;c++){const x=c*STEP+STEP/2;d+=`M${(x-R).toFixed(1)} ${y}a${R} ${R} 0 1 0 ${2*R} 0a${R} ${R} 0 1 0 ${-2*R} 0`}})});return d};
+  document.getElementById('rhgLand').setAttribute('d',dots(GRID.land));
+  document.getElementById('rhgCn').setAttribute('d',dots(GRID.cn));
+  /* 段线：投影后按方向拉到最短 9px，保证在小比例尺下可辨 */
+  document.getElementById('rhgDash').setAttribute('d',RHG_DASH.map(([a,b])=>{
+    const [x1,y1]=proj(a[0],a[1]),[x2,y2]=proj(b[0],b[1]);const L=Math.hypot(x2-x1,y2-y1),m=Math.max(L,9)/L;
+    const cx=(x1+x2)/2,cy=(y1+y2)/2;return `M${(cx+(x1-cx)*m).toFixed(1)} ${(cy+(y1-cy)*m).toFixed(1)}L${(cx+(x2-cx)*m).toFixed(1)} ${(cy+(y2-cy)*m).toFixed(1)}`}).join(''));
+
+  /* 枢纽 */
+  const [hx,hy]=proj(HUB[0],HUB[1]);
+  const gh=el('g',{class:'rhg-hub'},document.getElementById('rhgHub'));
+  el('circle',{class:'r',cx:hx,cy:hy,r:9},gh); el('circle',{class:'r r2',cx:hx,cy:hy,r:9},gh);
+  el('circle',{class:'c',cx:hx,cy:hy,r:5},gh);
+
+  /* 站点 + 连线 */
+  const gA=document.getElementById('rhgArcs'), gS=document.getElementById('rhgSites');
+  const all=[]; let n=0;
+  Object.entries(RHG_SITES).forEach(([region,list],ri)=>list.forEach(s=>{
+    const [name,lon,lat,side,dx,dy]=s; const [x,y]=proj(lon,lat);
+    all.push({name,region,ri,x,y,side,dx,dy,dist:Math.hypot(x-hx,y-hy)}); n++;
+  }));
+  if(n!==23) console.warn('[rhg] 站点数应为 23，当前 '+n);
+  all.sort((a,b)=>a.dist-b.dist);
+  all.forEach((s,i)=>{
+    const d=(0.5+i*0.06).toFixed(2)+'s';
+    /* 连线：二次贝塞尔，控制点向上抬 */
+    const mx=(hx+s.x)/2, my=(hy+s.y)/2-Math.min(120,s.dist*0.22);
+    const path=el('path',{class:'rhg-arc',d:`M${hx} ${hy}Q${mx} ${my} ${s.x} ${s.y}`,'data-r':s.ri},gA);
+    /* 自算弧长（不用 getTotalLength：组件可能初始化于 display:none 的分页内） */
+    let len=0,px0=hx,py0=hy; for(let t=1;t<=40;t++){const u=t/40,qx=(1-u)*(1-u)*hx+2*(1-u)*u*mx+u*u*s.x,qy=(1-u)*(1-u)*hy+2*(1-u)*u*my+u*u*s.y;len+=Math.hypot(qx-px0,qy-py0);px0=qx;py0=qy}
+    path.style.setProperty('--len',(len+2).toFixed(1)); path.style.setProperty('--d',d);
+    if(!rm){ /* 待机：沿线游走的光点 */
+      const fx=el('circle',{class:'rhg-fx',r:2.2},gA);
+      const am=el('animateMotion',{dur:(3.2+s.dist/260).toFixed(1)+'s',begin:(1.8+i*0.37).toFixed(2)+'s',repeatCount:'indefinite',path:path.getAttribute('d'),calcMode:'spline',keySplines:'.4 0 .6 1',keyTimes:'0;1'},fx);
+    }
+    /* 站点 */
+    const g=el('g',{class:'rhg-site','data-r':s.ri,'data-n':s.name,tabindex:'0'},gS);
+    g.style.setProperty('--d',d);
+    el('circle',{class:'ring',cx:s.x,cy:s.y,r:6},g);
+    el('circle',{class:'dot',cx:s.x,cy:s.y,r:4.5},g);
+    /* 标签 + 引线 */
+    const pw=s.name.length*13+18, ph=21; /* 中文等宽估算，避免 display:none 下 getBBox 为 0 */
+    const ax=s.x+s.dx, ay=s.y+s.dy; let px,py,pts;
+    if(s.side==='l'||s.side==='r'){
+      const sg=s.side==='r'?1:-1; const ex=s.x+sg*Math.abs(ay-s.y);
+      pts=`${s.x},${s.y} ${ex},${ay} ${ax},${ay}`;
+      px=s.side==='r'?ax:ax-pw; py=ay-ph/2;
+    }else{
+      pts=`${s.x},${s.y} ${ax},${ay}`;
+      px=ax-pw/2; py=s.side==='b'?ay:ay-ph;
+    }
+    const lab=el('g',{class:'rhg-label'},g);
+    el('polyline',{class:'rhg-lead',points:pts},lab);
+    el('rect',{class:'rhg-pill',x:px,y:py,width:pw,height:ph,rx:6},lab);
+    el('text',{class:'rhg-txt',x:px+pw/2,y:py+ph/2+0.5,'text-anchor':'middle','dominant-baseline':'central'},lab).textContent=s.name;
+    s.g=g; s.path=path;
+    g.addEventListener('mouseenter',()=>focusRegion(s.ri,s.name)); g.addEventListener('mouseleave',()=>focusRegion(null));
+    g.addEventListener('focus',()=>focusRegion(s.ri,s.name)); g.addEventListener('blur',()=>focusRegion(null));
+  });
+
+  /* 图例 */
+  const lg=document.getElementById('rhgLegend');
+  Object.entries(RHG_SITES).forEach(([region,list],ri)=>{
+    const d=document.createElement('div'); d.dataset.r=ri;
+    d.innerHTML=`<b>${region}</b><p>${list.map(s=>`<span data-n="${s[0]}">${s[0]}</span>`).join(' · ')}</p>`;
+    d.addEventListener('mouseenter',()=>focusRegion(ri)); d.addEventListener('mouseleave',()=>focusRegion(null));
+    d.querySelectorAll('span').forEach(sp=>{sp.addEventListener('mouseenter',e=>{e.stopPropagation();focusRegion(ri,sp.dataset.n)});sp.addEventListener('mouseleave',()=>focusRegion(ri))});
+    lg.appendChild(d);
+  });
+  function focusRegion(ri,name){
+    if(ri===null||ri===undefined){root.removeAttribute('data-focus')}else{root.setAttribute('data-focus',ri)}
+    root.querySelectorAll('[data-r]').forEach(e=>e.classList.toggle('hi',ri!==null&&ri!==undefined&&+e.dataset.r===ri&&(!name||e.dataset.n===undefined||e.dataset.n===name||e.tagName==='DIV')));
+    lg.querySelectorAll('span').forEach(sp=>sp.classList.toggle('hi',!!name&&sp.dataset.n===name));
+    if(name){all.forEach(s=>{if(s.name===name)s.path.classList.add('hi');else if(s.ri===ri)s.path.classList.remove('hi')})}
+  }
+
+  /* 进场 + 待机随机点亮 */
+  let timer=null;
+  const lit=()=>{const s=all[Math.floor(Math.random()*all.length)];s.g.classList.remove('lit');void root.offsetWidth;s.g.classList.add('lit')};
+  const start=()=>{root.classList.add('on');if(!rm&&!timer){setTimeout(()=>{if(!timer){lit();timer=setInterval(lit,1100)}},2200)}};
+  const stop=()=>{clearInterval(timer);timer=null};
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)start();else stop()}),{threshold:.25}).observe(root);
+  }else start();
+  root.querySelector('.rhg-map').addEventListener('mouseenter',()=>{if(!rm){stop();lit();timer=setInterval(lit,480)}});
+  root.querySelector('.rhg-map').addEventListener('mouseleave',()=>{stop();if(!rm)timer=setInterval(lit,1100)});
 })();
 
 /* FAQ 手风琴效果：同时只展开一个 */

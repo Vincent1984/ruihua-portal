@@ -1,0 +1,70 @@
+/**
+ * SSR 支持样式
+ * 为服务端渲染的内容提供样式支持
+ */
+
+/* 屏幕阅读器可见，视觉隐藏（用于 SEO 文本） */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* 确保 noscript 内容样式 */
+noscript.ssr-fallback {
+  display: block;
+}
+
+/* 场景标签样式（如果原 CSS 中没有） */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  margin: 0.25rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+.chip:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.chip-icon {
+  font-size: 1.25rem;
+}
+
+.chip-text {
+  font-weight: 500;
+}
+
+/* Logo 容器默认样式 */
+.lw-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  min-width: 120px;
+  min-height: 60px;
+}
+
+.lw-item img {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.lw-item img:hover {
+  opacity: 1;
+}

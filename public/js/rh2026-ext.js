@@ -41,3 +41,23 @@
     if (fn) fn.call(el, event);
   }, false);
 })();
+/* September B generated additions */
+(function(){const handlers={b1:function(event){openDrawer();return false},
+b2:function(event){toggleMnav()},
+b3:function(event){toggleMnav(false);openDrawer();return false},
+b4:function(event){openDrawer()},
+b5:function(event){closeDrawer()},
+b6:function(event){if(event.key==='Enter')send()},
+b7:function(event){send()},
+b8:function(event){location.href='/solutions/training'},
+b9:function(event){location.href='/solutions/fde'},
+b10:function(event){location.href='/solutions/consulting'},
+b11:function(event){location.href='/solutions/eco'},
+b12:function(event){location.href='/solutions/overseas'},
+b13:function(event){this.style.display='none';this.nextElementSibling.style.display='flex'},
+b14:function(event){return submitForm(event)}};
+document.addEventListener('click',function(event){const el=event.target.closest?.('[data-evt-click]');if(!el)return;const fn=handlers[el.getAttribute('data-evt-click')];if(fn&&fn.call(el,event)===false)event.preventDefault();},false);
+document.addEventListener('keydown',function(event){const el=event.target.closest?.('[data-evt-keydown]');if(!el)return;const fn=handlers[el.getAttribute('data-evt-keydown')];if(fn&&fn.call(el,event)===false)event.preventDefault();},false);
+document.addEventListener('error',function(event){const el=event.target.closest?.('[data-evt-error]');if(!el)return;const fn=handlers[el.getAttribute('data-evt-error')];if(fn&&fn.call(el,event)===false)event.preventDefault();},true);
+document.addEventListener('submit',function(event){const el=event.target.closest?.('[data-evt-submit]');if(!el)return;const fn=handlers[el.getAttribute('data-evt-submit')];if(fn&&fn.call(el,event)===false)event.preventDefault();},false);
+})();

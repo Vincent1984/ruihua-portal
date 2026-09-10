@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ 样式对比工具</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #1a1a1a;
+      color: #fff;
+      padding: 40px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .header h1 {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+    .header p {
+      color: #999;
+      font-size: 14px;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+    .panel {
+      background: rgba(45, 39, 58, 0.5);
+      border: 1px solid rgba(124, 77, 255, 0.3);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .panel-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: #7c4dff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: rgba(124, 77, 255, 0.2);
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .iframe-container {
+      position: relative;
+      width: 100%;
+      height: 800px;
+      border: 2px solid rgba(124, 77, 255, 0.5);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 10px 20px;
+      background: #7c4dff;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      background: #6a3fef;
+      transform: translateY(-2px);
+    }
+    .btn-secondary {
+      background: rgba(124, 77, 255, 0.2);
+    }
+    .btn-secondary:hover {
+      background: rgba(124, 77, 255, 0.3);
+    }
+    .info-box {
+      margin-top: 20px;
+      padding: 16px;
+      background: rgba(124, 77, 255, 0.1);
+      border: 1px solid rgba(124, 77, 255, 0.3);
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .info-box strong {
+      color: #7c4dff;
+    }
+    .checklist {
+      margin-top: 40px;
+      padding: 24px;
+      background: rgba(45, 39, 58, 0.5);
+      border: 1px solid rgba(124, 77, 255, 0.3);
+      border-radius: 16px;
+    }
+    .checklist h2 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #7c4dff;
+    }
+    .checklist-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .checklist-item {
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .checklist-item:hover {
+      background: rgba(124, 77, 255, 0.1);
+    }
+    .checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(124, 77, 255, 0.5);
+      border-radius: 4px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .checklist-item.checked .checkbox {
+      background: #7c4dff;
+      position: relative;
+    }
+    .checklist-item.checked .checkbox::after {
+      content: '✓';
+      position: absolute;
+      color: #fff;
+      font-size: 14px;
+      top: -2px;
+      left: 3px;
+    }
+    .instructions {
+      margin-top: 40px;
+      padding: 24px;
+      background: linear-gradient(135deg, rgba(124, 77, 255, 0.1), rgba(94, 53, 177, 0.1));
+      border: 2px solid rgba(124, 77, 255, 0.5);
+      border-radius: 16px;
+    }
+    .instructions h2 {
+      font-size: 24px;
+      margin-bottom: 16px;
+      color: #7c4dff;
+    }
+    .instructions ol {
+      margin-left: 24px;
+      line-height: 2;
+    }
+    .instructions li {
+      margin-bottom: 8px;
+    }
+    .instructions code {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      color: #7c4dff;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🎨 FAQ 样式对比工具</h1>
+    <p>并排对比首页和 Demo 的 FAQ 模块，帮助你快速识别样式差异</p>
+  </div>
+
+  <div class="container">
+    <div class="panel">
+      <div class="panel-title">
+        <span class="badge">当前</span>
+        首页 FAQ 模块
+      </div>
+      <div class="iframe-container">
+        <iframe id="homeFrame" src="http://localhost:3000/#home-faq"></iframe>
+      </div>
+      <div class="controls">
+        <button class="btn" onclick="scrollToFAQ('homeFrame')">滚动到 FAQ</button>
+        <button class="btn btn-secondary" onclick="reloadFrame('homeFrame')">刷新</button>
+        <button class="btn btn-secondary" onclick="openDevTools('homeFrame')">在新窗口打开</button>
+      </div>
+      <div class="info-box">
+        <strong>提示：</strong>右键点击页面 → 检查元素 → 查看 FAQ 卡片的样式<br>
+        重点检查：背景颜色、字体大小、间距、hover 效果
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <span class="badge" style="background: rgba(76, 175, 80, 0.2);">参考</span>
+        Demo FAQ 模块
+      </div>
+      <div class="iframe-container">
+        <iframe id="demoFrame" src="../new/09-09.html#home-faq"></iframe>
+      </div>
+      <div class="controls">
+        <button class="btn" onclick="scrollToFAQ('demoFrame')">滚动到 FAQ</button>
+        <button class="btn btn-secondary" onclick="reloadFrame('demoFrame')">刷新</button>
+        <button class="btn btn-secondary" onclick="openDevTools('demoFrame')">在新窗口打开</button>
+      </div>
+      <div class="info-box">
+        <strong>参考样式：</strong>这是正确的 FAQ 样式效果<br>
+        对比左侧首页，找出所有视觉差异
+      </div>
+    </div>
+  </div>
+
+  <div class="checklist">
+    <h2>📋 视觉差异检查清单</h2>
+    <p style="margin-bottom: 20px; color: #999; font-size: 14px;">
+      请逐项对比，点击勾选你发现的差异：
+    </p>
+    <div class="checklist-grid">
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <div class="checkbox"></div>
+        <span>标题字体大小不同</span>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <div class="checkbox"></div>
+        <span>标题字体粗细不同</span>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <div class="checkbox"></div>
+        <span>段落文字颜色不同</span>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <div class="checkbox"></div>
+        <span>Section 之间间距不同</span>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <div class="checkbox"></div>
+        <span>FAQ 卡片背景颜色不同</span>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <div class="checkbox"></div>
+        <span>FAQ 卡片边框样式不同</span>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <div class="checkbox"></div>
+        <span>FAQ 卡片圆角大小不同</span>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <div class="checkbox"></div>
+        <span>FAQ 卡片内边距不同</span>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <div class="checkbox"></div>
+        <span>FAQ 卡片之间间距不同</span>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <div class="checkbox"></div>
+        <span>Hover 时背景颜色不对</span>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <div class="checkbox"></div>
+        <span>Hover 时文字颜色不对</span>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <div class="checkbox"></div>
+        <span>Hover 时阴影效果不同</span>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <div class="checkbox"></div>
+        <span>Hover 时浮动效果不同</span>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <div class="checkbox"></div>
+        <span>图标（＋号）颜色不同</span>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <div class="checkbox"></div>
+        <span>展开动画效果不同</span>
+      </div>
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <div class="checkbox"></div>
+        <span>整体颜色对比度不同</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="instructions">
+    <h2>📖 使用说明</h2>
+    <ol>
+      <li>等待两个页面完全加载</li>
+      <li>点击"滚动到 FAQ"按钮，让两边都显示 FAQ 区域</li>
+      <li>仔细对比两边的视觉效果，勾选你发现的差异</li>
+      <li>右键点击页面 → 检查元素，对比具体的 CSS 属性</li>
+      <li>将勾选的差异项告诉 AI，进行精准修复</li>
+    </ol>
+    <p style="margin-top: 20px; color: #999;">
+      💡 <strong>提示：</strong>按 <code>Ctrl+Shift+C</code> (或 <code>Cmd+Shift+C</code>) 可以快速进入元素检查模式
+    </p>
+  </div>
+
+  <script>
+    function scrollToFAQ(frameId) {
+      const frame = document.getElementById(frameId);
+      try {
+        frame.contentWindow.postMessage({ action: 'scrollToFAQ' }, '*');
+        // 备用方案：使用 hash
+        const currentSrc = frame.src.split('#')[0];
+        frame.src = currentSrc + '#home-faq';
+      } catch (e) {
+        console.error('无法滚动到 FAQ:', e);
+      }
+    }
+
+    function reloadFrame(frameId) {
+      const frame = document.getElementById(frameId);
+      frame.src = frame.src;
+    }
+
+    function openDevTools(frameId) {
+      const frame = document.getElementById(frameId);
+      const url = frame.src;
+      window.open(url, '_blank');
+    }
+
+    function toggleCheck(item) {
+      item.classList.toggle('checked');
+      updateCheckedCount();
+    }
+
+    function updateCheckedCount() {
+      const checked = document.querySelectorAll('.checklist-item.checked').length;
+      console.log(`已勾选 ${checked} 项差异`);
+    }
+
+    // 监听来自 iframe 的消息
+    window.addEventListener('message', function(e) {
+      if (e.data.action === 'scrollToFAQ') {
+        const faqSection = e.source.document.querySelector('#home-faq');
+        if (faqSection) {
+          faqSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    });
+
+    // 页面加载完成后自动滚动到 FAQ
+    window.addEventListener('load', function() {
+      setTimeout(() => {
+        scrollToFAQ('homeFrame');
+        scrollToFAQ('demoFrame');
+      }, 1000);
+    });
+  </script>
+</body>
+</html>

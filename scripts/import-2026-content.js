@@ -109,7 +109,7 @@ async function importBackendData(data) {
 async function importPages() {
   const pages = [
     ['solutions', '产品与服务'], ['p-training', 'AI 赋能培训'], ['p-consulting', 'AI 转型咨询'], ['p-fde', 'AI 落地陪跑'],
-    ['hcvm', '人力资本价值经营'], ['about', '关于我们'], ['about-team', '团队基因'], ['contact', '联系我们']
+    ['hcvm', '人力资本价值经营'], ['about', '关于我们'], ['contact', '联系我们']
   ];
   for (const [key, title] of pages) await PageContent.updateOne({ key }, { $setOnInsert: { key, title, sections: [] } }, { upsert: true });
 }

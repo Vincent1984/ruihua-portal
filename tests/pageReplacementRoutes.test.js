@@ -20,7 +20,6 @@ describe('2026 页面替换路由', function () {
         '/insights/industry',
         '/insights/thinktank',
         '/about',
-        '/about/team',
         '/contact'
     ];
 
@@ -34,14 +33,11 @@ describe('2026 页面替换路由', function () {
         });
     }
 
-    it('/about/team 独立呈现团队区且不重复公司介绍块', async function () {
+    it('/about/team 301 重定向到 about 差异化价值楼层', async function () {
         const response = await request('/about/team');
-        const html = await response.text();
 
-        assert.strictEqual(response.status, 200);
-        assert.match(html, /id="about-team"/);
-        assert.match(html, /团队基因|先自己跑通，再服务客户/);
-        assert.doesNotMatch(html, /data-page="about"/);
+        assert.strictEqual(response.status, 301);
+        assert.strictEqual(response.headers.get('location'), '/about#about-team');
     });
 
     it('非 NQOC 根页面源文件不重复维护主站导航和页脚', function () {
@@ -69,10 +65,10 @@ describe('2026 页面替换路由', function () {
         assert.match(fs.readFileSync(path.join(ROOT, 'views', '2026', 'partials', 'nav.html'), 'utf8'), /href="\/nqoc"/);
     });
 
-    it('桌面、移动导航和页脚均指向团队页', function () {
-        for (const filename of ['nav.html', 'mobile-nav.html', 'footer.html']) {
+    it('桌面导航和页脚的团队基因入口均指向 about 差异化价值楼层', function () {
+        for (const filename of ['nav.html', 'footer.html']) {
             const html = fs.readFileSync(path.join(ROOT, 'views', '2026', 'partials', filename), 'utf8');
-            assert.match(html, /\/about\/team/);
+            assert.match(html, /\/about#about-team/);
         }
     });
 
@@ -88,7 +84,7 @@ describe('2026 页面替换路由', function () {
         const canonicalPaths = [
             'solutions', 'solutions/training', 'solutions/consulting', 'solutions/fde',
             'hcvm', 'cases', 'insights', 'insights/industry', 'insights/thinktank',
-            'about', 'about/team', 'contact'
+            'about', 'contact'
         ];
 
         canonicalPaths.forEach(url => assert.match(server, new RegExp(`url: '${url}'`), `sitemap 缺少 /${url}`));

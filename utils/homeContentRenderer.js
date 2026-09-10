@@ -1,95 +1,54 @@
-function escapeHtml(input) {
-    return String(input || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+/**
+ * 首页内容服务端渲染器
+ * 为 JS 动态内容提供 SSR 后备
+ */
+
+// 客户名称数据（与前端 rh2026.js 的 LW_HOME 保持一致）
+const CLIENT_LOGOS = [
+  '海尔智家', '伊利集团', 'TCL 实业', '中国银行', '招商银行', '万物云',
+  '华住集团', '中兴通讯', '找钢网', '游族网络', '创梦天地', '茶颜悦色',
+  '鸣鸣很忙', '慧算账', '联想开天', '鑫方盛集团'
+];
+
+
+
+// 场景标签数据
+const SCENARIO_CHIPS = [
+  { keyword: 'cost', icon: '💰', text: '降本增效' },
+  { keyword: 'process', icon: '⚙️', text: '流程优化' },
+  { keyword: 'customer', icon: '🤝', text: '客户体验' },
+  { keyword: 'data', icon: '📊', text: '数据决策' },
+  { keyword: 'innovation', icon: '💡', text: '业务创新' }
+];
+
+
+/**
+ * 渲染客户名称 HTML（与前端 JS 渲染结构一致，供无 JS 爬虫读取）
+ * @returns {string} HTML 字符串
+ */
+function renderClientLogos() {
+  const one = CLIENT_LOGOS.map(name => `
+    <span class="lw-chip"><span class="dot"></span>${name}</span>
+  `).join('');
+  return one + `<span class="lw-dup" style="display:contents">${one}</span>`;
 }
 
-function formatDateZh(dateInput) {
-    const date = new Date(dateInput);
-    if (Number.isNaN(date.getTime())) return '2025-01-01';
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
-
-function getCategoryHue(category) {
-    if (!category) return 240;
-    let hash = 0;
-    const text = String(category);
-    for (let i = 0; i < text.length; i += 1) {
-        hash = text.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const baseHues = [0, 60, 120, 180, 240, 300];
-    return baseHues[Math.abs(hash) % baseHues.length];
-}
-
-function renderInsightCard(article, categoryMap = {}) {
-    const id = article?._id ? String(article._id) : '';
-    const link = article?.slug ? `/insights/${encodeURIComponent(article.slug)}` : `/article.html?id=${id}`;
-    const title = article?.title || '无标题';
-    const summary = article?.summary || '暂无摘要';
-    const cover = article?.coverImage || '/images/default-article.jpg';
-    const categoryName = categoryMap[article?.category] || (article?.category || 'INSIGHT').toUpperCase();
-    const publishDate = formatDateZh(article?.publishDate);
-    const hue = getCategoryHue(article?.category || categoryName);
-
-    return `
-      <a href="${escapeHtml(link)}" class="bg-white rounded-2xl shadow-md border border-slate-100 overflow-hidden transition-all duration-300 hover:shadow-xl group flex flex-col h-full block cursor-pointer">
-        <div class="relative w-full h-48 sm:h-56 overflow-hidden">
-          <img src="${escapeHtml(cover)}" alt="${escapeHtml(title)}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" data-fallback="/images/default-article.jpg">
-          <div class="absolute top-4 left-4 z-20">
-            <span class="category-badge" style="--cat-hue: ${hue};">
-              ${escapeHtml(categoryName)}
-            </span>
-          </div>
-        </div>
-        <div class="p-6 flex flex-col flex-grow">
-          <h3 class="research-card-title font-bold text-slate-900 mb-3 group-hover:text-brand-600 transition-colors">
-            ${escapeHtml(title)}
-          </h3>
-          <p class="research-card-desc text-slate-500 text-sm mb-6 flex-grow">
-            ${escapeHtml(summary)}
-          </p>
-          <div class="flex justify-between items-center pt-4 mt-auto border-t border-slate-50">
-            <span class="text-slate-400 text-xs font-medium tracking-wide">${escapeHtml(publishDate)}</span>
-            <span class="inline-flex items-center text-brand-600 hover:text-brand-700 font-bold text-sm transition-colors group-hover:translate-x-1 duration-300">
-              阅读文章
-              <i class="fas fa-arrow-right ml-2 text-xs"></i>
-            </span>
-          </div>
-        </div>
-      </a>
-    `;
-}
-
-function renderFaqItem(faq) {
-    const question = faq?.question || '暂无问题';
-    const answerText = faq?.answer || '暂无详细回答';
-    return `
-      <div class="faq-item border-b border-slate-100 pb-8 last:border-0 last:pb-0">
-        <dt>
-          <button class="faq-toggle-btn flex justify-between items-center w-full text-left font-bold text-xl text-slate-900 focus:outline-none group transition-colors duration-300 hover:text-brand-600" aria-expanded="false">
-            <span class="pr-4">${escapeHtml(question)}</span>
-            <i class="fas fa-chevron-down faq-icon text-slate-400 group-hover:text-brand-600 transition-transform duration-300"></i>
-          </button>
-        </dt>
-        <dd class="faq-content overflow-hidden transition-all duration-300 ease-in-out" style="max-height: 0px; opacity: 0;">
-          <div class="pt-4 text-slate-600 text-sm leading-relaxed" style="color: #475569;">
-            <p>${escapeHtml(answerText)}</p>
-          </div>
-        </dd>
-      </div>
-    `;
+/**
+ * 渲染场景标签 HTML
+ * @returns {string} HTML 字符串
+ */
+function renderScenarioChips() {
+  return SCENARIO_CHIPS.map(chip => `
+    <span class="chip" data-keyword="${chip.keyword}">
+      <span class="chip-icon">${chip.icon}</span>
+      <span class="chip-text">${chip.text}</span>
+    </span>
+  `).join('');
 }
 
 module.exports = {
-    renderInsightCard,
-    renderFaqItem,
-    getCategoryHue,
-    formatDateZh,
-    escapeHtml
+  renderClientLogos,
+  renderScenarioChips,
+  CLIENT_LOGOS,
+  SCENARIO_CHIPS
 };

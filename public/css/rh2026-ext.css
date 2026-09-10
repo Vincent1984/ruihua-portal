@@ -71,3 +71,43 @@
 [data-sx="s64"][data-sx="s64"]{background:#bda5ff}
 [data-sx="s65"][data-sx="s65"]{background:var(--dark);border-color:var(--dark);text-align:center;padding:52px 46px}
 [data-sx="s66"][data-sx="s66"]{color:var(--d-sub);max-width:34em;margin:0 auto 24px}
+/* September B generated additions */
+[data-sx="b1"][data-sx="b1"]{height:52px;display:block}
+[data-sx="b2"][data-sx="b2"]{display:flex;gap:10px;align-items:center}
+[data-sx="b3"][data-sx="b3"]{border-color:var(--hair);color:var(--ink)}
+[data-sx="b4"][data-sx="b4"]{--j3d-scroll-len:230vh}
+[data-sx="b5"][data-sx="b5"]{opacity:0}
+[data-sx="b6"][data-sx="b6"]{max-width:1320px;margin:0 auto;padding:52px 34px 0}
+[data-sx="b7"][data-sx="b7"]{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.16em;margin-bottom:18px;text-align:center}
+[data-sx="b8"][data-sx="b8"]{margin-top:18px}
+[data-sx="b9"][data-sx="b9"]{color:var(--p-300);font-weight:800;font-size:13.5px;text-decoration:none}
+[data-sx="b10"][data-sx="b10"]{font-size:15.5px;padding:14px 34px}
+[data-sx="b11"][data-sx="b11"]{max-width:1320px;margin:0 auto}
+[data-sx="b12"][data-sx="b12"]{max-width:none}
+[data-sx="b13"][data-sx="b13"]{color:#fff}
+[data-sx="b14"][data-sx="b14"]{padding-top:56px}
+[data-sx="b15"][data-sx="b15"]{max-width:none;margin-bottom:30px}
+[data-sx="b16"][data-sx="b16"]{color:var(--ink-3);font-weight:600}
+[data-sx="b17"][data-sx="b17"]{color:var(--ink-3)}
+[data-sx="b18"][data-sx="b18"]{margin:14px 0 0}
+[data-sx="b19"][data-sx="b19"]{color:var(--ink)}
+[data-sx="b20"][data-sx="b20"]{color:var(--purple)}
+[data-sx="b21"][data-sx="b21"]{background:var(--cta-grad);color:#fff;border:none;box-shadow:0 12px 30px rgba(124,77,255,.3)}
+[data-sx="b22"][data-sx="b22"]{margin-bottom:22px}
+[data-sx="b23"][data-sx="b23"]{display:none}
+[data-sx="b24"][data-sx="b24"]{text-align:center;padding:56px 46px}
+[data-sx="b25"][data-sx="b25"]{color:var(--d-text)}
+[data-sx="b26"][data-sx="b26"]{color:var(--d-sub);max-width:none;margin:0 auto 24px}
+[data-sx="b27"][data-sx="b27"]{font-size:15px;padding:13px 30px}
+[data-sx="b28"][data-sx="b28"]{margin-top:14px}
+[data-sx="b29"][data-sx="b29"]{margin-top:28px}
+[data-sx="b30"][data-sx="b30"]{margin-top:22px}
+[data-sx="b31"][data-sx="b31"]{color:var(--d-sub);max-width:36em;margin:0 auto 24px}
+[data-sx="b32"][data-sx="b32"]{margin-bottom:30px}
+[data-sx="b33"][data-sx="b33"]{margin-left:0;font-size:15px}
+[data-sx="b34"][data-sx="b34"]{max-width:1320px;margin:0 auto;display:grid;grid-template-columns:1fr 320px;gap:40px}
+[data-sx="b35"][data-sx="b35"]{margin-top:20px}
+[data-sx="b36"][data-sx="b36"]{background:var(--purple-hi);color:#fff;border:none;font-size:14.5px;padding:12px 30px}
+[data-sx="b37"][data-sx="b37"]{font-size:11px;color:var(--ink-3);margin-left:10px}
+[data-sx="b38"][data-sx="b38"]{color:var(--purple);font-weight:800}
+[data-sx="b39"][data-sx="b39"]{margin-top:8px}

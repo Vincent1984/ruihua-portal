@@ -18,6 +18,7 @@ const legacyRedirects = (req, res, next) => {
         '/solutions-ahcvm': '/hcvm',
         '/about/': '/about',
         '/about.html': '/about',
+        '/about/team': '/about#about-team',
 
         '/solutions-ohcvm/': '/solutions',
         '/solutions-ohcvm.html': '/solutions',

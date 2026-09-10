@@ -25,6 +25,7 @@ const Appointment = require('./models/Appointment');
 const { generateDailyExternalId, saveWithUniqueExternalId } = require('./utils/dailyExternalId');
 const Article = require('./models/Article');
 const ArticleHistory = require('./models/ArticleHistory');
+const FAQ = require('./models/Faq');
 const OperationLog = require('./models/OperationLog');
 const Role = require('./models/Role');
 const Admin = require('./models/admin'); // Corrected model name
@@ -64,6 +65,11 @@ if (!SECRET_KEY) {
     console.warn('[WARN] JWT_SECRET is missing, using temporary dev secret.');
 }
 const RUNTIME_SECRET_KEY = SECRET_KEY || `dev-secret-${crypto.randomUUID()}`;
+
+// Auth / Permission / Log middleware (extracted to middleware/ to avoid routes depending on server.js closure)
+const { createAuthMiddleware } = require('./middleware/auth');
+const logOp = require('./middleware/operationLog');
+const { authRequired, checkPerm, requirePerm, requireAnyPerm } = createAuthMiddleware(RUNTIME_SECRET_KEY);
 
 // Escape special regex characters in user input for safe $regex queries
 function escapeRegex(str) {
@@ -198,6 +204,24 @@ function sanitizeArticlePayload(body = {}) {
 // Domain Normalization Middleware (Should be early)
 app.use(domainNormalizer);
 app.use(legacyRedirects);
+
+// 性能优化中间件
+const { resourceOptimizer, setCacheHeaders } = require('./middleware/resourceOptimizer');
+app.use(setCacheHeaders); // 缓存头部（最早）
+app.use(resourceOptimizer); // 资源优化
+
+// SSR 内容注入中间件（在 SEO 注入之前，为 JS 动态内容提供静态后备）
+const ssrContentInjector = require('./middleware/ssrContent');
+app.use(ssrContentInjector);
+
+// SEO 自动注入中间件
+const seoInjector = require('./middleware/seoInjector');
+app.use(seoInjector);
+
+// 关键 CSS 内联中间件（可选，性能提升明显但需要手动提取关键CSS）
+// const inlineCriticalCss = require('./middleware/criticalCss');
+// app.use(inlineCriticalCss);
+
 app.use((req, res, next) => {
     if (req.path === '/ai-strategic-special' || req.path === '/ai-strategic-special/' || req.path === '/ai-strategic-special.html') {
         return res.sendFile(path.join(__dirname, 'ai-strategic-special.html'));
@@ -1525,7 +1549,6 @@ app.get('/sitemap.xml', async (req, res) => {
             { url: 'insights/industry', file: 'views/2026/page-blocks/i-industry.html', priority: 0.7, changefreq: 'weekly' },
             { url: 'insights/thinktank', file: 'views/2026/page-blocks/i-thinktank.html', priority: 0.8, changefreq: 'monthly' },
             { url: 'about', file: 'views/2026/page-blocks/about.html', priority: 0.7, changefreq: 'monthly' },
-            { url: 'about/team', file: 'views/2026/page-blocks/about-team.html', priority: 0.7, changefreq: 'monthly' },
             { url: 'contact', file: 'views/2026/page-blocks/contact.html', priority: 0.7, changefreq: 'monthly' },
             { url: 'resources/', file: 'resources.html', priority: 0.9, changefreq: 'weekly' },
             { url: 'videos/', file: 'videos.html', priority: 0.7, changefreq: 'weekly' },
@@ -1638,29 +1661,6 @@ app.get('/images/default-video.jpg', (req, res) => {
     res.send(`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#eef2ff"/><stop offset="1" stop-color="#e0e7ff"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><polygon points="360,225 360,165 430,195 430,255" fill="#6366f1"/><rect x="280" y="150" width="240" height="150" rx="16" fill="none" stroke="#94a3b8" stroke-width="4"/></svg>`);
 });
 
-// --- Auth Middleware ---
-function authRequired(req, res, next) {
-    try {
-        const auth = req.headers.authorization || '';
-        const headerToken = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
-        const cookieToken = req.cookies?.admin_token || '';
-        const candidates = [headerToken, cookieToken].filter(Boolean).filter(t => t !== 'null' && t !== 'undefined');
-        if (candidates.length === 0) return res.status(401).json({ error: 'Unauthorized' });
-        for (const token of candidates) {
-            try {
-                const payload = jwt.verify(token, RUNTIME_SECRET_KEY);
-                req.user = payload;
-                return next();
-            } catch (e) {
-                console.error('JWT verify error:', e.message || e);
-            }
-        }
-        return res.status(401).json({ error: 'Invalid token' });
-    } catch (e) {
-        return res.status(401).json({ error: 'Invalid token' });
-    }
-}
-
 // DB Connection
 console.log('Environment MONGODB_URL:', process.env.MONGODB_URL);
 const mongoUrl = process.env.MONGODB_URL || 'mongodb://127.0.0.1:27017/ruihua_cms';
@@ -1745,25 +1745,11 @@ async function uploadLocalFileToTos(localAbsPath, objectKey, contentType) {
             Key: objectKey,
             Body: fileBuffer,
             ContentLength: fileBuffer.length,
-            ContentType: contentType || 'application/octet-stream'
+            ContentType: contentType || 'application/octet-stream',
+            ContentDisposition: 'inline'
         })
     );
     return toTosPublicUrl(objectKey);
-}
-
-// Helper: Operation Logging
-async function logOp(action, module, detail, operator) {
-    try {
-        await OperationLog.create({
-            action,
-            module,
-            detail,
-            operator: operator || 'System',
-            ip: '127.0.0.1' // Simplify for now
-        });
-    } catch (e) {
-        console.error('Logging failed:', e);
-    }
 }
 
 const tosFallbackAlertState = {
@@ -1825,52 +1811,6 @@ async function notifyTosFallbackAlert(reason) {
     }
 }
 
-// --- Permission Middleware ---
-async function checkPerm(req, res, next, requiredPerm) {
-    // If authRequired passed, req.user is set
-    // But we need full user details to check role permissions properly
-    try {
-        if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
-        
-        // Fetch fresh user/role data
-        const admin = await Admin.findById(req.user.id).populate('roles');
-        if (!admin || !admin.isActive) return res.status(403).json({ error: 'Account disabled or not found' });
-        
-        // Check if roles exist
-        if (!admin.roles || admin.roles.length === 0) return res.status(403).json({ error: 'No roles assigned' });
-        
-        // Aggregate permissions
-        const allPerms = new Set();
-        admin.roles.forEach(role => {
-            if (role.permissions) {
-                role.permissions.forEach(p => allPerms.add(p));
-            }
-        });
-        
-        if (allPerms.has('all')) {
-            return next();
-        }
-
-        const requiredPerms = Array.isArray(requiredPerm) ? requiredPerm : [requiredPerm];
-        if (requiredPerms.some(perm => allPerms.has(perm))) {
-            return next();
-        }
-
-        return res.status(403).json({ error: 'Permission denied: ' + requiredPerms.join(' or ') });
-    } catch (e) {
-        console.error('Perm Check Error:', e);
-        res.status(500).json({ error: 'Internal Error' });
-    }
-}
-
-const requirePerm = (perm) => {
-    return (req, res, next) => checkPerm(req, res, next, perm);
-};
-
-const requireAnyPerm = (perms) => {
-    return (req, res, next) => checkPerm(req, res, next, perms);
-};
-
 function normalizeRoleIds(roleIds) {
     if (!Array.isArray(roleIds)) return [];
     return [...new Set(roleIds.map(id => String(id || '').trim()).filter(Boolean))];
@@ -1907,261 +1847,17 @@ async function countActiveSuperAdmins(excludeAdminId = null) {
     return Admin.countDocuments(query);
 }
 
-// --- Auth Routes ---
-const loginLimiter = rateLimit({ windowMs: 10 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
-app.post('/api/login', loginLimiter, async (req, res) => {
-    try {
-        const { username, password } = req.body;
-        const admin = await Admin.findOne({ username }).populate('roles');
-        
-        if (!admin) {
-            return res.status(401).json({ success: false, message: '用户不存在' });
-        }
-        
-        // Check password (if hashed) or plain text (for legacy/dev)
-        // Assume all passwords should be hashed, but for safety in dev, check plain if match
-        let isMatch = false;
-        if (admin.password.startsWith('$')) {
-             isMatch = await bcrypt.compare(password, admin.password);
-        } else {
-             // REMOVED plaintext fallback for security
-             // isMatch = (password === admin.password);
-             console.warn(`User ${username} has a plaintext password. Please reset it.`);
-             return res.status(401).json({ success: false, message: 'Password security upgrade required. Please contact admin.' });
-        }
-
-        if (!isMatch) {
-            return res.status(401).json({ success: false, message: '密码错误' });
-        }
-
-        if (!admin.isActive) {
-            return res.status(403).json({ success: false, message: '账号已禁用' });
-        }
-
-        // Update last login
-        admin.lastLogin = new Date();
-        await admin.save();
-
-        const token = jwt.sign({ id: admin._id, username: admin.username, roles: admin.roles }, RUNTIME_SECRET_KEY, { expiresIn: '24h' });
-        const permissionSet = gatherPermissions(admin);
-        const permissions = Array.from(permissionSet);
-        res.cookie('admin_token', token, {
-            ...ADMIN_AUTH_COOKIE_OPTIONS,
-            maxAge: 24 * 60 * 60 * 1000
-        });
-        
-        await logOp('login', 'Auth', `User ${username} logged in`, username);
-
-        res.json({ success: true, token, admin: { id: admin._id, name: admin.name, roles: admin.roles, permissions } });
-
-    } catch (e) {
-        console.error('Login Error:', e);
-        res.status(500).json({ success: false, message: '服务器内部错误，请稍后重试' });
-    }
+// === 新的模块化 API 路由 ===
+const initApiRoutes = require('./routes/api/index');
+const apiRouter = initApiRoutes({
+    jwtSecret: RUNTIME_SECRET_KEY,
+    authRequired,
+    requirePerm,
+    checkPerm,
+    requireAnyPerm
 });
-
-app.post('/api/logout', (req, res) => {
-    clearAdminAuthCookie(res);
-    res.json({ success: true });
-});
-
-app.put('/api/auth/password', authRequired, async (req, res) => {
-    try {
-        const currentPassword = String(req.body.currentPassword || '');
-        const newPassword = String(req.body.newPassword || '');
-        if (!currentPassword || newPassword.length < 8 || !/[a-zA-Z]/.test(newPassword) || !/\d/.test(newPassword)) {
-            return res.status(400).json({ success: false, error: '新密码至少 8 位且需包含字母和数字' });
-        }
-        if (currentPassword === newPassword) {
-            return res.status(400).json({ success: false, error: '新密码不能与当前密码相同' });
-        }
-
-        const admin = await Admin.findById(req.user.id);
-        if (!admin || !admin.isActive) {
-            return res.status(403).json({ success: false, error: '账号已禁用或不存在' });
-        }
-        const currentPasswordMatches = admin.password.startsWith('$') && await bcrypt.compare(currentPassword, admin.password);
-        if (!currentPasswordMatches) {
-            return res.status(400).json({ success: false, error: '当前密码不正确' });
-        }
-
-        const passwordHash = await bcrypt.hash(newPassword, 12);
-        admin.password = passwordHash;
-        admin.lastPasswordChangedAt = new Date();
-        admin.failedLoginCount = 0;
-        admin.lockedUntil = null;
-        await admin.save();
-        clearAdminAuthCookie(res);
-        await logOp('change_password', 'Auth', `User ${admin.username} changed password`, admin.username);
-        res.json({ success: true, message: '密码已修改，请重新登录' });
-    } catch (e) {
-        sendInternalError(res, 'Change Password Error:', e);
-    }
-});
-
-// Token verify
-app.get('/api/auth/verify', authRequired, async (req, res) => {
-    const admin = await Admin.findById(req.user.id).populate('roles');
-    if (!admin || !admin.isActive) {
-        return res.status(403).json({ error: 'Account disabled or not found' });
-    }
-    const permissionSet = gatherPermissions(admin);
-    res.json({
-        success: true,
-        user: {
-            ...req.user,
-            permissions: Array.from(permissionSet)
-        }
-    });
-});
-
-app.get('/api/permissions/dictionary', authRequired, requirePerm('all'), (req, res) => {
-    res.json({ success: true, groups: PERMISSION_GROUPS, permissions: PERMISSION_CODES });
-});
-
-// --- SEO Config API ---
-app.get('/api/admin/seo', authRequired, requirePerm('system:manage'), async (req, res) => {
-    try {
-        const { pagePath } = req.query;
-        if (!pagePath) return res.status(400).json({ success: false, error: 'pagePath is required' });
-        
-        const config = await SeoConfig.findOne({ pagePath });
-        
-        let defaultTitle = '';
-        let defaultKeywords = '';
-        let defaultDescription = '';
-        
-        try {
-            const fs = require('fs');
-            const { JSDOM } = require('jsdom');
-            const filePath = require('path').join(__dirname, pagePath.startsWith('/') ? pagePath.substring(1) : pagePath);
-            if (fs.existsSync(filePath)) {
-                const html = await fs.promises.readFile(filePath, 'utf8');
-                const dom = new JSDOM(html);
-                const doc = dom.window.document;
-                
-                defaultTitle = doc.title || '';
-                const kwMeta = doc.querySelector('meta[name="keywords"]');
-                if (kwMeta) defaultKeywords = kwMeta.content || '';
-                
-                const descMeta = doc.querySelector('meta[name="description"]');
-                if (descMeta) defaultDescription = descMeta.content || '';
-            }
-        } catch (fileErr) {
-            console.warn(`Could not read default SEO from ${pagePath}:`, fileErr);
-        }
-
-        const data = {
-            title: config && config.title ? config.title : defaultTitle,
-            keywords: config && config.keywords ? config.keywords : defaultKeywords,
-            description: config && config.description ? config.description : defaultDescription
-        };
-
-        res.json({ success: true, data });
-    } catch (e) {
-        console.error('SEO Get Error:', e);
-        res.status(500).json({ success: false, error: 'Internal Server Error' });
-    }
-});
-
-app.post('/api/admin/seo', authRequired, requirePerm('system:manage'), async (req, res) => {
-    try {
-        const { pagePath, title, keywords, description } = req.body;
-        if (!pagePath) return res.status(400).json({ success: false, error: 'pagePath is required' });
-        
-        let config = await SeoConfig.findOne({ pagePath });
-        if (config) {
-            config.title = title;
-            config.keywords = keywords;
-            config.description = description;
-        } else {
-            config = new SeoConfig({ pagePath, title, keywords, description });
-        }
-        await config.save();
-        res.json({ success: true, data: config });
-    } catch (e) {
-        console.error('SEO Post Error:', e);
-        res.status(500).json({ success: false, error: 'Internal Server Error' });
-    }
-});
-
-// --- Dashboard Stats API (Restored) ---
-app.get('/api/dashboard/stats', authRequired, requirePerm('dashboard:view'), async (req, res) => {
-    try {
-        let { startDate, endDate } = req.query;
-        let start, end;
-
-        if (startDate && endDate) {
-            start = new Date(startDate);
-            end = new Date(endDate);
-            end.setHours(23, 59, 59, 999);
-        } else {
-            end = new Date();
-            start = new Date();
-            start.setDate(end.getDate() - 6);
-            start.setHours(0, 0, 0, 0);
-        }
-
-        const dates = [];
-        let current = new Date(start);
-        while (current <= end) {
-            dates.push(current.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }));
-            current.setDate(current.getDate() + 1);
-        }
-
-        const [apptStats, artStats, logStats] = await Promise.all([
-            Appointment.aggregate([
-                { $match: { createdAt: { $gte: start, $lte: end } } },
-                { $group: { _id: { $dateToString: { format: "%m/%d", date: "$createdAt", timezone: "+08:00" } }, count: { $sum: 1 } } }
-            ]),
-            Article.aggregate([
-                { $match: { publishDate: { $gte: start, $lte: end } } },
-                { $group: { _id: { $dateToString: { format: "%m/%d", date: "$publishDate", timezone: "+08:00" } }, count: { $sum: 1 } } }
-            ]),
-            OperationLog.aggregate([
-                { $match: { createdAt: { $gte: start, $lte: end } } },
-                { $group: { _id: { $dateToString: { format: "%m/%d", date: "$createdAt", timezone: "+08:00" } }, count: { $sum: 1 } } }
-            ])
-        ]);
-
-        const mapStats = (stats) => dates.map(date => {
-            const found = stats.find(s => s._id === date);
-            return found ? found.count : 0;
-        });
-
-        // Mock visits for demo
-        const visits = dates.map(() => Math.floor(Math.random() * 500) + 800);
-
-        res.json({
-            dates,
-            series: {
-                visits,
-                appointments: mapStats(apptStats),
-                articles: mapStats(artStats),
-                logs: mapStats(logStats)
-            },
-            summary: {
-                totalVisits: 12045 + Math.floor(Math.random() * 100),
-                totalAppts: await Appointment.countDocuments(),
-                totalArts: await Article.countDocuments(),
-                pendingFaqs: 0 // Placeholder
-            }
-        });
-    } catch (e) {
-        console.error('Stats Error:', e);
-        return sendInternalError(res, null, e);
-    }
-});
-
-// --- Article Routes ---
-app.get('/article/:slug', (req, res) => {
-    const slug = req.params.slug.endsWith('.html') ? req.params.slug.slice(0, -5) : req.params.slug;
-    return res.redirect(301, `/insights/${encodeURIComponent(slug)}`);
-});
-
-app.get('/article/:slug.html', (req, res) => {
-    return res.redirect(301, `/insights/${encodeURIComponent(req.params.slug)}`);
-});
+app.use('/api', apiRouter);
+// === API 路由挂载结束 ===
 
 // --- Article API ---
 app.get('/api/articles', async (req, res) => {
@@ -2414,104 +2110,6 @@ app.put('/api/articles/:id', authRequired, requirePerm('article:edit'), async (r
     }
 });
 
-// --- Article History API ---
-app.get('/api/articles/:id/history', authRequired, requirePerm('article:edit'), async (req, res) => {
-    try {
-        const history = await ArticleHistory.find({ articleId: req.params.id })
-            .sort({ version: -1 })
-            .limit(20);
-        res.json(history);
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-const Author = require('./models/Author'); // Import Author Model
-
-// --- Author Management Routes ---
-app.get('/api/authors', async (req, res) => {
-    try {
-        const authors = await Author.find().sort({ order: 1, createdAt: -1 });
-        res.json(authors);
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.get('/api/admin/authors', authRequired, requirePerm('expert:list'), async (req, res) => {
-    try {
-        const authors = await Author.find().sort({ order: 1, createdAt: -1 });
-        res.json(authors);
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.put('/api/authors/reorder', authRequired, requirePerm('expert:edit'), async (req, res) => {
-    try {
-        const items = req.body.items;
-        if (!Array.isArray(items) || items.some((item, index) => !item.id || item.order !== index + 1)) {
-            return res.status(400).json({ error: '专家排序必须从 1 开始且连续' });
-        }
-        const ids = items.map(item => String(item.id));
-        if (new Set(ids).size !== ids.length) return res.status(400).json({ error: '专家不能重复' });
-        const existingCount = await Author.countDocuments({ _id: { $in: ids } });
-        if (existingCount !== ids.length) return res.status(400).json({ error: '专家不存在' });
-        if (items.length) {
-            await Author.bulkWrite(items.map(item => ({
-                updateOne: { filter: { _id: item.id }, update: { $set: { order: item.order, updatedAt: new Date() } } }
-            })));
-        }
-        res.json({ success: true });
-    } catch (e) {
-        return sendInternalError(res, 'Reorder authors failed:', e);
-    }
-});
-
-app.post('/api/authors', authRequired, requirePerm('expert:create'), async (req, res) => {
-    try {
-        const author = new Author(req.body);
-        await author.save();
-        await logOp('create', 'Author', `Created author: ${author.name}`, req.user.username);
-        res.json({ success: true, data: author });
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.put('/api/authors/:id', authRequired, requirePerm('expert:edit'), async (req, res) => {
-    try {
-        const author = await Author.findByIdAndUpdate(req.params.id, { ...req.body, updatedAt: Date.now() }, { new: true });
-        if (!author) return res.status(404).json({ error: 'Author not found' });
-        // Sync snapshot fields in existing articles to avoid stale author display in caches/lists.
-        await Article.updateMany(
-            { authorId: author._id },
-            {
-                $set: {
-                    'author.name': author.name || '',
-                    'author.avatar': author.avatar || '',
-                    'author.desc': author.desc || '',
-                    'author.detail': author.detail || ''
-                }
-            }
-        );
-        await logOp('update', 'Author', `Updated author: ${author.name}`, req.user.username);
-        res.json({ success: true, data: author });
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.delete('/api/authors/:id', authRequired, requirePerm('expert:delete'), async (req, res) => {
-    try {
-        await Author.findByIdAndDelete(req.params.id);
-        await logOp('delete', 'Author', `Deleted author: ${req.params.id}`, req.user.username);
-        res.json({ success: true });
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
 // --- llms.txt Sync Logic ---
 async function rebuildLLMsTxt() {
     try {
@@ -2701,184 +2299,6 @@ app.post('/api/articles/batch-status', authRequired, requirePerm('article:edit')
     }
 });
 
-// --- Category API ---
-app.get('/api/categories', async (req, res) => {
-    try {
-        const categories = await Category.find().sort({ order: 1 });
-        res.json(categories);
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.post('/api/categories', authRequired, requirePerm('article:create'), async (req, res) => {
-    try {
-        const newCat = new Category(req.body);
-        await newCat.save();
-        await logOp('create', 'Category', `Created category: ${newCat.name}`, req.user.username);
-        res.json({ success: true, data: newCat });
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.put('/api/categories/:id', authRequired, requirePerm('article:edit'), async (req, res) => {
-    try {
-        const cat = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        res.json({ success: true, data: cat });
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.delete('/api/categories/:id', authRequired, requirePerm('article:delete'), async (req, res) => {
-    try {
-        await Category.findByIdAndDelete(req.params.id);
-        // Note: Should we handle articles in this category? For now, just leave them.
-        res.json({ success: true });
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-
-// --- FAQ API ---
-app.get('/api/faqs', async (req, res) => {
-    try {
-        const query = { status: { $in: ['published', undefined] }, isOnline: { $ne: false } };
-        if (req.query.status) {
-            query.status = req.query.status;
-        }
-        let faqsQuery = Faq.find(query).sort({ order: 1 });
-        if (req.query.limit) {
-            faqsQuery = faqsQuery.limit(parseInt(req.query.limit));
-        }
-        const faqs = await faqsQuery;
-        res.json(faqs);
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.get('/api/home/content', async (req, res) => {
-    try {
-        const page = Math.max(parseInt(req.query.page || '1', 10), 1);
-        const limit = Math.min(Math.max(parseInt(req.query.limit || '3', 10), 1), 12);
-        const faqLimit = Math.min(Math.max(parseInt(req.query.faqLimit || '5', 10), 1), 20);
-        const includeFaqs = req.query.includeFaqs !== 'false';
-        const skip = (page - 1) * limit;
-
-        const [articles, total, categories, faqs] = await Promise.all([
-            Article.find({ status: 'published', isOnline: { $ne: false }, isRecommended: true })
-                .sort({ top: -1, publishDate: -1 })
-                .skip(skip)
-                .limit(limit)
-                .lean(),
-            Article.countDocuments({ status: 'published', isOnline: { $ne: false }, isRecommended: true }),
-            Category.find({}).lean(),
-            includeFaqs
-                ? Faq.find({ status: { $in: ['published', undefined] }, isOnline: { $ne: false } }).sort({ order: 1 }).limit(faqLimit).lean()
-                : Promise.resolve([])
-        ]);
-
-        const categoryMap = {};
-        categories.forEach((item) => {
-            if (item?.code && item?.name) categoryMap[item.code] = item.name;
-        });
-
-        res.json({
-            success: true,
-            data: {
-                page,
-                limit,
-                total,
-                hasMore: skip + articles.length < total,
-                articles: articles || [],
-                faqs: faqs || [],
-                categoryMap
-            }
-        });
-    } catch (e) {
-        console.error('/api/home/content failed:', e);
-        res.status(500).json({ success: false, error: 'Failed to load homepage content' });
-    }
-});
-
-app.get('/api/faqs/:id', async (req, res) => {
-    try {
-        const faq = await Faq.findOne({ _id: req.params.id, status: { $in: ['published', undefined] }, isOnline: { $ne: false } });
-        if (!faq) return res.status(404).json({ error: 'FAQ not found' });
-        res.json(faq);
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.post('/api/faqs', authRequired, requirePerm('faq:create'), async (req, res) => {
-    try {
-        // Remove category if passed (User requested removal)
-        const { category, ...rest } = req.body;
-        
-        if (rest.answer) {
-            rest.answer = xss(rest.answer);
-        }
-        
-        const newFaq = new Faq(rest);
-        await newFaq.save();
-        await logOp('create', 'FAQ', `Created FAQ: ${newFaq.question}`, req.user.username);
-        res.json({ success: true, data: newFaq });
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.put('/api/faqs/reorder', authRequired, requirePerm('faq:edit'), async (req, res) => {
-    try {
-        const items = req.body.items;
-        if (!Array.isArray(items) || items.some((item, index) => !item.id || item.order !== index + 1)) {
-            return res.status(400).json({ error: 'FAQ 排序必须从 1 开始且连续' });
-        }
-        const ids = items.map(item => String(item.id));
-        if (new Set(ids).size !== ids.length) return res.status(400).json({ error: 'FAQ 不能重复' });
-        const existingCount = await Faq.countDocuments({ _id: { $in: ids } });
-        if (existingCount !== ids.length) return res.status(400).json({ error: 'FAQ 不存在' });
-        if (items.length) {
-            await Faq.bulkWrite(items.map(item => ({
-                updateOne: { filter: { _id: item.id }, update: { $set: { order: item.order, updatedAt: new Date() } } }
-            })));
-        }
-        res.json({ success: true });
-    } catch (e) {
-        return sendInternalError(res, 'Reorder FAQs failed:', e);
-    }
-});
-
-app.put('/api/faqs/:id', authRequired, requirePerm('faq:edit'), async (req, res) => {
-    try {
-        const { category, ...rest } = req.body;
-        
-        if (rest.answer) {
-            rest.answer = xss(rest.answer);
-        }
-        
-        const faq = await Faq.findByIdAndUpdate(req.params.id, { ...rest, updatedAt: Date.now() }, { new: true });
-        await logOp('update', 'FAQ', `Updated FAQ: ${faq.question}`, req.user.username);
-        res.json({ success: true, data: faq });
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.delete('/api/faqs/:id', authRequired, requirePerm('faq:delete'), async (req, res) => {
-    try {
-        await Faq.findByIdAndDelete(req.params.id);
-        await logOp('delete', 'FAQ', `Deleted FAQ: ${req.params.id}`, req.user.username);
-        res.json({ success: true });
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
 // --- Maturity/Diagnostic Submission API ---
 app.post('/api/maturity-submission', async (req, res) => {
     try {
@@ -2908,367 +2328,6 @@ app.post('/api/maturity-submission', async (req, res) => {
     }
 });
 
-// --- Admin/User API ---
-// Only super admins (perm 'all') or specific user management perm should access this
-// We'll assume 'all' for now as per permission list, or add 'user:manage'
-// The current list has 'all' and business perms. Let's use 'all' for user management for now or check if there is a specific one.
-// The dict had: 'article:...', 'faq:...', 'banner:...', 'sidebar:...', 'appointment:...'.
-// No 'user:...' in the provided list. So we restrict to 'all' (Super Admin).
-
-app.get('/api/admins', authRequired, requirePerm('all'), async (req, res) => {
-    try {
-        const admins = await Admin.find().populate('roles');
-        res.json(admins);
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.post('/api/admins', authRequired, requirePerm('all'), async (req, res) => {
-    try {
-        const { username, password, roles, name } = req.body;
-        
-        if (!username || !password) {
-            return res.status(400).json({ error: 'Missing required fields' });
-        }
-
-        // Password Policy Check
-        const pwdRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-        if (!pwdRegex.test(password)) {
-            return res.status(400).json({ error: '密码必须包含字母和数字，且至少8位' });
-        }
-
-        const roleValidation = await validateAdminRoleIds(roles);
-        if (!roleValidation.ok) {
-            return res.status(400).json({ error: roleValidation.error });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-        
-        const newAdmin = new Admin({
-            username,
-            password: hashedPassword,
-            name,
-            roles: roleValidation.roleIds,
-            createdBy: req.user.username,
-            lastPasswordChangedAt: new Date(),
-            isActive: true
-        });
-        
-        await newAdmin.save();
-        await logOp('create', 'Admin', `Created user: ${username}`, req.user.username);
-        res.json({ success: true });
-    } catch (e) {
-        if (e.code === 11000) return res.status(400).json({ error: '用户名已存在' });
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.put('/api/admins/:id', authRequired, requirePerm('all'), async (req, res) => {
-    try {
-        const { username, password, roles, name, isActive } = req.body;
-        const target = await Admin.findById(req.params.id).populate('roles');
-        if (!target) return res.status(404).json({ error: '用户不存在' });
-        const isSelf = String(req.user.id) === String(req.params.id);
-        const updates = { username, name, updatedBy: req.user.username };
-
-        // Check if username exists (if changed)
-        if (username) {
-            const existing = await Admin.findOne({ username, _id: { $ne: req.params.id } });
-            if (existing) return res.status(400).json({ error: '用户名已存在' });
-        }
-
-        let nextRoles = target.roles || [];
-        if (roles !== undefined) {
-            const roleValidation = await validateAdminRoleIds(roles);
-            if (!roleValidation.ok) {
-                return res.status(400).json({ error: roleValidation.error });
-            }
-            nextRoles = roleValidation.roles;
-            updates.roles = roleValidation.roleIds;
-        }
-
-        if (isActive !== undefined) {
-            const nextActive = Boolean(isActive);
-            if (isSelf && !nextActive) {
-                return res.status(400).json({ error: '不能禁用当前登录用户' });
-            }
-            if (target.isActive && !nextActive && rolesHaveAll(target.roles)) {
-                const remainingSuperAdmins = await countActiveSuperAdmins(req.params.id);
-                if (remainingSuperAdmins < 1) {
-                    return res.status(400).json({ error: '不能禁用最后一个超级管理员' });
-                }
-            }
-            updates.isActive = nextActive;
-        }
-
-        if (isSelf && !rolesHaveAll(nextRoles)) {
-            return res.status(400).json({ error: '不能移除当前用户的超级管理员权限' });
-        }
-
-        if (target.isActive && rolesHaveAll(target.roles) && !rolesHaveAll(nextRoles)) {
-            const remainingSuperAdmins = await countActiveSuperAdmins(req.params.id);
-            if (remainingSuperAdmins < 1) {
-                return res.status(400).json({ error: '不能移除最后一个超级管理员权限' });
-            }
-        }
-
-        // Handle password update
-        if (password) {
-            // Password Policy Check
-            const pwdRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-            if (!pwdRegex.test(password)) {
-                return res.status(400).json({ error: '密码必须包含字母和数字，且至少8位' });
-            }
-            updates.password = await bcrypt.hash(password, 10);
-            updates.lastPasswordChangedAt = new Date();
-        }
-
-        await Admin.findByIdAndUpdate(req.params.id, updates);
-        await logOp('update', 'Admin', `Updated user: ${username || req.params.id}`, req.user.username);
-        res.json({ success: true });
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.delete('/api/admins/:id', authRequired, requirePerm('all'), async (req, res) => {
-    try {
-        if (String(req.user.id) === String(req.params.id)) {
-            return res.status(400).json({ error: '不能删除当前登录用户' });
-        }
-        const target = await Admin.findById(req.params.id).populate('roles');
-        if (!target) return res.status(404).json({ error: '用户不存在' });
-        if (target.isActive && rolesHaveAll(target.roles)) {
-            const remainingSuperAdmins = await countActiveSuperAdmins(req.params.id);
-            if (remainingSuperAdmins < 1) {
-                return res.status(400).json({ error: '不能删除最后一个超级管理员' });
-            }
-        }
-        await Admin.findByIdAndDelete(req.params.id);
-        await logOp('delete', 'Admin', `Deleted user: ${req.params.id}`, req.user.username);
-        res.json({ success: true });
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-// --- Role API ---
-app.get('/api/roles', authRequired, requirePerm('all'), async (req, res) => {
-    try {
-        const roles = await Role.find();
-        res.json(roles);
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.post('/api/roles', authRequired, requirePerm('all'), async (req, res) => {
-    try {
-        const { name, code, permissions, description } = req.body;
-        
-        // Required fields
-        if (!name) return res.status(400).json({ error: '角色名称为必填项' });
-
-        // Unique checks
-        const existing = await Role.findOne({ name });
-        if (existing) return res.status(400).json({ error: '角色名称已存在' });
-        
-        let roleCode = code;
-        if (!roleCode) {
-            // Auto-generate code
-            roleCode = slugify(name, { separator: '_' });
-            // Ensure unique
-            let counter = 1;
-            let tempCode = roleCode;
-            while (await Role.findOne({ code: tempCode })) {
-                tempCode = `${roleCode}_${counter}`;
-                counter++;
-            }
-            roleCode = tempCode;
-        } else {
-             const existingCode = await Role.findOne({ code: roleCode });
-             if (existingCode) return res.status(400).json({ error: '角色代码已存在' });
-        }
-
-        // Permissions validation
-        const { permissions: perms, invalid } = validatePermissions(permissions);
-        if (invalid.length > 0) return res.status(400).json({ error: '无效的权限项: ' + invalid.join(', ') });
-
-        const newRole = new Role({ name, code: roleCode, permissions: perms, description, createdBy: req.user.username });
-        await newRole.save();
-        await logOp('create', 'Role', `Created role: ${name}`, req.user.username);
-        res.json({ success: true, data: newRole });
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.put('/api/roles/:id', authRequired, requirePerm('all'), async (req, res) => {
-    try {
-        const { name, code, permissions, description } = req.body;
-        const roleBefore = await Role.findById(req.params.id);
-        if (!roleBefore) return res.status(404).json({ error: '角色不存在' });
-        if (roleBefore.isSystem && permissions !== undefined) {
-            return res.status(400).json({ error: '系统角色的权限不能直接修改' });
-        }
-        if (name) {
-             const existing = await Role.findOne({ name, _id: { $ne: req.params.id } });
-             if (existing) return res.status(400).json({ error: '角色名称已存在' });
-        }
-        if (code) {
-             const existingCode = await Role.findOne({ code, _id: { $ne: req.params.id } });
-             if (existingCode) return res.status(400).json({ error: '角色代码已存在' });
-        }
-        const updates = { name, code, description, updatedBy: req.user.username };
-        if (permissions !== undefined) {
-             const { permissions: perms, invalid } = validatePermissions(permissions);
-             if (invalid.length > 0) return res.status(400).json({ error: '无效的权限项: ' + invalid.join(', ') });
-             const oldPerms = Array.isArray(roleBefore.permissions) ? roleBefore.permissions : [];
-             if (oldPerms.includes('all') && !perms.includes('all')) {
-                const otherAllRoles = await Role.find({ _id: { $ne: roleBefore._id }, permissions: 'all', isActive: { $ne: false } }).select('_id');
-                const adminsWithOtherAllRole = otherAllRoles.length
-                    ? await Admin.countDocuments({ isActive: { $ne: false }, roles: { $in: otherAllRoles.map(role => role._id) } })
-                    : 0;
-                if (adminsWithOtherAllRole < 1) {
-                    return res.status(400).json({ error: '不能移除最后一个超级角色的全部权限' });
-                }
-             }
-             updates.permissions = perms;
-        }
-        
-        const role = await Role.findByIdAndUpdate(req.params.id, updates, { new: true });
-        res.json({ success: true, data: role });
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.delete('/api/roles/:id', authRequired, requirePerm('all'), async (req, res) => {
-    try {
-        const role = await Role.findById(req.params.id);
-        if (!role) return res.status(404).json({ error: '角色不存在' });
-        if (role.isSystem) return res.status(400).json({ error: '系统角色不能删除' });
-        const usersUsingRole = await Admin.countDocuments({ roles: req.params.id });
-        if (usersUsingRole > 0) {
-            return res.status(400).json({ error: '该角色仍有关联用户，不能删除' });
-        }
-        if (Array.isArray(role.permissions) && role.permissions.includes('all')) {
-            const remainingAllRoles = await Role.countDocuments({ _id: { $ne: role._id }, permissions: 'all', isActive: { $ne: false } });
-            if (remainingAllRoles < 1) return res.status(400).json({ error: '不能删除最后一个超级角色' });
-        }
-        await Role.findByIdAndDelete(req.params.id);
-        await logOp('delete', 'Role', `Deleted role: ${req.params.id}`, req.user.username);
-        res.json({ success: true });
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-// --- Settings/Banner/Sidebar API ---
-app.get('/api/banner', async (req, res) => {
-    try {
-        const setting = await Setting.findOne({ key: 'banner' });
-        res.json(setting ? setting.value : {});
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.put('/api/banner', authRequired, requirePerm('banner:manage'), async (req, res) => {
-    try {
-        await Setting.findOneAndUpdate(
-            { key: 'banner' },
-            { value: req.body, updatedAt: Date.now() },
-            { upsert: true, new: true }
-        );
-        res.json({ success: true });
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.get('/api/sidebar/modules', async (req, res) => {
-    try {
-        const setting = await Setting.findOne({ key: 'sidebar_modules' });
-        res.json({ success: true, data: setting ? setting.value : [] });
-    } catch (e) {
-        res.status(500).json({ success: false, error: '服务器内部错误，请稍后重试' });
-    }
-});
-
-app.post('/api/sidebar/modules', authRequired, requirePerm('sidebar:manage'), async (req, res) => {
-    try {
-        const setting = await Setting.findOne({ key: 'sidebar_modules' });
-        let modules = setting ? setting.value : [];
-        if (!Array.isArray(modules)) modules = [];
-        
-        if (modules.length >= 5) {
-            return res.status(400).json({ success: false, error: '最多只能配置5个侧边栏模块' });
-        }
-        
-        const newModule = {
-            _id: new mongoose.Types.ObjectId().toString(),
-            ...req.body
-        };
-        
-        modules.push(newModule);
-        
-        await Setting.findOneAndUpdate(
-            { key: 'sidebar_modules' },
-            { value: modules, updatedAt: Date.now() },
-            { upsert: true, new: true }
-        );
-        
-        res.json({ success: true, data: newModule });
-    } catch (e) {
-        res.status(500).json({ success: false, error: '服务器内部错误，请稍后重试' });
-    }
-});
-
-app.put('/api/sidebar/modules/:id', authRequired, requirePerm('sidebar:manage'), async (req, res) => {
-    try {
-        const setting = await Setting.findOne({ key: 'sidebar_modules' });
-        if (!setting) return res.status(404).json({ success: false, error: '模块不存在' });
-        
-        let modules = setting.value;
-        const index = modules.findIndex(m => m._id === req.params.id);
-        if (index === -1) return res.status(404).json({ success: false, error: '模块不存在' });
-        
-        modules[index] = { ...modules[index], ...req.body };
-        
-        await Setting.findOneAndUpdate(
-            { key: 'sidebar_modules' },
-            { value: modules, updatedAt: Date.now() }
-        );
-        
-        res.json({ success: true });
-    } catch (e) {
-        res.status(500).json({ success: false, error: '服务器内部错误，请稍后重试' });
-    }
-});
-
-app.delete('/api/sidebar/modules/:id', authRequired, requirePerm('sidebar:manage'), async (req, res) => {
-    try {
-        const setting = await Setting.findOne({ key: 'sidebar_modules' });
-        if (!setting) return res.status(404).json({ success: false, error: '模块不存在' });
-        
-        let modules = setting.value;
-        modules = modules.filter(m => m._id !== req.params.id);
-        
-        await Setting.findOneAndUpdate(
-            { key: 'sidebar_modules' },
-            { value: modules, updatedAt: Date.now() }
-        );
-        
-        res.json({ success: true });
-    } catch (e) {
-        res.status(500).json({ success: false, error: '服务器内部错误，请稍后重试' });
-    }
-});
-
-
-// NQOC Models
 const NqocAwardApplication = require('./models/NqocAwardApplication');
 const NqocDebateConfig = require('./models/NqocDebateConfig');
 const NqocSurveyChannel = require('./models/NqocSurveyChannel');
@@ -6078,41 +5137,6 @@ app.get('/api/whitepaper/export', authRequired, requirePerm('appointment:export'
     }
 });
 
-// --- Subscription API ---
-app.post('/api/subscribe', async (req, res) => {
-    try {
-        const { email } = req.body;
-        if (!email) return res.status(400).json({ error: '邮箱地址不能为空' });
-        
-        // Basic email validation
-        const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
-        if (!emailRegex.test(email)) {
-             return res.status(400).json({ error: '请输入有效的邮箱地址' });
-        }
-
-        // Check existing
-        const existing = await Subscription.findOne({ email });
-        if (existing) {
-            if (existing.status === 'unsubscribed') {
-                existing.status = 'active';
-                await existing.save();
-                return res.json({ success: true, message: '重新订阅成功' });
-            }
-            return res.status(400).json({ error: '该邮箱已订阅' });
-        }
-
-        const newSub = new Subscription({ email });
-        await newSub.save();
-        
-        await logOp('create', 'Subscription', `New subscription: ${email}`);
-        
-        res.json({ success: true, message: '订阅成功' });
-    } catch (e) {
-        console.error('Subscription Error:', e);
-        res.status(500).json({ error: '服务器内部错误' });
-    }
-});
-
 // === Efficiency Diagnosis Routes ===
 
 // Submit Efficiency Diagnosis
@@ -6861,6 +5885,10 @@ app.use((err, req, res, next) => {
         res.status(err.status || 500).send('<h1>500 - 服务器内部错误</h1><p>请稍后再试。</p>');
     }
 });
+
+// Sitemap & Robots.txt Routes
+const sitemapRouter = require('./routes/sitemap');
+app.use('/', sitemapRouter);
 
 // Start Server
 app.listen(PORT, () => {

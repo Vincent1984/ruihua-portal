@@ -18,16 +18,8 @@ const OUT = path.join(ROOT, 'public', 'js', 'rh2026-engine.js');
 function main() {
   let js = fs.readFileSync(SRC, 'utf8');
 
-  // 补丁 1：route() 加空值保护
-  const routeMarker = 'function route(){\n  const raw=(location.hash||\'#/\').replace(\'#/\',\'\');';
-  if (!js.includes(routeMarker)) throw new Error('未找到 route() 入口，源文件结构可能已变');
-  js = js.replace(
-    routeMarker,
-    'function route(){\n'
-    + '  // [engine patch] 非首页（无 #heroWrap）不执行 SPA 路由逻辑\n'
-    + '  if(!document.getElementById(\'heroWrap\')) return;\n'
-    + '  const raw=(location.hash||\'#/\').replace(\'#/\',\'\');'
-  );
+  // The source now initializes SSR pages directly, preserving native fragment anchors.
+  if (!js.includes('SSR owns routing;')) throw new Error('源文件必须使用 SSR 页面初始化');
 
   const banner = '/* 本文件由 scripts/build-rh2026-engine.js 自动生成，请勿手改。源：public/js/rh2026.js */\n';
   fs.writeFileSync(OUT, banner + js, 'utf8');

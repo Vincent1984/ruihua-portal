@@ -1,8 +1,8 @@
 # 瑞华智策｜AI 时代组织进化知识库
 
 > 面向企业管理者、组织负责人和 AI 转型团队，提供 AI 赋能培训、AI 转型咨询、AI 落地陪跑与人力资本价值经营服务。
-> 最后更新：2026-09-04
-> 文章总数：14
+> 最后更新：2026-09-10
+> 文章总数：3
 
 ## 核心页面
 - 产品与服务: https://www.ruihuaconsulting.com/solutions
@@ -15,87 +15,20 @@
 - 关于我们: https://www.ruihuaconsulting.com/about
 - 联系我们: https://www.ruihuaconsulting.com/contact
 
-## 测试版-2026 上半年企业 AI 应用成熟度观察
-- URL: https://www.ruihuaconsulting.com/insights/enterprise-ai-application-maturity-2026-h1
-- Date: 2026-09-03
-- Tags: AI应用成熟度, 代AI跃迁, 工作流可控
-- Summary: 2026年中国大模型市场规模将破700亿元，但企业需警惕“大模型囤积症”——重部署轻应用。破局关键：一是从对话式AI跃迁至代理式AI，实现“可控自主”，需业务本体与分级置信度机制保障安全；二是拥抱Vibe Coding，通过业务规则显式化，实现高质量内建开发；三是完成从“数据连通”到“语义重构”的进
+## 2026新质生产力下的企业AI化变革与组织重构战略指南
+- URL: https://www.ruihuaconsulting.com/insights/2026-new-productivity-ai-transformation-organizational
+- Date: 2026-09-10
+- Tags: 新质生产，智改数转，组织重构
+- Summary: 2026年国企AI转型关键：AI非工具而是“硅基员工”，需组织变革。政策转向“人工智能+”规模化落地。企业需四项准备：战略定位、统一基础设施、人机协作规划、流程重构。未来3-5年为窗口期，否则组织债务难偿。
 
-## 测试版-2026 上半年企业 AI 应用成熟度观察
-- URL: https://www.ruihuaconsulting.com/insights/enterprise-ai-maturity-2026-01
-- Date: 2026-09-03
-- Tags: AI应用成熟度, 代AI跃迁, 工作流可控
-- Summary: 2026年中国大模型市场规模将破700亿元，但企业需警惕“大模型囤积症”——重部署轻应用。破局关键：一是从对话式AI跃迁至代理式AI，实现“可控自主”，需业务本体与分级置信度机制保障安全；二是拥抱Vibe Coding，通过业务规则显式化，实现高质量内建开发；三是完成从“数据连通”到“语义重构”的进
-
-## 央国企 AI 化转型规划：从合规动作到经营抓手
-- URL: https://www.ruihuaconsulting.com/insights/central-soes-ai-transformation-planning
-- Date: 2026-08-18
-- Tags: 央国企, 政策
-- Summary: 国资委要求央企制定 AI 化转型规划后，第一批规划书普遍缺了什么。
-
-## 2026 上半年企业 AI 应用成熟度观察
-- URL: https://www.ruihuaconsulting.com/insights/enterprise-ai-maturity-2026
-- Date: 2026-08-05
-- Tags: 行业观察, 年度报告
-- Summary: 覆盖 8 个行业、120 家企业的调研样本，8 月底发布。
-
-## HR 超级工作站：把招聘全链路与人事合规一次跑通
-- URL: https://www.ruihuaconsulting.com/insights/hr-recruitment-workflow-compliance-suite
-- Date: 2026-06-28
-- Tags: 招聘, 合规, HR Agent
-- Summary: 招聘总耗时 3 周→1 周，合规核对 6h→30min，这条链路是怎么搭起来的。
-
-## 制造业 Agent 落地地图：8 个已跑通的高频场景
-- URL: https://www.ruihuaconsulting.com/insights/manufacturing-agent-implementation-8-proven
-- Date: 2026-06-11
-- Tags: 制造业, 场景地图
-- Summary: 工艺编制、经营分析、采购决策、图纸识别……把已验证的场景摆在同一张表上。
-
-## 从场景诊断到规模复制：AI 项目为什么卡在第二个场景
-- URL: https://www.ruihuaconsulting.com/insights/ai-project-scaling-challenges-scenario
-- Date: 2026-05-08
-- Tags: 场景诊断, 规模化
-- Summary: 1 个能规模化复制的 Agent，胜过 10 个烂尾的试验品。
+## 【测试】R=B×O 落地实践：增长诊断七步法
+- URL: https://www.ruihuaconsulting.com/insights/test-thinktank-growth-diagnosis
+- Date: 2026-09-10
+- Summary: 这是一篇用于验证经营智库页面后台文章展示效果的测试文章。
 
 ## 2026企业数智化转型：从「模型囤积」到Agentic AI的价值跃迁
-- URL: https://www.ruihuaconsulting.com/insights/agentic-ai-value-transformation-2026
+- URL: https://www.ruihuaconsulting.com/insights/enterprise-digital-transformation
 - Date: 2026-04-10
-- Tags: Agentic AI, 数智化转型, MCP, 本体, Vibe Coding
+- Tags: 数智化转型, 代理式AI, 可控自主AI
 - Summary: 2026年中国大模型市场规模突破700亿元。瑞华智策通过对多家企业的实地调研发现，数智化转型的重心已从单纯的算力投入，转向以「业务本体」为核心的架构重构。企业亟需治愈「数据贫血」与「语义痴呆」，方能在代理式AI时代保持核心竞争力。
-
-## 2026企业数智化转型：从「模型囤积」到Agentic AI的价值跃迁
-- URL: https://www.ruihuaconsulting.com/insights/enterprise-digital-transformation-agentic-ai
-- Date: 2026-04-10
-- Tags: Agentic AI, 数据治理, 转型方法论
-- Summary: 2026年中国大模型市场规模突破700亿元。数智化转型的重心已从算力投入，转向以「业务本体」为核心的架构重构。
-
-## 人力资本价值经营的方法论与落地实践
-- URL: https://www.ruihuaconsulting.com/insights/human-capital-value-management-method
-- Date: 2026-03-16
-- Tags: 人力资本, CEO经营, 人效, 研发效能, 用工管理
-- Summary: 2026开始企业应该更加关注持续的价值创造，「开源」才是企业持续增长的动力。回望2025年，降本增效依然是企业经营的主旋律。但是，「节流」还有多少空间？因此，2026开始，企业应该更加关注持续的价值创造。
-
-## 人力资本价值经营的方法论与落地实践
-- URL: https://www.ruihuaconsulting.com/insights/human-capital-value-management-methodology
-- Date: 2026-03-16
-- Tags: 人力资本, 价值经营, 人效
-- Summary: 2026开始企业应该更加关注持续的价值创造，「开源」才是企业持续增长的动力。
-
-## 混合员工时代：数字员工的岗位设计与绩效衡量
-- URL: https://www.ruihuaconsulting.com/insights/hybrid-workforce-digital-employee-role
-- Date: 2026-02-20
-- Tags: 数字员工, 绩效, 混合用工
-- Summary: 当 Agent 开始承担岗位职责，岗位说明书、编制口径与绩效衡量都要重写。
-
-## AI时代下CHO的经营者思维进化策略
-- URL: https://www.ruihuaconsulting.com/insights/ai-cho-operational-thinking-strategies
-- Date: 2026-01-06
-- Tags: CHO, 组织变革
-- Summary: AI时代，如何构建人机协同的组织是全球性课题，突破认知与思维局限，是企业家和CHO的首要必然选择。
-
-## AI时代下CHO的经营者思维进化策略
-- URL: https://www.ruihuaconsulting.com/insights/cho-operator-mindset-evolution-ai
-- Date: 2026-01-06
-- Tags: CHO, 组织进化, 人机协同, 长期主义, 量子思维
-- Summary: AI时代，如何构建人机协同的组织是全球性课题，突破认知与思维局限，是企业家和CHO的首要必然选择。
 
