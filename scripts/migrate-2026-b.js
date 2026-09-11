@@ -13,7 +13,7 @@ function links(html) {
   return html.replace(/https:\/\/www\.ruihuaconsulting\.com\/nqoc/g, '/nqoc')
     .replace(/#\/cases\/([a-z]+)/g, (m, slug) => industries.includes(slug) ? '/cases/industry/' + slug : '/cases')
     .replace(/#\/about\/team/g, '/about/team')
-    .replace(/#\/solutions\/hcvm/g, '/hcvm')
+    .replace(/#\/solutions\/hcvm/g, '/solutions/hcvm')
     .replace(/#\//g, '/');
 }
 

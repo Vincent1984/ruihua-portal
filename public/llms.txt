@@ -1,7 +1,7 @@
 # 瑞华智策｜AI 时代组织进化知识库
 
 > 面向企业管理者、组织负责人和 AI 转型团队，提供 AI 赋能培训、AI 转型咨询、AI 落地陪跑与人力资本价值经营服务。
-> 最后更新：2026-09-10
+> 最后更新：2026-09-11
 > 文章总数：3
 
 ## 核心页面
@@ -9,7 +9,7 @@
 - AI 赋能培训: https://www.ruihuaconsulting.com/solutions/training
 - AI 转型咨询: https://www.ruihuaconsulting.com/solutions/consulting
 - AI 落地陪跑: https://www.ruihuaconsulting.com/solutions/fde
-- 人力资本价值经营: https://www.ruihuaconsulting.com/hcvm
+- 人力资本价值经营: https://www.ruihuaconsulting.com/solutions/hcvm
 - 行业案例: https://www.ruihuaconsulting.com/cases
 - 研究中心: https://www.ruihuaconsulting.com/insights
 - 关于我们: https://www.ruihuaconsulting.com/about

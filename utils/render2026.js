@@ -8,7 +8,8 @@
  *   const { render2026 } = require('./utils/render2026');
  *   res.send(render2026({ title, description, content }));
  *
- * partial 与模板均带内存缓存；生产环境只读一次。开发环境可用 clearCache() 重载。
+ * partial、模板与页面块均带内存缓存。生产环境只读一次；开发环境按文件 mtime
+ * 自动失效，改完 HTML 无需重启进程。
  */
 const fs = require('fs');
 const path = require('path');
@@ -17,7 +18,14 @@ const ROOT = path.join(__dirname, '..');
 const BASE = path.join(ROOT, 'views', '2026', 'base.html');
 const PARTIAL_DIR = path.join(ROOT, 'views', '2026', 'partials');
 
+// 非 production 时按文件 mtime 判断缓存是否过期（惰性读取，避免 require 早于 dotenv）
+const isDev = () => process.env.NODE_ENV !== 'production';
+function fileMtime(p) {
+  try { return fs.statSync(p).mtimeMs; } catch (e) { return -1; }
+}
+
 let _cache = null;
+let _cacheMtimes = [];
 // 全局配置缓存：初始给默认值，保证 DB 未就绪时占位符也能被替换掉
 let _globalConfigCache = {
   tel: '400-175-0886',
@@ -81,8 +89,17 @@ function rewriteLinks(html) {
   return html;
 }
 
+const CACHE_SOURCES = {
+  base: BASE,
+  nav: path.join(PARTIAL_DIR, 'nav.html'),
+  mobileNav: path.join(PARTIAL_DIR, 'mobile-nav.html'),
+  footer: path.join(PARTIAL_DIR, 'footer.html'),
+  drawer: path.join(PARTIAL_DIR, 'drawer.html'),
+};
+
 function loadCache() {
-  if (_cache) return _cache;
+  if (_cache && !isDev()) return _cache;
+  if (_cache && Object.values(CACHE_SOURCES).every((p, i) => _cacheMtimes[i] === fileMtime(p))) return _cache;
   const read = (p) => fs.readFileSync(p, 'utf8');
   _cache = {
     base: read(BASE),
@@ -91,11 +108,14 @@ function loadCache() {
     footer: rewriteLinks(read(path.join(PARTIAL_DIR, 'footer.html'))),
     drawer: read(path.join(PARTIAL_DIR, 'drawer.html')),
   };
+  _cacheMtimes = Object.values(CACHE_SOURCES).map(fileMtime);
   return _cache;
 }
 
 function clearCache() {
   _cache = null;
+  _cacheMtimes = [];
+  Object.keys(_blockCache).forEach((k) => delete _blockCache[k]);
   reloadGlobalConfig();
 }
 
@@ -134,7 +154,7 @@ function markActive(html, activePath) {
   if (!activePath) return html;
   const key = activePath === '/' ? 'home'
     : activePath.startsWith('/about') ? 'about'
-    : activePath.startsWith('/solutions') || activePath === '/hcvm' ? 'solutions'
+    : activePath.startsWith('/solutions') ? 'solutions'
     : activePath.startsWith('/cases') ? 'cases'
     : activePath.startsWith('/insights') ? 'insights'
     : activePath.startsWith('/contact') ? 'contact' : '';
@@ -150,12 +170,14 @@ function markActive(html, activePath) {
 const BLOCK_DIR = path.join(ROOT, 'views', '2026', 'page-blocks');
 const _blockCache = {};
 function loadBlock(key) {
-  if (key in _blockCache) return _blockCache[key];
   const p = path.join(BLOCK_DIR, `${key}.html`);
+  const mtime = fileMtime(p);
+  const cached = _blockCache[key];
+  if (cached && (!isDev() || cached.mtime === mtime)) return cached.html;
   let html = fs.existsSync(p) ? rewriteLinks(fs.readFileSync(p, 'utf8')) : '';
   // .page 块在多页 SSR 下需带 on 类才显示（route() 不再切换）
   html = html.replace(/^(<div class="page)"/, '$1 on"');
-  _blockCache[key] = html;
+  _blockCache[key] = { html, mtime };
   return html;
 }
 

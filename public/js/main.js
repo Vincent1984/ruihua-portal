@@ -612,7 +612,7 @@ const searchKB = [
         keywords: ['hcvm', '自有员工', '内部员工', '人效', 'roi'],
         title: 'HCVM 自有员工价值经营解决方案',
         desc: '针对企业核心职能团队（研发、销售等），通过数字化平台与AI赋能，实现从人效量化到价值跃迁的完整闭环。',
-        url: '/hcvm',
+        url: '/solutions/hcvm',
         type: '解决方案'
     },
     {

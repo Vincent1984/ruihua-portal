@@ -317,7 +317,7 @@ const KB=[
  {k:['切入','从哪','开始','入手','场景选'],a:`<strong>不要从最复杂的核心业务开始。</strong>优先选高频、高人力、流程相对标准化的场景——客服工单、招聘筛选、费用报销这类。数据积累充分、容错空间大，通常 <strong>2–4 周就能验证价值</strong>，建立信心后再扩展到核心环节。我们的「场景诊断」就是帮你把投入产出比最高的切入点筛出来。`,
   rag:['已检索 常见问题','已检索 交付方法'],src:[['预约「AI 场景诊断」','服务入口','/contact'],['三位一体交付模式','首页','/','home-svc']]},
  {k:['混合员工','怎么管','绩效','考核','分工','人力','CHO'],a:`这正是我们咨询板块「<strong>组织管理机制优化（碳硅共智）</strong>」解决的问题：人机分工怎么划、混合工作流怎么设计、<strong>碳硅双轨绩效与激励体系</strong>怎么建。母公司人瑞人才 15 年人力资本经营的方法论，是我们和纯技术公司最大的差别。`,
-  rag:['已检索 AI转型咨询','已检索 HCVM 体系'],src:[['AI 转型咨询 · 组织管理机制优化','产品与服务','/solutions/consulting'],['人力资本价值经营 HCVM','产品与服务','/hcvm']]}, 
+  rag:['已检索 AI转型咨询','已检索 HCVM 体系'],src:[['AI 转型咨询 · 组织管理机制优化','产品与服务','/solutions/consulting'],['人力资本价值经营 HCVM','产品与服务','/solutions/hcvm']]}, 
  {k:['多久','见效','周期','多长时间'],a:`分两段：<strong>原型验证 2–4 周</strong>，用真实业务数据跑通核心链路；<strong>完整部署并产生可量化结果一般 4–8 周</strong>，取决于场景复杂度和系统对接情况。我们边部署边调优，缩短从「能看到效果」到「稳定运行」的周期。`,
   rag:['已检索 常见问题'],src:[['常见问题 · 部署周期','首页 FAQ','/','home-faq']]},
  {k:['接进','系统','部署','私有化','数据安全','对接','CIO'],a:`两种部署形态按数据安全要求选：<strong>WorkBuddy 企业版</strong>（腾讯云成熟架构，即开即用，适合快速验证）或<strong>基于自研开源架构的私有化部署</strong>——Agent 运行在你自己的环境里，数据不出域。系统打通是 FDE 交付「选→育→用→优」里「育」的核心环节。`,
@@ -347,7 +347,7 @@ function buildSiteIndex(){
   const txt=el=>el?el.textContent.replace(/\s+/g,' ').trim():'';
   const PAGES=[['/','首页','homeMain',null],['/solutions','产品与服务 · 总览',null,'solutions'],
     ['/solutions/training','AI 赋能培训',null,'p-training'],['/solutions/consulting','AI 转型咨询',null,'p-consulting'],
-    ['/solutions/fde','AI 落地陪跑',null,'p-fde'],['/hcvm','人力资本价值经营',null,'hcvm'],
+    ['/solutions/fde','AI 落地陪跑',null,'p-fde'],['/solutions/hcvm','人力资本价值经营',null,'hcvm'],
     ['/about','关于我们',null,'about'],['/contact','预约诊断',null,'contact'],
     ['/insights/industry','研究中心 · 行业洞察',null,'i-industry'],['/insights/thinktank','研究中心 · 经营智库',null,'i-thinktank']];
   PAGES.forEach(([h,w,id,pg])=>{
@@ -1217,7 +1217,7 @@ function clearErr(el){
 
 /* ===== 访问轨迹 & 触发方式埋点（跨页面 sessionStorage 持久化） ===== */
 function pageTitleOf(path){
-  const m={'/':'首页','/solutions':'解决方案','/cases':'行业案例','/about':'关于我们','/contact':'预约诊断','/hcvm':'HCVM 模型','/insights':'行业洞察'};
+  const m={'/':'首页','/solutions':'解决方案','/cases':'行业案例','/about':'关于我们','/contact':'预约诊断','/solutions/hcvm':'HCVM 模型','/insights':'行业洞察'};
   if(m[path])return m[path];
   if(path.startsWith('/solutions/'))return '解决方案';
   if(path.startsWith('/cases/'))return '行业案例';

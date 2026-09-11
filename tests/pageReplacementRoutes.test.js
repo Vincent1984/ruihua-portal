@@ -15,7 +15,7 @@ describe('2026 页面替换路由', function () {
         '/solutions/training',
         '/solutions/consulting',
         '/solutions/fde',
-        '/hcvm',
+        '/solutions/hcvm',
         '/insights',
         '/insights/industry',
         '/insights/thinktank',
@@ -83,7 +83,7 @@ describe('2026 页面替换路由', function () {
         const server = fs.readFileSync(path.join(ROOT, 'server.js'), 'utf8');
         const canonicalPaths = [
             'solutions', 'solutions/training', 'solutions/consulting', 'solutions/fde',
-            'hcvm', 'cases', 'insights', 'insights/industry', 'insights/thinktank',
+            'solutions/hcvm', 'cases', 'insights', 'insights/industry', 'insights/thinktank',
             'about', 'contact'
         ];
 
@@ -126,8 +126,8 @@ describe('2026 页面替换路由', function () {
     const legacyRedirects = {
         '/solutions/': '/solutions',
         '/solutions.html': '/solutions',
-        '/solutions-hcvm/': '/hcvm',
-        '/solutions-hcvm.html': '/hcvm',
+        '/solutions-hcvm/': '/solutions/hcvm',
+        '/solutions-hcvm.html': '/solutions/hcvm',
         '/solutions-ohcvm/': '/solutions',
         '/solutions-ohcvm.html': '/solutions',
         '/about/': '/about',

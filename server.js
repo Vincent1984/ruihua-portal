@@ -1548,7 +1548,7 @@ app.get('/sitemap.xml', async (req, res) => {
             { url: 'solutions/training', file: 'views/2026/page-blocks/p-training.html', priority: 0.8, changefreq: 'monthly' },
             { url: 'solutions/consulting', file: 'views/2026/page-blocks/p-consulting.html', priority: 0.8, changefreq: 'monthly' },
             { url: 'solutions/fde', file: 'views/2026/page-blocks/p-fde.html', priority: 0.8, changefreq: 'monthly' },
-            { url: 'hcvm', file: 'views/2026/page-blocks/hcvm.html', priority: 0.8, changefreq: 'monthly' },
+            { url: 'solutions/hcvm', file: 'views/2026/page-blocks/hcvm.html', priority: 0.8, changefreq: 'monthly' },
             { url: 'cases', file: 'views/2026/page-blocks/cases.html', priority: 0.9, changefreq: 'weekly' },
             { url: 'insights', file: 'views/2026/page-blocks/i-industry.html', priority: 0.9, changefreq: 'weekly' },
             { url: 'insights/industry', file: 'views/2026/page-blocks/i-industry.html', priority: 0.7, changefreq: 'weekly' },
@@ -2069,7 +2069,7 @@ async function rebuildLLMsTxt() {
         content += `- AI 赋能培训: ${SITE_URL}/solutions/training\n`;
         content += `- AI 转型咨询: ${SITE_URL}/solutions/consulting\n`;
         content += `- AI 落地陪跑: ${SITE_URL}/solutions/fde\n`;
-        content += `- 人力资本价值经营: ${SITE_URL}/hcvm\n`;
+        content += `- 人力资本价值经营: ${SITE_URL}/solutions/hcvm\n`;
         content += `- 行业案例: ${SITE_URL}/cases\n`;
         content += `- 研究中心: ${SITE_URL}/insights\n`;
         content += `- 关于我们: ${SITE_URL}/about\n`;

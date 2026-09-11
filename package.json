@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
+    "dev": "nodemon server.js",
     "build:css": "tailwindcss -i ./public/css/styles.css -o ./public/css/main.css",
     "build:css:nqoc": "tailwindcss -i ./public/css/styles.css -o ./public/nqoc/css/main.css",
     "build:css:home": "npx tailwindcss@3.4.17 -c ./tailwind/tailwind.config.js -i ./tailwind/tailwind-src.css -o ./public/css/tailwind.css --minify",
@@ -59,6 +60,7 @@
     "cssnano": "^9.0.4",
     "jest": "^29.7.0",
     "mocha": "^11.7.5",
+    "nodemon": "^3.1.14",
     "postcss": "^8.5.28",
     "postcss-cli": "^12.0.0",
     "supertest": "^7.2.2",

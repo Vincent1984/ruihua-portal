@@ -112,6 +112,7 @@ body{background:var(--cream);color:var(--ink);font-family:var(--sans);
   color: var(--ink-2);
   line-height: 1.7;
   padding: 0 20px 16px 0;
+  text-align: justify;
 }
 
 /* 案例详情浮层 */
@@ -600,8 +601,9 @@ body.home-on .nav .btn-ink:hover{background:var(--p-300)}
 /* ============ 页脚（结构化占位） ============ */
 .footer{background:var(--cream-2);border-top:1px solid var(--line)}
 .f-inner{max-width:1320px;margin:0 auto;padding:64px 34px 30px}
-.f-word{font-family:var(--serif);font-weight:900;font-size:clamp(44px,7vw,84px);
-  line-height:1.1;color:var(--ink);margin-bottom:48px;letter-spacing:.02em}
+/* 页脚标语：全端强制单行（字号随视口缩放，8.4vw 保证 320px 起仍不折行） */
+.f-word{font-family:var(--serif);font-weight:900;font-size:clamp(24px,8.4vw,84px);
+  line-height:1.1;color:var(--ink);margin-bottom:48px;letter-spacing:.02em;white-space:nowrap}
 .f-word em{font-style:normal;color:var(--purple)}
 .f-cols{display:grid;grid-template-columns:repeat(5,1fr);gap:24px;padding-bottom:44px;
   border-bottom:1px solid var(--line)}
@@ -612,9 +614,11 @@ body.home-on .nav .btn-ink:hover{background:var(--p-300)}
 .f-col a:hover{color:var(--purple)}
 .f-base{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
   padding-top:22px;font-size:11.5px;font-weight:600;color:var(--ink-3)}
+.f-base a{color:inherit;text-decoration:none;transition:color .16s}
+.f-base a:hover{color:var(--purple)}
 
 /* ============ AI 顾问（与前版一致） ============ */
-.fab{position:fixed;right:26px;bottom:26px;z-index:56;display:inline-flex;align-items:center;
+.fab{position:fixed;right:26px;bottom:64px;z-index:56;display:inline-flex;align-items:center;
   gap:9px;background:var(--ink);color:var(--cream);border:none;border-radius:999px;
   padding:13px 22px;font-family:var(--sans);font-size:14px;font-weight:700;cursor:pointer;
   box-shadow:0 10px 28px rgba(33,30,40,.3);transition:all .2s var(--ease)}
@@ -966,7 +970,25 @@ div[data-art]{background:transparent !important;padding:0 !important;margin:0 !i
   .cards3{grid-template-columns:1fr}
   .tiles-row{grid-template-columns:1fr 1fr}
   .f-cols{grid-template-columns:1fr 1fr}
+  /* 页脚折叠成两列后，「联系」列仅半栏宽，城市串（如「北京 · 上海 · 广州 · 深圳 · 成都」）
+     会在空格处折行并以「·」起头（错行），这里让它独占整行 */
+  .f-col:last-child{grid-column:1/-1}
   .contact-grid{grid-template-columns:1fr !important}
+}
+/* 手机端：「联系」列改为两栏，公众号文字+二维码移到右侧；
+   城市串仍横跨整行（半栏宽装不下会折行） */
+@media (max-width:560px){
+  .f-col:last-child{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:14px;align-items:start}
+  .f-col:last-child>.h{grid-column:1;grid-row:1}
+  .f-col:last-child>a:nth-of-type(1){grid-column:1;grid-row:2}
+  .f-col:last-child>a:nth-of-type(2){grid-column:1;grid-row:3}
+  .f-col:last-child>a:nth-of-type(3){grid-column:1/-1;grid-row:4}
+  /* 公众号 + 二维码整块在右栏垂直居中（与左侧联系方式高度对齐） */
+  .f-col:last-child>.f-qr-box{grid-column:2;grid-row:1/span 4;align-self:center;justify-self:end;
+    display:flex;flex-direction:column;align-items:center;gap:6px}
+  .f-col:last-child>.f-qr-box>*{margin-top:0}
+  /* 页脚底栏（版权 + 备案号）在窄屏折行后居中 */
+  .f-base{justify-content:center;text-align:center}
 }
 @media (prefers-reduced-motion:reduce){
   .typing i{animation:none}
@@ -1186,9 +1208,31 @@ div[data-art]{background:transparent !important;padding:0 !important;margin:0 !i
 /* 演示窗在隧道内右下 */
 .j3d .demo-win.demo-mini{position:absolute;right:3%;bottom:6%;z-index:3;
   box-shadow:0 0 0 1px rgba(124,77,255,.25),0 0 90px rgba(124,77,255,.2),0 40px 90px rgba(0,0,0,.5)}
+/* 0911 移动端 hero：A 文字块整体上移（底留白 9vh→13vh；隧道是 sticky 钉住的，不能真压 hero 高度）
+   + B 五个问题 chips 以单行横向滑动条回归，放在两枚胶囊下方 */
 @media (max-width:760px){
   .j3d{--j3d-persp:760px}
-  .j3d-txt .tl-inner{padding:88px 22px 9vh}}
+  .j3d-txt .tl-inner{padding:88px 18px 13vh}
+  .j3d-txt h1{margin-bottom:22px}
+  .j3d-txt .tl-chips{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;margin:18px 0 0;padding:2px 0 8px;max-width:none;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;
+    -webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+  .j3d-txt .tl-chips::-webkit-scrollbar{display:none}
+  .j3d-txt .tl-chips button{flex:0 0 auto;font-size:12px;padding:8px 14px;white-space:nowrap;scroll-snap-align:start;min-height:36px}
+  .j3d-txt .tl-chips button b{font-size:11px !important}  /* 与 ㊷ 字号下限 11px 保持一致 */
+}
+/* 52 横屏手机（高 ≤500px：844×390 / 932×430 / 667×375 一类）：同样上移 + chips 单行横滑；
+   首屏时 hero 从导航下方 y=64 起算，底留白须 ≥64 才能整块进首屏，这里调 80px */
+@media (max-height:500px){
+  .j3d-txt .tl-inner{padding-top:64px;padding-bottom:80px}
+  .j3d-txt h1{margin-bottom:16px}
+  .j3d-txt .tl-chips button b{font-size:11px !important}
+  .j3d-txt .tl-chips{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;margin:14px 0 0;padding:2px 0 8px;max-width:none;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;
+    -webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+  .j3d-txt .tl-chips::-webkit-scrollbar{display:none}
+  .j3d-txt .tl-chips button{flex:0 0 auto;font-size:12px;padding:8px 14px;white-space:nowrap;scroll-snap-align:start;min-height:36px}
+}
 @media (prefers-reduced-motion:reduce){
   .j3d-fly,.j3d-slot,.j3d-grid,.j3d-slot img{animation-play-state:paused!important}
   .j3d-room{transform:none!important}}
@@ -1753,6 +1797,7 @@ body:not(.home-on) .f-col .h{color:var(--d-text)}
 body:not(.home-on) .f-col a{color:var(--d-weak)}
 body:not(.home-on) .f-col a:hover{color:var(--p-300)}
 body:not(.home-on) .f-base,body:not(.home-on) .f-base a{color:var(--d-weak)}
+body:not(.home-on) .f-base a:hover{color:var(--p-300)}
 body:not(.home-on) .f-cols{border-color:rgba(255,255,255,.1)}
 body:not(.home-on) .f-qr{border-color:rgba(255,255,255,.15)}
 /* 关于页局部：去掉 PART 编号后的标题行 */
@@ -2556,7 +2601,9 @@ a.m-item.sub b{font-size:15px}
 .ed-ledger.mods7 dd{font-size:14px;color:var(--ink-2);line-height:1.8;padding-left:52px}
 .ed-ledger.mods7 .row:last-child dd{padding-left:0}
 .page[data-page="p-overseas"] .feat6>div{padding:20px 18px}
-.page[data-page="p-overseas"] .feat6 p{font-size:13px;letter-spacing:-.01em;white-space:nowrap}
+.page[data-page="p-overseas"] .feat6 p{font-size:13px;letter-spacing:-.01em}
+/* ㊸-10 无条件的 nowrap 会把三栏的 min-content 顶成整句宽度，1024–1366 撑破视口；只有内容板真够宽时才不换行 */
+@media (min-width:1400px){.page[data-page="p-overseas"] .feat6 p{white-space:nowrap}}
 .svc4 .cell.val>b{color:var(--sage-ink)}.svc4 .cell.val>b::before{background:var(--sage)}
 @media (max-width:900px){.ed-ledger.mods7{grid-template-columns:1fr}.ed-ledger.mods7 .row:last-child{display:block}.page[data-page="p-overseas"] .feat6 p{white-space:normal}}
 
@@ -2782,7 +2829,7 @@ a.m-item.sub b{font-size:15px}
 .form label{display:block;font-size:12.5px;font-weight:800;color:var(--ink);margin:14px 0 6px}
 .form label .req{color:#c34704}
 .form input[type=text],.form input[type=tel],.form input[type=email],.form textarea,.form select{
-  width:100%;font-family:var(--sans);font-size:13.5px;line-height:1.4;padding:11px 14px;
+  width:100%;font-family:var(--sans);font-size:12.5px;line-height:1.4;padding:11px 14px;
   border:1px solid var(--hair);border-radius:10px;background:var(--card);color:var(--ink);
   transition:border-color .18s ease,box-shadow .18s ease,background-color .18s ease}
 .form input:hover,.form textarea:hover,.form select:hover{border-color:var(--ink-3)}
@@ -2848,17 +2895,23 @@ body.home-on .nav .btn-ink:hover,body:not(.home-on) .nav .btn-ink:hover{backgrou
 @media (prefers-reduced-motion:reduce){.tl-inner .ctas .btn{transition:none}}
 
 /* 小瑞悬浮入口：视频头像 + 在线标签 */
-.fab.fab-av{padding:6px 18px 6px 6px;gap:12px;background:rgba(33,30,40,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.14);box-shadow:0 14px 36px rgba(33,30,40,.35)}
+.fab.fab-av{padding:6px 18px 6px 6px;gap:14px;background:rgba(33,30,40,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.14);box-shadow:0 14px 36px rgba(33,30,40,.35)}
 .fab.fab-av:hover{background:rgba(94,53,177,.82);transform:translateY(-2px)}
 .fab .fab-face{position:relative;width:56px;height:56px;border-radius:50%;overflow:hidden;flex:0 0 auto;background:#ece6ff;box-shadow:0 0 0 2px rgba(255,255,255,.75)}
 .fab .fab-video{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.06)}
-.fab .fab-ring{position:absolute;left:6px;top:6px;width:56px;height:56px;border-radius:50%;border:2px solid rgba(189,165,255,.9);animation:fabRing 2.6s ease-out infinite;pointer-events:none}
+/* z-index:-1：光环是定位元素，默认绘制在非定位的 .fab-tag 文字之上，
+   扩张到 1.55 倍时会横切「问问小瑞」；压到背景层后光环只作为头像外圈，文字始终在最上层 */
+.fab .fab-ring{position:absolute;left:6px;top:6px;width:56px;height:56px;border-radius:50%;border:2px solid rgba(189,165,255,.9);animation:fabRing 2.6s ease-out infinite;pointer-events:none;z-index:-1}
 @keyframes fabRing{0%{transform:scale(1);opacity:.9}100%{transform:scale(1.55);opacity:0}}
 .fab .fab-tag{display:flex;flex-direction:column;align-items:flex-start;line-height:1.2;text-align:left}
 .fab .fab-tag b{font-size:14px;font-weight:800;color:#fff}
 .fab .fab-tag small{display:flex;align-items:center;gap:5px;margin-top:3px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.62)}
 .fab .fab-tag small::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--sage);box-shadow:0 0 0 3px rgba(214,232,147,.25)}
 @media (max-width:560px){.fab.fab-av{padding:5px;gap:0}.fab .fab-tag{display:none}}
+/* ㊾ 小瑞悬浮入口默认位置：手机（≤760）上移，贴在 hero 标题附近、不压底部两枚主按钮；
+   52 横屏矮屏（高 ≤500px）48vh 只剩 180px 会被 max(300px) 顶到导航上，回到 64px */
+@media (max-width:760px){.fab.fab-av{bottom:max(300px,48vh)}}
+@media (max-height:500px){.fab.fab-av{bottom:64px}}
 @media (prefers-reduced-motion:reduce){.fab .fab-ring{animation:none;opacity:0}}
 /* 首页 logo 恢复彩色，其他页面保持反白 */
 body.home-on .logo img{filter:none}
@@ -2868,3 +2921,76 @@ body.home-on .logo img{filter:none}
 .fab.fab-av.dragging{cursor:grabbing;transition:none;box-shadow:0 22px 52px rgba(33,30,40,.5)}
 .fab.fab-av.dragging .fab-ring{animation:none;opacity:0}
 .fab.fab-av.moved{right:auto;bottom:auto}
+
+/* ============ 0911 多端适配补漏（按 new/0911.md 验收清单：㊷ / ㊸ / ㊼ / 51） ============ */
+
+/* ㊷ ≤900：课程账本 ㉛ 的 232px 左列在窄屏把正文挤出行外并被 overflow:hidden 裁掉，这里恢复堆叠 */
+@media (max-width:900px){
+  .ed-ledger.zoned .row{grid-template-columns:1fr;gap:10px}
+  .ed-ledger.zoned .row dd{padding-left:14px}
+  /* 编号 + 正文 + 括号补充原本是三个互相挤压的 flex 项（末尾丢字），改绝对定位编号 + 自然行内流 */
+  .ed-ledger dd ol li{display:block;position:relative;padding-left:32px}
+  .ed-ledger dd ol li i{position:absolute;left:0;top:0;min-width:0}
+}
+/* ㊷ ≤760：负 margin / 负 inset 造成的横向溢出、最小字号、触控目标、悬浮入口光环同心 */
+@media (max-width:760px){
+  .ed-ledger .row.hi{margin-left:0;margin-right:0;padding-left:14px;padding-right:14px;border-radius:12px}
+  .rhg-legend>div{margin:0;padding:6px 0}
+  .osea-scope::after{display:none}
+  .osea-scope{padding:26px 20px 24px}
+  /* 最小字号：眼眉 / 编号 / 角标一律 ≥11px */
+  .tl-chips b,.chev,.st-tag,.mno,.rk,.raaid .st .en,.case-card .nums i,.dw-title .dw-sub,.ps-star,.cs-kpis .s i{font-size:11px !important}
+  .case-card .nums b{font-size:16px}
+  /* 正文内联链接：撑到可点击高度（iOS 建议 44pt / Material 48dp） */
+  .ed-link,.cta-sub a,.ed-opt p a,.ed-note a,.a-promo a,.cs-side .all{display:inline-flex;align-items:center;min-height:36px}
+  .tl-sec p>a[href="#/cases"]{display:inline-flex;align-items:center;min-height:36px}
+  #contact-more a,.page[data-page="contact"] a[onclick]{display:inline-flex;align-items:center;min-height:36px}
+  /* 悬浮小瑞：移动端只留头像，环与头像同心（padding 6px→5px） */
+  .fab.fab-av{padding:5px;gap:0}
+  .fab.fab-av .fab-ring{left:5px;top:5px}
+  /* 小瑞输入框：移动端抽屉占满全宽，字号收小一档（用 !important 覆盖上面的 16px 防缩放规则） */
+  .dw-input input{font-size:13px !important}
+  /* 联系表单：占位提示词移动端收小一档；只改 ::placeholder，输入框本体保持 16px 防 iOS 聚焦自动放大 */
+  .form input::placeholder,.form textarea::placeholder{font-size:13px}
+}
+/* 小平板（561–760，如 600 / 768 竖屏）：上面 ≤760 的 .fab-av{gap:0} 让头像与「问问小瑞」贴死，
+   这里补回间距与右侧留白（≤560 已隐藏文字，不受影响） */
+@media (min-width:561px) and (max-width:760px){
+  .fab.fab-av{padding:5px 14px 5px 5px;gap:11px}
+}
+/* ㊸ ≤1024：内容板阴影 / 装饰的亚像素外扩造成 1px 横向滚动；clip 不建立滚动容器，不影响 sticky */
+@media (max-width:1024px){
+  .svc-block,.ab-sec{overflow-x:clip}
+}
+/* ㊸ ≤1180：原 ≤900 才换行，1024 档仍是 nowrap+hidden，会把 FDE 那句话截掉 38px */
+@media (max-width:1180px){
+  .ed-oneline{white-space:normal;overflow:visible;text-overflow:clip}
+}
+/* ㊸ 地图图例四栏 1fr 的最小值是 min-content，国家名长时会把容器撑破视口 */
+.rhg-legend>div{min-width:0}
+.rhg-legend p{overflow-wrap:anywhere}
+/* ㊸ ≤960：1fr 的最小值是 min-content，窄屏会被案例详情里的 KPI 栅格顶开 */
+@media (max-width:960px){
+  .a-main{grid-template-columns:minmax(0,1fr)}
+}
+/* ㊸ ≤400：320 档收窄案例详情内边距、KPI 转单列 */
+@media (max-width:400px){
+  .cs-body{padding:8px 14px 24px}
+  .cs-sec .stat-grid{grid-template-columns:1fr}
+}
+/* ㊼ 移动端内页标题：`.section h2`(36px) / `.svc-block h3`(31px) 一直压着 .ed-h1/.ed-h2/.ed-h3 的 clamp，
+   手机上标题过大。这里按层级重新定档，并改为贪心换行（顶格后再折行） */
+@media (max-width:760px){
+  .section h2.ed-h1{font-size:27px;line-height:1.32;margin-bottom:20px}
+  .section h2.ed-h2{font-size:24px;line-height:1.36}
+  .svc-block h3,.section h3.ed-h3{font-size:19px;line-height:1.45;margin-top:36px}
+  .section h2,.svc-block h3,.ab-head h2,.ab-close h2,.tl-sec h2,.tl-cta h2,.p-hero h1,.sub-hero h1{text-wrap:pretty}
+}
+/* 51 关于我们 hero 六枚产品胶囊：移动端 flex-wrap 按字数参差换行很乱，改两列等宽栅格 3×2 */
+@media (max-width:760px){
+  .ab-hero .pills{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .ab-hero .pills a{display:flex;align-items:center;justify-content:center;text-align:center;min-height:44px;
+    padding:8px 10px;font-size:clamp(11.5px,3.4vw,13.5px);line-height:1.3;box-shadow:0 6px 16px rgba(124,77,255,.24)}
+}
+/* 320 档防止「务」「询」单字掉行 */
+@media (max-width:360px){.ab-hero .pills a{font-size:11px;padding:8px 4px;letter-spacing:-.01em}}

@@ -359,7 +359,7 @@ module.exports = function (app) {
     '/solutions/fde': { block: 'p-fde', title: 'AI 落地陪跑 · FDE | 瑞华智策', description: '现场部署 + 持续运营 + 能力转移，把 Agent 从演示拽进业务流。' },
     '/solutions/eco': { block: 'p-eco', title: '生态用工管理咨询 · 瑞华智策', description: '基于人瑞人才 15 年灵活用工服务经验，以「管理咨询 + 数智化平台」双轮驱动，重构用工结构、合规管理与效能治理。' },
     '/solutions/overseas': { block: 'p-overseas', title: 'HR 出海管理咨询 · 瑞华智策', description: '依托人瑞人才 23 个国家与地区的自有属地团队，从咨询方案到海外本土落地，全流程陪伴中国企业出海。' },
-    '/hcvm': { block: 'hcvm', title: '人力资本价值经营 · HCVM | 瑞华智策', description: '以管理+技术双轮驱动，实现客户、企业与人才的价值共赢。' },
+    '/solutions/hcvm': { block: 'hcvm', title: '人力资本价值经营 · HCVM | 瑞华智策', description: '以管理+技术双轮驱动，实现客户、企业与人才的价值共赢。' },
     '/about': { block: 'about', title: '关于我们 · AI 原生咨询公司 | 瑞华智策', description: '瑞华智策：人瑞人才全资子公司，AI 原生的本土咨询机构。' },
     '/contact': { block: 'contact', title: '联系我们 · 预约诊断 | 瑞华智策', description: '400-175-0886。预约「AI 场景诊断」，顾问 1 个工作日内联系你。' }
   };
