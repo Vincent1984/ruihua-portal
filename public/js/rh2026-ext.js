@@ -54,6 +54,7 @@ b9:function(event){location.href='/solutions/fde'},
 b10:function(event){location.href='/solutions/consulting'},
 b11:function(event){location.href='/solutions/eco'},
 b12:function(event){location.href='/solutions/overseas'},
+b18:function(event){location.href='/solutions/hcvm'},
 b13:function(event){this.style.display='none';this.nextElementSibling.style.display='flex'},
 b14:function(event){return submitForm(event)}};
 document.addEventListener('click',function(event){const el=event.target.closest?.('[data-evt-click]');if(!el)return;const fn=handlers[el.getAttribute('data-evt-click')];if(fn&&fn.call(el,event)===false)event.preventDefault();},false);
