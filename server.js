@@ -1523,11 +1523,15 @@ app.get('/', async (req, res) => {
         const { render2026 } = require('./utils/render2026');
         const { buildHome } = require('./routes/frontendRoutes2026');
         res.set('Cache-Control', 'no-cache');
+        const SITE = 'https://www.ruihuaconsulting.com';
+        const DEFAULT_OG_IMG = `${SITE}/images/2026-b/fbd558c5bc3e740f.png`;
         res.send(render2026({
-            title: '瑞华智策 · AI 时代组织进化全生命周期服务商',
-            description: '瑞华智策：AI 赋能培训、AI 转型咨询、AI 落地陪跑三位一体，陪企业走完 AI 转型全程。',
-            canonical: 'https://www.ruihuaconsulting.com/',
-            content: await buildHome()
+            title: '瑞华智策 · 碳硅混合生产力专家',
+            description: '瑞华智策 —— 碳硅混合生产力专家。陪企业走完 AI 转型全生命周期，从战略、组织、人效、流程到 Agent 场景落地，实现碳基与硅基员工的协同价值最大化。',
+            canonical: `${SITE}/`,
+            image: DEFAULT_OG_IMG,
+            content: await buildHome(),
+            activePath: '/'
         }));
     } catch (e) {
         console.error('SSR / (2026 home) failed:', e);

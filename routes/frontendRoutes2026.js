@@ -110,7 +110,7 @@ module.exports = function (app) {
         .filter(c => c.slug && c.slug.trim());
       res.set('Cache-Control', 'no-cache');
       res.send(render2026({
-        title: '行业案例 | 瑞华智策',
+        title: '客户案例 | 瑞华智策',
         description: '瑞华智策真实落地的 AI Agent 行业案例，覆盖制造、教育、零售、金融、物业等行业。',
         canonical: 'https://www.ruihuaconsulting.com/cases',
         content: buildCaseList(cases, '全部')
@@ -351,17 +351,19 @@ module.exports = function (app) {
   });
 
   // ===== 静态内容页（2026 设计块）SSR 路由 =====
-  // URL → { block, title, description }
+  // URL → { block, title, description, image(可选，相对路径自动加 https://www.ruihuaconsulting.com) }
+  const SITE = 'https://www.ruihuaconsulting.com';
+  const DEFAULT_OG_IMG = '/images/2026-b/fbd558c5bc3e740f.png'; // 1200x630 default
   const PAGES = {
-    '/solutions': { block: 'solutions', title: '产品与服务 · 三位一体 | 瑞华智策', description: 'AI 赋能培训、AI 转型咨询、AI 落地陪跑三位一体，可单独采购，也可组合成一体化方案。' },
-    '/solutions/training': { block: 'p-training', title: 'AI 赋能培训 · 12 门课带成果物 | 瑞华智策', description: '四条路径分角色培养，12 门课全部带可落地的成果物，解决「人会不会用 AI」。' },
-    '/solutions/consulting': { block: 'p-consulting', title: 'AI 转型咨询 · 碳硅共智 | 瑞华智策', description: 'AI 驱动的新增长引擎打造 × 组织管理机制优化，解决「往哪走」。' },
-    '/solutions/fde': { block: 'p-fde', title: 'AI 落地陪跑 · FDE | 瑞华智策', description: '现场部署 + 持续运营 + 能力转移，把 Agent 从演示拽进业务流。' },
-    '/solutions/eco': { block: 'p-eco', title: '生态用工管理咨询 · 瑞华智策', description: '基于人瑞人才 15 年灵活用工服务经验，以「管理咨询 + 数智化平台」双轮驱动，重构用工结构、合规管理与效能治理。' },
-    '/solutions/overseas': { block: 'p-overseas', title: 'HR 出海管理咨询 · 瑞华智策', description: '依托人瑞人才 23 个国家与地区的自有属地团队，从咨询方案到海外本土落地，全流程陪伴中国企业出海。' },
-    '/solutions/hcvm': { block: 'hcvm', title: '人力资本价值经营 · HCVM | 瑞华智策', description: '以管理+技术双轮驱动，实现客户、企业与人才的价值共赢。' },
-    '/about': { block: 'about', title: '关于我们 · AI 原生咨询公司 | 瑞华智策', description: '瑞华智策：人瑞人才全资子公司，AI 原生的本土咨询机构。' },
-    '/contact': { block: 'contact', title: '联系我们 · 预约诊断 | 瑞华智策', description: '400-175-0886。预约「AI 场景诊断」，顾问 1 个工作日内联系你。' }
+    '/solutions': { block: 'solutions', title: '产品与服务 · 三位一体 | 瑞华智策', description: 'AI 赋能培训、AI 转型咨询、AI 落地陪跑三位一体，可单独采购，也可组合成一体化方案。', image: DEFAULT_OG_IMG },
+    '/solutions/training': { block: 'p-training', title: 'AI 赋能培训 · 让团队会想、会用、会和 Agent 并肩作战 | 瑞华智策', description: 'AI 时代，「人」最容易成为硅基员工战力释放的瓶颈。我们从决策层到一线，把 AI 认知与 Agent 协作能力转移给团队——先会想，才会用，能力留在企业自己手里。', image: '/images/2026-b/b2714ed141781fbf.jpeg' },
+    '/solutions/consulting': { block: 'p-consulting', title: '碳硅混合生产力管理咨询 · 碳硅共智的新质组织 | 瑞华智策', description: '以 「碳硅共智的新质组织」 为目标框架，从战略、组织、人效、流程、风险、数据 6 个维度，诊断现状、重构结构、配套治理机制与人才发展路径，帮助企业把 「碳基 + 硅基」 混合生产力体系真正建起来、跑起来。', image: DEFAULT_OG_IMG },
+    '/solutions/fde': { block: 'p-fde', title: 'Agent 落地全周期服务 · 场景定义到价值闭环 | 瑞华智策', description: '把「AI 转型」拆成「一个个真场景落地」：从场景定义与优先级排序，到 Agent 搭建、冷启动、上线、价值衡量、组织接纳、复制推广，FDE 团队在关键节点提供方法、工具、模板、陪跑，让 Agent 真正嵌入业务流。', image: '/images/2026-b/6b49ad7bd1948539.webp' },
+    '/solutions/eco': { block: 'p-eco', title: '生态用工管理咨询 · 管业务 · 管生态 · 管价值 | 瑞华智策', description: '基于人瑞人才 15 年灵活用工服务经验，把管用工的方法变成你公司的治理体系——以「管理咨询 + 数智化平台」双轮驱动，面向平台化、生态化用工形态，重构用工结构、合规管理与效能治理。', image: DEFAULT_OG_IMG },
+    '/solutions/overseas': { block: 'p-overseas', title: 'HR 出海管理咨询 · 从咨询方案到海外本土落地 | 瑞华智策', description: '依托人瑞人才的海外布局、全球服务能力以及对众多出海中企多年海外 HR 服务的积淀——23 个国家与地区的自有属地团队，聚焦中国企业出海的核心人力痛点，从前期筹备到体系落地全流程陪伴。', image: DEFAULT_OG_IMG },
+    '/solutions/hcvm': { block: 'hcvm', title: '人力资本价值经营咨询 · 从人效诊断到利润增长 | 瑞华智策', description: 'HR 战略咨询 · 人力资本价值经营（HCVM，Human Capital Value Management）。以「管理 + 技术」双引擎，从人效诊断切入，让人效提升真正变成利润增长，实现客户、企业与人才的价值共赢。', image: DEFAULT_OG_IMG },
+    '/about': { block: 'about', title: '关于我们 · 碳硅混合生产力专家', description: '瑞华智策（全称：上海瑞华智策企业管理咨询有限公司），是人力资源服务企业人瑞人才（06919.HK）的全资子公司。瑞华智策承接人瑞人才在 AI 时代的战略延伸——成为 AI 原生的本土咨询公司，打造碳硅共智的新质组织。', image: DEFAULT_OG_IMG },
+    '/contact': { block: 'contact', title: '联系我们 · 预约诊断 | 瑞华智策', description: '400-175-0886。预约「AI 场景诊断」，顾问 1 个工作日内联系你。上海 · 北京 · 深圳 · 成都四城办公。', image: DEFAULT_OG_IMG }
   };
 
   Object.entries(PAGES).forEach(([url, cfg]) => {
@@ -370,7 +372,13 @@ module.exports = function (app) {
         const content = loadBlock(cfg.block);
         if (!content) return notFound(res);
         res.set('Cache-Control', 'no-cache');
-        res.send(render2026({ title: cfg.title, description: cfg.description, canonical: `https://www.ruihuaconsulting.com${url}`, content, activePath: url }));
+        const canonical = `${SITE}${url}`;
+        const absImage = (() => {
+          const img = cfg.image || DEFAULT_OG_IMG;
+          if (/^https?:\/\//i.test(img)) return img;
+          return SITE + (img.startsWith('/') ? '' : '/') + img;
+        })();
+        res.send(render2026({ title: cfg.title, description: cfg.description, canonical, image: absImage, content, activePath: url }));
       } catch (e) {
         console.error(`SSR ${url} failed:`, e);
         res.status(500).send('服务器错误');

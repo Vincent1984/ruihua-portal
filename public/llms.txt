@@ -1,7 +1,7 @@
 # 瑞华智策｜AI 时代组织进化知识库
 
 > 面向企业管理者、组织负责人和 AI 转型团队，提供 AI 赋能培训、AI 转型咨询、AI 落地陪跑与人力资本价值经营服务。
-> 最后更新：2026-09-11
+> 最后更新：2026-09-14
 > 文章总数：3
 
 ## 核心页面
@@ -15,20 +15,21 @@
 - 关于我们: https://www.ruihuaconsulting.com/about
 - 联系我们: https://www.ruihuaconsulting.com/contact
 
-## 2026新质生产力下的企业AI化变革与组织重构战略指南
-- URL: https://www.ruihuaconsulting.com/insights/2026-new-productivity-ai-transformation-organizational
-- Date: 2026-09-10
-- Tags: 新质生产，智改数转，组织重构
-- Summary: 2026年国企AI转型关键：AI非工具而是“硅基员工”，需组织变革。政策转向“人工智能+”规模化落地。企业需四项准备：战略定位、统一基础设施、人机协作规划、流程重构。未来3-5年为窗口期，否则组织债务难偿。
-
-## 【测试】R=B×O 落地实践：增长诊断七步法
-- URL: https://www.ruihuaconsulting.com/insights/test-thinktank-growth-diagnosis
-- Date: 2026-09-10
-- Summary: 这是一篇用于验证经营智库页面后台文章展示效果的测试文章。
-
 ## 2026企业数智化转型：从「模型囤积」到Agentic AI的价值跃迁
-- URL: https://www.ruihuaconsulting.com/insights/enterprise-digital-transformation
+- URL: https://www.ruihuaconsulting.com/insights/agentic-ai-value-transformation-2026
 - Date: 2026-04-10
-- Tags: 数智化转型, 代理式AI, 可控自主AI
+- Tags: Agentic AI, 数智化转型, MCP, 本体, Vibe Coding
 - Summary: 2026年中国大模型市场规模突破700亿元。瑞华智策通过对多家企业的实地调研发现，数智化转型的重心已从单纯的算力投入，转向以「业务本体」为核心的架构重构。企业亟需治愈「数据贫血」与「语义痴呆」，方能在代理式AI时代保持核心竞争力。
+
+## 人力资本价值经营的方法论与落地实践
+- URL: https://www.ruihuaconsulting.com/insights/human-capital-value-management-method
+- Date: 2026-03-16
+- Tags: 人力资本, CEO经营, 人效, 研发效能, 用工管理
+- Summary: 2026开始企业应该更加关注持续的价值创造，「开源」才是企业持续增长的动力。回望2025年，降本增效依然是企业经营的主旋律。但是，「节流」还有多少空间？因此，2026开始，企业应该更加关注持续的价值创造。
+
+## AI时代下CHO的经营者思维进化策略
+- URL: https://www.ruihuaconsulting.com/insights/cho-operator-mindset-evolution-ai
+- Date: 2026-01-06
+- Tags: CHO, 组织进化, 人机协同, 长期主义, 量子思维
+- Summary: AI时代，如何构建人机协同的组织是全球性课题，突破认知与思维局限，是企业家和CHO的首要必然选择。
 
