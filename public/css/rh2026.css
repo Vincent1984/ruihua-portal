@@ -1246,9 +1246,16 @@ div[data-art]{background:transparent !important;padding:0 !important;margin:0 !i
 /* ============ 按图调整（2026-08-26） ============ */
 /* ① 首页隧道演示窗在屏时收起 AI 顾问悬浮按钮（同为对话入口，避免右下角重合） */
 body.dw-vis .fab{opacity:0;visibility:hidden;transform:translateY(16px);pointer-events:none}
-/* ② FDE hero 标题整行不折行（窄屏恢复自然换行防溢出） */
+/* ② FDE hero 标题整行不折行（窄屏恢复自然换行防溢出）
+   产品页 hero：手机端副标题比主标题低一档（.62em），拉开行距，压低对比 */
 .p-hero h1 .nw{white-space:nowrap}
-@media (max-width:700px){.p-hero h1 .nw{white-space:normal}}
+@media (max-width:760px){
+  .p-hero h1 .nw{
+    display:block;margin-top:10px;white-space:normal;
+    font-size:.62em;line-height:1.45;font-weight:800;
+    color:rgba(255,255,255,.86);
+  }
+}
 /* ③ 特色四 · 四种培训形式卡片色彩区分（沿用四色语义体系） */
 .mini.mc{border-top:3px solid transparent}
 .mini.mc-p{border-top-color:var(--purple-hi)}.mini.mc-p .t{color:var(--purple)}
@@ -1395,6 +1402,10 @@ body.dw-vis .fab{opacity:0;visibility:hidden;transform:translateY(16px);pointer-
 }
 @media (max-width:640px){
   .pcards,.feat6,.vals,.trio,.geo{grid-template-columns:1fr}
+  .band.flow{gap:4px 8px;padding:16px 14px}
+  .band.flow .tag{flex-basis:100%;border:0;border-radius:0;padding:0;margin:0 0 8px;font-size:16px}
+  .band.flow .f{font-size:13px}
+  .band.flow i{margin:0 1px}
   /* 端到端生命周期：窄屏改竖向时间轴（圆点在左 + 贯穿竖线 + 单列） */
   .life8{grid-template-columns:1fr !important;row-gap:26px !important;padding-left:56px;position:relative}
   .life8::before{
@@ -1421,7 +1432,14 @@ body.dw-vis .fab{opacity:0;visibility:hidden;transform:translateY(16px);pointer-
   /* 生态用工 两处解决方案路径：竖排后箭头居中，不靠左侧 */
   .path4{flex-direction:column;gap:6px}
   .path4>em{transform:rotate(90deg);align-self:center !important;margin:0 auto !important;text-align:center}
+  /* 手机竖排解决方案路径：箭头点亮动画（只闪光、不位移），避免原 keyframes 的 translateX 覆盖竖排 rotate(90deg) 导致箭头临时横过来 */
+  .path4>em.seq-arrow.lit{animation-name:arrowFlashV}
   .band.flow .tag{margin-right:0}
+}
+@media (max-width:360px){
+  .band.flow{gap:4px 4px;padding:16px 8px}
+  .band.flow .f{font-size:11.5px}
+  .band.flow i{margin:0;font-size:12px}
 }
 
 /* ⑨ 0907 产品拆分：5 张产品卡网格 + 隐藏的 HCVM 入口 */
@@ -2244,6 +2262,8 @@ body.home-on .logo .tagline,body:not(.home-on) .logo .tagline{color:rgba(216,214
 @keyframes arrowFlash{0%{color:#fff;text-shadow:0 0 12px rgba(255,255,255,.9);transform:translateX(-4px)}100%{transform:none}}
 .path4>em.seq-arrow.lit{animation-name:arrowFlashP}
 @keyframes arrowFlashP{0%{color:var(--purple);text-shadow:0 0 14px rgba(124,77,255,.9);transform:translateX(-4px)}100%{transform:none}}
+/* 手机竖排路径（生态用工 path4 解决方案/端到端实施）的箭头点亮：只做发光、不做位移，避免覆盖 rotate(90deg) 把竖箭头临时打回横向 */
+@keyframes arrowFlashV{0%{color:var(--purple);text-shadow:0 0 14px rgba(124,77,255,.9)}100%{text-shadow:none}}
 .seq .seq-step.lit.hi,.path4>div.lit{animation:stepPop .45s var(--ease)}
 @keyframes stepPop{0%{transform:translateY(5px) scale(.98)}60%{transform:translateY(-2px) scale(1.01)}100%{transform:none}}
 .life8{position:relative}
@@ -2986,9 +3006,10 @@ body.home-on .nav .btn-ink:hover,body:not(.home-on) .nav .btn-ink:hover{backgrou
 .fab .fab-tag small{display:flex;align-items:center;gap:5px;margin-top:3px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.62)}
 .fab .fab-tag small::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--sage);box-shadow:0 0 0 3px rgba(214,232,147,.25)}
 @media (max-width:560px){.fab.fab-av{padding:5px;gap:0}.fab .fab-tag{display:none}}
-/* ㊾ 小瑞悬浮入口默认位置：手机（≤760）上移，贴在 hero 标题附近、不压底部两枚主按钮；
-   52 横屏矮屏（高 ≤500px）48vh 只剩 180px 会被 max(300px) 顶到导航上，回到 64px */
-@media (max-width:760px){.fab.fab-av{bottom:max(300px,48vh)}}
+/* ㊾ 小瑞悬浮入口默认位置：
+   - 手机（≤760）高位仅首页 body.home-on（贴 hero 标题旁，不压底部两枚主按钮）；内页保持通用 bottom:64px（不盖住页脚备案号）
+   - 52 横屏矮屏（高 ≤500px）手机端 48vh 只剩 180px 会被 max(300px) 顶到导航上，所有页面统一回到 64px */
+@media (max-width:760px){body.home-on .fab.fab-av{bottom:max(300px,48vh)}}
 @media (max-height:500px){.fab.fab-av{bottom:64px}}
 @media (prefers-reduced-motion:reduce){.fab .fab-ring{animation:none;opacity:0}}
 /* 首页 logo 恢复彩色，其他页面保持反白 */

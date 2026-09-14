@@ -110,7 +110,7 @@ module.exports = function (app) {
         .filter(c => c.slug && c.slug.trim());
       res.set('Cache-Control', 'no-cache');
       res.send(render2026({
-        title: '客户案例 | 瑞华智策',
+        title: '客户案例',
         description: '瑞华智策真实落地的 AI Agent 行业案例，覆盖制造、教育、零售、金融、物业等行业。',
         canonical: 'https://www.ruihuaconsulting.com/cases',
         content: buildCaseList(cases, '全部')
@@ -153,8 +153,9 @@ module.exports = function (app) {
         isOnline: { $ne: false },
         slug: { $exists: true, $ne: '' }
       }).sort({ featured: -1, order: 1, createdAt: -1 }).limit(3).lean();
-      const title = (c.seo && c.seo.title) || `${c.title} | 瑞华智策案例`;
-      const desc = (c.seo && c.seo.description) || (c.background || '').slice(0, 160);
+      const title = (c.seo && c.seo.title) || c.title;
+      const desc = (c.seo && c.seo.description)
+        || (c.industry ? `${c.industry} · ` : '') + String(c.background || '').replace(/<[^>]+>/g, '').slice(0, 80);
       const canonical = `https://www.ruihuaconsulting.com/cases/${encodeURIComponent(c.slug)}`;
       const image = c.cover && /^https?:\/\//.test(c.cover) ? c.cover : '';
       const keywords = (c.seo && c.seo.keywords)
@@ -252,7 +253,7 @@ module.exports = function (app) {
     try {
       const articles = await Article.find({ zone: { $ne: 'thinktank' }, status: 'published', isOnline: { $ne: false } }).sort({ publishDate: -1, updatedAt: -1 }).populate('authorId').lean();
       res.set('Cache-Control', 'no-cache');
-      res.send(render2026({ title: '行业洞察 | 瑞华智策', description: 'CIO 数智化转型 / CEO 经营增长 / CHO 人效提升三大智库。', canonical: 'https://www.ruihuaconsulting.com/insights/industry', content: buildInsightsList(articles), activePath: '/insights/industry', preScript: articlesPreScript(articles) }));
+      res.send(render2026({ title: '行业洞察', description: 'CIO 数智化转型 / CEO 经营增长 / CHO 人效提升三大智库。', canonical: 'https://www.ruihuaconsulting.com/insights/industry', content: buildInsightsList(articles), activePath: '/insights/industry', preScript: articlesPreScript(articles) }));
     } catch (e) {
       res.status(500).send('服务器错误');
     }
@@ -262,7 +263,7 @@ module.exports = function (app) {
     try {
       const articles = await Article.find({ zone: 'thinktank', status: 'published', isOnline: { $ne: false } }).sort({ publishDate: -1, updatedAt: -1 }).populate('authorId').lean();
       res.set('Cache-Control', 'no-cache');
-      res.send(render2026({ title: '经营智库 · R=B×O | 瑞华智策', description: 'R=B×O 理论内核与管理实践框架：增长诊断、碳硅共智组织设计、人效经营模型。', canonical: 'https://www.ruihuaconsulting.com/insights/thinktank', content: buildThinktankList(articles), activePath: '/insights/thinktank' }));
+      res.send(render2026({ title: '经营智库', description: 'R=B×O 理论内核与管理实践框架：增长诊断、碳硅共智组织设计、人效经营模型。', canonical: 'https://www.ruihuaconsulting.com/insights/thinktank', content: buildThinktankList(articles), activePath: '/insights/thinktank' }));
     } catch (e) {
       console.error('SSR /insights/thinktank failed:', e);
       res.status(500).send('服务器错误');
@@ -306,8 +307,9 @@ module.exports = function (app) {
       // #endregion
       if (!article) return notFound(res);
       const canonical = `https://www.ruihuaconsulting.com/insights/${encodeURIComponent(article.slug)}`;
-      const title = article.seoTitle || `${article.title} | 瑞华智策行业洞察`;
-      const description = article.seoDescription || article.summary || '';
+      const title = article.seoTitle || article.title;
+      const description = article.seoDescription
+        || String(article.summary || '').replace(/<[^>]+>/g, '').slice(0, 80);
       const keywords = (article.seoKeywords || article.tags || []).join(',');
       const author = article.authorId || article.author || {};
       const qa = Array.isArray(article.qa) ? article.qa.filter(x => x.question && x.answer) : [];
@@ -363,7 +365,7 @@ module.exports = function (app) {
     '/solutions/overseas': { block: 'p-overseas', title: 'HR 出海管理咨询 · 从咨询方案到海外本土落地 | 瑞华智策', description: '依托人瑞人才的海外布局、全球服务能力以及对众多出海中企多年海外 HR 服务的积淀——23 个国家与地区的自有属地团队，聚焦中国企业出海的核心人力痛点，从前期筹备到体系落地全流程陪伴。', image: DEFAULT_OG_IMG },
     '/solutions/hcvm': { block: 'hcvm', title: '人力资本价值经营咨询 · 从人效诊断到利润增长 | 瑞华智策', description: 'HR 战略咨询 · 人力资本价值经营（HCVM，Human Capital Value Management）。以「管理 + 技术」双引擎，从人效诊断切入，让人效提升真正变成利润增长，实现客户、企业与人才的价值共赢。', image: DEFAULT_OG_IMG },
     '/about': { block: 'about', title: '关于我们 · 碳硅混合生产力专家', description: '瑞华智策（全称：上海瑞华智策企业管理咨询有限公司），是人力资源服务企业人瑞人才（06919.HK）的全资子公司。瑞华智策承接人瑞人才在 AI 时代的战略延伸——成为 AI 原生的本土咨询公司，打造碳硅共智的新质组织。', image: DEFAULT_OG_IMG },
-    '/contact': { block: 'contact', title: '联系我们 · 预约诊断 | 瑞华智策', description: '400-175-0886。预约「AI 场景诊断」，顾问 1 个工作日内联系你。上海 · 北京 · 深圳 · 成都四城办公。', image: DEFAULT_OG_IMG }
+    '/contact': { block: 'contact', title: '预约 AI 落地诊断', description: '400-175-0886。预约「AI 场景诊断」，顾问 1 个工作日内联系你。上海 · 北京 · 深圳 · 成都四城办公。', image: DEFAULT_OG_IMG }
   };
 
   Object.entries(PAGES).forEach(([url, cfg]) => {
