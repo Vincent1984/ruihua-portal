@@ -188,8 +188,18 @@ function loadBlock(key) {
  * @param {string} opts.content      页面主体 HTML（已是最终 HTML，原样注入）
  * @param {string} [opts.preScript]  引擎脚本之前注入的内联脚本（如 window.__CASES__）
  */
-function render2026({ title = '瑞华智策', description = '', keywords = '', canonical = '', image = '', type = 'website', structuredData = null, content = '', preScript = '', activePath = '', publishedTime = '', modifiedTime = '' } = {}) {
+function render2026({ title = '瑞华智策', description = '', keywords = '', canonical = '', image = '', type = 'website', structuredData = null, content = '', preScript = '', activePath = '', publishedTime = '', modifiedTime = '', siteName = '瑞华智策', twitterCard = 'summary_large_image' } = {}) {
   const c = loadCache();
+  const SITE = 'https://www.ruihuaconsulting.com';
+  const DEFAULT_OG_IMG = `${SITE}/images/2026-b/fbd558c5bc3e740f.png`;
+  const absImage = (() => {
+    if (!image) return DEFAULT_OG_IMG;
+    if (/^https?:\/\//i.test(image)) return image;
+    return SITE + (image.startsWith('/') ? '' : '/') + image;
+  })();
+  const absUrl = canonical || SITE + '/';
+  const pageTitle = String(title || '瑞华智策');
+  const pageDesc = String(description || '瑞华智策 —— 碳硅混合生产力专家，陪企业走完 AI 转型全周期。');
   const iso = (v) => {
     if (!v) return '';
     const d = new Date(v);
@@ -199,51 +209,71 @@ function render2026({ title = '瑞华智策', description = '', keywords = '', c
   const mod = iso(modifiedTime);
   const seoMeta = [
     keywords ? `<meta name="keywords" content="${escAttr(keywords)}" />` : '',
-    canonical ? `<link rel="canonical" href="${escAttr(canonical)}" />` : '',
+    canonical ? `<link rel="canonical" href="${escAttr(absUrl)}" />` : '',
+    `<meta property="og:site_name" content="${escAttr(siteName)}" />`,
     `<meta property="og:type" content="${escAttr(type)}" />`,
-    '<meta property="og:site_name" content="瑞华智策" />',
-    '<meta property="og:locale" content="zh_CN" />',
-    `<meta property="og:title" content="${escAttr(title)}" />`,
-    `<meta property="og:description" content="${escAttr(description)}" />`,
-    canonical ? `<meta property="og:url" content="${escAttr(canonical)}" />` : '',
-    image ? `<meta property="og:image" content="${escAttr(image)}" />` : '',
-    '<meta name="twitter:card" content="summary_large_image" />',
+    `<meta property="og:locale" content="zh_CN" />`,
+    `<meta property="og:title" content="${escAttr(pageTitle)}" />`,
+    `<meta property="og:description" content="${escAttr(pageDesc)}" />`,
+    `<meta property="og:url" content="${escAttr(absUrl)}" />`,
+    `<meta property="og:image" content="${escAttr(absImage)}" />`,
+    `<meta property="og:image:secure_url" content="${escAttr(absImage)}" />`,
+    `<meta property="og:image:type" content="image/png" />`,
+    `<meta property="og:image:width" content="1200" />`,
+    `<meta property="og:image:height" content="630" />`,
+    `<meta property="og:image:alt" content="${escAttr(pageTitle)}" />`,
+    `<meta name="twitter:card" content="${escAttr(twitterCard)}" />`,
+    `<meta name="twitter:title" content="${escAttr(pageTitle)}" />`,
+    `<meta name="twitter:description" content="${escAttr(pageDesc)}" />`,
+    `<meta name="twitter:image" content="${escAttr(absImage)}" />`,
+    `<meta name="twitter:image:alt" content="${escAttr(pageTitle)}" />`,
+    `<meta name="twitter:site" content="@RuihuaConsulting" />`,
     pub ? `<meta property="article:published_time" content="${escAttr(pub)}" />` : '',
     mod ? `<meta property="article:modified_time" content="${escAttr(mod)}" />` : ''
   ].filter(Boolean).join('\n    ');
-  const pageUrl = canonical || 'https://www.ruihuaconsulting.com/';
   const baseStructuredData = [
     {
       '@context': 'https://schema.org',
       '@type': 'Organization',
-      '@id': 'https://www.ruihuaconsulting.com/#organization',
-      name: '瑞华智策',
-      url: 'https://www.ruihuaconsulting.com/'
+      '@id': `${SITE}/#organization`,
+      name: siteName,
+      url: SITE,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE}/images/logo.png`
+      },
+      sameAs: [
+        'https://www.renruihr.com/',
+        'https://weixin.qq.com/'
+      ]
     },
     {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
-      '@id': 'https://www.ruihuaconsulting.com/#website',
-      name: '瑞华智策',
-      url: 'https://www.ruihuaconsulting.com/',
-      publisher: { '@id': 'https://www.ruihuaconsulting.com/#organization' }
+      '@id': `${SITE}/#website`,
+      name: siteName,
+      url: SITE,
+      publisher: { '@id': `${SITE}/#organization` }
     },
     {
       '@context': 'https://schema.org',
       '@type': 'WebPage',
-      '@id': `${pageUrl}#webpage`,
-      name: title,
-      description,
-      url: pageUrl,
-      isPartOf: { '@id': 'https://www.ruihuaconsulting.com/#website' },
-      about: { '@id': 'https://www.ruihuaconsulting.com/#organization' }
+      '@id': `${absUrl}#webpage`,
+      name: pageTitle,
+      description: pageDesc,
+      url: absUrl,
+      image: absImage,
+      isPartOf: { '@id': `${SITE}/#website` },
+      about: { '@id': `${SITE}/#organization` },
+      datePublished: pub || undefined,
+      dateModified: mod || undefined
     }
   ];
   const pageStructuredData = structuredData ? (Array.isArray(structuredData) ? structuredData : [structuredData]) : [];
   const structured = `<script type="application/ld+json">${safeJson([...baseStructuredData, ...pageStructuredData])}</script>`;
   let html = c.base;
-  html = fill(html, '<!--TITLE-->', escAttr(title));
-  html = fill(html, '<!--DESCRIPTION-->', escAttr(description));
+  html = fill(html, '<!--TITLE-->', escAttr(pageTitle));
+  html = fill(html, '<!--DESCRIPTION-->', escAttr(pageDesc));
   html = fill(html, '<!--SEO_META-->', seoMeta);
   html = fill(html, '<!--STRUCTURED_DATA-->', structured);
   html = fill(html, '<!--NAV-->', markActive(c.nav, activePath));

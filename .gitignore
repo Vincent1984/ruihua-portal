@@ -9,3 +9,5 @@ node_modules
 # 本地环境变量与密钥，勿提交
 .env
 .env.production
+.DS_Store
+.server.log

@@ -1246,9 +1246,16 @@ div[data-art]{background:transparent !important;padding:0 !important;margin:0 !i
 /* ============ 按图调整（2026-08-26） ============ */
 /* ① 首页隧道演示窗在屏时收起 AI 顾问悬浮按钮（同为对话入口，避免右下角重合） */
 body.dw-vis .fab{opacity:0;visibility:hidden;transform:translateY(16px);pointer-events:none}
-/* ② FDE hero 标题整行不折行（窄屏恢复自然换行防溢出） */
+/* ② FDE hero 标题整行不折行（窄屏恢复自然换行防溢出）
+   产品页 hero：手机端副标题比主标题低一档（.62em），拉开行距，压低对比 */
 .p-hero h1 .nw{white-space:nowrap}
-@media (max-width:700px){.p-hero h1 .nw{white-space:normal}}
+@media (max-width:760px){
+  .p-hero h1 .nw{
+    display:block;margin-top:10px;white-space:normal;
+    font-size:.62em;line-height:1.45;font-weight:800;
+    color:rgba(255,255,255,.86);
+  }
+}
 /* ③ 特色四 · 四种培训形式卡片色彩区分（沿用四色语义体系） */
 .mini.mc{border-top:3px solid transparent}
 .mini.mc-p{border-top-color:var(--purple-hi)}.mini.mc-p .t{color:var(--purple)}
@@ -1395,9 +1402,44 @@ body.dw-vis .fab{opacity:0;visibility:hidden;transform:translateY(16px);pointer-
 }
 @media (max-width:640px){
   .pcards,.feat6,.vals,.trio,.geo{grid-template-columns:1fr}
-  .life8{grid-template-columns:1fr 1fr}
-  .path4{flex-direction:column}.path4>em{transform:rotate(90deg);align-self:flex-start;margin-left:20px}
+  .band.flow{gap:4px 8px;padding:16px 14px}
+  .band.flow .tag{flex-basis:100%;border:0;border-radius:0;padding:0;margin:0 0 8px;font-size:16px}
+  .band.flow .f{font-size:13px}
+  .band.flow i{margin:0 1px}
+  /* 端到端生命周期：窄屏改竖向时间轴（圆点在左 + 贯穿竖线 + 单列） */
+  .life8{grid-template-columns:1fr !important;row-gap:26px !important;padding-left:56px;position:relative}
+  .life8::before{
+    display:block !important;
+    left:17px;right:auto !important;
+    top:18px;bottom:18px;height:auto !important;
+    width:1px !important;
+    background:var(--p-200) !important;
+  }
+  .life8 li{text-align:left !important;padding-top:0 !important;min-height:48px;position:relative}
+  .life8 li i{
+    position:absolute;left:-56px;top:50%;
+    transform:translateY(-50%) !important;
+    margin:0 !important;
+  }
+  /* 进度条：原横条（JS 改 width）旋转 90° → 变成从上往下走的竖条 */
+  .life8 .life8-prog{
+    left:17px !important;top:18px !important;
+    transform-origin:0 0 !important;
+    transform:rotate(90deg) !important;
+    background:linear-gradient(180deg,var(--purple),var(--p-300)) !important;
+    box-shadow:0 0 10px rgba(124,77,255,.55) !important;
+  }
+  /* 生态用工 两处解决方案路径：竖排后箭头居中，不靠左侧 */
+  .path4{flex-direction:column;gap:6px}
+  .path4>em{transform:rotate(90deg);align-self:center !important;margin:0 auto !important;text-align:center}
+  /* 手机竖排解决方案路径：箭头点亮动画（只闪光、不位移），避免原 keyframes 的 translateX 覆盖竖排 rotate(90deg) 导致箭头临时横过来 */
+  .path4>em.seq-arrow.lit{animation-name:arrowFlashV}
   .band.flow .tag{margin-right:0}
+}
+@media (max-width:360px){
+  .band.flow{gap:4px 4px;padding:16px 8px}
+  .band.flow .f{font-size:11.5px}
+  .band.flow i{margin:0;font-size:12px}
 }
 
 /* ⑨ 0907 产品拆分：5 张产品卡网格 + 隐藏的 HCVM 入口 */
@@ -1922,8 +1964,12 @@ body:not(.home-on) .f-qr{border-color:rgba(255,255,255,.15)}
 .ed .ps-band{margin-top:36px}
 @media (max-width:960px){
   .ed-stats,.ed-grid4,.ed-next{grid-template-columns:1fr}
-  .ed-stats .s,.ed-grid4>div,.ed-next a{border-left:0;border-top:1px solid var(--line);padding-left:0}
-  .ed-stats .s:first-child,.ed-grid4>div:first-child,.ed-next a:first-child{border-top:0}
+  .ed-stats .s,.ed-next a{border-left:0;border-top:1px solid var(--line);padding-left:0}
+  .ed-stats .s:first-child,.ed-next a:first-child{border-top:0}
+  /* ed-grid4 四卡（赋能形式 / 价值层等）：单列堆叠后独立圆角卡片 + 统一左右 padding，与上方标题视觉对齐 */
+  .ed-grid4{gap:10px;border-top:0;border-bottom:0}
+  .ed-grid4>div{padding:22px 22px;border-left:0;border-top:0;border-radius:14px}
+  .ed-grid4>div:first-child{padding-left:22px;border-top:0}
 }
 
 /* 账本高亮行 */
@@ -2216,6 +2262,8 @@ body.home-on .logo .tagline,body:not(.home-on) .logo .tagline{color:rgba(216,214
 @keyframes arrowFlash{0%{color:#fff;text-shadow:0 0 12px rgba(255,255,255,.9);transform:translateX(-4px)}100%{transform:none}}
 .path4>em.seq-arrow.lit{animation-name:arrowFlashP}
 @keyframes arrowFlashP{0%{color:var(--purple);text-shadow:0 0 14px rgba(124,77,255,.9);transform:translateX(-4px)}100%{transform:none}}
+/* 手机竖排路径（生态用工 path4 解决方案/端到端实施）的箭头点亮：只做发光、不做位移，避免覆盖 rotate(90deg) 把竖箭头临时打回横向 */
+@keyframes arrowFlashV{0%{color:var(--purple);text-shadow:0 0 14px rgba(124,77,255,.9)}100%{text-shadow:none}}
 .seq .seq-step.lit.hi,.path4>div.lit{animation:stepPop .45s var(--ease)}
 @keyframes stepPop{0%{transform:translateY(5px) scale(.98)}60%{transform:translateY(-2px) scale(1.01)}100%{transform:none}}
 .life8{position:relative}
@@ -2304,6 +2352,24 @@ body.home-on .logo .tagline,body:not(.home-on) .logo .tagline{color:rgba(216,214
 .ed-ledger:not(.zoned) dt{position:relative;display:inline-block}
 .ed-ledger:not(.zoned) dt::after{content:"";position:absolute;left:0;bottom:-6px;height:2px;width:0;background:var(--p-300);transition:width .5s var(--ease) .4s}
 .ed-ledger:not(.zoned) .row.on dt::after{width:36px}
+
+/* ============ 移动端 ed-grid4 四卡片排版修复（HCVM / 培训产品页等） ============ */
+/* 问题：断点 ≤960px 时卡片左内边距丢失导致贴顶格、与上方标题不对齐、卡片间无呼吸空间 */
+@media (max-width:960px){
+  .section .svc-block.ed .ed-grid4{
+    display:grid;grid-template-columns:1fr !important;
+    gap:12px !important;border-top:0 !important;border-bottom:0 !important;
+  }
+  .section .svc-block.ed .ed-grid4 > div{
+    padding-top:22px !important;padding-bottom:22px !important;
+    padding-left:22px !important;padding-right:22px !important;
+    border-left:0 !important;border-top:0 !important;border-bottom:0 !important;
+    border-radius:14px !important;
+  }
+  .section .svc-block.ed .ed-grid4 > div:first-child{
+    padding-left:22px !important;border-top:0 !important;
+  }
+}
 /* 关于我们：能力分层从上到下入场、卡片悬停已有；侧栏卡与盒子加上浮 */
 .ab-layer.rv2{transform:translateX(-30px)}.ab-layer.rv2.on{transform:none}
 .ab-layer.rv2.on:hover{transform:translateY(-6px)}
@@ -2439,6 +2505,22 @@ a.m-item.sub b{font-size:15px}
 @keyframes gpulse{0%{opacity:0}12%{opacity:1}80%{opacity:1}100%{opacity:0}}
 @keyframes gring{0%{box-shadow:0 0 0 0 rgba(255,122,61,.75),0 0 0 0 rgba(255,122,61,.35)}100%{box-shadow:0 0 0 18px rgba(255,122,61,0),0 0 0 34px rgba(255,122,61,0)}}
 @media (prefers-reduced-motion:reduce){.osea-map .gdots i.lit{animation:none;opacity:0}}
+/* =========== 移动端 ed-grid4 四卡片终极修复（HCVM 赋能形式 / 产品四卡等通用） =========== */
+/* 修复：≤960px 时 4 个卡片左侧内边距丢失导致贴顶格、与上方标题不对齐、卡片无间隙 */
+@media (max-width:960px){
+  .ed-grid4{gap:12px !important;border-top:0 !important;border-bottom:0 !important}
+  .ed-grid4 > div{
+    padding-top:22px !important;
+    padding-bottom:22px !important;
+    padding-left:22px !important;
+    padding-right:22px !important;
+    border-left:0 !important;
+    border-top:0 !important;
+    border-bottom:0 !important;
+    border-radius:14px !important;
+  }
+  .ed-grid4 > div:first-child{padding-left:22px !important;border-top:0 !important}
+}
 /* ㉘ 出海页六特点自动轮播 */
 .feat6.loop>div{transition:transform .45s var(--ease),box-shadow .45s var(--ease),border-color .45s var(--ease),background .45s var(--ease)}
 .feat6.loop>div.act{transform:translateY(-4px);box-shadow:0 16px 34px rgba(94,53,177,.14);border-color:var(--p-200);background:var(--card)}
@@ -2607,7 +2689,21 @@ a.m-item.sub b{font-size:15px}
 /* ㊸-10 无条件的 nowrap 会把三栏的 min-content 顶成整句宽度，1024–1366 撑破视口；只有内容板真够宽时才不换行 */
 @media (min-width:1400px){.page[data-page="p-overseas"] .feat6 p{white-space:nowrap}}
 .svc4 .cell.val>b{color:var(--sage-ink)}.svc4 .cell.val>b::before{background:var(--sage)}
-@media (max-width:900px){.ed-ledger.mods7{grid-template-columns:1fr}.ed-ledger.mods7 .row:last-child{display:block}.page[data-page="p-overseas"] .feat6 p{white-space:normal}}
+@media (max-width:900px){
+  .ed-ledger.mods7{grid-template-columns:1fr}
+  .ed-ledger.mods7 .row:last-child{display:block}
+  .page[data-page="p-overseas"] .feat6 p{white-space:normal}
+  /* 出海七大模块 移动端：编号独立成行 + 标题/描述左对齐（取消悬挂缩进） */
+  .ed-ledger.mods7 dt{
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    gap:8px !important;
+    margin-bottom:10px !important;
+  }
+  .ed-ledger.mods7 dt i{display:block !important}
+  .ed-ledger.mods7 dd{padding-left:0 !important}
+  .ed-ledger.mods7 .row:last-child dd{padding-left:0}
+}
 
 /* Production-only SSR detail and form styles retained during B migration. */
 .cm-body h5{font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.14em;
@@ -2910,9 +3006,10 @@ body.home-on .nav .btn-ink:hover,body:not(.home-on) .nav .btn-ink:hover{backgrou
 .fab .fab-tag small{display:flex;align-items:center;gap:5px;margin-top:3px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.62)}
 .fab .fab-tag small::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--sage);box-shadow:0 0 0 3px rgba(214,232,147,.25)}
 @media (max-width:560px){.fab.fab-av{padding:5px;gap:0}.fab .fab-tag{display:none}}
-/* ㊾ 小瑞悬浮入口默认位置：手机（≤760）上移，贴在 hero 标题附近、不压底部两枚主按钮；
-   52 横屏矮屏（高 ≤500px）48vh 只剩 180px 会被 max(300px) 顶到导航上，回到 64px */
-@media (max-width:760px){.fab.fab-av{bottom:max(300px,48vh)}}
+/* ㊾ 小瑞悬浮入口默认位置：
+   - 手机（≤760）高位仅首页 body.home-on（贴 hero 标题旁，不压底部两枚主按钮）；内页保持通用 bottom:64px（不盖住页脚备案号）
+   - 52 横屏矮屏（高 ≤500px）手机端 48vh 只剩 180px 会被 max(300px) 顶到导航上，所有页面统一回到 64px */
+@media (max-width:760px){body.home-on .fab.fab-av{bottom:max(300px,48vh)}}
 @media (max-height:500px){.fab.fab-av{bottom:64px}}
 @media (prefers-reduced-motion:reduce){.fab .fab-ring{animation:none;opacity:0}}
 /* 首页 logo 恢复彩色，其他页面保持反白 */

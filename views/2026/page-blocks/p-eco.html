@@ -56,6 +56,51 @@
         <div class="st amber"><span class="en">05</span><b>合规风控治理</b><p>权责隔离与安全红线<br>异常预警<br>争议与审计预案</p></div>
       </div>
       <div class="band flow"><span class="tag">四流合一</span><span class="f">合同流</span><i>→</i><span class="f">管理流</span><i>→</i><span class="f">结算流</span><i>→</i><span class="f">发票流</span><small>互锁校验，贯通「业、财、人、规」</small></div>
+      <style>
+        /* =========== 生态用工·移动端/平板 排版修复 =========== */
+        @media (max-width:960px){
+          .page[data-page="p-eco"] .path4{flex-direction:column !important;gap:6px !important}
+          .page[data-page="p-eco"] .path4>em{transform:rotate(90deg) !important;align-self:center !important;margin:0 auto !important;text-align:center}
+        }
+        @media (max-width:640px){
+          /* 1. 两处箭头居中（解决方案路径 + 端到端实施） */
+          .page[data-page="p-eco"] .path4>em{transform:rotate(90deg) !important;align-self:center !important;margin:0 auto !important;text-align:center}
+          /* 2. 端到端生命周期 改竖向时间轴：圆点在左 + 贯穿竖线 + 单列 */
+          .page[data-page="p-eco"] .life8{grid-template-columns:1fr !important;row-gap:26px !important;padding-left:0 !important;padding-inline:40px !important;max-width:360px !important;margin-inline:auto !important;position:relative}
+          .page[data-page="p-eco"] .life8::before{
+            display:block !important;
+            left:57px !important;right:auto !important;
+            top:18px !important;bottom:18px !important;height:auto !important;
+            width:1px !important;
+            background:var(--p-200) !important;
+          }
+          .page[data-page="p-eco"] .life8 li{text-align:left !important;padding-top:0 !important;min-height:48px;position:relative;padding-left:64px !important}
+          .page[data-page="p-eco"] .life8 li i{
+            position:absolute !important;left:0 !important;top:50% !important;
+            transform:translateY(-50%) !important;
+            margin:0 !important;
+          }
+          .page[data-page="p-eco"] .life8 .life8-prog{
+            left:57px !important;top:18px !important;
+            transform-origin:0 0 !important;
+            transform:rotate(90deg) !important;
+            background:linear-gradient(180deg,var(--purple),var(--p-300)) !important;
+            box-shadow:0 0 10px rgba(124,77,255,.55) !important;
+          }
+          /* 3. 数智平台 3 张卡：紫色浅卡「数据贯通」卡片内文字左对齐（与上下卡一致） */
+          .page[data-page="p-eco"] .ed-ledger.tight.caps .row.hi dt,
+          .page[data-page="p-eco"] .ed-ledger.tight.caps .row.hi dd{text-align:left !important}
+          /* 4. 端到端实施 4 张大卡片：卡片内编号、标题、描述文字全部居中；编号和标题之间加视觉空格不挤 */
+          .page[data-page="p-eco"] .path4.impl>div{text-align:center !important;align-items:center !important;justify-content:center !important;flex-direction:column !important;gap:6px !important}
+          .page[data-page="p-eco"] .path4.impl>div i{margin-inline:auto !important;margin-bottom:6px !important;flex:none !important}
+          .page[data-page="p-eco"] .path4.impl>div small{display:block !important;text-align:center !important}
+          /* 5. 核心交付成果 4 个胶囊按钮：整个按钮组水平居中 */
+          .page[data-page="p-eco"] .band.lt.kv.kv4{display:flex !important;flex-direction:column !important;align-items:center !important;text-align:center !important}
+          .page[data-page="p-eco"] .band.lt.kv.kv4>b{align-self:center !important;margin-bottom:18px !important}
+          .page[data-page="p-eco"] .band.lt.kv.kv4 .kv-chips{display:flex !important;flex-direction:column !important;align-items:center !important;gap:14px !important;width:100% !important}
+          .page[data-page="p-eco"] .band.lt.kv.kv4 .kv-chips>span{width:max-content !important;max-width:100% !important;margin-inline:auto !important;text-align:center !important}
+        }
+      </style>
       <div class="path4"><span class="lab">解决方案路径</span>
         <div><i>01</i>制度与机制建设</div><em>→</em><div><i>02</i>能力与流程设计</div><em>→</em><div><i>03</i>数智平台固化</div><em>→</em><div><i>04</i>运营陪伴优化</div>
       </div>
