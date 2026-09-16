@@ -415,15 +415,32 @@ let opened=false, answers=0, leadShown=false, dwOpenedAt=0;
 CHIPQ.forEach(q=>{
   const b=document.createElement('button');b.textContent=q;b.onclick=()=>{ask(q)};chipsBox.appendChild(b);
 });
+/* 移动端软键盘：iOS / 微信 WebView 默认 resizes-visual —— layout viewport（innerHeight）不变，键盘只是盖在页面上，
+   而抽屉是 fixed 全高、输入框在最底部，于是浏览器自己滚动 / 平移页面去「救」输入框，视觉上抽屉整体跳一下、背后首页露出来
+   （即反馈的「闪屏回退到首页」）。这里在触屏设备上按键盘实占高度把抽屉底边抬到键盘之上（CSS --dw-kb），
+   输入框始终可见，浏览器就没有理由再介入。桌面端恒为 0，不影响侧栏形态 */
+const vv=window.visualViewport;
+function syncKB(){
+  const kb=vv&&matchMedia('(hover:none) and (pointer:coarse)').matches&&drawer.classList.contains('open')
+    ?Math.max(0,Math.round(innerHeight-vv.height-vv.offsetTop)):0;
+  document.documentElement.style.setProperty('--dw-kb',kb+'px');
+}
+if(vv){vv.addEventListener('resize',syncKB,{passive:true});vv.addEventListener('scroll',syncKB,{passive:true})}
+addEventListener('resize',syncKB,{passive:true});
 function openDrawer(){
   dwOpenedAt=Date.now();
   drawer.classList.add('open');
+  syncKB();
   if(!opened){opened=true;
     aiMsg(`你好，我是瑞华的 AI 顾问，基于官网<strong>全站内容检索 + 大模型</strong>回答——产品与服务、27 个行业案例、12 门课程、研究中心文章都能搜到，来源可一键跳转。<strong>可以问我怎么切入、怎么部署、怎么管混合员工</strong>，也可以直接搜任何站内内容。<span class="demo-tag">已接入大模型 · 回答基于站内内容检索生成，仅供参考</span>`);
   }
-  setTimeout(()=>document.getElementById('dwInput').focus(),350);
+  /* 触屏设备不自动唤起软键盘：抽屉是 fixed 全高、输入框在最底部，聚焦后 iOS 为躲避键盘会回滚页面
+     并平移视觉视口，整个抽屉层跟着闪一下；桌面端保留自动聚焦，并用 preventScroll 禁止聚焦连带的滚动 */
+  if(!matchMedia('(hover:none) and (pointer:coarse)').matches){
+    setTimeout(()=>{const i=document.getElementById('dwInput');if(i)i.focus({preventScroll:true})},350);
+  }
 }
-function closeDrawer(){drawer.classList.remove('open')}
+function closeDrawer(){drawer.classList.remove('open');syncKB()}
 /* 来源卡跳转：关抽屉 → 切真实 SSR 路由 → 定位到具体板块 */
 function goSrc(h,el){
   if(!h)return;

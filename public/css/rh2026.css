@@ -701,7 +701,19 @@ body.home-on .nav .btn-ink:hover{background:var(--p-300)}
   width:46px;font-size:16px;cursor:pointer}
 .dw-input button:hover{background:var(--p-600)}
 .dw-input button:active{background:var(--p-700)}
-.drawer{background:rgba(250,249,253,.84);backdrop-filter:blur(22px) saturate(1.25);-webkit-backdrop-filter:blur(22px) saturate(1.25);border-left:1px solid rgba(124,77,255,.14)}
+/* 模糊放在伪元素上（叶子节点），避免 backdrop-filter 作为祖先层把 .dw-video 等子元素一起卷进离屏合成
+   （同 1759 行 .nav 的处理）；移动端整屏合成该层时会丢帧闪屏，见下面 ≤760 的降级 */
+.drawer{background:rgba(250,249,253,.84);border-left:1px solid rgba(124,77,255,.14)}
+.drawer::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);backdrop-filter:blur(22px) saturate(1.25)}
+/* ≤760 抽屉满宽（width:min(460px,100vw)），背后内容完全被遮住，模糊零收益；
+   而这个铺满全屏的 backdrop-filter 层在移动端要逐帧重算/重建，是点小瑞时闪屏的主因 → 直接去掉并改不透明底 */
+@media (max-width:760px){
+  .drawer::before{display:none}
+  /* 键盘实占高度（--dw-kb 由 rh2026.js 按 visualViewport 实时写入）：把抽屉底边抬到键盘之上，
+     输入框始终在可视区内，浏览器就不必自己滚动 / 平移页面去「救」它 */
+  .drawer{background:var(--card);bottom:var(--dw-kb,0px)}
+}
 .dw-head{background:rgba(246,243,255,.55);border-bottom-color:rgba(124,77,255,.12)}
 .msg.ai .bubble{background:rgba(255,255,255,.62);border-color:rgba(124,77,255,.12)}
 .dw-input{background:rgba(255,255,255,.35)}
@@ -3057,8 +3069,9 @@ body.home-on .logo img{filter:none}
   /* 悬浮小瑞：移动端只留头像，环与头像同心（padding 6px→5px） */
   .fab.fab-av{padding:5px;gap:0}
   .fab.fab-av .fab-ring{left:5px;top:5px}
-  /* 小瑞输入框：移动端抽屉占满全宽，字号收小一档（用 !important 覆盖上面的 16px 防缩放规则） */
-  .dw-input input{font-size:13px !important}
+  /* 小瑞输入框不再单独收字号：1511 行「input{font-size:16px !important}」是移动端防 iOS/微信 WebView
+     聚焦自动放大的硬规则，之前这里用 13px !important 把它覆盖掉了，点输入框时被放大约 16/13≈1.23 倍
+     并连带平移页面，抽屉整个跳一下（即反馈的「闪屏」）。占位提示仍是 12px（699 行），不触发缩放 */
   /* 联系表单：占位提示词移动端收小一档；只改 ::placeholder，输入框本体保持 16px 防 iOS 聚焦自动放大 */
   .form input::placeholder,.form textarea::placeholder{font-size:13px}
 }

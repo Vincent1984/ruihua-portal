@@ -2,7 +2,9 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- interactive-widget=resizes-content：软键盘弹出时让 layout viewport 一起缩高（Android Chrome 等），
+         抽屉（fixed 全高）随之收缩、输入框不被键盘挡住；不支持的浏览器会忽略，由 rh2026.js 的 --dw-kb 兜底 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
     <title><!--TITLE--></title>
     <meta name="description" content="<!--DESCRIPTION-->" />
     <!--SEO_META-->
@@ -10,7 +12,7 @@
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
     <!-- 已移除 Google Fonts 外链：Noto Serif SC 已废弃、JetBrains Mono 由系统等宽字体兜底；
          国内网络不可达且 link 为 render-blocking，会拖慢首屏 -->
-    <link rel="stylesheet" href="/css/rh2026.css?v=20260916-aibook" />
+    <link rel="stylesheet" href="/css/rh2026.css?v=20260916-kbd" />
     <link rel="stylesheet" href="/css/rh2026-ext.css?v=20260909-b1" />
 </head>
 <body>
@@ -28,7 +30,7 @@
     <!--DRAWER-->
 
     <!--PRESCRIPT-->
-    <script src="/js/rh2026-engine.js?v=20260916-ai6"></script>
+    <script src="/js/rh2026-engine.js?v=20260916-kbd"></script>
     <script src="/js/rh2026-ext.js?v=20260911-hcvm"></script>
 </body>
 </html>
