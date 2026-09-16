@@ -213,7 +213,7 @@ module.exports = function (app) {
         description: desc,
         keywords,
         canonical,
-        image,
+        image: DEFAULT_OG_IMG, // 分享图统一，不跟随案例 c.cover
         type: 'article',
         structuredData,
         publishedTime: c.createdAt,
@@ -340,8 +340,10 @@ module.exports = function (app) {
         });
       }
       res.set('Cache-Control', 'no-store');
+      // 分享图统一使用 weixinshare.png：不跟随 article.coverImage，
+      // 避免封面为 WebP 或小于 300x300 时微信抓不到图
       res.send(render2026({ title, description, keywords, canonical,
-        image: absoluteUrl(article.coverImage), type: 'article', structuredData,
+        image: DEFAULT_OG_IMG, type: 'article', structuredData,
         content: buildArticleDetail(article, author, qa, relatedArticles) }));
     } catch (e) {
       // #region debug-point C:render-error
@@ -358,9 +360,9 @@ module.exports = function (app) {
   const DEFAULT_OG_IMG = 'https://ruihua-portal.tos-cn-shanghai.volces.com/page/weixinshare.png'; // 微信分享缩略图 800x800
   const PAGES = {
     '/solutions': { block: 'solutions', title: '产品与服务 · 三位一体 | 瑞华智策', description: 'AI 赋能培训、AI 转型咨询、AI 落地陪跑三位一体，可单独采购，也可组合成一体化方案。', image: DEFAULT_OG_IMG },
-    '/solutions/training': { block: 'p-training', title: 'AI 赋能培训 · 让团队会想、会用、会和 Agent 并肩作战 | 瑞华智策', description: 'AI 时代，「人」最容易成为硅基员工战力释放的瓶颈。我们从决策层到一线，把 AI 认知与 Agent 协作能力转移给团队——先会想，才会用，能力留在企业自己手里。', image: '/images/2026-b/b2714ed141781fbf.jpeg' },
+    '/solutions/training': { block: 'p-training', title: 'AI 赋能培训 · 让团队会想、会用、会和 Agent 并肩作战 | 瑞华智策', description: 'AI 时代，「人」最容易成为硅基员工战力释放的瓶颈。我们从决策层到一线，把 AI 认知与 Agent 协作能力转移给团队——先会想，才会用，能力留在企业自己手里。', image: DEFAULT_OG_IMG },
     '/solutions/consulting': { block: 'p-consulting', title: '碳硅混合生产力管理咨询 · 碳硅共智的新质组织 | 瑞华智策', description: '以 「碳硅共智的新质组织」 为目标框架，从战略、组织、人效、流程、风险、数据 6 个维度，诊断现状、重构结构、配套治理机制与人才发展路径，帮助企业把 「碳基 + 硅基」 混合生产力体系真正建起来、跑起来。', image: DEFAULT_OG_IMG },
-    '/solutions/fde': { block: 'p-fde', title: 'Agent 落地全周期服务 · 场景定义到价值闭环 | 瑞华智策', description: '把「AI 转型」拆成「一个个真场景落地」：从场景定义与优先级排序，到 Agent 搭建、冷启动、上线、价值衡量、组织接纳、复制推广，FDE 团队在关键节点提供方法、工具、模板、陪跑，让 Agent 真正嵌入业务流。', image: '/images/2026-b/6b49ad7bd1948539.webp' },
+    '/solutions/fde': { block: 'p-fde', title: 'Agent 落地全周期服务 · 场景定义到价值闭环 | 瑞华智策', description: '把「AI 转型」拆成「一个个真场景落地」：从场景定义与优先级排序，到 Agent 搭建、冷启动、上线、价值衡量、组织接纳、复制推广，FDE 团队在关键节点提供方法、工具、模板、陪跑，让 Agent 真正嵌入业务流。', image: DEFAULT_OG_IMG },
     '/solutions/eco': { block: 'p-eco', title: '生态用工管理咨询 · 管业务 · 管生态 · 管价值 | 瑞华智策', description: '基于人瑞人才 15 年灵活用工服务经验，把管用工的方法变成你公司的治理体系——以「管理咨询 + 数智化平台」双轮驱动，面向平台化、生态化用工形态，重构用工结构、合规管理与效能治理。', image: DEFAULT_OG_IMG },
     '/solutions/overseas': { block: 'p-overseas', title: 'HR 出海管理咨询 · 从咨询方案到海外本土落地 | 瑞华智策', description: '依托人瑞人才的海外布局、全球服务能力以及对众多出海中企多年海外 HR 服务的积淀——23 个国家与地区的自有属地团队，聚焦中国企业出海的核心人力痛点，从前期筹备到体系落地全流程陪伴。', image: DEFAULT_OG_IMG },
     '/solutions/hcvm': { block: 'hcvm', title: '人力资本价值经营咨询 · 从人效诊断到利润增长 | 瑞华智策', description: 'HR 战略咨询 · 人力资本价值经营（HCVM，Human Capital Value Management）。以「管理 + 技术」双引擎，从人效诊断切入，让人效提升真正变成利润增长，实现客户、企业与人才的价值共赢。', image: DEFAULT_OG_IMG },
