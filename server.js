@@ -3831,6 +3831,7 @@ app.post('/api/ai/chat', aiChatLimiter, async (req, res) => {
     const finish = () => { if (closed) return; closed = true; aiInflight.delete(ip); };
     res.on('close', finish);
 
+    let hb = null;   /* 上游首个 token 到达前的 SSE 心跳定时器 */
     try {
         const messages = [{ role: 'system', content: AI_ADVISOR_SYSTEM_PROMPT }];
         if (context) messages.push({ role: 'system', content: '以下是本站检索到的参考资料（优先级最高，回答必须优先依据它）：\n' + context });
@@ -3839,9 +3840,15 @@ app.post('/api/ai/chat', aiChatLimiter, async (req, res) => {
         });
         messages.push({ role: 'user', content: question });
 
+        /* 先发 SSE 头与 open 帧，再等上游：上游慢时客户端仍能立即拿到首字节，
+           不会被自己的“首字超时”误判并取消请求（net::ERR_ABORTED） */
+        aiSseHead(res);
+        aiSseSend(res, { type: 'open' });
+        /* 首个正文 token 到达前每 4 秒一次心跳，避免连接被中间层判死 */
+        hb = setInterval(() => { if (!closed) { try { res.write(': ping\n\n'); } catch (e) {} } }, 4000);
+
         const reader = await deepseekChatStream(messages, { maxTokens: 600, temperature: 0.3 });
         if (closed) { try { reader.cancel(); } catch (e) {} return; }
-        aiSseHead(res);
 
         const decoder = new TextDecoder();
         let buf = '';
@@ -3858,7 +3865,10 @@ app.post('/api/ai/chat', aiChatLimiter, async (req, res) => {
                 if (!payload || payload === '[DONE]') continue;
                 let json; try { json = JSON.parse(payload); } catch (e) { continue; }
                 const delta = json && json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content;
-                if (delta) aiSseSend(res, { type: 'delta', text: delta });
+                if (delta) {
+                    if (hb) { clearInterval(hb); hb = null; }
+                    aiSseSend(res, { type: 'delta', text: delta });
+                }
             }
         }
         if (!closed) { aiSseSend(res, { type: 'done' }); res.end(); }
@@ -3870,6 +3880,8 @@ app.post('/api/ai/chat', aiChatLimiter, async (req, res) => {
             if (res.headersSent) { aiSseSend(res, { type: 'error', message: 'AI 服务暂时不可用' }); res.end(); }
             else res.status(503).json({ error: 'AI 服务暂时不可用', fallback: true });
         } catch (e) { try { res.end(); } catch (e2) {} }
+    } finally {
+        if (hb) { clearInterval(hb); hb = null; }
     }
 });
 

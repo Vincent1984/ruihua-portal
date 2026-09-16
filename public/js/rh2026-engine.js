@@ -482,8 +482,9 @@ async function streamAnswer(q,rs,tid,hit){
   const context=rs.map(r=>`【${r.t}】（${r.w}｜${r.h}）${r.snip}`).join('\n');
   const history=RH_TALK.slice(0,-1).slice(-6).map(x=>({role:x.r==='me'?'user':'assistant',content:String(x.t||'').slice(0,500)})).filter(x=>x.content);
   const ctrl=new AbortController();
-  let firstAt=0;
-  const timer=setTimeout(()=>{if(!firstAt)ctrl.abort()},8000);   /* 首字 8 秒未到即回退 */
+  let timer;   /* 空闲超时：12 秒内收不到任何数据（含服务端心跳）才主动取消，回退本地 KB */
+  const resetIdle=()=>{clearTimeout(timer);timer=setTimeout(()=>ctrl.abort(),12000)};
+  resetIdle();
   let res;
   try{
     res=await fetch('/api/ai/chat',{method:'POST',headers:{'Content-Type':'application/json','Accept':'text/event-stream'},body:JSON.stringify({question:q,context,history}),signal:ctrl.signal});
@@ -495,7 +496,7 @@ async function streamAnswer(q,rs,tid,hit){
     for(;;){
       const {value,done}=await reader.read();
       if(done)break;
-      if(!firstAt){firstAt=Date.now();clearTimeout(timer)}
+      resetIdle();
       buf+=dec.decode(value,{stream:true});
       const parts=buf.split('\n\n');buf=parts.pop();
       parts.forEach(part=>{
@@ -507,7 +508,11 @@ async function streamAnswer(q,rs,tid,hit){
       });
       if(text){bubble.innerHTML=aiRich(text);body.scrollTop=body.scrollHeight}
     }
-  }catch(error){failed=true}
+  }catch(error){
+    /* 空闲超时触发的主动取消（AbortError）属设计内降级：静默结束，交由本地 KB 回退 */
+    if(ctrl.signal.aborted){clearTimeout(timer);return false}
+    failed=true;
+  }
   clearTimeout(timer);
   if(failed||!text.trim())return false;
   el.remove();
