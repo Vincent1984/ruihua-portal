@@ -334,15 +334,20 @@ const KB=[
 const FALLBACK={a:`没有在官网内容中检索到相关信息。你可以换个说法再问，试试下面的常见问题，或者留下联系方式，<strong>顾问会在 24 小时内</strong>给你答复。`,rag:['全站检索 · 未命中'],src:[]};
 
 /* ===== 全站内容索引与检索：文章 / 27 案例 / 课程 / 全部页面板块 ===== */
+/* 行业中文名 → 行业列表页 slug，与 routes/frontendRoutes2026.js 的 INDUSTRY_SLUGS 保持一致 */
+const IND_SLUG={'制造业':'manufacturing','教育':'education','零售快消':'retail','游戏文娱':'game','金融财税':'finance','贸易物流':'trade','物业地产':'property','其他':'other'};
+/* 案例标题（去空格）→ 案例详情页 slug，与 DB 已发布案例一致；命中则来源卡直达 /cases/<slug>，未命中退回行业列表页 */
+const CASE_SLUG={'海尔智家·用AgentOS把AI能力交到每一位员工手上':'haier-agent-os','鑫方盛集团·用ADP把工业品供应链从头跑在Agent上':'xinfangsheng-adp-supply-chain','TCL实业·用CodeBuddy让研发团队从改不动老代码里解放出来':'tcl-codebuddy-legacy','某电力设计院·用知识库把合规审查从周级压到小时级':'power-design-institute-compliance','西安经开第十小学·用WorkBuddy把备课时间压掉80%+':'xian-jingkai-no10-workbuddy','江西工程学院·用WorkBuddy把学生Bug修复效率提30%':'jiangxi-engineering-workbuddy','斯恩升学·用ima+WorkBuddy把方案制作从6小时压到分钟级':'siensheng-ima-workbuddy','联想开天×腾讯WorkBuddy·国产信创AIPC跑通中小学教务':'lenovo-kaitian-workbuddy','伊利集团·用ADP让4万一线人员用上对话级Agent':'yili-adp-frontline-agent','茶颜悦色·用AI面试与小诸葛把门店从凭感觉变靠数据':'chayan-yuese-ai-interview','鸣鸣很忙·用AI巡检把万店巡店从人力黑洞里捞出来':'mingming-henmang-ai-inspection','创梦天地·用CodeBuddy让70%+工程师用上AI辅助编码':'idreamsky-codebuddy','游族网络·用全员Agent工作流打通模型壁垒、放大各岗位产能':'youzu-agent-workflow','淘米网络·用CodeBuddy接手重复活、美术IP衍生效率涨近80%':'taomee-codebuddy-ip','中国银行·用智能体把4000+AI模型规模化落到全行业务':'bank-of-china-agents','招商银行·用CodeBuddy私有化沉淀AISE建设能力':'cmb-codebuddy-aise','慧算账·用ClawPro让一个会计带N个数字员工':'huisuanzhang-clawpro','中港星/司盟企服·用WorkBuddy给21年专业服务提提速':'zhonggangxing-workbuddy','找钢网·用ADP把沟通即交易从头跑通钢铁B2B':'zhaogang-adp-b2b','某200人外贸企业·用开发信流水线+IP内容矩阵把获客全链路跑通':'foreign-trade-outreach-pipeline','某港口集团·用WorkBuddy把集团财务、票据与经营分析全链路跑通':'port-group-workbuddy-finance','某物业集团·上千项目管家被填表困住、服务响应效率低':'property-group-butler','万科-万物云·用CodeBuddy公有云版把周编码时间砍半':'vanke-onewo-codebuddy','某医药零售集团·用WorkBuddy+CodeBuddy把研发与数据链路提效约50%':'pharma-retail-workbuddy-codebuddy','某全国性人力资源服务集团·用HR超级工作站把招聘全链路与人事合规一次跑通':'hr-service-group-super-workstation','华住集团·用ADP华小AI自动处理70%+高频住客问询':'huazhu-adp-guest-inquiry','中兴通讯·用原生WorkBuddyAI云电脑内置100+领域专家':'zte-workbuddy-cloud-pc'};
+const caseSlug=s=>CASE_SLUG[String(s||'').replace(/\s+/g,'')]||'';
 let SITE_IX=null;
 function _stripHTML(h){const d=document.createElement('div');d.innerHTML=h;return d.textContent.replace(/\s+/g,' ').trim()}
 function buildSiteIndex(){
   if(SITE_IX)return SITE_IX;
   const ix=[];
   ART_DB.forEach(a=>ix.push({t:a.title,s:(a.abstract||'')+' '+_stripHTML(a.body||''),h:a.slug?'/insights/'+encodeURIComponent(a.slug):'/insights',w:'研究中心 · '+a.cat}));
-  CASE_DB.forEach(c=>ix.push({t:c.title,
+  CASE_DB.forEach(c=>{const sl=caseSlug(c.title);ix.push({t:c.title,
     s:[c.bg,...(c.prob||[]),...(c.goal||[]),...(c.sol||[]),...(c.stats||[]).map(x=>x.join(' '))].join(' '),
-    h:'/cases',w:'行业案例 · '+c.ind}));
+    h:sl?'/cases/'+sl:'/cases/industry/'+(IND_SLUG[c.ind]||'other'),w:'行业案例 · '+c.ind})});
   const txt=el=>el?el.textContent.replace(/\s+/g,' ').trim():'';
   const PAGES=[['/','首页','homeMain',null],['/solutions','产品与服务 · 总览',null,'solutions'],
     ['/solutions/training','AI 赋能培训',null,'p-training'],['/solutions/consulting','AI 转型咨询',null,'p-consulting'],
@@ -373,12 +378,16 @@ function siteSearch(q){
   if(!terms.length)return[];
   const seen=new Set(),scored=[];
   ix.forEach(e=>{
-    const tl=e.t.toLowerCase(),sl=e.s.toLowerCase();
+    const tl=e.t.toLowerCase(),sl=e.s.toLowerCase(),wl=(e.w||'').toLowerCase();
     let sc=0,fp=-1;
     terms.forEach(t=>{
+      /* 同一词按字段优先级只计一次：标题 3 > 来源标签 2 > 正文 1（避免标题含「行业」的案例压过真正的行业案例） */
       if(tl.includes(t))sc+=3;
-      const p=sl.indexOf(t);
-      if(p>=0){sc+=1;if(fp<0)fp=p}
+      else if(wl.includes(t))sc+=2;  /* 来源标签（如「行业案例 · 教育」）也参与打分，否则按行业名搜不到该行业案例 */
+      else{
+        const p=sl.indexOf(t);
+        if(p>=0){sc+=1;if(fp<0)fp=p}
+      }
     });
     if(sc>=(terms.length>1?2:1)){
       const key=e.t+'|'+e.h;
@@ -439,8 +448,12 @@ document.addEventListener('click',e=>{
 addEventListener('keydown',e=>{if(e.key==='Escape'&&drawer.classList.contains('open'))closeDrawer()});
 function askFromMap(q){openDrawer();setTimeout(()=>ask(q),opened?150:600)}
 function esc(s){return s.replace(/</g,'&lt;')}
-/* 模型输出渲染：先转义 < 防注入，再还原 **加粗** 白名单，最后换行转 <br> */
-function aiRich(t){return esc(String(t||'')).replace(/\*\*([^*\n]{1,60})\*\*/g,'<strong>$1</strong>').replace(/\r?\n/g,'<br>')}
+/* 回答里提到的「（预约）AI 场景诊断」自动挂上预约诊断表单链接，点击直达 */
+const AI_BOOK_URL='https://www.ruihuaconsulting.com/contact';
+const AI_BOOK_RE=/预约\s*[「『（(]?AI\s*场景诊断[」』）)]?|AI\s*场景诊断/g;
+function aiBook(h){return String(h||'').replace(AI_BOOK_RE,'<a class="ai-book" href="'+AI_BOOK_URL+'">$&</a>')}
+/* 模型输出渲染：先转义 < 防注入，再还原 **加粗** 白名单，再给预约入口挂链接，最后换行转 <br> */
+function aiRich(t){return aiBook(esc(String(t||'')).replace(/\*\*([^*\n]{1,60})\*\*/g,'<strong>$1</strong>')).replace(/\r?\n/g,'<br>')}
 function meMsg(t){
   body.insertAdjacentHTML('beforeend',`<div class="msg me"><span class="who">我</span><div class="bubble">${esc(t)}</div></div>`);
   body.scrollTop=body.scrollHeight;
@@ -524,7 +537,7 @@ function fallbackAnswer(tid,hit,rs){
   let extra='';
   if(h.rag&&h.rag.length)extra+=`<div class="rag">${h.rag.map(r=>`<span>● ${r}</span>`).join('')}</div>`;
   if(h.src&&h.src.length)extra+=`<div class="srcs">${h.src.map(s=>`<a href="${s[2]||''}${s[3]?'#'+s[3]:''}" class="src" onclick="goSrc('${s[2]||''}','${s[3]||''}'); return false;" title="点击前往">${esc(s[0])}<em>${esc(s[1])} →</em></a>`).join('')}</div>`;
-  aiMsg(h.a,extra);
+  aiMsg(aiBook(h.a),extra);
   RH_TALK.push({r:'ai',t:_stripHTML(h.a),rag:h.rag||[],src:h.src||[]});
   saveTalk();
   answers++;

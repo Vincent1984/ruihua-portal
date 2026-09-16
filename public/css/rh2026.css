@@ -660,6 +660,9 @@ body.home-on .nav .btn-ink:hover{background:var(--p-300)}
 .msg.ai .bubble{background:var(--cream);border:1px solid var(--line);border-top-left-radius:4px}
 .msg.me .bubble{background:var(--purple-hi);color:#fff;border-top-right-radius:4px;font-weight:600}
 .bubble strong{color:var(--ink);font-weight:800}
+/* 回答里提到的「预约 AI 场景诊断」自动挂链：与站内链接风格一致 */
+.bubble a.ai-book{color:var(--purple);font-weight:800;text-decoration:none;border-bottom:1px solid var(--p-200);transition:border-color .16s var(--ease)}
+.bubble a.ai-book:hover{border-bottom-color:var(--purple)}
 .demo-tag{display:inline-block;margin-top:9px;font-size:10.5px;font-weight:700;color:var(--ink-3);
   background:var(--cream-2);border-radius:6px;padding:3px 9px}
 .rag{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
@@ -692,6 +695,8 @@ body.home-on .nav .btn-ink:hover{background:var(--p-300)}
 .dw-input input{flex:1;font-family:var(--sans);font-size:14px;padding:12px 16px;
   border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink)}
 .dw-input input:focus{outline:none;border-color:var(--purple-hi);box-shadow:0 0 0 3px rgba(124,77,255,.16)}
+/* 提示文案与上方快捷提问 chips 的字体保持一致（12px / 700）；输入后的正文仍为 14px 常规字重 */
+.dw-input input::placeholder{font-family:var(--sans);font-size:12px;font-weight:700}
 .dw-input button{border:none;background:var(--purple-hi);color:#fff;border-radius:12px;
   width:46px;font-size:16px;cursor:pointer}
 .dw-input button:hover{background:var(--p-600)}
@@ -2393,7 +2398,7 @@ body:not(.home-on) .footer{border-top-color:transparent}
   opacity:0;transform:translateY(30px);transition:opacity .6s var(--ease) var(--rvd,0ms),transform .7s var(--ease) var(--rvd,0ms),box-shadow .25s var(--ease),border-color .25s var(--ease)}
 .gap.on{opacity:1;transform:none}
 .gap.on:hover{transform:translateY(-4px);border-color:var(--p-200);box-shadow:0 16px 36px rgba(94,53,177,.12)}
-.gap-q{padding:30px 30px 28px;background:var(--g-bg,#f3efff);display:flex;flex-direction:column;justify-content:center;gap:12px}
+.gap-q{padding:30px 30px 28px;background:var(--g-bg,#f3efff);display:flex;flex-direction:column;justify-content:center;gap:5px}
 .gap-q .no{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--g-ink,var(--purple))}
 .gap-q h3{margin:0;font-size:clamp(20px,1.75vw,25px);font-weight:900;line-height:1.35;color:var(--g-ink,var(--purple));letter-spacing:-.01em}
 .gap-b{padding:26px 30px 26px 34px;display:flex;flex-direction:column;gap:18px;justify-content:center}
@@ -3025,8 +3030,13 @@ body.home-on .logo img{filter:none}
 
 /* ㊷ ≤900：课程账本 ㉛ 的 232px 左列在窄屏把正文挤出行外并被 overflow:hidden 裁掉，这里恢复堆叠 */
 @media (max-width:900px){
-  .ed-ledger.zoned .row{grid-template-columns:1fr;gap:10px}
+  .ed-ledger.zoned .row{grid-template-columns:1fr;gap:10px;padding:0 20px 18px}
   .ed-ledger.zoned .row dd{padding-left:14px}
+  /* 顶部色带原为绝对定位 + 写死 height:64px，装不下 dt 的两行（层级名 + “缺方向”），
+     实测 dt 占 18.7→75px、溢出带外 11px；改为与 dt 同格由其实高撑开，
+     负 margin 保持左右通栏，dt 内边距承接原 row 的 padding-top，视觉不变 */
+  .ed-ledger.zoned .row::before{position:static;grid-area:1/1;width:auto;height:auto;margin:0 -20px}
+  .ed-ledger.zoned .row dt{grid-area:1/1;margin:0;padding:18px 14px 0}
   /* 编号 + 正文 + 括号补充原本是三个互相挤压的 flex 项（末尾丢字），改绝对定位编号 + 自然行内流 */
   .ed-ledger dd ol li{display:block;position:relative;padding-left:32px}
   .ed-ledger dd ol li i{position:absolute;left:0;top:0;min-width:0}
@@ -3083,6 +3093,8 @@ body.home-on .logo img{filter:none}
   .section h2.ed-h1{font-size:27px;line-height:1.32;margin-bottom:20px}
   .section h2.ed-h2{font-size:24px;line-height:1.36}
   .svc-block h3,.section h3.ed-h3{font-size:19px;line-height:1.45;margin-top:36px}
+  /* 三道坎序号卡：.gap-q 里序号与标题是紧邻的 flex 行，不能被上面的 margin-top:36px 撑开 */
+  .svc-block .gap-q h3{margin-top:0}
   .section h2,.svc-block h3,.ab-head h2,.ab-close h2,.tl-sec h2,.tl-cta h2,.p-hero h1,.sub-hero h1{text-wrap:pretty}
 }
 /* 51 关于我们 hero 六枚产品胶囊：移动端 flex-wrap 按字数参差换行很乱，改两列等宽栅格 3×2 */
