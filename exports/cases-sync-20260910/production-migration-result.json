@@ -1,0 +1,146 @@
+{
+  "startedAt": "2026-09-10T10:57:04.928Z",
+  "baseUrl": "https://www.ruihuaconsulting.com",
+  "payload": "cases-payload-draft.json",
+  "attempted": 27,
+  "created": [
+    {
+      "slug": "haier-agent-os",
+      "title": "海尔智家 · 用 Agent OS 把 AI 能力交到每一位员工手上",
+      "id": "6aa28d00511aa88b0bf2b3a0"
+    },
+    {
+      "slug": "xinfangsheng-adp-supply-chain",
+      "title": "鑫方盛集团 · 用 ADP 把工业品供应链从头跑在 Agent 上",
+      "id": "6aa28d01511aa88b0bf2b3ab"
+    },
+    {
+      "slug": "tcl-codebuddy-legacy",
+      "title": "TCL 实业 · 用 CodeBuddy 让研发团队从改不动老代码里解放出来",
+      "id": "6aa28d01bb7889768d40cd9c"
+    },
+    {
+      "slug": "power-design-institute-compliance",
+      "title": "某电力设计院 · 用知识库把合规审查从周级压到小时级",
+      "id": "6aa28d01bb7889768d40cda7"
+    },
+    {
+      "slug": "xian-jingkai-no10-workbuddy",
+      "title": "西安经开第十小学 · 用 WorkBuddy 把备课时间压掉 80%+",
+      "id": "6aa28d01511aa88b0bf2b3b6"
+    },
+    {
+      "slug": "jiangxi-engineering-workbuddy",
+      "title": "江西工程学院 · 用 WorkBuddy 把学生 Bug 修复效率提 30%",
+      "id": "6aa28d01511aa88b0bf2b3c1"
+    },
+    {
+      "slug": "siensheng-ima-workbuddy",
+      "title": "斯恩升学 · 用 ima+WorkBuddy 把方案制作从 6 小时压到分钟级",
+      "id": "6aa28d01bb7889768d40cdaf"
+    },
+    {
+      "slug": "lenovo-kaitian-workbuddy",
+      "title": "联想开天 × 腾讯 WorkBuddy · 国产信创 AI PC 跑通中小学教务",
+      "id": "6aa28d01bb7889768d40cdb8"
+    },
+    {
+      "slug": "yili-adp-frontline-agent",
+      "title": "伊利集团 · 用 ADP 让 4 万一线人员用上对话级 Agent",
+      "id": "6aa28d01511aa88b0bf2b3ca"
+    },
+    {
+      "slug": "chayan-yuese-ai-interview",
+      "title": "茶颜悦色 · 用 AI 面试与小诸葛把门店从凭感觉变靠数据",
+      "id": "6aa28d01511aa88b0bf2b3d5"
+    },
+    {
+      "slug": "mingming-henmang-ai-inspection",
+      "title": "鸣鸣很忙 · 用 AI 巡检把万店巡店从人力黑洞里捞出来",
+      "id": "6aa28d01bb7889768d40cdbf"
+    },
+    {
+      "slug": "idreamsky-codebuddy",
+      "title": "创梦天地 · 用 CodeBuddy 让 70%+ 工程师用上 AI 辅助编码",
+      "id": "6aa28d01bb7889768d40cdc9"
+    },
+    {
+      "slug": "youzu-agent-workflow",
+      "title": "游族网络 · 用全员 Agent 工作流打通模型壁垒、放大各岗位产能",
+      "id": "6aa28d01511aa88b0bf2b3dd"
+    },
+    {
+      "slug": "taomee-codebuddy-ip",
+      "title": "淘米网络 · 用 CodeBuddy 接手重复活、美术 IP 衍生效率涨近 80%",
+      "id": "6aa28d01511aa88b0bf2b3e5"
+    },
+    {
+      "slug": "bank-of-china-agents",
+      "title": "中国银行 · 用智能体把 4000+ AI 模型规模化落到全行业务",
+      "id": "6aa28d01bb7889768d40cdd3"
+    },
+    {
+      "slug": "cmb-codebuddy-aise",
+      "title": "招商银行 · 用 CodeBuddy 私有化沉淀 AISE 建设能力",
+      "id": "6aa28d01bb7889768d40cddc"
+    },
+    {
+      "slug": "huisuanzhang-clawpro",
+      "title": "慧算账 · 用 ClawPro 让一个会计带 N 个数字员工",
+      "id": "6aa28d01511aa88b0bf2b3ec"
+    },
+    {
+      "slug": "zhonggangxing-workbuddy",
+      "title": "中港星 / 司盟企服 · 用 WorkBuddy 给 21 年专业服务提提速",
+      "id": "6aa28d01511aa88b0bf2b3f5"
+    },
+    {
+      "slug": "zhaogang-adp-b2b",
+      "title": "找钢网 · 用 ADP 把沟通即交易从头跑通钢铁 B2B",
+      "id": "6aa28d01bb7889768d40cde3"
+    },
+    {
+      "slug": "foreign-trade-outreach-pipeline",
+      "title": "某 200 人外贸企业 · 用开发信流水线+IP 内容矩阵把获客全链路跑通",
+      "id": "6aa28d01bb7889768d40cded"
+    },
+    {
+      "slug": "port-group-workbuddy-finance",
+      "title": "某港口集团 · 用 WorkBuddy 把集团财务、票据与经营分析全链路跑通",
+      "id": "6aa28d01511aa88b0bf2b3fd"
+    },
+    {
+      "slug": "property-group-butler",
+      "title": "某物业集团 · 上千项目管家被填表困住、服务响应效率低",
+      "id": "6aa28d01511aa88b0bf2b407"
+    },
+    {
+      "slug": "vanke-onewo-codebuddy",
+      "title": "万科-万物云 · 用 CodeBuddy 公有云版把周编码时间砍半",
+      "id": "6aa28d01bb7889768d40cdf7"
+    },
+    {
+      "slug": "pharma-retail-workbuddy-codebuddy",
+      "title": "某医药零售集团 · 用 WorkBuddy+CodeBuddy 把研发与数据链路提效约 50%",
+      "id": "6aa28d01bb7889768d40ce01"
+    },
+    {
+      "slug": "hr-service-group-super-workstation",
+      "title": "某全国性人力资源服务集团 · 用 HR 超级工作站把招聘全链路与人事合规一次跑通",
+      "id": "6aa28d01511aa88b0bf2b410"
+    },
+    {
+      "slug": "huazhu-adp-guest-inquiry",
+      "title": "华住集团 · 用 ADP 华小 AI 自动处理 70%+ 高频住客问询",
+      "id": "6aa28d01511aa88b0bf2b419"
+    },
+    {
+      "slug": "zte-workbuddy-cloud-pc",
+      "title": "中兴通讯 · 用原生 WorkBuddy AI 云电脑内置 100+ 领域专家",
+      "id": "6aa28d01bb7889768d40ce0c"
+    }
+  ],
+  "skipped": [],
+  "failed": [],
+  "finishedAt": "2026-09-10T10:57:05.916Z"
+}

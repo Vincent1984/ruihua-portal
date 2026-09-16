@@ -410,7 +410,7 @@ function openDrawer(){
   dwOpenedAt=Date.now();
   drawer.classList.add('open');
   if(!opened){opened=true;
-    aiMsg(`你好，我是瑞华的 AI 顾问，已接入官网<strong>全站内容检索</strong>——产品与服务、27 个行业案例、12 门课程、研究中心文章都能搜到，来源可一键跳转。<strong>可以问我怎么切入、怎么部署、怎么管混合员工</strong>，也可以直接搜任何站内内容。<span class="demo-tag">演示态 · 检索来自站内真实索引，回答未接入大模型</span>`);
+    aiMsg(`你好，我是瑞华的 AI 顾问，基于官网<strong>全站内容检索 + 大模型</strong>回答——产品与服务、27 个行业案例、12 门课程、研究中心文章都能搜到，来源可一键跳转。<strong>可以问我怎么切入、怎么部署、怎么管混合员工</strong>，也可以直接搜任何站内内容。<span class="demo-tag">已接入大模型 · 回答基于站内内容检索生成，仅供参考</span>`);
   }
   setTimeout(()=>document.getElementById('dwInput').focus(),350);
 }
@@ -440,6 +440,8 @@ document.addEventListener('click',e=>{
 addEventListener('keydown',e=>{if(e.key==='Escape'&&drawer.classList.contains('open'))closeDrawer()});
 function askFromMap(q){openDrawer();setTimeout(()=>ask(q),opened?150:600)}
 function esc(s){return s.replace(/</g,'&lt;')}
+/* 模型输出渲染：先转义 < 防注入，再还原 **加粗** 白名单，最后换行转 <br> */
+function aiRich(t){return esc(String(t||'')).replace(/\*\*([^*\n]{1,60})\*\*/g,'<strong>$1</strong>').replace(/\r?\n/g,'<br>')}
 function meMsg(t){
   body.insertAdjacentHTML('beforeend',`<div class="msg me"><span class="who">我</span><div class="bubble">${esc(t)}</div></div>`);
   body.scrollTop=body.scrollHeight;
@@ -448,37 +450,86 @@ function aiMsg(html,extra=''){
   body.insertAdjacentHTML('beforeend',`<div class="msg ai"><span class="who">AI</span><div class="bubble">${html}${extra}</div></div>`);
   body.scrollTop=body.scrollHeight;
 }
-function ask(q){
+/* 提问：优先走大模型 SSE 流式打字机；超时/失败/无输出 → 完整回退到本地 KB 与全站检索 */
+async function ask(q){
   meMsg(q);
   RH_TALK.push({r:'me',t:q,rag:[],src:[]});
   saveTalk();
   const tid='t'+Date.now();
   body.insertAdjacentHTML('beforeend',`<div class="msg ai" id="${tid}"><span class="who">AI</span><div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div></div>`);
   body.scrollTop=body.scrollHeight;
-  let hit=KB.find(e=>e.k.some(k=>q.includes(k)));
-  if(!hit){
+  const hit=KB.find(e=>e.k.some(k=>q.includes(k)));
+  const rs=siteSearch(q);   /* RAG 方案 A：前端检索 → 片段随请求传给后端 */
+  if(await streamAnswer(q,rs,tid,hit))return;
+  fallbackAnswer(tid,hit,rs);
+}
+async function streamAnswer(q,rs,tid,hit){
+  const el=document.getElementById(tid); if(!el)return false;
+  const bubble=el.querySelector('.bubble');
+  const context=rs.map(r=>`【${r.t}】（${r.w}｜${r.h}）${r.snip}`).join('\n');
+  const history=RH_TALK.slice(0,-1).slice(-6).map(x=>({role:x.r==='me'?'user':'assistant',content:String(x.t||'').slice(0,500)})).filter(x=>x.content);
+  const ctrl=new AbortController();
+  let firstAt=0;
+  const timer=setTimeout(()=>{if(!firstAt)ctrl.abort()},8000);   /* 首字 8 秒未到即回退 */
+  let res;
+  try{
+    res=await fetch('/api/ai/chat',{method:'POST',headers:{'Content-Type':'application/json','Accept':'text/event-stream'},body:JSON.stringify({question:q,context,history}),signal:ctrl.signal});
+  }catch(error){clearTimeout(timer);return false}
+  if(!res.ok||!res.body){clearTimeout(timer);return false}
+  const reader=res.body.getReader(),dec=new TextDecoder();
+  let buf='',text='',failed=false;
+  try{
+    for(;;){
+      const {value,done}=await reader.read();
+      if(done)break;
+      if(!firstAt){firstAt=Date.now();clearTimeout(timer)}
+      buf+=dec.decode(value,{stream:true});
+      const parts=buf.split('\n\n');buf=parts.pop();
+      parts.forEach(part=>{
+        const line=part.split('\n').find(l=>l.indexOf('data:')===0);
+        if(!line)return;
+        let ev;try{ev=JSON.parse(line.slice(5).trim())}catch(e){return}
+        if(ev.type==='delta'&&ev.text)text+=ev.text;
+        else if(ev.type==='error')failed=true;
+      });
+      if(text){bubble.innerHTML=aiRich(text);body.scrollTop=body.scrollHeight}
+    }
+  }catch(error){failed=true}
+  clearTimeout(timer);
+  if(failed||!text.trim())return false;
+  el.remove();
+  const rag=rs.length?['全站检索 · 命中 '+rs.length+' 处']:['通用知识库'];
+  let extra=`<div class="rag">${rag.map(r=>`<span>● ${r}</span>`).join('')}</div>`;
+  if(rs.length)extra+=`<div class="srcs">${rs.map(s=>`<a href="${s.h||''}" class="src" onclick="goSrc('${s.h||''}',''); return false;" title="点击前往">${esc(s.t)}<em>${esc(s.w)} →</em></a>`).join('')}</div>`;
+  aiMsg(aiRich(text),extra);
+  RH_TALK.push({r:'ai',t:text,rag,src:rs.map(r=>[r.t,r.w,r.h])});
+  saveTalk();
+  answers++;
+  if(((hit&&hit.lead)||answers>=2)&&!leadShown){leadShown=true;setTimeout(showLead,900)}
+  return true;
+}
+function fallbackAnswer(tid,hit,rs){
+  const el=document.getElementById(tid);if(el)el.remove();
+  let h=hit;
+  if(!h){
     /* 无预置命中 → 全站内容检索 */
-    const rs=siteSearch(q);
     if(rs.length){
-      hit={
+      h={
         a:`在官网内容中检索到 <strong>${rs.length} 处</strong>相关内容，点击来源可直接跳转：`+
           rs.map(r=>`<div style="margin-top:9px;font-size:12.5px;line-height:1.8;color:inherit;opacity:.85">「${esc(r.snip)}」</div>`).join(''),
         rag:['全站检索 · 命中 '+rs.length+' 处'],
         src:rs.map(r=>[r.t,r.w,r.h])
       };
-    } else hit=FALLBACK;
+    } else h=FALLBACK;
   }
-  setTimeout(()=>{
-    document.getElementById(tid).remove();
-    let extra='';
-    if(hit.rag&&hit.rag.length)extra+=`<div class="rag">${hit.rag.map(r=>`<span>● ${r}</span>`).join('')}</div>`;
-    if(hit.src&&hit.src.length)extra+=`<div class="srcs">${hit.src.map(s=>`<a href="${s[2]||''}${s[3]?'#'+s[3]:''}" class="src" onclick="goSrc('${s[2]||''}','${s[3]||''}'); return false;" title="点击前往">${esc(s[0])}<em>${esc(s[1])} →</em></a>`).join('')}</div>`;
-    aiMsg(hit.a,extra);
-    RH_TALK.push({r:'ai',t:_stripHTML(hit.a),rag:hit.rag||[],src:hit.src||[]});
-    saveTalk();
-    answers++;
-    if((hit.lead||answers>=2)&&!leadShown){leadShown=true;setTimeout(showLead,900)}
-  },900+Math.random()*500);
+  let extra='';
+  if(h.rag&&h.rag.length)extra+=`<div class="rag">${h.rag.map(r=>`<span>● ${r}</span>`).join('')}</div>`;
+  if(h.src&&h.src.length)extra+=`<div class="srcs">${h.src.map(s=>`<a href="${s[2]||''}${s[3]?'#'+s[3]:''}" class="src" onclick="goSrc('${s[2]||''}','${s[3]||''}'); return false;" title="点击前往">${esc(s[0])}<em>${esc(s[1])} →</em></a>`).join('')}</div>`;
+  aiMsg(h.a,extra);
+  RH_TALK.push({r:'ai',t:_stripHTML(h.a),rag:h.rag||[],src:h.src||[]});
+  saveTalk();
+  answers++;
+  if((h.lead||answers>=2)&&!leadShown){leadShown=true;setTimeout(showLead,900)}
 }
 function showLead(){
   body.insertAdjacentHTML('beforeend',`

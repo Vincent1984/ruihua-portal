@@ -355,7 +355,7 @@ module.exports = function (app) {
   // ===== 静态内容页（2026 设计块）SSR 路由 =====
   // URL → { block, title, description, image(可选，相对路径自动加 https://www.ruihuaconsulting.com) }
   const SITE = 'https://www.ruihuaconsulting.com';
-  const DEFAULT_OG_IMG = '/images/2026-b/fbd558c5bc3e740f.png'; // 1200x630 default
+  const DEFAULT_OG_IMG = 'https://ruihua-portal.tos-cn-shanghai.volces.com/page/weixinshare.png'; // 微信分享缩略图 800x800
   const PAGES = {
     '/solutions': { block: 'solutions', title: '产品与服务 · 三位一体 | 瑞华智策', description: 'AI 赋能培训、AI 转型咨询、AI 落地陪跑三位一体，可单独采购，也可组合成一体化方案。', image: DEFAULT_OG_IMG },
     '/solutions/training': { block: 'p-training', title: 'AI 赋能培训 · 让团队会想、会用、会和 Agent 并肩作战 | 瑞华智策', description: 'AI 时代，「人」最容易成为硅基员工战力释放的瓶颈。我们从决策层到一线，把 AI 认知与 Agent 协作能力转移给团队——先会想，才会用，能力留在企业自己手里。', image: '/images/2026-b/b2714ed141781fbf.jpeg' },

@@ -191,7 +191,7 @@ function loadBlock(key) {
 function render2026({ title = '瑞华智策', description = '', keywords = '', canonical = '', image = '', type = 'website', structuredData = null, content = '', preScript = '', activePath = '', publishedTime = '', modifiedTime = '', siteName = '瑞华智策', twitterCard = 'summary_large_image' } = {}) {
   const c = loadCache();
   const SITE = 'https://www.ruihuaconsulting.com';
-  const DEFAULT_OG_IMG = `${SITE}/images/2026-b/fbd558c5bc3e740f.png`;
+  const DEFAULT_OG_IMG = 'https://ruihua-portal.tos-cn-shanghai.volces.com/page/weixinshare.png';
   const absImage = (() => {
     if (!image) return DEFAULT_OG_IMG;
     if (/^https?:\/\//i.test(image)) return image;
@@ -219,8 +219,8 @@ function render2026({ title = '瑞华智策', description = '', keywords = '', c
     `<meta property="og:image" content="${escAttr(absImage)}" />`,
     `<meta property="og:image:secure_url" content="${escAttr(absImage)}" />`,
     `<meta property="og:image:type" content="image/png" />`,
-    `<meta property="og:image:width" content="1200" />`,
-    `<meta property="og:image:height" content="630" />`,
+    `<meta property="og:image:width" content="800" />`,
+    `<meta property="og:image:height" content="800" />`,
     `<meta property="og:image:alt" content="${escAttr(pageTitle)}" />`,
     `<meta name="twitter:card" content="${escAttr(twitterCard)}" />`,
     `<meta name="twitter:title" content="${escAttr(pageTitle)}" />`,

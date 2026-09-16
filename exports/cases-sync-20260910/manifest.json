@@ -1,0 +1,54 @@
+{
+  "formatVersion": 1,
+  "generatedAt": "2026-09-10T10:19:53.204Z",
+  "source": {
+    "database": "ruihua_cms",
+    "collection": "cases"
+  },
+  "syncKey": "slug",
+  "counts": {
+    "total": 27,
+    "byStatus": {
+      "published": 27
+    },
+    "byIndustry": {
+      "制造业": 4,
+      "教育": 4,
+      "零售快消": 3,
+      "游戏文娱": 3,
+      "金融财税": 4,
+      "贸易物流": 3,
+      "物业地产": 2,
+      "其他": 4
+    },
+    "online": 27,
+    "featured": 6,
+    "withCover": 0,
+    "bundledCoverFiles": 0,
+    "missingLocalCoverFiles": 0
+  },
+  "validation": {
+    "missingTitle": [],
+    "missingSlug": [],
+    "duplicateSlugs": [],
+    "invalidStatus": []
+  },
+  "files": {
+    "sourceSnapshot": {
+      "name": "cases-source-snapshot.json",
+      "sha256": "198be69d1e6ba4213ed23a559b0ca078c1206627f44d3327d787a3b9679785e4"
+    },
+    "productionStatePayload": {
+      "name": "cases-payload-as-is.json",
+      "sha256": "1847475461da4c3c40ad350584b234111c48da37bd5ebd505efb4737a1f60c93"
+    },
+    "safeDraftPayload": {
+      "name": "cases-payload-draft.json",
+      "sha256": "191300d27d429b437b345aff6590461257f4e3cd793fb1d15dfe42e0e11b8272"
+    },
+    "summary": {
+      "name": "cases-summary.csv"
+    }
+  },
+  "media": []
+}
