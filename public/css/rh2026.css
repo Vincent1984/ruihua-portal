@@ -695,8 +695,9 @@ body.home-on .nav .btn-ink:hover{background:var(--p-300)}
 .dw-input input{flex:1;font-family:var(--sans);font-size:14px;padding:12px 16px;
   border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink)}
 .dw-input input:focus{outline:none;border-color:var(--purple-hi);box-shadow:0 0 0 3px rgba(124,77,255,.16)}
-/* 提示文案与上方快捷提问 chips 的字体保持一致（12px / 700）；输入后的正文仍为 14px 常规字重 */
-.dw-input input::placeholder{font-family:var(--sans);font-size:12px;font-weight:700}
+/* 占位提示词比正文小两档：chips 12px、placeholder 10.5px，避免视觉上压过输入后的正文（14px常规） */
+.dw-input input::placeholder,
+.dw-input input::-webkit-input-placeholder{font-family:var(--sans);font-size:10.5px;font-weight:600;letter-spacing:.01em;color:var(--ink-3)}
 .dw-input button{border:none;background:var(--purple-hi);color:#fff;border-radius:12px;
   width:46px;font-size:16px;cursor:pointer}
 .dw-input button:hover{background:var(--p-600)}
@@ -1486,6 +1487,7 @@ body.mnav-on .burger i:nth-child(3){top:20px;transform:rotate(-45deg)}
 body.home-on .burger{border-color:var(--tl-line)}
 body.home-on .burger i{background:var(--d-text)}
 @media (max-width:960px){.burger{display:block}}
+@media (max-width:760px){.nav-right .btn-ink{display:none}}
 @media (max-width:560px){.nav-right .btn:not(.btn-ink){display:none}
   .nav{padding:0 18px}.logo img{height:44px !important}}
 /* 全屏移动菜单 */
@@ -3117,4 +3119,42 @@ body.home-on .logo img{filter:none}
     padding:8px 10px;font-size:clamp(11.5px,3.4vw,13.5px);line-height:1.3;box-shadow:0 6px 16px rgba(124,77,255,.24)}
 }
 /* 320 档防止「务」「询」单字掉行 */
+
+/* 58 0920 首页 hero（隧道）：取消钉住 + 性能 + 竖屏几何。配套 JS 见 hero 隧道模块（geomFor / tick / 自动降级）。
+   ① 取消钉住：容器原为 230vh + sticky，用户要先空滚 130vh（滚轮约三格）页面才动。现在 hero 就是一屏，滚动即走，
+      镜头推进改为跟随「hero 滚出视口」的进度（JS readProgress）。
+   ② 性能：逐帧值不再写成根节点 CSS 变量（会继承给全部字牌、每帧整棵子树重算样式），改为直接写 room / stage 的 transform
+      与三层遮罩的 opacity（纯合成）；字牌不再逐张改透明度，改由 .j3d-dim 一层盖色完成淡出；雾层去掉 transition；
+      缩放层的 border-radius / box-shadow 计算式去掉。
+   ③ 竖屏（hero 宽高比 < 1.15，JS 加 .is-portrait）：隧道几何按宽高比重建，消失点上移到 33%（--j3d-cy）；
+      中心雾缩到消失点附近、暗角减轻、压暗纱由左侧改为底部（保证标题可读）；字牌 .88 透明度 + 景深模糊层找回朦胧感。 */
+.j3d-scroll{height:auto}
+.j3d-scroll > .j3d{position:relative;top:auto}
+.j3d-view{transform:none;border-radius:0;box-shadow:none}
+.j3d-fog{transition:none}
+.j3d-dim{position:absolute;inset:0;z-index:2;pointer-events:none;background:var(--tl-bg);opacity:0;will-change:opacity}
+.j3d-stage{perspective-origin:50% var(--j3d-cy,50%)}
+.j3d-room{top:var(--j3d-cy,50%)}
+.j3d.is-portrait{--j3d-line:rgba(219,205,255,.15);--j3d-tile-o:.88}
+.j3d.is-portrait .j3d-fog.f1{background:radial-gradient(56% 22% at 50% var(--j3d-cy,36%),
+  rgba(0,0,0,.8) 0%,rgba(0,0,0,.52) 40%,rgba(0,0,0,.2) 72%,transparent 100%)}
+.j3d.is-portrait .j3d-fog.f2{background:radial-gradient(150% 120% at 50% 40%,
+  transparent 56%,rgba(0,0,0,.34) 86%,rgba(0,0,0,.62) 100%)}
+.j3d.is-portrait .j3d-scrim{background:linear-gradient(0deg,
+  rgba(8,7,12,.94) 0%,rgba(8,7,12,.86) 30%,rgba(8,7,12,.62) 46%,rgba(8,7,12,.26) 58%,rgba(8,7,12,.06) 68%,transparent 76%)}
+.j3d.is-portrait .j3d-slot img{box-shadow:0 0 0 1px rgba(219,205,255,.2),0 0 8px rgba(124,77,255,.22)}
+.j3d.is-portrait .j3d-slot .dofb{display:block}
+.j3d.is-portrait .j3d-txt h1{text-shadow:0 2px 18px rgba(8,7,12,.85),0 0 2px rgba(8,7,12,.6)}
+/* 60 0920 小瑞头像光晕错位（移动端）：.fab-ring 是 button 里单独合成的动画层，微信底栏出现 / 视口高度变化时
+   fab 的 48vh 位置变了，WebKit 没同步这层的位置，光环留在旧位置（偏下约 40px）。
+   ≤760px 改为头像自身的 box-shadow 脉冲（不单独成层，跟着头像走）；桌面光环不变。 */
+@media (max-width:760px){
+  .fab.fab-av .fab-ring{display:none}
+  .fab.fab-av .fab-face{animation:fabPulse 2.6s ease-out infinite}
+  .fab.fab-av.dragging .fab-face{animation:none}
+}
+@keyframes fabPulse{
+  0%{box-shadow:0 0 0 2px rgba(255,255,255,.75),0 0 0 2px rgba(189,165,255,.75)}
+  100%{box-shadow:0 0 0 2px rgba(255,255,255,.75),0 0 0 18px rgba(189,165,255,0)}}
+@media (prefers-reduced-motion:reduce){.fab.fab-av .fab-face{animation:none}}
 @media (max-width:360px){.ab-hero .pills a{font-size:11px;padding:8px 4px;letter-spacing:-.01em}}

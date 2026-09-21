@@ -1381,14 +1381,14 @@ function inject2026PublicShell(document, activePath = '') {
     else document.body.insertAdjacentHTML('beforeend', `${shell.footer}\n${drawerHtml}`);
     // 版本号需与 views/2026/base.html 保持一致，否则这些页面会命中旧缓存 CSS/JS（旧版抽屉有移动端聚焦闪屏问题）
     const rhCss = document.head.querySelector('link[href*="/css/rh2026.css"]');
-    if (rhCss) rhCss.setAttribute('href', '/css/rh2026.css?v=20260916-kbd');
-    else document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="/css/rh2026.css?v=20260916-kbd">');
+    if (rhCss) rhCss.setAttribute('href', '/css/rh2026.css?v=20260921-fix');
+    else document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="/css/rh2026.css?v=20260921-fix">');
     const rhExtCss = document.head.querySelector('link[href*="/css/rh2026-ext.css"]');
     if (rhExtCss) rhExtCss.setAttribute('href', '/css/rh2026-ext.css?v=20260909-b1');
     else document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="/css/rh2026-ext.css?v=20260909-b1">');
     const rhEngine = document.body.querySelector('script[src*="/js/rh2026-engine.js"]');
-    if (rhEngine) rhEngine.setAttribute('src', '/js/rh2026-engine.js?v=20260916-kbd');
-    else document.body.insertAdjacentHTML('beforeend', '<script src="/js/rh2026-engine.js?v=20260916-kbd"></script>');
+    if (rhEngine) rhEngine.setAttribute('src', '/js/rh2026-engine.js?v=20260920-hero');
+    else document.body.insertAdjacentHTML('beforeend', '<script src="/js/rh2026-engine.js?v=20260920-hero"></script>');
     const rhExt = document.body.querySelector('script[src*="/js/rh2026-ext.js"]');
     if (rhExt) rhExt.setAttribute('src', '/js/rh2026-ext.js?v=20260911-hcvm');
     else document.body.insertAdjacentHTML('beforeend', '<script src="/js/rh2026-ext.js?v=20260911-hcvm"></script>');

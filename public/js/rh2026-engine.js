@@ -1462,19 +1462,43 @@ function animReset(scope){
     duration: 26,
     tileW: 176, tileH: 110,
     wallFill: 0.34, volFill: 0.20,
-    parallax: 4.5,               /* 视差加大一档 */
-    shiftX: 30, shiftY: 20,      /* 鼠标横移 / 纵移的最大位移（px） */
+    parallax: 7.5,               /* 60：4.5 → 7.5，鼠标左右移动时隧道转向更明显 */
+    shiftX: 64, shiftY: 34,      /* 60：30/20 → 64/34，鼠标横移 / 纵移的最大位移（px） */
     ds: 2,
     autoQuality: true,
-    camZ: 460, zoomAdd: 0.14, wheelBoost: 130, ease: 0.085,
+    camZ: 460, zoomAdd: 0.14, wheelBoost: 130, ease: 0.18,   /* 58：.085 → .18，镜头不再明显滞后于手指 */
     camHold: 0.85,               /* 镜头在此进度前完成全部行程，之后保持不动（到达感） */
-    arriveFrom: 0.7,             /* 从此进度起进入「到达段」：雾淡出、图块散开 */
+    arriveFrom: 0.45,            /* 58：从此进度起进入「离场段」：雾散开、画面向底色淡出 */
     seed: 20260826
   };
 
   const DEPTH = CFG.near - CFG.far;
   const SLOTS = Math.round(DEPTH / CFG.cell);
   const clamp = (v,a,b) => v < a ? a : v > b ? b : v;
+
+  /* 58 竖屏几何：舞台原为 2100×1280 横向画面，竖屏按高铺满后只露出中间 ~28%（隧道最远最暗的一段）。
+     宽高比 < 1.15 时按比例收窄隧道，让两侧墙与近景字牌回到屏内；消失点上移到 33%，下半屏留给标题。 */
+  const BASE = { stageW:2100, stageH:1280, hw:1000, hh:600, duration:26, wallFill:.34, volFill:.20, cy:50, portrait:false };
+  function geomFor(w, h){
+    const asp = w / Math.max(h, 1);
+    if (asp >= 1.15) return BASE;
+    const stageH = 1700, stageW = Math.round(clamp(stageH * asp + 120, 900, 2100));
+    return { stageW, stageH, hw: Math.round(stageW / 2 - 30), hh: 800,
+             duration: 19, wallFill: .30, volFill: .05, cy: 33, portrait: true };
+  }
+  let GEO = null;
+  function applyGeom(g){
+    GEO = g;
+    Object.assign(CFG, { stageW:g.stageW, stageH:g.stageH, hw:g.hw, hh:g.hh,
+                         duration:g.duration, wallFill:g.wallFill, volFill:g.volFill });
+    const st = root.style;
+    st.setProperty('--j3d-w', g.stageW + 'px');
+    st.setProperty('--j3d-h', g.stageH + 'px');
+    st.setProperty('--j3d-dur', g.duration + 's');
+    st.setProperty('--j3d-cy', g.cy + '%');
+    root.classList.toggle('is-portrait', g.portrait);
+  }
+  (function(){ const r = root.getBoundingClientRect(); applyGeom(geomFor(r.width, r.height)); })();
 
   let s = CFG.seed;
   const rnd = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296;
@@ -1485,7 +1509,9 @@ function animReset(scope){
     return out;
   };
 
+  function buildWalls(){
   const frag = document.createDocumentFragment();
+  const DS = CFG.ds;
   const over = 2 * CFG.cell;
   const midZ = (CFG.far + CFG.near) / 2;
   const fadeMask = dir => `linear-gradient(${dir},transparent 0%,#000 14%,#000 58%,transparent 100%)`;
@@ -1496,7 +1522,6 @@ function animReset(scope){
     { w: CFG.hw * 2, h: DEPTH + over, t:`translate3d(0,${-CFG.hh}px,${midZ}px) rotateX(-90deg)`, kf:'j3d-gy-neg', mask:fadeMask('to bottom') },
     { w: CFG.hw * 2, h: DEPTH + over, t:`translate3d(0,${ CFG.hh}px,${midZ}px) rotateX(90deg)`,  kf:'j3d-gy-pos', mask:fadeMask('to top') }
   ];
-  const DS = CFG.ds;
   walls.forEach(c => {
     const el = document.createElement('div');
     el.className = 'j3d-wall';
@@ -1531,6 +1556,8 @@ function animReset(scope){
     frag.appendChild(el);
   })();
   room.appendChild(frag);          /* 墙体先上，图块等预渲染池就绪后再上 */
+  }
+  buildWalls();
 
   /* —— 离屏 canvas 预渲染：模糊+压暗位图一次生成，运行时零 filter 重算 ——
      降采样再放大近似高斯模糊，全内核通用，不依赖 ctx.filter */
@@ -1567,7 +1594,9 @@ function animReset(scope){
       animationDelay:delay + 's'
     });
     const img = document.createElement('img');
-    const idx = Math.floor(rnd() * CFG.images.length);
+    let idx = Math.floor(rnd() * CFG.images.length);
+    if (GEO.portrait && idx < WORDS.length && rnd() < .2)
+      idx = WORDS.length + Math.floor(rnd() * (CFG.images.length - WORDS.length));
     img.src = CFG.images[idx];
     img.alt = ''; img.decoding = 'async';
     img.addEventListener('error', () => { img.removeAttribute('src'); img.classList.add('is-blank'); });
@@ -1575,7 +1604,7 @@ function animReset(scope){
        静态 filter 只光栅一次，之后帧间纯合成 */
     const th = idx < WORDS.length ? '' : (rnd()*12-6).toFixed(0)+'deg';
     const ts = idx < WORDS.length ? '' : (0.85+rnd()*0.3).toFixed(2);
-    const tb = idx < WORDS.length ? (0.78+rnd()*0.3).toFixed(2) : (0.6+rnd()*0.45).toFixed(2);
+    const tb = ((idx < WORDS.length ? 0.78+rnd()*0.3 : 0.6+rnd()*0.45) + (GEO.portrait ? .16 : 0)).toFixed(2);
     if (th) img.style.setProperty('--th', th);
     if (ts) img.style.setProperty('--ts', ts);
     img.style.setProperty('--tb', tb);
@@ -1596,10 +1625,10 @@ function animReset(scope){
     tfrag.appendChild(fly);
   }
 
-  const yCells = centers(CFG.hh);
-  const xCells = centers(CFG.hw);
   const TW = CFG.tileW, TH = CFG.tileH;
   function buildTiles(){
+    const yCells = centers(CFG.hh);
+    const xCells = centers(CFG.hw);
     for (let z = 0; z < SLOTS; z++) {
       yCells.forEach(y => {
         if (rnd() < CFG.wallFill) makeTile(`translate3d(${-CFG.hw}px,${y}px,0) rotateY(90deg)`,  false, z, TW, TH);
@@ -1620,6 +1649,18 @@ function animReset(scope){
       });
     }
     room.appendChild(tfrag);
+    for (let l = 1; l <= (root.dataset.j3dLevel | 0); l++) thinStep(l);
+  }
+  function thinStep(level){
+    const n = level === 1 ? 3 : 4;
+    [...room.querySelectorAll('.j3d-fly')].forEach((el, i) => { if (i % n === n - 1) el.remove(); });
+    room.querySelectorAll('.dofb').forEach(el => el.remove());
+  }
+  function rebuild(){
+    room.textContent = '';
+    s = CFG.seed;
+    buildWalls();
+    if (tilesBuilt) buildTiles();
   }
   /* 预渲染池就绪后再生成图块（data-URI 解码极快，肉眼无感知延迟）；
      单张失败不阻塞，最长 1.5s 兜底直接建块 */
@@ -1633,18 +1674,25 @@ function animReset(scope){
   }))).then(buildOnce);
   setTimeout(buildOnce, 1500);
 
-  let camMax = CFG.camZ;
+  let camMax = CFG.camZ, fitScale = 1, live = false;
   function fit() {
     const r = root.getBoundingClientRect();
-    root.style.setProperty('--j3d-scale',
-      Math.max(r.width / CFG.stageW, r.height / CFG.stageH).toFixed(4));
+    if (r.width < 2 || r.height < 2) return;
+    const g = geomFor(r.width, r.height);
+    if (g.portrait !== GEO.portrait || Math.abs(g.stageW - GEO.stageW) > 150) { applyGeom(g); rebuild(); }
+    fitScale = Math.max(r.width / CFG.stageW, r.height / CFG.stageH);
+    root.style.setProperty('--j3d-scale', fitScale.toFixed(4));
     camMax = innerWidth < 760 ? CFG.camZ * .5 : CFG.camZ;
+    if (live) kick();
   }
   fit();
   new ResizeObserver(fit).observe(root);
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const scroller = root.closest('.j3d-scroll');
+  const stageEl = root.querySelector('.j3d-stage');
+  const fog1 = root.querySelector('.j3d-fog.f1'), fog2 = root.querySelector('.j3d-fog.f2');
+  const dimEl = root.querySelector('.j3d-dim');
   let tx = 0, ty = 0, cx = 0, cy = 0;
   let tp = 0, cp = 0;
   let boost = 0;
@@ -1654,38 +1702,29 @@ function animReset(scope){
   const easeArrive = t => 1 - Math.pow(1 - smooth(t), 2.2);
 
   function readProgress() {
-    if (scroller) {
-      const r = scroller.getBoundingClientRect();
-      const len = r.height - innerHeight;
-      tp = len > 0 ? clamp(-r.top / len, 0, 1) : 0;
-    } else {
-      const r = root.getBoundingClientRect();
-      tp = clamp(-r.top / Math.max(r.height, 1), 0, 1);
-    }
+    const r = root.getBoundingClientRect();
+    if (r.height < 2) return;
+    tp = clamp(-r.top / r.height, 0, 1);
     kick();
   }
   function tick() {
-    cx += (tx - cx) * .06;
-    cy += (ty - cy) * .06;
+    cx += (tx - cx) * .09;
+    cy += (ty - cy) * .09;
     cp += (tp - cp) * CFG.ease;
     boost *= .93;
 
-    /* ① 镜头推进：缓入缓出，camHold 之前走完全程，之后保持——内容出现前完成减速 */
-    const p = easeArrive(clamp(cp / CFG.camHold, 0, 1));
-    /* ③ 到达段（arriveFrom→1）：雾淡出、网格隐去、图块加速掠过并散开 */
+    const t = clamp(cp, 0, 1);
+    const p = 1 - (1 - t) * (1 - t);
     const a = smooth(clamp((cp - CFG.arriveFrom) / (1 - CFG.arriveFrom), 0, 1));
-    const st = root.style;
-    st.setProperty('--j3d-cam',  (p * camMax + boost).toFixed(1) + 'px');
-    st.setProperty('--j3d-zoom', (1 + p * CFG.zoomAdd + a * .3).toFixed(4));
-    st.setProperty('--j3d-fog1', ((1 - p * .45) * (1 - a)).toFixed(3));
-    st.setProperty('--j3d-fog2', (1 + p * .25 - a * .3).toFixed(3));
-    st.setProperty('--j3d-tile-o', (1 - a * .85).toFixed(3));
-    st.setProperty('--j3d-grid-o', (1 - a * .55).toFixed(3));
-    /* ② 视差：旋转（俯仰加大）+ 反向横移，房间跟着镜头轻轻晃 */
-    room.style.setProperty('--j3d-ry', (cx * CFG.parallax).toFixed(3) + 'deg');
-    room.style.setProperty('--j3d-rx', (-cy * CFG.parallax * .62).toFixed(3) + 'deg');
-    room.style.setProperty('--j3d-px', (-cx * CFG.shiftX).toFixed(1) + 'px');
-    room.style.setProperty('--j3d-py', (-cy * CFG.shiftY).toFixed(1) + 'px');
+    if (!reduce) {
+      room.style.transform =
+        'translate3d(' + (-cx * CFG.shiftX).toFixed(1) + 'px,' + (-cy * CFG.shiftY).toFixed(1) + 'px,' + (p * camMax + boost).toFixed(1) + 'px) ' +
+        'rotateX(' + (-cy * CFG.parallax * .62).toFixed(3) + 'deg) rotateY(' + (cx * CFG.parallax).toFixed(3) + 'deg)';
+      stageEl.style.transform = 'scale(' + (fitScale * (1 + p * CFG.zoomAdd + a * .16)).toFixed(4) + ')';
+      if (fog1) fog1.style.opacity = ((1 - p * .45) * (1 - a)).toFixed(3);
+      if (fog2) fog2.style.opacity = clamp(1 + p * .25 - a * .3, 0, 1).toFixed(3);
+      if (dimEl) dimEl.style.opacity = (a * .6).toFixed(3);
+    }
 
     const busy = Math.abs(tx-cx) > .0015 || Math.abs(ty-cy) > .0015
               || Math.abs(tp-cp) > .0008 || Math.abs(boost) > .5;
@@ -1696,6 +1735,7 @@ function animReset(scope){
   addEventListener('scroll', readProgress, { passive:true });
   addEventListener('resize', readProgress);
   readProgress();
+  live = true;
 
   root.addEventListener('wheel', e => {
     if (reduce) return;
@@ -1715,20 +1755,39 @@ function animReset(scope){
     root.addEventListener('pointerleave', () => { tx = 0; ty = 0; kick(); });
   }
 
-  if (CFG.autoQuality && !reduce) addEventListener('load', () => setTimeout(function autoQuality(){
-    let n = 0, t0 = performance.now(), last = t0;
-    (function sample(now){
-      n++; last = now;
-      if (now - t0 < 1200) return requestAnimationFrame(sample);
-      const measured = n / ((last - t0) / 1000);
-      if (measured >= 35) return;
-      const keep = measured < 25 ? 3 : 2;
-      [...room.querySelectorAll('.j3d-fly')].forEach((el, i) => { if (i % keep) el.remove(); });
-      /* 低端设备再摘掉景深模糊层，图层数减半 */
-      room.querySelectorAll('.dofb').forEach(el => el.remove());
-      root.dataset.j3dQuality = 'reduced';
-    })(t0);
-  }, 1500));
+  if (CFG.autoQuality && !reduce) (function(){
+    let level = 0, bad = 0, tries = 0;
+    function sampleOnce(done){
+      const d = []; let last = performance.now(); const t0 = last;
+      (function f(now){
+        if (now > last) d.push(now - last);
+        last = now;
+        if (now - t0 < 2000) return requestAnimationFrame(f);
+        done(d);
+      })(last);
+    }
+    function run(){
+      if (++tries > 12 || level >= 2) return;
+      const busy = document.hidden || root.classList.contains('is-paused') || scrollY > 40
+                || !document.body.classList.contains('home-on');
+      if (busy) return setTimeout(run, 2500);
+      sampleOnce(d => {
+        if (document.hidden || d.length < 8) return setTimeout(run, 2500);
+        const srt = d.slice().sort((a, b) => a - b), med = srt[srt.length >> 1];
+        const longs = d.filter(x => x > Math.max(med * 1.7, 34)).length / d.length;
+        const poor = med > 42 || longs > .3;
+        if (!poor) { bad = 0; return; }
+        if (++bad < 2) return setTimeout(run, 600);
+        bad = 0; level++;
+        root.dataset.j3dQuality = 'reduced';
+        root.dataset.j3dLevel = level;
+        thinStep(level);
+        setTimeout(run, 3000);
+      });
+    }
+    const start = () => setTimeout(run, 3500);
+    document.readyState === 'complete' ? start() : addEventListener('load', start);
+  })();
 
   new IntersectionObserver(([e]) => root.classList.toggle('is-paused', !e.isIntersecting),
     { threshold: 0 }).observe(root);
