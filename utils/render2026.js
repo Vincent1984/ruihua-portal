@@ -188,7 +188,7 @@ function loadBlock(key) {
  * @param {string} opts.content      页面主体 HTML（已是最终 HTML，原样注入）
  * @param {string} [opts.preScript]  引擎脚本之前注入的内联脚本（如 window.__CASES__）
  */
-function render2026({ title = '瑞华智策', description = '', keywords = '', canonical = '', image = '', type = 'website', structuredData = null, content = '', preScript = '', activePath = '', publishedTime = '', modifiedTime = '', siteName = '瑞华智策', twitterCard = 'summary_large_image' } = {}) {
+function render2026({ title = '瑞华智策', description = '', keywords = '', canonical = '', image = '', type = 'website', structuredData = null, content = '', preScript = '', activePath = '', publishedTime = '', modifiedTime = '', siteName = '瑞华智策', twitterCard = 'summary_large_image', headExtra = '' } = {}) {
   const c = loadCache();
   const SITE = 'https://www.ruihuaconsulting.com';
   const DEFAULT_OG_IMG = 'https://ruihua-portal.tos-cn-shanghai.volces.com/page/weixinshare.png';
@@ -296,6 +296,7 @@ function render2026({ title = '瑞华智策', description = '', keywords = '', c
   const pageStructuredData = structuredData ? (Array.isArray(structuredData) ? structuredData : [structuredData]) : [];
   const structured = `<script type="application/ld+json">${safeJson([...baseStructuredData, ...pageStructuredData])}</script>`;
   let html = c.base;
+  html = fill(html, '<!--HEAD_EXTRA-->', headExtra);
   html = fill(html, '<!--TITLE-->', escAttr(pageTitle));
   html = fill(html, '<!--DESCRIPTION-->', escAttr(pageDesc));
   html = fill(html, '<!--SEO_META-->', seoMeta);

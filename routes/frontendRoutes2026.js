@@ -362,7 +362,11 @@ module.exports = function (app) {
     '/solutions/overseas': { block: 'p-overseas', title: 'HR 出海管理咨询 · 从咨询方案到海外本土落地 | 瑞华智策', description: '依托人瑞人才的海外布局、全球服务能力以及对众多出海中企多年海外 HR 服务的积淀——23 个国家与地区的自有属地团队，聚焦中国企业出海的核心人力痛点，从前期筹备到体系落地全流程陪伴。', image: DEFAULT_OG_IMG },
     '/solutions/hcvm': { block: 'hcvm', title: '人力资本价值经营咨询 · 从人效诊断到利润增长 | 瑞华智策', description: 'HR 战略咨询 · 人力资本价值经营（HCVM，Human Capital Value Management）。以「管理 + 技术」双引擎，从人效诊断切入，让人效提升真正变成利润增长，实现客户、企业与人才的价值共赢。', image: DEFAULT_OG_IMG },
     '/about': { block: 'about', title: '关于我们 · 碳硅混合生产力专家', description: '瑞华智策（全称：上海瑞华智策企业管理咨询有限公司），是人力资源服务企业人瑞人才（06919.HK）的全资子公司。瑞华智策承接人瑞人才在 AI 时代的战略延伸——成为 AI 原生的本土咨询公司，打造碳硅共智的新质组织。', image: DEFAULT_OG_IMG },
-    '/contact': { block: 'contact', title: '预约 AI 落地诊断', description: '400-175-0886。预约「AI 场景诊断」，顾问 1 个工作日内联系你。上海 · 北京 · 深圳 · 成都四城办公。', image: DEFAULT_OG_IMG }
+    '/contact': { block: 'contact', title: '预约 AI 落地诊断', description: '400-175-0886。预约「AI 场景诊断」，顾问 1 个工作日内联系你。上海 · 北京 · 深圳 · 成都四城办公。', image: DEFAULT_OG_IMG },
+    '/hr-consulting': { block: 'hr-consulting', title: 'AI 时代的 HR 管理咨询', description: '碳硅混合生产力 · 人力资本价值经营 · 生态用工 · HR 出海', canonical: `${SITE}/hr-consulting/`, activePath: '/solutions', image: DEFAULT_OG_IMG,
+      headExtra: `<meta name="robots" content="noindex,follow">\n<script>if(matchMedia('(min-width:761px) and (pointer:fine)').matches)location.replace('/solutions/consulting/');</script>` },
+    '/training-fde': { block: 'training-fde', title: 'AI 赋能培训 & Agent 落地', description: 'AI 赋能培训 · Agent 落地全周期服务', canonical: `${SITE}/training-fde/`, activePath: '/solutions', image: DEFAULT_OG_IMG,
+      headExtra: `<meta name="robots" content="noindex,follow">\n<script>if(matchMedia('(min-width:761px) and (pointer:fine)').matches)location.replace('/solutions/training/');</script>` }
   };
 
   Object.entries(PAGES).forEach(([url, cfg]) => {
@@ -377,7 +381,7 @@ module.exports = function (app) {
           if (/^https?:\/\//i.test(img)) return img;
           return SITE + (img.startsWith('/') ? '' : '/') + img;
         })();
-        res.send(render2026({ title: cfg.title, description: cfg.description, canonical, image: absImage, content, activePath: url }));
+        res.send(render2026({ title: cfg.title, description: cfg.description, canonical: cfg.canonical || canonical, image: absImage, content, activePath: cfg.activePath || url, headExtra: cfg.headExtra }));
       } catch (e) {
         console.error(`SSR ${url} failed:`, e);
         res.status(500).send('服务器错误');
