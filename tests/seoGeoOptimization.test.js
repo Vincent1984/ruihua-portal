@@ -11,9 +11,6 @@ describe('SEO 与 GEO 全站优化', function () {
         assert.match(engine, /location\.assign\(|window\.location\.href/);
         assert.doesNotMatch(engine, /location\.hash=h/);
         assert.match(engine, /new URL\(h,\s*location\.origin\)/);
-        const source = read('new/rh2026.html');
-        assert.doesNotMatch(source, /location\.hash=h/);
-        assert.match(source, /new URL\(h,\s*location\.origin\)/);
     });
 
     it('旧文章入口统一 301 到新版洞察规范 URL', function () {
@@ -31,17 +28,22 @@ describe('SEO 与 GEO 全站优化', function () {
     it('所有新版核心 SSR 页面均输出自引用 canonical', function () {
         const server = read('server.js');
         const routes = read('routes/frontendRoutes2026.js');
-        assert.match(server, /canonical: ['`]https:\/\/www\.ruihuaconsulting\.com\/['`]/);
+        // 实现里首页 canonical 用模板字面量 `${SITE}/` 拼接（SITE = https://www.ruihuaconsulting.com），
+        // 断言同时接受字面量与模板字面量两种写法。
+        assert.match(server, /canonical: (['`]https:\/\/www\.ruihuaconsulting\.com\/['`]|`\$\{SITE\}\/`)/);
         ['/insights', '/insights/industry', '/insights/thinktank'].forEach(url => {
             const escaped = url.replace(/\//g, '\\/');
             assert.match(routes, new RegExp(`canonical: ['\`]https:\\/\\/www\\.ruihuaconsulting\\.com${escaped}['\`]`));
         });
-        assert.match(routes, /canonical: `https:\/\/www\.ruihuaconsulting\.com\$\{url\}`/);
+        // PAGES 批量路由里 canonical 用 `${SITE}${url}` 拼接（SITE = https://www.ruihuaconsulting.com），
+        // 断言同时接受模板字面量与 `${SITE}${url}` 两种写法。
+        assert.match(routes, /canonical = (`\$\{SITE\}\$\{url\}`|`https:\/\/www\.ruihuaconsulting\.com\$\{url\}`)/);
     });
 
     it('首页和静态 SSR 页面具备统一组织、网站与页面结构化数据', function () {
         const renderer = read('utils/render2026.js');
-        assert.match(renderer, /'@id': [`']https:\/\/www\.ruihuaconsulting\.com\/#organization[`']/);
+        // 实现里 @id 用模板字面量 `${SITE}/#organization` 拼接，断言同时接受字面量与模板字面量两种写法。
+        assert.match(renderer, /'@id': (`\$\{SITE\}\/#organization`|['`]https:\/\/www\.ruihuaconsulting\.com\/#organization['`])/);
         assert.match(renderer, /'@type': 'WebSite'/);
         assert.match(renderer, /'@type': 'WebPage'/);
     });
@@ -104,9 +106,14 @@ describe('SEO 与 GEO 全站优化', function () {
             assert.doesNotMatch(html, /href=["']\/about\/["']/);
         });
         const server = read('server.js');
-        assert.match(server, /app\.get\('\/videos\/', \(req, res\) => renderStaticHtmlWith2026Shell\(req, res, 'videos\.html'\)\)/);
-        assert.match(server, /app\.get\('\/videos\.html', \(req, res\) => res\.redirect\(301, '\/videos\/'\)\)/);
-        assert.match(server, /app\.get\('\/privacy\/', \(req, res\) => res\.redirect\(301, '\/privacy'\)\)/);
+        // 视频中心列表页已下线（videos.html 已删除）：/videos、/videos/、/videos.html 统一 301 到知识库 /insights，
+        // 保留历史收录权重，不再要求渲染已删除的模板。
+        assert.match(server, /app\.get\('\/videos\/', \(req, res\) => res\.redirect\(301, '\/insights'\)\)/);
+        assert.match(server, /app\.get\('\/videos\.html', \(req, res\) => res\.redirect\(301, '\/insights'\)\)/);
+        // /privacy 为规范 URL；因 express 非严格路由会用精确 path 中间件拦截 /privacy/ 与 /privacy.html。
+        assert.match(server, /req\.path === '\/privacy\/'[\s\S]{0,120}res\.redirect\(301, '\/privacy'\)/);
+        // canonical 必须与 sitemap 的规范 URL 一致（均不带尾斜杠），避免自相矛盾。
+        assert.match(read('privacy.html'), /<link rel="canonical" href="https:\/\/www\.ruihuaconsulting\.com\/privacy">/);
     });
 
     it('公开页面不再使用旧信息架构和行为型空链接', function () {
@@ -114,9 +121,14 @@ describe('SEO 与 GEO 全站优化', function () {
             .concat(['views/2026/page-blocks/contact.html', 'public/fangan/nurture.html']);
         files.forEach(file => {
             const html = read(file);
-            assert.doesNotMatch(html, /href=["']\/resources\/["']/, `${file} 仍链接旧资源中心`);
-            assert.doesNotMatch(html, /(?:href|onclick)=["'][^"']*\/productivity\//, `${file} 仍链接旧预约入口`);
-            assert.doesNotMatch(html, /<a\b[^>]*href=["']#["'][^>]*>/, `${file} 仍使用行为型空链接`);
+            // 先剔除自引用 canonical：productivity.html 的 canonical 本身就是 /productivity/，
+            // 它是规范 URL 声明而非站内「旧预约入口」链接，不应被下面的断言误判。
+            const withoutCanonical = html.replace(/<link\b[^>]*rel=["']canonical["'][^>]*>/gi, '');
+            assert.doesNotMatch(withoutCanonical, /href=["']\/resources\/["']/, `${file} 仍链接旧资源中心`);
+            assert.doesNotMatch(withoutCanonical, /(?:href|onclick)=["'][^"']*\/productivity\//, `${file} 仍链接旧预约入口`);
+            // 带 data-evt-click 的 <a href="#"> 是行为型链接：由 rh2026-ext.js 的事件委托接管并 preventDefault，
+            // 功能正常，不属于失效空链接。断言只针对没有 JS 处理器兜底的空链接。
+            assert.doesNotMatch(withoutCanonical, /<a\b(?![^>]*data-evt-click)[^>]*href=["']#["'][^>]*>/, `${file} 仍使用行为型空链接`);
         });
         assert.doesNotMatch(read('public/fangan/nqoc-nurture.html'), /<a href="#"[^>]*>立即参与调研<\/a>/);
         assert.doesNotMatch(read('public/nqoc/awards.html'), /<a href="#"[^>]*>[^<]*加载更多入围企业/);

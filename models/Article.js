@@ -33,4 +33,13 @@ const articleSchema = new mongoose.Schema({
     other: { type: Number, default: 0 } // 其他维度
   }
 });
+
+// 查询索引：前台列表/专区/分类/推荐统一按 status + isOnline 过滤并按 publishDate 排序
+articleSchema.index({ status: 1, isOnline: 1, publishDate: -1 });
+articleSchema.index({ status: 1, isOnline: 1, isRecommended: 1, publishDate: -1 });
+articleSchema.index({ category: 1, status: 1, isOnline: 1, publishDate: -1 });
+articleSchema.index({ zone: 1, status: 1, isOnline: 1, publishDate: -1 });
+articleSchema.index({ tags: 1 });
+articleSchema.index({ 'author.name': 1 });
+
 module.exports = mongoose.model('Article', articleSchema);

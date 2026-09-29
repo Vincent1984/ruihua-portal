@@ -68,14 +68,17 @@ describe('案例独立详情页', function () {
         assert.match(routes, /esc\(c\.title\)/);
     });
 
-    it('详情页结构不包含内联样式或内联事件', function () {
+    it('详情页结构不含内联事件，内联样式仅限 CTA 按钮', function () {
         const routes = read('routes/frontendRoutes2026.js');
         const detailBuilder = routes.slice(routes.indexOf('function buildCaseDetail'), routes.indexOf('function buildHome'));
 
-        assert.doesNotMatch(detailBuilder, /style="/);
+        // 现版本正文结构使用语义类名（cs-body/csd-sec），内联样式仅出现在 CTA 按钮上
+        const styleLines = detailBuilder.split('\n').filter(line => line.includes('style="'));
+        assert.ok(styleLines.length > 0, 'CTA 按钮应保留内联样式');
+        styleLines.forEach(line => assert.match(line, /class="btn"/, '内联样式仅允许出现在 CTA 按钮上'));
         assert.doesNotMatch(detailBuilder, /\son[a-z]+="/i);
-        assert.match(detailBuilder, /case-detail-body/);
-        assert.match(detailBuilder, /data-action="open-drawer"/);
+        assert.match(detailBuilder, /cs-body/);
+        assert.match(detailBuilder, /data-evt-click="e1"/);
     });
 
     it('详情路由基于规范域名和 slug 构建唯一 URL', function () {
@@ -89,7 +92,7 @@ describe('案例独立详情页', function () {
     it('详情页按设计顺序提供面包屑、概览、问题目标方案、结果、相关案例、CTA 与返回入口', function () {
         const routes = read('routes/frontendRoutes2026.js');
         const detailBuilder = routes.slice(routes.indexOf('function buildCaseDetail'), routes.indexOf('function buildHome'));
-        const selectors = ['case-breadcrumb', 'case-overview', "story('case-problem'", "story('case-goal'", "story('case-solution'", 'case-results', '${related}', 'cm-cta', 'case-detail-back'];
+        const selectors = ['class="a-bc"', 'class="cs-tags"', '${kpis}', "sec('项目背景'", "sec('遇到的问题'", "sec('希望实现的目标'", "sec('解决方案'", "sec('带来的结果'", 'class="cm-cta"', '${same', '查看全部案例'];
         let last = -1;
         selectors.forEach(selector => {
             const current = detailBuilder.indexOf(selector);
@@ -98,25 +101,22 @@ describe('案例独立详情页', function () {
         });
     });
 
-    it('详情统计正确输出 value 和 label，结果标签按标题与说明成对渲染', function () {
+    it('详情统计正确输出 value 和 label，结果标签渲染为转义段落', function () {
         const routes = read('routes/frontendRoutes2026.js');
         const detailBuilder = routes.slice(routes.indexOf('function buildCaseDetail'), routes.indexOf('function buildHome'));
 
-        assert.ok(detailBuilder.includes('<b>${esc(x.value)}</b><i>${esc(x.label)}</i>'));
-        assert.match(detailBuilder, /resultTags \|\| \[\]\)\.reduce/);
-        assert.match(detailBuilder, /case-result-item/);
-        assert.match(detailBuilder, /case-result-value/);
-        assert.match(detailBuilder, /case-result-label/);
+        assert.ok(detailBuilder.includes('<div class="s"><b>${esc(s.value)}</b><i>${esc(s.label)}</i></div>'));
+        assert.match(detailBuilder, /\(c\.resultTags \|\| \[\]\)\.length/);
+        assert.match(detailBuilder, /c\.resultTags\.map\(x => `<p>\$\{esc\(x\)\}<\/p>`\)/);
     });
 
-    it('案例章节导航与正文楼层锚点一一对应', function () {
+    it('案例正文以 csd-sec 章节结构渲染并复用统一标题', function () {
         const routes = read('routes/frontendRoutes2026.js');
         const detailBuilder = routes.slice(routes.indexOf('function buildCaseDetail'), routes.indexOf('function buildHome'));
 
-        assert.match(detailBuilder, /id="\$\{id\}"/);
-        ['case-step-01', 'case-step-02', 'case-step-03'].forEach(id => {
-            assert.match(detailBuilder, new RegExp(`href="#${id}"`));
-            assert.match(detailBuilder, new RegExp(`story\\('[^']+', '${id}'`));
+        assert.match(detailBuilder, /const sec = \(t, inner\) => `<section class="csd-sec"><h5>\$\{t\}<\/h5>\$\{inner\}<\/section>`/);
+        ['项目背景', '遇到的问题', '希望实现的目标', '解决方案', '带来的结果'].forEach(t => {
+            assert.match(detailBuilder, new RegExp(`sec\\('${t}'`));
         });
     });
 
@@ -124,8 +124,8 @@ describe('案例独立详情页', function () {
         const routes = read('routes/frontendRoutes2026.js');
         const detailBuilder = routes.slice(routes.indexOf('function buildCaseDetail'), routes.indexOf('function buildHome'));
 
-        assert.match(detailBuilder, /case-result-value/);
-        assert.match(detailBuilder, /case-result-label/);
+        assert.match(detailBuilder, /<div class="s"><b>\$\{esc\(s\.value\)\}<\/b><i>\$\{esc\(s\.label\)\}<\/i><\/div>/);
+        assert.match(detailBuilder, /class="cs-kpis"/);
         assert.doesNotMatch(detailBuilder, /case-result-copy/);
     });
 
@@ -133,7 +133,7 @@ describe('案例独立详情页', function () {
         const routes = read('routes/frontendRoutes2026.js');
         const script = read('public/js/rh2026.js');
 
-        assert.match(routes, /case-index-progress/);
+        assert.match(routes, /data-page="case-detail"/);
         assert.match(script, /case-report-index a\[href\^="#"\]/);
         assert.match(script, /aria-current/);
         assert.match(script, /--case-progress/);

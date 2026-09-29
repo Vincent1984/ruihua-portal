@@ -48,7 +48,7 @@ function requireAdminPagePermission({ AdminModel, secretKey, requiredPerm }) {
             let payload = null;
             for (const token of tokens) {
                 try {
-                    payload = jwt.verify(token, secretKey);
+                    payload = jwt.verify(token, secretKey, { algorithms: ['HS256'] });
                     break;
                 } catch {}
             }

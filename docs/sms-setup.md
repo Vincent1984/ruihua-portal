@@ -13,8 +13,8 @@
 ```env
 # 短信配置
 SMS_API_URL=https://rcs.uninets.com.cn/uninetsOutInterface/domesticSmsSend
-SMS_USERNAME=rrxt
-SMS_PASSWORD=Renrui123
+SMS_USERNAME=<your-sms-username>
+SMS_PASSWORD=<your-sms-password>
 # 开发模式：设置为true时使用模拟短信，false时使用真实短信服务
 SMS_MOCK_MODE=true
 ```
@@ -141,8 +141,8 @@ Content-Type: application/json
 ```yaml
 environment:
   - SMS_API_URL=https://rcs.uninets.com.cn/uninetsOutInterface/domesticSmsSend
-  - SMS_USERNAME=rrxt
-  - SMS_PASSWORD=Renrui123
+  - SMS_USERNAME=<your-sms-username>
+  - SMS_PASSWORD=<your-sms-password>
   - SMS_MOCK_MODE=false
 ```
 
@@ -151,8 +151,8 @@ environment:
 ```yaml
 data:
   SMS_API_URL: "https://rcs.uninets.com.cn/uninetsOutInterface/domesticSmsSend"
-  SMS_USERNAME: "rrxt"
-  SMS_PASSWORD: "Renrui123"
+  SMS_USERNAME: "<your-sms-username>"
+  SMS_PASSWORD: "<your-sms-password>"
   SMS_MOCK_MODE: "false"
 ```
 

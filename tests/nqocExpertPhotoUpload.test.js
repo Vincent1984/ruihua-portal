@@ -28,7 +28,7 @@ describe('NQOC 专家照片上传', function () {
 
     it('成功后保存并返回 TOS 公网 URL', function () {
         assert.match(server, /const objectKey = 'nqoc\/zhuanjia\/'/);
-        assert.match(server, /photoUrl = await uploadLocalFileToTos/);
+        assert.match(server, /photoUrl = await uploadBufferToTos\(/);
         assert.match(server, /res\.json\(\{ success: true, message: '申请提交成功', photoUrl \}\)/);
     });
 });

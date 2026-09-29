@@ -8,58 +8,20 @@ const Article = require('../models/Article');
 
 // SEO 配置
 const seoConfig = {
-  baseUrl: 'https://www.ruihua.com',
+  baseUrl: 'https://www.ruihuaconsulting.com',
   brandName: '瑞华智策',
   defaultDescription: 'AI 时代组织进化全生命周期服务商，提供 AI 赋能培训、AI 转型咨询、AI 落地陪跑服务。',
   defaultKeywords: 'AI 转型, 数字化转型, 企业咨询, 人力资本管理, 组织进化',
-  ogImage: '/images/og-default.jpg',
+  // 微信分享缩略图（TOS 对象存储，800x800）；原 /images/og-default.jpg 在仓库中不存在，会导致 og:image 404
+  ogImage: 'https://ruihua-portal.tos-cn-shanghai.volces.com/page/weixinshare.png',
 
-  // 页面级别配置
+  // 页面级别配置：仅对缺少 SEO 标签的存量页面兜底；
+  // 2026 SSR 路由（/、/about、/solutions、/contact、/insights、/cases 等）已自带标题与描述，不受影响。
   pages: {
     '/': {
       title: 'AI 时代组织进化全生命周期服务商',
       description: 'AI 赋能培训、AI 转型咨询、AI 落地陪跑三位一体，陪企业走完 AI 转型全程。',
       keywords: 'AI 转型, 企业培训, 管理咨询, 数字化转型'
-    },
-    '/index.html': {
-      title: 'AI 时代组织进化全生命周期服务商',
-      description: 'AI 赋能培训、AI 转型咨询、AI 落地陪跑三位一体，陪企业走完 AI 转型全程。',
-      keywords: 'AI 转型, 企业培训, 管理咨询, 数字化转型'
-    },
-    '/about': {
-      title: '关于我们 - 专业的 AI 转型服务团队',
-      description: '瑞华智策成立于 2020 年，专注于企业 AI 转型服务，已服务 200+ 企业客户。',
-      keywords: '关于瑞华智策, 企业介绍, AI 转型团队'
-    },
-    '/about.html': {
-      title: '关于我们 - 专业的 AI 转型服务团队',
-      description: '瑞华智策成立于 2020 年，专注于企业 AI 转型服务，已服务 200+ 企业客户。',
-      keywords: '关于瑞华智策, 企业介绍, AI 转型团队'
-    },
-    '/training': {
-      title: 'AI 赋能培训 - 四条路径分角色培养',
-      description: '提供 AI 赋能培训服务，12 门课程全部带可落地的成果物，帮助企业员工快速掌握 AI 技能。',
-      keywords: 'AI 培训, 企业培训, AI 技能, 人才培养'
-    },
-    '/training.html': {
-      title: 'AI 赋能培训 - 四条路径分角色培养',
-      description: '提供 AI 赋能培训服务，12 门课程全部带可落地的成果物，帮助企业员工快速掌握 AI 技能。',
-      keywords: 'AI 培训, 企业培训, AI 技能, 人才培养'
-    },
-    '/solutions': {
-      title: 'AI 转型解决方案 - 定制化企业服务',
-      description: '提供 AI 转型咨询、AI 落地陪跑、人力资本价值经营等全方位解决方案。',
-      keywords: 'AI 解决方案, 企业服务, 数字化转型方案'
-    },
-    '/solutions.html': {
-      title: 'AI 转型解决方案 - 定制化企业服务',
-      description: '提供 AI 转型咨询、AI 落地陪跑、人力资本价值经营等全方位解决方案。',
-      keywords: 'AI 解决方案, 企业服务, 数字化转型方案'
-    },
-    '/article': {
-      title: '行业洞察 - AI 转型实践与案例分享',
-      description: '分享 AI 转型实践经验、行业案例、最佳实践，帮助企业少走弯路。',
-      keywords: '行业洞察, AI 案例, 转型实践, 最佳实践'
     },
     '/article.html': {
       title: '行业洞察 - AI 转型实践与案例分享',
@@ -70,14 +32,24 @@ const seoConfig = {
       title: '资源中心 - AI 转型工具与白皮书下载',
       description: '提供 AI 转型相关的工具、模板、白皮书等资源下载，助力企业转型。',
       keywords: '资源下载, AI 工具, 白皮书, 转型指南'
-    },
-    '/resources.html': {
-      title: '资源中心 - AI 转型工具与白皮书下载',
-      description: '提供 AI 转型相关的工具、模板、白皮书等资源下载，助力企业转型。',
-      keywords: '资源下载, AI 工具, 白皮书, 转型指南'
     }
   }
 };
+
+// 把相对路径补成绝对 URL（已是绝对地址时原样返回）
+function absoluteUrl(url) {
+  if (!url) return absoluteUrl(seoConfig.ogImage);
+  if (/^https?:\/\//i.test(url)) return url;
+  return `${seoConfig.baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+}
+
+// 判断 res.send 的载荷是否像 HTML 文档（用于 Content-Type 尚未设置的场景）
+function isHtmlPayload(data) {
+  let head = '';
+  if (typeof data === 'string') head = data.slice(0, 200);
+  else if (Buffer.isBuffer(data)) head = data.toString('utf8', 0, 200);
+  return /^\s*(<!doctype html|<html[\s>])/i.test(head);
+}
 
 // 生成 Organization Schema
 function generateOrgSchema() {
@@ -85,13 +57,13 @@ function generateOrgSchema() {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "瑞华智策",
-    "url": "https://www.ruihua.com",
-    "logo": "https://www.ruihua.com/images/logo.png",
+    "url": "https://www.ruihuaconsulting.com",
+    "logo": "https://www.ruihuaconsulting.com/images/logo.png",
     "description": "AI 时代组织进化全生命周期服务商",
     "address": {
       "@type": "PostalAddress",
-      "addressLocality": "北京市",
-      "addressRegion": "朝阳区",
+      "addressLocality": "上海市",
+      "addressRegion": "上海市",
       "addressCountry": "CN"
     },
     "contactPoint": {
@@ -121,7 +93,7 @@ function generateArticleSchema(article) {
       "name": "瑞华智策",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://www.ruihua.com/images/logo.png",
+        "url": "https://www.ruihuaconsulting.com/images/logo.png",
         "width": 600,
         "height": 60
       }
@@ -153,17 +125,24 @@ function generateFAQSchema(qaList) {
 /**
  * SEO 注入中间件
  */
-async function seoInjector(req, res, next) {
+function seoInjector(req, res, next) {
   // 只处理 HTML 响应
   const originalSend = res.send;
 
-  res.send = async function(data) {
-    // 检查是否是 HTML
+  res.send = function(data) {
+    // Content-Type 直到 res.send 内部才会写入响应头，此处 res.get('Content-Type') 恒为 undefined，
+    // 因此改为直接探测载荷是否为 HTML 文档。
     const contentType = res.get('Content-Type');
-    if (!contentType || !contentType.includes('text/html')) {
+    if (!isHtmlPayload(data) && !(contentType && contentType.includes('text/html'))) {
       return originalSend.call(this, data);
     }
 
+    // res.send 必须同步返回 this，以保持 Express 链式语义；
+    // 异步注入由 IIFE 承载，任何异常都回落原始响应，避免 Promise 悬空导致请求挂起。
+    const res_ = this;
+    const fallback = () => originalSend.call(res_, data);
+
+    (async () => {
     try {
       const $ = cheerio.load(data);
       const path = req.path === '/' ? '/' : req.path.replace(/\/$/, '');
@@ -235,7 +214,7 @@ async function seoInjector(req, res, next) {
         { property: 'og:url', content: canonicalUrl },
         { property: 'og:title', content: ogTitle },
         { property: 'og:description', content: description },
-        { property: 'og:image', content: `${seoConfig.baseUrl}${ogImage}` },
+        { property: 'og:image', content: absoluteUrl(ogImage) },
         { property: 'og:site_name', content: seoConfig.brandName },
         { property: 'og:locale', content: 'zh_CN' }
       ];
@@ -251,7 +230,7 @@ async function seoInjector(req, res, next) {
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: ogTitle },
         { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: `${seoConfig.baseUrl}${ogImage}` }
+        { name: 'twitter:image', content: absoluteUrl(ogImage) }
       ];
 
       twitterTags.forEach(tag => {
@@ -303,18 +282,21 @@ async function seoInjector(req, res, next) {
         const href = $link.attr('href');
 
         // 如果不是本站链接
-        if (!href.includes(seoConfig.baseUrl) && !href.includes('ruihua.com')) {
+        if (!href.includes(seoConfig.baseUrl)) {
           if (!$link.attr('rel')) {
             $link.attr('rel', 'noopener noreferrer');
           }
         }
       });
 
-      return originalSend.call(this, $.html());
+      originalSend.call(res_, $.html());
     } catch (error) {
       console.error('SEO Injector Error:', error);
-      return originalSend.call(this, data);
+      fallback();
     }
+    })();
+
+    return this;
   };
 
   next();

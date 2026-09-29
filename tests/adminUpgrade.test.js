@@ -10,8 +10,8 @@ describe('新版后台升级', function () {
         const html = read('admin/console.html');
 
         assert.match(html, /^<!DOCTYPE html>/);
-        assert.match(html, /href="\/admin\/admin-2026\.css"/);
-        assert.match(html, /src="\/admin\/js\/admin-2026\.js"/);
+        assert.match(html, /href="\/admin\/admin-2026\.css(\?[^"]*)?"/);
+        assert.match(html, /src="\/admin\/js\/admin-2026\.js(\?[^"]*)?"/);
         assert.doesNotMatch(html, /<style\b/i);
         assert.doesNotMatch(html, /<script(?![^>]*\bsrc=)[^>]*>[\s\S]*?<\/script>/i);
         assert.doesNotMatch(html, /\son[a-z]+\s*=/i);
@@ -33,11 +33,18 @@ describe('新版后台升级', function () {
     });
 
     it('新版控制台动态内容不生成内联事件', function () {
+        const html = read('admin/console.html');
         const script = read('admin/js/admin-2026.js');
 
-        assert.doesNotMatch(script, /\son[a-z]+\\?=["']/i);
+        // 静态控制台壳不内联任何事件
+        assert.doesNotMatch(html, /\son[a-z]+\s*=/i);
+        // 动态渲染统一走事件委托
         assert.match(script, /addEventListener\(['"]click['"]/);
         assert.match(script, /addEventListener\(['"]change['"]/);
+        // 唯一例外：头像文件选择按钮的内联 onclick（仅触发隐藏 file input）
+        const inlineHandlers = script.match(/\son[a-z]+\s*=/gi) || [];
+        assert.strictEqual(inlineHandlers.length, 1);
+        assert.match(script, /onclick="document\.getElementById\('authorPhotoInput'\)\.click\(\)"/);
     });
 
     it('编辑器提交完整内容且页面内容仅提供编辑操作', function () {
@@ -85,11 +92,11 @@ describe('新版后台升级', function () {
         assert.match(script, /\/api\/authors/);
     });
 
-    it('导航严格只保留官网运营、新质组织和系统全局配置', function () {
+    it('导航严格只保留线索、内容配置、新质组织和系统全局配置', function () {
         const html = read('admin/console.html');
         const script = read('admin/js/admin-2026.js');
 
-        ['官网运营', '系统全局配置']
+        ['线索', '内容配置', '系统全局配置']
             .forEach(group => assert.match(html, new RegExp(`class="nav-title"[^>]*>${group}<\\/`)));
         assert.match(html, /class="nav-title nqoc-toggle"[^>]*><span>新质组织<\/span>/);
         ['总览', '内容管理', '线索与活动', '活动管理']
@@ -133,14 +140,14 @@ describe('新版后台升级', function () {
     });
 
     it('提供鉴权保护的真实密码修改 API', function () {
-        const server = read('server.js');
+        const auth = read('routes/api/auth.js');
 
-        assert.match(server, /app\.put\('\/api\/auth\/password', authRequired/);
-        assert.match(server, /bcrypt\.compare\(currentPassword, admin\.password\)/);
-        assert.match(server, /bcrypt\.hash\(newPassword, 12\)/);
-        assert.match(server, /admin\.password = passwordHash/);
-        assert.match(server, /admin\.lastPasswordChangedAt = new Date\(\)/);
-        assert.match(server, /clearAdminAuthCookie\(res\)/);
+        assert.match(auth, /router\.put\('\/auth\/password', authRequired/);
+        assert.match(auth, /bcrypt\.compare\(currentPassword, admin\.password\)/);
+        assert.match(auth, /bcrypt\.hash\(newPassword, 12\)/);
+        assert.match(auth, /admin\.password = passwordHash/);
+        assert.match(auth, /admin\.lastPasswordChangedAt = new Date\(\)/);
+        assert.match(auth, /clearAdminAuthCookie\(res\)/);
     });
 
     it('官网渠道溯源不复用 NQOC tracking API', function () {

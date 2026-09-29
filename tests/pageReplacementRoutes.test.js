@@ -43,7 +43,7 @@ describe('2026 页面替换路由', function () {
     it('非 NQOC 根页面源文件不重复维护主站导航和页脚', function () {
         const files = [
             '404.html', 'privacy.html', 'resources.html', 'video-detail.html',
-            'article.html', 'training.html', 'videos.html', 'efficiency-diagnostic.html',
+            'article.html', 'efficiency-diagnostic.html',
             'productivity.html', 'diagnostic.html', 'diagnostic-result.html',
             'event-registration.html', 'index.html', 'about.html', 'solutions.html'
         ];
@@ -59,7 +59,7 @@ describe('2026 页面替换路由', function () {
     it('非 NQOC 旧版页面通过统一公共壳渲染，NQOC 页面保持独立页面壳', function () {
         const server = fs.readFileSync(path.join(ROOT, 'server.js'), 'utf8');
         assert.match(server, /renderStaticHtmlWith2026Shell/);
-        assert.match(server, /app\.get\('\/videos\/', \(req, res\) => renderStaticHtmlWith2026Shell\(req, res, 'videos\.html'\)\)/);
+        assert.match(server, /app\.get\('\/videos\/', \(req, res\) => res\.redirect\(301, '\/insights'\)\)/);
         assert.match(server, /app\.get\('\/nqoc', \(req, res\) => \{/);
         assert.doesNotMatch(server, /app\.get\('\/nqoc', \(req, res\) => renderStaticHtmlWith2026Shell/);
         assert.match(fs.readFileSync(path.join(ROOT, 'views', '2026', 'partials', 'nav.html'), 'utf8'), /href="\/nqoc"/);
@@ -100,7 +100,7 @@ describe('2026 页面替换路由', function () {
         assert.match(mobileNav, /data-nav-key="about"/, '移动导航缺少可激活的 About 标识');
     });
 
-    it('2026 模板与脚本生成链接不再使用 hash 路由，同时保留旧 SPA 路由解析', function () {
+    it('2026 模板与脚本生成链接不再使用 hash 路由，路由改为基于 location.pathname', function () {
         const viewsRoot = path.join(ROOT, 'views', '2026');
         const htmlFiles = [];
         const collectHtml = dir => fs.readdirSync(dir, { withFileTypes: true }).forEach(entry => {
@@ -118,9 +118,12 @@ describe('2026 页面替换路由', function () {
         const script = fs.readFileSync(path.join(ROOT, 'public', 'js', 'rh2026.js'), 'utf8');
         assert.doesNotMatch(script, /href=["'`]#\//, '脚本仍生成 #/ 链接');
         assert.doesNotMatch(script, /(?:src:\[|\bh:)['"]#\//, '用户内容索引仍使用 #/ 链接');
-        assert.match(script, /location\.hash\|\|'#\/'/);
-        assert.match(script, /replace\('#\/',\s*''\)/);
-        assert.match(script, /addEventListener\('hashchange',route\)/);
+        // 旧 hash 路由解析已随 SSR 接管而移除
+        assert.doesNotMatch(script, /location\.hash/, '脚本不应再解析 location.hash 路由');
+        assert.doesNotMatch(script, /replace\(\s*['"]#\/['"]/, '脚本不应再剥离 #/ 前缀');
+        // 路由函数保留，但改为基于 location.pathname 判定
+        assert.match(script, /function route\(\)\{/, '应保留 route 路由函数');
+        assert.match(script, /location\.pathname/, 'route 路由应基于 location.pathname');
     });
 
     const legacyRedirects = {

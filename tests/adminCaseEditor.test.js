@@ -60,8 +60,8 @@ describe('CMS 案例编辑器体验', function () {
         const routes = read('routes/frontendRoutes2026.js');
         const detail = routes.slice(routes.indexOf('function buildCaseDetail'), routes.indexOf('function buildHome'));
 
-        assert.match(detail, /plainTextFromHtml\(c\.background/);
-        assert.match(detail, /case-overview-content/);
+        assert.match(detail, /plainTextFromHtml\(c\.background\)/);
+        assert.match(detail, /sec\('项目背景', `<p>\$\{bg\.replace\(\/\\n\/g, '<br>'\)\}<\/p>`\)/);
         assert.doesNotMatch(detail, /\$\{c\.background \|\|/);
     });
 });

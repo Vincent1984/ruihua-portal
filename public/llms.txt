@@ -1,19 +1,29 @@
 # 瑞华智策｜AI 时代组织进化知识库
 
 > 面向企业管理者、组织负责人和 AI 转型团队，提供 AI 赋能培训、AI 转型咨询、AI 落地陪跑与人力资本价值经营服务。
-> 最后更新：2026-09-15
+> 最后更新：2026-09-29
 > 文章总数：3
 
 ## 核心页面
+- 首页: https://www.ruihuaconsulting.com/
 - 产品与服务: https://www.ruihuaconsulting.com/solutions
 - AI 赋能培训: https://www.ruihuaconsulting.com/solutions/training
 - AI 转型咨询: https://www.ruihuaconsulting.com/solutions/consulting
 - AI 落地陪跑: https://www.ruihuaconsulting.com/solutions/fde
 - 人力资本价值经营: https://www.ruihuaconsulting.com/solutions/hcvm
+- 生态用工管理: https://www.ruihuaconsulting.com/solutions/eco
+- HR 出海: https://www.ruihuaconsulting.com/solutions/overseas
 - 行业案例: https://www.ruihuaconsulting.com/cases
 - 研究中心: https://www.ruihuaconsulting.com/insights
+- 行业洞察: https://www.ruihuaconsulting.com/insights/industry
+- 经营智库: https://www.ruihuaconsulting.com/insights/thinktank
+- 资源中心: https://www.ruihuaconsulting.com/resources/
+- 提效工具: https://www.ruihuaconsulting.com/productivity/
+- AI 落地诊断: https://www.ruihuaconsulting.com/diagnostic/
+- 组织健康度(NQOC): https://www.ruihuaconsulting.com/nqoc
 - 关于我们: https://www.ruihuaconsulting.com/about
 - 联系我们: https://www.ruihuaconsulting.com/contact
+- 完整内容包: https://www.ruihuaconsulting.com/llms-full.txt
 
 ## 2026新质生产力下的企业AI化变革与组织重构战略指南
 - URL: https://www.ruihuaconsulting.com/insights/2026-new-productivity-ai-transformation-organizational

@@ -43,7 +43,7 @@ function buildAttribution(body = {}, cookies = {}) {
   return attribution;
 }
 
-function registerAppointmentAttributionRoutes(app, authRequired, requirePerm) {
+function registerAppointmentAttributionRoutes(app, authRequired, requirePerm, notifyAppointment) {
   app.post('/api/appointments/website', async (req, res) => {
     try {
       const name = clean(req.body.name, 100);
@@ -72,6 +72,16 @@ function registerAppointmentAttributionRoutes(app, authRequired, requirePerm) {
         ...attribution
       });
       await saveWithUniqueExternalId(appointment);
+
+      // 钉钉通知（独立异常处理，失败不影响提交结果）
+      if (typeof notifyAppointment === 'function') {
+        try {
+          await notifyAppointment(appointment);
+        } catch (notifyError) {
+          console.error('DingTalk notification failed:', notifyError);
+        }
+      }
+
       res.status(201).json({ success: true, id: appointment._id, externalId: appointment.externalId });
     } catch (error) {
       console.error('Website appointment submission failed:', error);

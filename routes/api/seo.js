@@ -15,6 +15,27 @@ const EfficiencySubmission = require('../../models/EfficiencySubmission');
 const Appointment = require('../../models/Appointment');
 const { sendInternalError } = require('../../utils/responseHelpers');
 
+const PROJECT_ROOT = path.resolve(__dirname, '../..');
+
+/**
+ * 将外部传入的 pagePath 解析为项目内的静态 HTML 文件路径。
+ * 仅允许项目根目录下的 .html/.htm 文件，拒绝路径遍历与绝对路径逃逸，防止任意文件读取。
+ * @returns {string|null} 安全的绝对路径；非法输入返回 null
+ */
+function resolveSafePagePath(pagePath) {
+  if (typeof pagePath !== 'string' || !pagePath) return null;
+  // 去除查询串与哈希，统一分隔符
+  const cleaned = pagePath.split('#')[0].split('?')[0].replace(/\\/g, '/');
+  if (!cleaned || cleaned.includes('\0')) return null;
+  // 仅允许静态 HTML 页面
+  if (!/\.html?$/i.test(cleaned)) return null;
+  const relative = cleaned.replace(/^\/+/, '');
+  if (!relative || relative.split('/').includes('..')) return null;
+  const absolute = path.resolve(PROJECT_ROOT, relative);
+  if (!absolute.startsWith(PROJECT_ROOT + path.sep)) return null;
+  return absolute;
+}
+
 /**
  * 初始化 SEO 路由
  */
@@ -24,7 +45,7 @@ function initSeoRoutes(authRequired, requirePerm) {
   router.get('/admin/seo', authRequired, requirePerm('system:manage'), async (req, res) => {
     try {
       const { pagePath } = req.query;
-      if (!pagePath) {
+      if (typeof pagePath !== 'string' || !pagePath) {
         return res.status(400).json({ success: false, error: 'pagePath is required' });
       }
 
@@ -35,8 +56,8 @@ function initSeoRoutes(authRequired, requirePerm) {
       let defaultDescription = '';
 
       try {
-        const filePath = path.join(__dirname, '../../', pagePath.startsWith('/') ? pagePath.substring(1) : pagePath);
-        if (fs.existsSync(filePath)) {
+        const filePath = resolveSafePagePath(pagePath);
+        if (filePath && fs.existsSync(filePath)) {
           const html = await fs.promises.readFile(filePath, 'utf8');
           const dom = new JSDOM(html);
           const doc = dom.window.document;
@@ -69,7 +90,7 @@ function initSeoRoutes(authRequired, requirePerm) {
   router.post('/admin/seo', authRequired, requirePerm('system:manage'), async (req, res) => {
     try {
       const { pagePath, title, keywords, description } = req.body;
-      if (!pagePath) {
+      if (typeof pagePath !== 'string' || !pagePath) {
         return res.status(400).json({ success: false, error: 'pagePath is required' });
       }
 

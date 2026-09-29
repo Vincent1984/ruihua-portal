@@ -14,16 +14,17 @@ const router = express.Router();
  * @param {Function} dependencies.requirePerm - 权限检查中间件
  * @param {Function} dependencies.checkPerm - 权限检查函数
  * @param {Function} dependencies.requireAnyPerm - 任一权限检查中间件
+ * @param {Object} [dependencies.articleHooks] - 文章路由副作用钩子（generateSeoSlug / syncLLMsTxt）
  */
 function initApiRoutes(dependencies) {
-  const { jwtSecret, authRequired, requirePerm, checkPerm, requireAnyPerm } = dependencies;
+  const { jwtSecret, authRequired, requirePerm, checkPerm, requireAnyPerm, articleHooks } = dependencies;
 
   // 认证路由
   const authRoutes = require('./auth')(jwtSecret, authRequired, requirePerm);
   router.use('/', authRoutes);
 
   // 文章路由
-  const articleRoutes = require('./articles')(authRequired, requirePerm);
+  const articleRoutes = require('./articles')(authRequired, requirePerm, articleHooks);
   router.use('/', articleRoutes);  // 挂载到根路径，因为文章路由内部已有 /articles 和 /admin/articles
 
   // FAQ 路由
@@ -58,9 +59,8 @@ function initApiRoutes(dependencies) {
   const subscriptionRoutes = require('./subscriptions')();
   router.use('/', subscriptionRoutes);  // 挂载到根路径
 
-  // Sitemap 路由
-  const sitemapRoutes = require('./sitemap');
-  router.use('/', sitemapRoutes);  // 挂载到根路径
+  // Sitemap 路由已移除：/sitemap.xml 由 server.js 内联生成（唯一权威来源），
+  // 原 routes/api/sitemap.js 输出的是旧世界 URL（/training.html、/videos.html 等），会与主 sitemap 冲突。
 
   return router;
 }

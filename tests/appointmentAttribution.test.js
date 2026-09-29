@@ -4,6 +4,11 @@ const {
     channelOf
 } = require('../routes/appointmentAttributionRoutes');
 const { generateDailyExternalId, saveWithUniqueExternalId } = require('../utils/dailyExternalId');
+const registerAppointmentAttributionRoutes = require('../routes/appointmentAttributionRoutes');
+const Appointment = require('../models/Appointment');
+const DailyCounter = require('../models/DailyCounter');
+const request = require('supertest');
+const express = require('express');
 const fs = require('fs');
 const path = require('path');
 
@@ -66,5 +71,55 @@ describe('官网渠道归因', function () {
 
         assert.strictEqual(attribution.utm_source.length, 500);
         assert.strictEqual(attribution.injected, undefined);
+    });
+});
+
+describe('官网预约路由运行时回归', function () {
+    function buildApp(notifyAppointment) {
+        const app = express();
+        app.use(express.json());
+        app.use((req, res, next) => { req.cookies = req.cookies || {}; next(); });
+        registerAppointmentAttributionRoutes(
+            app,
+            (req, res, next) => next(),
+            () => (req, res, next) => next(),
+            notifyAppointment
+        );
+        return app;
+    }
+
+    it('非法手机号由 routes 新实现校验并返回新文案（证明旧内联路由不再遮蔽）', async function () {
+        const res = await request(buildApp()).post('/api/appointments/website').send({ name: '张三', phone: '12345' });
+        assert.strictEqual(res.status, 400);
+        assert.strictEqual(res.body.error, '请填写姓名和有效的11位手机号码');
+    });
+
+    it('成功提交时调用注入的钉钉通知，并返回 201 与外部编号', async function () {
+        const originalSave = Appointment.prototype.save;
+        const originalCounter = DailyCounter.findOneAndUpdate;
+        Appointment.prototype.save = async function () { return this; };
+        DailyCounter.findOneAndUpdate = async () => ({ sequence: 1 });
+        const notified = [];
+        try {
+            const res = await request(buildApp(appointment => { notified.push(appointment); }))
+                .post('/api/appointments/website')
+                .send({ name: '李四', phone: '138 0013 8000', company: 'ACME', utm_source: 'baidu' });
+
+            assert.strictEqual(res.status, 201);
+            assert.strictEqual(res.body.success, true);
+            assert.ok(res.body.externalId);
+            assert.strictEqual(notified.length, 1);
+            assert.strictEqual(notified[0].phone, '13800138000');
+            assert.strictEqual(notified[0].channel, 'baidu');
+        } finally {
+            Appointment.prototype.save = originalSave;
+            DailyCounter.findOneAndUpdate = originalCounter;
+        }
+    });
+
+    it('server.js 不再内联重复实现，避免再次遮蔽模块化路由', function () {
+        const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
+        assert.doesNotMatch(server, /app\.post\('\/api\/appointments\/website'/);
+        assert.doesNotMatch(server, /app\.(get|post|delete)\('\/api\/admin\/survey\//);
     });
 });

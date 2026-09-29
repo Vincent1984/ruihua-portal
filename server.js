@@ -13,6 +13,7 @@ const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
+const compression = require('compression');
 const axios = require('axios');
 const crypto = require('crypto');
 const dns = require('dns');
@@ -54,6 +55,7 @@ const { PERMISSION_GROUPS, PERMISSION_CODES, validatePermissions, normalizePermi
 
 const app = express();
 app.disable('x-powered-by');
+app.use(compression());
 app.set('trust proxy', 1); // Trust the first proxy (Kubernetes ingress/load balancer)
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.JWT_SECRET || process.env.SECRET_KEY;
@@ -201,14 +203,16 @@ function sanitizeArticlePayload(body = {}) {
     return payload;
 }
 
+// 请求上下文：为操作日志提供真实客户端 IP（需在路由之前注册）
+app.use(logOp.operationLogContext);
+
 // Domain Normalization Middleware (Should be early)
 app.use(domainNormalizer);
 app.use(legacyRedirects);
 
 // 性能优化中间件
-const { resourceOptimizer, setCacheHeaders } = require('./middleware/resourceOptimizer');
+const { setCacheHeaders } = require('./middleware/resourceOptimizer');
 app.use(setCacheHeaders); // 缓存头部（最早）
-app.use(resourceOptimizer); // 资源优化
 
 // SSR 内容注入中间件（在 SEO 注入之前，为 JS 动态内容提供静态后备）
 const ssrContentInjector = require('./middleware/ssrContent');
@@ -221,13 +225,6 @@ app.use(seoInjector);
 // 关键 CSS 内联中间件（可选，性能提升明显但需要手动提取关键CSS）
 // const inlineCriticalCss = require('./middleware/criticalCss');
 // app.use(inlineCriticalCss);
-
-app.use((req, res, next) => {
-    if (req.path === '/ai-strategic-special' || req.path === '/ai-strategic-special/' || req.path === '/ai-strategic-special.html') {
-        return res.sendFile(path.join(__dirname, 'ai-strategic-special.html'));
-    }
-    next();
-});
 
 // Reusable Footer Injection for SSR pages
 const injectFooterHTML = (document) => {
@@ -482,7 +479,10 @@ app.use(express.static(path.join(__dirname, 'public'), {
             res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
             res.setHeader('Pragma', 'no-cache');
             res.setHeader('Expires', '0');
-        } else if (/\.(png|jpg|jpeg|gif|svg|webp)$/i.test(filePath)) {
+        } else if (/\.(css|js)$/i.test(filePath)) {
+            // 站点通过 ?v= 版本号做缓存击穿，可安全长缓存
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else if (/\.(png|jpg|jpeg|gif|svg|webp|ico|woff2?)$/i.test(filePath)) {
             res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
         } else {
             res.setHeader('Cache-Control', 'public, max-age=604800'); // 7 days for other assets
@@ -597,7 +597,7 @@ async function requireAdminStaticHtmlPage(req, res, next) {
         let payload = null;
         for (const token of tokens) {
             try {
-                payload = jwt.verify(token, RUNTIME_SECRET_KEY);
+                payload = jwt.verify(token, RUNTIME_SECRET_KEY, { algorithms: ['HS256'] });
                 break;
             } catch {}
         }
@@ -633,11 +633,12 @@ app.get('/googled5b214b19ca84994.html', (req, res) => {
 // Rate limiter removed
 
 // Serve specific HTML files from root
+// 注意：privacy.html 不在此列表——它的规范 URL 是 /privacy（无扩展名），
+// /privacy.html 与 /privacy/ 需 301 收敛到 /privacy，故由下方精确中间件统一处理。
+// 说明：video-detail.html 仅作为 /video/:slug/ 的 SSR 模板，不直接对外提供（避免重复内容）；
+// ai-strategic-special.html 已下线（源文件不存在），故从列表中移除。
 const rootHtmlFiles = [
-    'efficiency-diagnostic.html',
-    'video-detail.html',
-    'privacy.html',
-    'ai-strategic-special.html'
+    'efficiency-diagnostic.html'
 ];
 
 rootHtmlFiles.forEach(file => {
@@ -1109,6 +1110,22 @@ app.get('/article.html', async (req, res) => {
     }
 });
 
+// 旧世界文章 URL /article/{slug}.html 统一 301 到 2026 规范 URL /insights/{slug}。
+// 旧 sitemap 曾批量输出该格式，被搜索引擎收录后若 404 会丢失已积累的权重；
+// 仅在 slug 确实存在时才跳转，否则交回后续路由（不制造指向不存在页面的 301 链）。
+app.get(/^\/article\/.+\.html$/, async (req, res, next) => {
+    const slug = decodeURIComponent(req.path.replace(/^\/article\//, '').replace(/\.html$/, ''));
+    if (!slug) return next();
+    try {
+        const article = await Article.findOne({ slug }).select('slug').lean();
+        if (!article || !article.slug) return next();
+        return res.redirect(301, `/insights/${encodeURIComponent(article.slug)}`);
+    } catch (e) {
+        console.error('Legacy article redirect error:', e);
+        return next();
+    }
+});
+
 // 2026 已替换的 solutions / HCVM / about 旧 URL 由 middleware/legacyRedirects.js 统一处理
 
 // 8. Root-level standalone pages (not in public/)
@@ -1126,11 +1143,6 @@ app.get('/card/wangkun.html', (req, res) => renderStaticHtmlWith2026Shell(req, r
 // 10. robots.txt (in project root, outside public/)
 app.get('/robots.txt', (req, res) => res.sendFile(path.join(__dirname, 'robots.txt')));
 
-// Serve verification txt file
-app.get('/f30f7f41e5fa707ed66d41aeb3791adb.txt', (req, res) => {
-    res.sendFile(path.join(__dirname, 'f30f7f41e5fa707ed66d41aeb3791adb.txt'));
-});
-
 // Serve Baidu verification html file
 app.get('/baidu_verify_codeva-p4La8BZmYb.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'baidu_verify_codeva-p4La8BZmYb.html'));
@@ -1145,11 +1157,12 @@ app.get('/baidu_verify_codeva-p4La8BZmYb.html', (req, res) => {
 // URL Rewrites and Redirects for SEO (Directory Style)
 // 1. about —— 2026 新站已接管；旧 URL 由 middleware/legacyRedirects.js 处理
 
-// 2. training.html -> /training
-app.get('/training', (req, res) => renderStaticHtmlWith2026Shell(req, res, 'training.html'));
-app.get('/training.html', (req, res) => res.redirect(301, '/training'));
-app.get('/training/', (req, res) => res.redirect(301, '/training'));
-app.get('/raining.html', (req, res) => res.redirect(301, '/training'));
+// 2. training.html —— 旧的独立训练页已并入 2026 解决方案体系（/solutions/training），
+//    根目录已无 training.html，旧 URL 统一 301 保住外链权重
+app.get('/training', (req, res) => res.redirect(301, '/solutions/training'));
+app.get('/training.html', (req, res) => res.redirect(301, '/solutions/training'));
+app.get('/training/', (req, res) => res.redirect(301, '/solutions/training'));
+app.get('/raining.html', (req, res) => res.redirect(301, '/solutions/training'));
 
 // Helper for SEO SSR on Resources Page
 let resourcesTemplateCache = null;
@@ -1172,7 +1185,10 @@ async function renderResourcesPage(req, res) {
         const dom = new JSDOM(html);
         const document = dom.window.document;
         const container = document.getElementById('resources-grid');
-        
+
+        // 提升到函数作用域：下方 ItemList Schema 注入需要复用，否则会抛 ReferenceError
+        let articles = [];
+
         if (container) {
             // Fetch Category mapping
             const CategoryModel = require('./models/Category');
@@ -1184,7 +1200,7 @@ async function renderResourcesPage(req, res) {
 
             // Fetch All Published Articles
             const ArticleModel = require('./models/Article');
-            const articles = await ArticleModel.find({ status: 'published' }).sort({ publishDate: -1 }).lean();
+            articles = await ArticleModel.find({ status: 'published' }).sort({ publishDate: -1 }).lean();
 
             if (!articles || articles.length === 0) {
                 container.innerHTML = '<div class="text-center py-20 text-slate-500">该分类下暂无内容</div>';
@@ -1495,18 +1511,21 @@ app.get('/diagnostic/', (req, res) => renderStaticHtmlWith2026Shell(req, res, 'd
 app.get('/diagnostic', (req, res) => res.redirect(301, '/diagnostic/'));
 app.get('/diagnostic.html', (req, res) => res.redirect(301, '/diagnostic/'));
 
-// 6. videos.html -> /videos/
-app.get('/videos', (req, res) => res.redirect(301, '/videos/'));
-app.get('/videos/', (req, res) => renderStaticHtmlWith2026Shell(req, res, 'videos.html'));
-app.get('/videos.html', (req, res) => res.redirect(301, '/videos/'));
+// 6. 视频中心已下线（根目录 videos.html 已删除）：旧 sitemap 曾输出 /videos.html 并 301 到 /videos/，
+//    两者都已被搜索引擎收录，直接 404 会丢失权重，因此统一 301 到知识库 /insights。
+app.get('/videos', (req, res) => res.redirect(301, '/insights'));
+app.get('/videos/', (req, res) => res.redirect(301, '/insights'));
+app.get('/videos.html', (req, res) => res.redirect(301, '/insights'));
+// /privacy 为规范 URL（sitemap 与 canonical 均不带尾斜杠）。
+// express 默认非严格路由下 app.get('/privacy') 也会匹配 /privacy/，因此 /privacy/ 的 301
+// 会被前面的渲染路由抢先命中而失效；这里用精确 path 中间件拦截，保证 301 真正生效。
+app.use((req, res, next) => {
+    if (req.path === '/privacy/' || req.path === '/privacy.html') return res.redirect(301, '/privacy');
+    next();
+});
 app.get('/privacy', (req, res) => renderStaticHtmlWith2026Shell(req, res, 'privacy.html'));
-app.get('/privacy.html', (req, res) => res.redirect(301, '/privacy'));
-app.get('/privacy/', (req, res) => res.redirect(301, '/privacy'));
 
-// 7. ai-strategic-special.html -> /ai-strategic-special/
-app.get('/ai-strategic-special/', (req, res) => renderStaticHtmlWith2026Shell(req, res, 'ai-strategic-special.html'));
-app.get('/ai-strategic-special', (req, res) => res.redirect(301, '/ai-strategic-special/'));
-app.get('/ai-strategic-special.html', (req, res) => res.redirect(301, '/ai-strategic-special/'));
+// 7. ai-strategic-special.html 已下线（源文件不存在），相关渲染与跳转路由一并移除，直接 404。
 
 
 // Handle /index.html redirection to root
@@ -1554,6 +1573,8 @@ app.get('/sitemap.xml', async (req, res) => {
             { url: 'solutions/consulting', file: 'views/2026/page-blocks/p-consulting.html', priority: 0.8, changefreq: 'monthly' },
             { url: 'solutions/fde', file: 'views/2026/page-blocks/p-fde.html', priority: 0.8, changefreq: 'monthly' },
             { url: 'solutions/hcvm', file: 'views/2026/page-blocks/hcvm.html', priority: 0.8, changefreq: 'monthly' },
+            { url: 'solutions/eco', file: 'views/2026/page-blocks/p-eco.html', priority: 0.8, changefreq: 'monthly' },
+            { url: 'solutions/overseas', file: 'views/2026/page-blocks/p-overseas.html', priority: 0.8, changefreq: 'monthly' },
             { url: 'cases', file: 'views/2026/page-blocks/cases.html', priority: 0.9, changefreq: 'weekly' },
             { url: 'insights', file: 'views/2026/page-blocks/i-industry.html', priority: 0.9, changefreq: 'weekly' },
             { url: 'insights/industry', file: 'views/2026/page-blocks/i-industry.html', priority: 0.7, changefreq: 'weekly' },
@@ -1561,12 +1582,12 @@ app.get('/sitemap.xml', async (req, res) => {
             { url: 'about', file: 'views/2026/page-blocks/about.html', priority: 0.7, changefreq: 'monthly' },
             { url: 'contact', file: 'views/2026/page-blocks/contact.html', priority: 0.7, changefreq: 'monthly' },
             { url: 'resources/', file: 'resources.html', priority: 0.9, changefreq: 'weekly' },
-            { url: 'videos/', file: 'videos.html', priority: 0.7, changefreq: 'weekly' },
             { url: 'productivity/', file: 'productivity.html', priority: 0.8, changefreq: 'weekly' },
             { url: 'diagnostic/', file: 'diagnostic.html', priority: 0.8, changefreq: 'weekly' },
-            { url: 'training/', file: 'training.html', priority: 0.7, changefreq: 'monthly' },
-            { url: 'nqoc/', file: 'public/nqoc/index.html', priority: 0.7, changefreq: 'weekly' },
-            { url: 'privacy/', file: 'privacy.html', priority: 0.3, changefreq: 'yearly' }
+            // nqoc 不带尾斜杠：带斜杠会被服务器 301 到 /nqoc，sitemap 应直接给规范 URL
+            { url: 'nqoc', file: 'public/nqoc/index.html', priority: 0.7, changefreq: 'weekly' },
+            // privacy 不带尾斜杠：/privacy/ 会 301 到 /privacy，sitemap 应给规范 URL
+            { url: 'privacy', file: 'privacy.html', priority: 0.3, changefreq: 'yearly' }
         ];
 
         let xml = '<?xml version="1.0" encoding="UTF-8"?>';
@@ -1638,6 +1659,7 @@ app.get('/sitemap.xml', async (req, res) => {
         xml += '\n</urlset>';
         
         res.header('Content-Type', 'application/xml');
+        res.header('Cache-Control', 'public, max-age=3600');
         res.send(xml);
     } catch (e) {
         console.error('Sitemap Error:', e);
@@ -1680,6 +1702,8 @@ mongoose.connect(mongoUrl)
         console.log('MongoDB Connected to:', mongoUrl);
         // Rebuild llms.txt on startup
         try { await rebuildLLMsTxt(); } catch {}
+        // 数据库就绪后再监听端口，避免连接未就绪时请求堆积超时
+        startServer();
     })
     .catch(err => {
         console.error('MongoDB Connection Error:', err);
@@ -1789,114 +1813,18 @@ const apiRouter = initApiRoutes({
     authRequired,
     requirePerm,
     checkPerm,
-    requireAnyPerm
+    requireAnyPerm,
+    // 注入文章副作用钩子，保持模块化路由与既有行为一致（slug 自动生成 / 分类计数 / llms.txt 同步）
+    articleHooks: { generateSeoSlug, syncLLMsTxt }
 });
 app.use('/api', apiRouter);
 // === API 路由挂载结束 ===
 
-// --- Article API ---
-app.get('/api/articles', async (req, res) => {
-    try {
-        const { keyword, category, featured, page, limit, status, tag, zone, contentStatus } = req.query;
-        let query = {};
-        
-        if (keyword && keyword.length <= 200) {
-            const regex = new RegExp(escapeRegex(keyword), 'i');
-            query.$or = [{ title: regex }, { content: regex }, { summary: regex }];
-        }
-        
-        if (category && category !== 'all') {
-            query.category = category;
-        }
+// 说明：GET/POST/PUT/DELETE /api/articles 与 GET /api/admin/articles 已由上方模块化路由
+// routes/api/articles.js（挂载于 apiRouter）统一实现（Express 首个匹配生效），故移除此处内联重复实现。
 
-        if (featured === 'true') {
-            query.isRecommended = true;
-        }
-
-        query.status = 'published';
-        query.isOnline = { $ne: false };
-        if (status === 'published') query.status = 'published';
-        if (zone) query.zone = zone;
-        if (contentStatus) query.contentStatus = contentStatus;
-
-        if (tag) {
-            query.tags = tag;
-        }
-
-        let articles;
-        if (page && limit) {
-            const skip = (page - 1) * limit;
-            const total = await Article.countDocuments(query);
-            const data = await Article.find(query)
-                .populate('authorId')
-                .sort({ publishDate: -1 })
-                .skip(parseInt(skip))
-                .limit(parseInt(limit));
-            const resolved = data.map(a => {
-                const o = a.toObject ? a.toObject() : a;
-                o.author = getResolvedArticleAuthor(a);
-                return o;
-            });
-            res.json({
-                data: resolved,
-                pagination: {
-                    total,
-                    page: parseInt(page),
-                    pages: Math.ceil(total / limit)
-                }
-            });
-        } else {
-            // Backward compatibility for non-paginated calls (if any)
-            articles = await Article.find(query).populate('authorId').sort({ publishDate: -1 });
-            const resolved = articles.map(a => {
-                const o = a.toObject ? a.toObject() : a;
-                o.author = getResolvedArticleAuthor(a);
-                return o;
-            });
-            res.json(resolved);
-        }
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.get('/api/admin/articles', authRequired, requirePerm('article:list'), async (req, res) => {
-    try {
-        const { keyword, category, featured, page, limit, status, tag, zone, contentStatus, isOnline } = req.query;
-        let query = {};
-        if (keyword && keyword.length <= 200) {
-            const regex = new RegExp(escapeRegex(keyword), 'i');
-            query.$or = [{ title: regex }, { content: regex }, { summary: regex }];
-        }
-        if (category && category !== 'all') {
-            query.category = category;
-        }
-        if (featured === 'true') {
-            query.isRecommended = true;
-        }
-        if (status && status !== 'all') {
-            query.status = status;
-        }
-        if (tag) {
-            query.tags = tag;
-        }
-        if (zone) query.zone = zone;
-        if (contentStatus) query.contentStatus = contentStatus;
-        if (isOnline === 'true' || isOnline === 'false') query.isOnline = isOnline === 'true';
-        let articles;
-        if (page && limit) {
-            const skip = (page - 1) * limit;
-            const total = await Article.countDocuments(query);
-            const data = await Article.find(query).sort({ publishDate: -1 }).skip(parseInt(skip)).limit(parseInt(limit));
-            return res.json({ data, pagination: { total, page: parseInt(page), pages: Math.ceil(total / limit) } });
-        }
-        articles = await Article.find(query).sort({ publishDate: -1 });
-        res.json(articles);
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
+// --- 以下为模块化路由未覆盖、由 server.js 内联提供的文章接口 ---
+// detail/query、GET :id、admin/:id、history/restore/like、batch-delete、batch-status
 app.get('/api/articles/detail/query', async (req, res) => {
     try {
         const { slug } = req.query;
@@ -1950,101 +1878,6 @@ app.get('/api/admin/articles/:id', authRequired, requirePerm('article:list'), as
     }
 });
 
-app.post('/api/articles', authRequired, requirePerm('article:create'), async (req, res) => {
-    try {
-        const payload = sanitizeArticlePayload(req.body);
-        const { slug } = payload;
-        // Check uniqueness
-        if (slug) {
-            const existing = await Article.findOne({ slug });
-            if (existing) {
-                return res.status(400).json({ error: 'URL (Slug) 已存在，请更换' });
-            }
-        }
-        
-        const newArticle = new Article(payload);
-        
-        // Ensure publishDate and updatedAt are identical on creation
-        const now = new Date();
-        if (!newArticle.publishDate) newArticle.publishDate = now;
-        if (!newArticle.updatedAt) newArticle.updatedAt = now;
-        
-        // Handle slug if not provided: 自动生成 SEO 友好 slug（AI 英文关键词优先，回退拼音）
-        if (!newArticle.slug) newArticle.slug = await generateSeoSlug(newArticle.title, Article);
-        await newArticle.save();
-        
-        // Update category count
-        if (payload.category) {
-            await Category.updateOne({ code: payload.category }, { $inc: { articleCount: 1 } });
-        }
-        
-        await syncLLMsTxt(newArticle); // Trigger llms.txt sync
-        
-        await logOp('create', 'Article', `Created article: ${newArticle.title}`, req.user.username);
-        res.json({ success: true, data: newArticle });
-    } catch (e) {
-        if (e.code === 11000) return res.status(400).json({ error: 'URL (Slug) 已存在' });
-        return sendInternalError(res, 'Create article failed:', e);
-    }
-});
-
-app.put('/api/articles/:id', authRequired, requirePerm('article:edit'), async (req, res) => {
-    try {
-        const payload = sanitizeArticlePayload(req.body);
-        const { slug } = payload;
-        // Check uniqueness for update
-        if (slug) {
-            const existing = await Article.findOne({ slug, _id: { $ne: req.params.id } });
-            if (existing) {
-                return res.status(400).json({ error: 'URL (Slug) 已存在，请更换' });
-            }
-        }
-
-        const oldArt = await Article.findById(req.params.id);
-        
-        // Save History
-        if (oldArt) {
-            const historyCount = await ArticleHistory.countDocuments({ articleId: oldArt._id });
-            await ArticleHistory.create({
-                articleId: oldArt._id,
-                title: oldArt.title,
-                content: oldArt.content,
-                summary: oldArt.summary,
-                seoTitle: oldArt.seoTitle,
-                seoDescription: oldArt.seoDescription,
-                seoKeywords: oldArt.seoKeywords,
-                qa: oldArt.qa,
-                coverImage: oldArt.coverImage,
-                tags: oldArt.tags,
-                status: oldArt.status,
-                editor: req.user.username,
-                version: historyCount + 1
-            });
-        }
-
-        const updatedArticle = await Article.findByIdAndUpdate(
-            req.params.id, 
-            { ...payload, updatedAt: Date.now() }, 
-            { new: true }
-        );
-        
-        // Handle category count update if changed
-        if (oldArt && Object.prototype.hasOwnProperty.call(payload, 'category') && oldArt.category !== payload.category) {
-             if (oldArt.category) await Category.updateOne({ code: oldArt.category }, { $inc: { articleCount: -1 } });
-             if (payload.category) await Category.updateOne({ code: payload.category }, { $inc: { articleCount: 1 } });
-        }
-
-        await logOp('update', 'Article', `Updated article: ${updatedArticle.title}`, req.user.username);
-        
-        await syncLLMsTxt(updatedArticle); // Trigger llms.txt sync if published
-        
-        res.json({ success: true, data: updatedArticle });
-    } catch (e) {
-        if (e.code === 11000) return res.status(400).json({ error: 'URL (Slug) 已存在' });
-        return sendInternalError(res, 'Update article failed:', e);
-    }
-});
-
 // --- llms.txt Sync Logic ---
 async function rebuildLLMsTxt() {
     try {
@@ -2069,16 +1902,29 @@ async function rebuildLLMsTxt() {
         content += '> 面向企业管理者、组织负责人和 AI 转型团队，提供 AI 赋能培训、AI 转型咨询、AI 落地陪跑与人力资本价值经营服务。\n';
         content += `> 最后更新：${new Date().toISOString().split('T')[0]}\n`;
         content += `> 文章总数：${unique.length}\n\n`;
+        const corePageLines = [
+            `- 首页: ${SITE_URL}/`,
+            `- 产品与服务: ${SITE_URL}/solutions`,
+            `- AI 赋能培训: ${SITE_URL}/solutions/training`,
+            `- AI 转型咨询: ${SITE_URL}/solutions/consulting`,
+            `- AI 落地陪跑: ${SITE_URL}/solutions/fde`,
+            `- 人力资本价值经营: ${SITE_URL}/solutions/hcvm`,
+            `- 生态用工管理: ${SITE_URL}/solutions/eco`,
+            `- HR 出海: ${SITE_URL}/solutions/overseas`,
+            `- 行业案例: ${SITE_URL}/cases`,
+            `- 研究中心: ${SITE_URL}/insights`,
+            `- 行业洞察: ${SITE_URL}/insights/industry`,
+            `- 经营智库: ${SITE_URL}/insights/thinktank`,
+            `- 资源中心: ${SITE_URL}/resources/`,
+            `- 提效工具: ${SITE_URL}/productivity/`,
+            `- AI 落地诊断: ${SITE_URL}/diagnostic/`,
+            `- 组织健康度(NQOC): ${SITE_URL}/nqoc`,
+            `- 关于我们: ${SITE_URL}/about`,
+            `- 联系我们: ${SITE_URL}/contact`,
+            `- 完整内容包: ${SITE_URL}/llms-full.txt`
+        ];
         content += '## 核心页面\n';
-        content += `- 产品与服务: ${SITE_URL}/solutions\n`;
-        content += `- AI 赋能培训: ${SITE_URL}/solutions/training\n`;
-        content += `- AI 转型咨询: ${SITE_URL}/solutions/consulting\n`;
-        content += `- AI 落地陪跑: ${SITE_URL}/solutions/fde\n`;
-        content += `- 人力资本价值经营: ${SITE_URL}/solutions/hcvm\n`;
-        content += `- 行业案例: ${SITE_URL}/cases\n`;
-        content += `- 研究中心: ${SITE_URL}/insights\n`;
-        content += `- 关于我们: ${SITE_URL}/about\n`;
-        content += `- 联系我们: ${SITE_URL}/contact\n\n`;
+        content += corePageLines.join('\n') + '\n\n';
 
         for (const article of unique) {
             const canonicalUrl = `${SITE_URL}/insights/${encodeURIComponent(article.slug)}`;
@@ -2094,6 +1940,42 @@ async function rebuildLLMsTxt() {
         }
 
         await fs.writeFile(publicPath, content);
+
+        // ---- llms-full.txt：含正文全文的完整内容包，供 LLM 一次性摄取 ----
+        const stripHtml = (html) => String(html || '')
+            .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+            .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        let full = '# 瑞华智策｜AI 时代组织进化知识库（完整内容包）\n\n';
+        full += '> 面向企业管理者、组织负责人和 AI 转型团队，提供 AI 赋能培训、AI 转型咨询、AI 落地陪跑与人力资本价值经营服务。\n';
+        full += `> 最后更新：${new Date().toISOString().split('T')[0]}\n`;
+        full += `> 文章总数：${unique.length}\n\n`;
+        full += '## 核心页面\n';
+        full += corePageLines.join('\n') + '\n\n';
+
+        for (const article of unique) {
+            const canonicalUrl = `${SITE_URL}/insights/${encodeURIComponent(article.slug)}`;
+            const date = article.publishDate ? new Date(article.publishDate).toISOString().split('T')[0] : '';
+            const tags = (article.tags || []).slice(0, 8).filter(Boolean);
+            const body = stripHtml(article.content).slice(0, 8000);
+            full += `## ${article.title}\n`;
+            full += `- URL: ${canonicalUrl}\n`;
+            if (date) full += `- Date: ${date}\n`;
+            if (tags.length) full += `- Tags: ${tags.join(', ')}\n`;
+            if (article.summary) full += `\n### 摘要\n${stripHtml(article.summary)}\n`;
+            full += `\n### 正文\n${body || '暂无正文'}\n\n---\n\n`;
+        }
+
+        await fs.writeFile(path.join(__dirname, 'public/llms-full.txt'), full);
+
         console.log(`llms.txt rebuilt: ${unique.length} articles`);
     } catch (e) {
         console.error('llms.txt rebuild failed:', e);
@@ -2106,9 +1988,18 @@ async function syncLLMsTxt(article) {
     await rebuildLLMsTxt();
 }
 
-// Route to serve llms.txt from root
+// Route to serve llms.txt / llms-full.txt from root
+const llmsTxtOptions = {
+    headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'public, max-age=3600'
+    }
+};
 app.get('/llms.txt', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/llms.txt'));
+    res.sendFile(path.join(__dirname, 'public/llms.txt'), llmsTxtOptions);
+});
+app.get('/llms-full.txt', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/llms-full.txt'), llmsTxtOptions);
 });
 
 // Update Article Create/Update to trigger Sync
@@ -2176,19 +2067,6 @@ app.post('/api/articles/:id/like', async (req, res) => {
         );
         if (!article) return res.status(404).json({ error: 'Article not found' });
         res.json({ success: true, likes: article.likes });
-    } catch (e) {
-        return sendInternalError(res, null, e);
-    }
-});
-
-app.delete('/api/articles/:id', authRequired, requirePerm('article:delete'), async (req, res) => {
-    try {
-        const art = await Article.findByIdAndDelete(req.params.id);
-        if (art && art.category) {
-            await Category.updateOne({ code: art.category }, { $inc: { articleCount: -1 } });
-        }
-        await logOp('delete', 'Article', `Deleted article: ${req.params.id}`, req.user.username);
-        res.json({ success: true });
     } catch (e) {
         return sendInternalError(res, null, e);
     }
@@ -2884,79 +2762,6 @@ app.delete('/api/admin/nqoc/survey/submissions/:id', authRequired, requireAnyPer
     } catch (e) {
         res.status(500).json({ success: false, error: '服务器内部错误' });
     }
-});
-
-// === Survey Admin Alias Routes (match frontend /api/admin/survey/* expectations) ===
-
-app.get('/api/admin/survey/list', authRequired, requirePerm('appointment:list'), async (req, res) => {
-    const { page = 1, limit = 20, orgName, name, phone, channel, startDate, endDate, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = req.query;
-    let query = {};
-    if (orgName) query.orgName = { $regex: escapeRegex(orgName), $options: 'i' };
-    if (name) query.respondentName = { $regex: escapeRegex(name), $options: 'i' };
-    if (phone) query.respondentContact = { $regex: escapeRegex(phone), $options: 'i' };
-    if (channel) query.channel = channel;
-    if (utm_source) query.utm_source = utm_source;
-    if (utm_medium) query.utm_medium = utm_medium;
-    if (utm_campaign) query.utm_campaign = utm_campaign;
-    if (utm_term) query.utm_term = utm_term;
-    if (utm_content) query.utm_content = utm_content;
-    if (startDate && endDate) query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
-    try {
-        const submissions = await NqocSurveySubmission.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(parseInt(limit));
-        const total = await NqocSurveySubmission.countDocuments(query);
-        res.json({ success: true, data: submissions, total, page: parseInt(page), totalPages: Math.ceil(total / limit) });
-    } catch (e) { res.status(500).json({ success: false, error: '服务器内部错误' }); }
-});
-
-app.get('/api/admin/survey/analytics', authRequired, requirePerm('appointment:list'), async (req, res) => {
-    try {
-        const { channel, startDate, endDate } = req.query;
-        let matchQuery = {};
-        if (channel) matchQuery.channel = channel;
-        if (startDate && endDate) { const endOfDay = new Date(endDate); endOfDay.setHours(23, 59, 59, 999); matchQuery.createdAt = { $gte: new Date(startDate), $lte: endOfDay }; }
-        const submissions = await NqocSurveySubmission.find(matchQuery).select('v1_1_1 v1_1_2 v1_2_1 v1_2_2 v1_3_1 v1_3_2 v1_3_3 v1_4_1 v1_4_2 v1_5_1 v1_5_2 b2_1_1 b2_1_2 b2_2_1 b2_2_2 b2_2_3 b2_3_1 b2_3_2 b2_4_1 b2_4_2 b2_5_1 b2_5_2 b2_6_1 b2_6_2 b2_7_1 p3_1_1 p3_1_2 p3_2_1 p3_2_2 p3_3_1 p3_3_2 p3_4_1 p3_4_2 p3_5_1 p3_5_2 p3_6_1 p3_6_2 p3_7_1 m4_1_1 m4_1_2 m4_2_1 m4_2_2 m4_3_1 m4_3_2 m4_4_1 m4_4_2 m4_5_1 m4_5_2 m4_5_3 m4_5_4 m4_6_1 m4_6_2 m4_6_3 m4_7_1 e5_1_1 e5_1_2 e5_2_1 e5_2_2 e5_3_1 e5_3_2 e5_4_1 e5_4_2 e5_5_1 e5_5_2 e5_6_1 s1 orgName industry orgNature employeeCount revenue respondentTitle channel createdAt').lean();
-        const total = submissions.length;
-        const scoreAvg = (prefix, count) => {
-            let sum = 0, n = 0;
-            submissions.forEach(s => { for (let i = 1; i <= count; i++) { for (let j = 1; j <= 4; j++) { const key = `${prefix}${i}_${j}`; if (s[key]) { sum += s[key]; n++; } } } });
-            return n > 0 ? sum / n : 0;
-        };
-        const stageCount = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 };
-        submissions.forEach(s => { if (s.s1) stageCount[String(s.s1)] = (stageCount[String(s.s1)] || 0) + 1; });
-        res.json({ success: true, data: { total, scores: { v1: scoreAvg('v', 5), b2: scoreAvg('b', 7), p3: scoreAvg('p', 7), m4: scoreAvg('m', 7), e5: scoreAvg('e', 6) }, stageCount } });
-    } catch (e) { res.status(500).json({ success: false, error: '服务器内部错误' }); }
-});
-
-app.get('/api/admin/survey/export', authRequired, requirePerm('appointment:export'), async (req, res) => {
-    try {
-        const { channel, startDate, endDate } = req.query;
-        let query = {};
-        if (channel) query.channel = channel;
-        if (startDate && endDate) { const endOfDay = new Date(endDate); endOfDay.setHours(23, 59, 59, 999); query.createdAt = { $gte: new Date(startDate), $lte: endOfDay }; }
-        const submissions = await NqocSurveySubmission.find(query).sort({ createdAt: -1 }).lean();
-        const rows = submissions.map(s => ({ '组织名称': s.orgName, '行业': s.industry, '企业性质': s.orgNature, '员工数': s.employeeCount, '营收': s.revenue, '成立年限': s.establishedYears, '上市情况': s.listingStatus, '职位': s.respondentTitle, '姓名': s.respondentName, '联系电话': s.respondentContact, '邮箱': s.respondentEmail, '渠道': s.channel || '', '提交时间': s.createdAt }));
-        const header = Object.keys(rows[0] || {}).join(',');
-        const csv = rows.map(r => Object.values(r).map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(',')).join('\n');
-        res.setHeader('Content-Type', 'text/csv; charset=utf-8'); res.setHeader('Content-Disposition', 'attachment; filename=survey-export.csv');
-        res.send('\uFEFF' + header + '\n' + csv);
-    } catch (e) { res.status(500).json({ success: false, error: '服务器内部错误' }); }
-});
-
-app.delete('/api/admin/survey/:id', authRequired, requirePerm('appointment:delete'), async (req, res) => {
-    try {
-        const deleted = await NqocSurveySubmission.findByIdAndDelete(req.params.id);
-        if (!deleted) return res.status(404).json({ success: false, error: '记录不存在' });
-        res.json({ success: true });
-    } catch (e) { res.status(500).json({ success: false, error: '服务器内部错误' }); }
-});
-
-app.post('/api/admin/survey/batch-delete', authRequired, requirePerm('appointment:delete'), async (req, res) => {
-    try {
-        const { ids } = req.body;
-        if (!ids || !Array.isArray(ids)) return res.status(400).json({ success: false, error: '请提供要删除的ID' });
-        await NqocSurveySubmission.deleteMany({ _id: { $in: ids } });
-        res.json({ success: true });
-    } catch (e) { res.status(500).json({ success: false, error: '服务器内部错误' }); }
 });
 
 // Admin: Survey Stats
@@ -4673,67 +4478,6 @@ app.post('/api/appointments', async (req, res) => {
     }
 });
 
-// Website form submission (AI advisor, contact form, etc. - no verification code required)
-app.post('/api/appointments/website', async (req, res) => {
-    try {
-        let { name, phone, company, department, title, problem, source, leadPage, trigger, device, trail, talk, intents, email, landing_page, referrer, ...utmParams } = req.body;
-        
-        // Channel Tracking: Read from cookies if not provided in body
-        if (req.cookies) {
-             if (!utmParams.utm_source && req.cookies.utm_source) utmParams.utm_source = req.cookies.utm_source;
-             if (!utmParams.utm_medium && req.cookies.utm_medium) utmParams.utm_medium = req.cookies.utm_medium;
-             if (!utmParams.utm_campaign && req.cookies.utm_campaign) utmParams.utm_campaign = req.cookies.utm_campaign;
-             if (!utmParams.utm_term && req.cookies.utm_term) utmParams.utm_term = req.cookies.utm_term;
-             if (!utmParams.utm_content && req.cookies.utm_content) utmParams.utm_content = req.cookies.utm_content;
-        }
-
-        // Basic validation
-        if (!name || !phone) {
-            return res.status(400).json({ error: '姓名和电话为必填项' });
-        }
-
-        // Phone validation
-        if (!/^1[3-9]\d{9}$/.test(phone)) {
-            return res.status(400).json({ error: '请输入有效的11位手机号码' });
-        }
-        const newAppt = new Appointment({
-            name,
-            phone,
-            company: company || '',
-            department: department || '',
-            title: title || '',
-            problem: problem || '',
-            source: source || leadPage || location.pathname,
-            leadPage: leadPage || '',
-            trigger: trigger || '官网表单',
-            device: device || 'unknown',
-            trail: trail || [],
-            talk: talk || [],
-            intents: intents || [],
-            email: email || '',
-            landing_page: landing_page || '',
-            referrer: referrer || '',
-            ...utmParams,
-            status: 'new',
-            createdAt: new Date()
-        });
-
-        await saveWithUniqueExternalId(newAppt);
-        
-        // 发送钉钉通知（独立异常处理）
-        try {
-            await sendDingTalkNotification(newAppt);
-        } catch (dingTalkError) {
-            console.error('DingTalk notification failed:', dingTalkError);
-        }
-        
-        res.json({ success: true, message: '提交成功' });
-    } catch (e) {
-        console.error('Website appointment error:', e);
-        res.status(500).json({ error: '服务器内部错误' });
-    }
-});
-
 // Semantic lead API. Legacy /api/appointments routes below remain supported for existing clients.
 app.get('/api/admin/leads', authRequired, requirePerm(['lead:list', 'appointment:list']), async (req, res) => {
     try {
@@ -5508,10 +5252,11 @@ app.get('/video/:slug/', async (req, res) => {
             {
                 "@context": "https://schema.org",
                 "@type": "BreadcrumbList",
+                // 视频中心列表页已下线（/videos/ 301 到 /insights），面包屑不再保留指向
+                // 已下线地址的层级，避免结构化数据里出现死链。
                 "itemListElement": [
                     { "@type": "ListItem", "position": 1, "name": "首页", "item": SITE_URL },
-                    { "@type": "ListItem", "position": 2, "name": "视频中心", "item": `${SITE_URL}/videos/` },
-                    { "@type": "ListItem", "position": 3, "name": video.title }
+                    { "@type": "ListItem", "position": 2, "name": video.title }
                 ]
             }
         ];
@@ -5632,7 +5377,6 @@ app.get('/video/:slug/', async (req, res) => {
 
         // Render AI Generated Video FAQs (independent from global FAQs)
         const faqSection = document.getElementById('faq-section');
-        console.log('[SSR DEBUG] video faqs:', video.faqs);
         if (faqSection && video.faqs && video.faqs.length > 0) {
             const faqAccordion = document.getElementById('faq-accordion');
             if (faqAccordion) {
@@ -5724,7 +5468,7 @@ app.get('/video/:slug/', async (req, res) => {
         res.send(dom.serialize());
     } catch (e) {
         console.error('SSR Error:', e);
-        res.status(500).sendFile(path.join(__dirname, '500.html'));
+        res.status(500).send('Internal Server Error');
     }
 });
 
@@ -5896,7 +5640,7 @@ require('./routes/activityRoutes')(app, authRequired, requirePerm, logOp);
 require('./routes/activityTemplateRoutes')(app, authRequired, requirePerm, logOp);
 require('./routes/surveyRoutes')(app, authRequired, requirePerm, logOp);
 require('./routes/contentRoutes')(app, authRequired, requirePerm, logOp, generateSeoSlug);
-require('./routes/appointmentAttributionRoutes')(app, authRequired, requirePerm);
+require('./routes/appointmentAttributionRoutes')(app, authRequired, requirePerm, sendDingTalkNotification);
 require('./routes/frontendRoutes2026')(app);
 
 // 404 Handler
@@ -5935,11 +5679,57 @@ app.use((err, req, res, next) => {
     }
 });
 
-// Sitemap & Robots.txt Routes
-const sitemapRouter = require('./routes/sitemap');
-app.use('/', sitemapRouter);
-
 // Start Server
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+let httpServer = null;
+
+function startServer() {
+    httpServer = app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+    httpServer.on('error', (err) => {
+        console.error('HTTP Server Error:', err);
+    });
+    return httpServer;
+}
+
+// Graceful Shutdown：先停止接收新请求，再关闭数据库连接
+let isShuttingDown = false;
+function gracefulShutdown(signal) {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+    console.log(`${signal} received, shutting down gracefully...`);
+
+    const forceExitTimer = setTimeout(() => {
+        console.error('Forced shutdown after timeout');
+        process.exit(1);
+    }, 10000);
+    forceExitTimer.unref();
+
+    const closeDbAndExit = async () => {
+        try {
+            await mongoose.connection.close();
+            console.log('MongoDB connection closed');
+        } catch (err) {
+            console.error('Error closing MongoDB connection:', err);
+        }
+        clearTimeout(forceExitTimer);
+        process.exit(0);
+    };
+
+    if (httpServer) {
+        httpServer.close(closeDbAndExit);
+    } else {
+        closeDbAndExit();
+    }
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// 进程级兜底：记录未捕获异常，避免进程静默退出
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+});
+process.on('unhandledRejection', (reason) => {
+    console.error('Unhandled Rejection:', reason);
 });

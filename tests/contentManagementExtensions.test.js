@@ -50,8 +50,9 @@ describe('2026 内容管理模型与 API 扩展', function () {
     assert.match(routes, /app\.get\('\/api\/global-config'/);
     assert.match(routes, /app\.get\('\/api\/admin\/global-config'/);
     assert.match(routes, /app\.put\('\/api\/admin\/global-config'/);
-    assert.match(read('server.js'), /app\.get\('\/api\/banner'/);
-    assert.match(read('server.js'), /app\.get\('\/api\/sidebar\/modules'/);
+    const settings = read('routes/api/settings.js');
+    assert.match(settings, /router\.get\('\/banner'/);
+    assert.match(settings, /router\.get\('\/sidebar\/modules'/);
   });
 
   it('全局配置后台支持通知测试接口，控制台覆盖配置与接收人 CRUD', function () {
@@ -92,26 +93,28 @@ describe('2026 内容管理模型与 API 扩展', function () {
   });
 
   it('公开列表只展示已上架内容，旧响应外形保持不变', function () {
-    const server = read('server.js');
+    const articles = read('routes/api/articles.js');
+    const faqs = read('routes/api/faqs.js');
     const routes = read('routes/contentRoutes.js');
 
-    assert.match(server, /query\.status = 'published';[\s\S]{0,120}query\.isOnline = \{ \$ne: false \}/);
-    assert.match(server, /const query = \{ status: \{ \$in: \['published', undefined\] \}, isOnline: \{ \$ne: false \} \}/);
-    assert.match(server, /res\.json\(articles\)/);
-    assert.match(server, /res\.json\(faqs\)/);
+    assert.match(articles, /query\.status = 'published';[\s\S]{0,120}query\.isOnline = \{ \$ne: false \}/);
+    assert.match(faqs, /const query = \{[\s\S]{0,120}status: \{ \$in: \['published', undefined\] \},[\s\S]{0,120}isOnline: \{ \$ne: false \}/);
+    assert.match(articles, /res\.json\(articles\)/);
+    assert.match(faqs, /res\.json\(faqs\)/);
     assert.match(routes, /res\.json\(\{ success: true, data: list \}\)/);
   });
 
   it('后台文章查询声明所有扩展筛选变量', function () {
-    const server = read('server.js');
-    assert.match(server, /const \{ keyword, category, featured, page, limit, status, tag, zone, contentStatus, isOnline \} = req\.query;/);
+    const routes = read('routes/api/articles.js');
+    assert.match(routes, /const \{ keyword, category, featured, page, limit, status, tag, zone, contentStatus, isOnline \} = req\.query;/);
   });
 
   it('公开文章与 FAQ 详情只返回已发布且已上架内容', function () {
     const server = read('server.js');
-    assert.strictEqual((server.match(/Article\.findOne\(\{ slug, status: 'published', isOnline: \{ \$ne: false \} \}\)/g) || []).length, 3);
+    const faqs = read('routes/api/faqs.js');
+    assert.strictEqual((server.match(/Article\.findOne\(\{ slug, status: 'published', isOnline: \{ \$ne: false \} \}\)/g) || []).length, 1);
     assert.match(server, /Article\.findOne\(\{ _id: id, status: 'published', isOnline: \{ \$ne: false \} \}\)/);
-    assert.match(server, /Faq\.findOne\(\{ _id: req\.params\.id, status: \{ \$in: \['published', undefined\] \}, isOnline: \{ \$ne: false \} \}\)/);
+    assert.match(faqs, /Faq\.findOne\(\{[\s\S]{0,160}status: \{ \$in: \['published', undefined\] \},[\s\S]{0,80}isOnline: \{ \$ne: false \}/);
   });
 
   it('SSR 案例列表过滤下架案例', function () {

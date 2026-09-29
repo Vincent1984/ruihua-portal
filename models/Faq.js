@@ -20,7 +20,13 @@ const faqSchema = new mongoose.Schema({
     default: 0,
     index: true
   },
-  isActive: {
+  status: {
+    type: String,
+    enum: ['published', 'draft'],
+    default: 'published',
+    index: true
+  },
+  isOnline: {
     type: Boolean,
     default: true,
     index: true
@@ -45,6 +51,6 @@ faqSchema.pre('save', function () {
 
 // 添加索引
 faqSchema.index({ category: 1, order: 1 });
-faqSchema.index({ isActive: 1, order: 1 });
+faqSchema.index({ status: 1, isOnline: 1, order: 1 });
 
 module.exports = mongoose.model('FAQ', faqSchema);

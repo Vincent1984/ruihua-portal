@@ -26,15 +26,23 @@ describe('2026 根页面文件替换', function () {
         const css = fs.readFileSync(path.join(ROOT, 'public', 'css', 'rh2026.css'), 'utf8');
         const extCss = fs.readFileSync(path.join(ROOT, 'public', 'css', 'rh2026-ext.css'), 'utf8');
 
-        assert.match(css, /padding:0 max\(34px,calc\(\(100vw - 1320px\)\/2 \+ 34px\)\)/);
-        assert.match(extCss, /\{height:44px;display:block\}/);
+        // 桌面导航与正文容器共用同一 34px 水平内边距，保证左侧对齐
+        assert.match(css, /\.nav\{[^}]*padding:0 34px/);
+        assert.match(css, /\.sub-hero \.wrap,\.section \.wrap\{max-width:1320px;margin:0 auto;padding:0 34px\}/);
+        // Logo 图片由外联样式限定高度，尺寸适中
+        assert.match(extCss, /\[data-sx="b1"\]\[data-sx="b1"\]\{height:52px;display:block\}/);
     });
 
-    it('网站数字与英文统一使用 MiSans 字体', function () {
+    it('网站数字与英文统一使用同一字体栈', function () {
         const css = fs.readFileSync(path.join(ROOT, 'public', 'css', 'rh2026.css'), 'utf8');
 
-        assert.match(css, /--sans:[^;]*MiSans/i);
-        assert.match(css, /--mono:[^;]*MiSans/i);
+        // 正文与标题统一为同一黑体字栈（--serif 现为 --sans 的别名）
+        const sans = (css.match(/--sans:([^;]+);/) || [])[1];
+        const serif = (css.match(/--serif:([^;]+);/) || [])[1];
+        assert.ok(sans && serif && sans === serif, '--serif 应与 --sans 指向同一字体族');
+        assert.match(sans, /PingFang SC/i);
+        // 数字/英文统一走 --mono 等宽字栈
+        assert.match(css, /--mono:[^;]*JetBrains Mono/i);
         assert.match(css, /body\{[^}]*font-family:var\(--sans\)/);
     });
 

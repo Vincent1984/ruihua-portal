@@ -7,20 +7,21 @@ const read = relative => fs.readFileSync(path.join(ROOT, relative), 'utf8');
 
 describe('t5 批量排序与精选保存', function () {
   it('FAQ 和专家提供受权限保护的批量排序接口', function () {
-    const server = read('server.js');
+    const faqs = read('routes/api/faqs.js');
+    const authors = read('routes/api/authors.js');
 
-    assert.match(server, /app\.put\('\/api\/faqs\/reorder', authRequired, requirePerm\('faq:edit'\)/);
-    assert.match(server, /Faq\.bulkWrite\(/);
-    assert.match(server, /app\.put\('\/api\/authors\/reorder', authRequired, requirePerm\('expert:edit'\)/);
-    assert.match(server, /Author\.bulkWrite\(/);
+    assert.match(faqs, /router\.put\('\/faqs\/reorder', authRequired, requirePerm\('faq:edit'\)/);
+    assert.match(faqs, /Faq\.bulkWrite\(/);
+    assert.match(authors, /router\.put\('\/authors\/reorder', authRequired, requirePerm\('expert:edit'\)/);
+    assert.match(authors, /Author\.bulkWrite\(/);
   });
 
   it('专家模型保存排序并按排序返回', function () {
     const model = read('models/Author.js');
-    const server = read('server.js');
+    const authors = read('routes/api/authors.js');
 
     assert.match(model, /order:\s*\{ type: Number, default: 0 \}/);
-    assert.match(server, /Author\.find\(\)\.sort\(\{ order: 1, createdAt: -1 \}\)/);
+    assert.match(authors, /Author\.find\(\)\.sort\(\{ order: 1, createdAt: -1 \}\)/);
   });
 
   it('精选案例通过单次批量接口校验数量、重复、发布上线和连续顺序', function () {
@@ -46,6 +47,6 @@ describe('t5 批量排序与精选保存', function () {
     assert.match(script, /state\.faqs=previous/);
     assert.match(script, /state\.authors=previous/);
     assert.match(script, /state\.cases=previous/);
-    assert.match(script, /data-action="move-expert"/);
+    assert.match(script, /async function moveExpert\(/);
   });
 });

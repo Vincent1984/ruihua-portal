@@ -253,7 +253,7 @@ module.exports = function (app) {
     try {
       const articles = await Article.find({ zone: { $ne: 'thinktank' }, status: 'published', isOnline: { $ne: false } }).sort({ publishDate: -1, updatedAt: -1 }).populate('authorId').lean();
       res.set('Cache-Control', 'no-cache');
-      res.send(render2026({ title: '行业洞察', description: 'CIO 数智化转型 / CEO 经营增长 / CHO 人效提升三大智库。', canonical: 'https://www.ruihuaconsulting.com/insights/industry', content: buildInsightsList(articles), activePath: '/insights/industry', preScript: articlesPreScript(articles) }));
+      res.send(render2026({ title: '行业洞察 · AI 转型实践与 CIO/CEO/CHO 三大智库 | 瑞华智策', description: 'CIO 数智化转型 / CEO 经营增长 / CHO 人效提升三大智库。', canonical: 'https://www.ruihuaconsulting.com/insights/industry', content: buildInsightsList(articles), activePath: '/insights/industry', preScript: articlesPreScript(articles) }));
     } catch (e) {
       res.status(500).send('服务器错误');
     }
@@ -263,7 +263,7 @@ module.exports = function (app) {
     try {
       const articles = await Article.find({ zone: 'thinktank', status: 'published', isOnline: { $ne: false } }).sort({ publishDate: -1, updatedAt: -1 }).populate('authorId').lean();
       res.set('Cache-Control', 'no-cache');
-      res.send(render2026({ title: '经营智库', description: 'R=B×O 理论内核与管理实践框架：增长诊断、碳硅共智组织设计、人效经营模型。', canonical: 'https://www.ruihuaconsulting.com/insights/thinktank', content: buildThinktankList(articles), activePath: '/insights/thinktank' }));
+      res.send(render2026({ title: '经营智库 · R=B×O 增长理论内核与管理实践框架 | 瑞华智策', description: 'R=B×O 理论内核与管理实践框架：增长诊断、碳硅共智组织设计、人效经营模型。', canonical: 'https://www.ruihuaconsulting.com/insights/thinktank', content: buildThinktankList(articles), activePath: '/insights/thinktank' }));
     } catch (e) {
       console.error('SSR /insights/thinktank failed:', e);
       res.status(500).send('服务器错误');
@@ -293,18 +293,12 @@ module.exports = function (app) {
   });
 
   app.get('/insights/:slug', async (req, res) => {
-    // #region debug-point A:route-entry
-    (() => { const fs = require('fs'), http = require('http'), payload = JSON.stringify({ sessionId: 'article-detail-error', runId: 'pre', hypothesisId: 'A', location: 'routes/frontendRoutes2026.js:237', msg: '[DEBUG] Article detail route entered', data: { path: req.path, slug: req.params.slug }, ts: Date.now() }); let u = 'http://127.0.0.1:7777/event'; try { const e = fs.readFileSync('.dbg/article-detail-error.env', 'utf8'); u = e.match(/DEBUG_SERVER_URL=(.+)/)?.[1] || u; } catch {} try { const target = new URL(u); const r = http.request({ hostname: target.hostname, port: target.port, path: target.pathname, method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) } }); r.on('error', () => {}); r.end(payload); } catch {} })();
-    // #endregion
     try {
       const article = await Article.findOneAndUpdate(
         { slug: req.params.slug, status: 'published', isOnline: { $ne: false } },
         { $inc: { views: 1 } },
         { new: true }
       ).populate('authorId').lean();
-      // #region debug-point B:query-result
-      (() => { const fs = require('fs'); let u = 'http://127.0.0.1:7777/event'; let s = 'article-detail-error'; try { const e = fs.readFileSync('.dbg/article-detail-error.env', 'utf8'); u = e.match(/DEBUG_SERVER_URL=(.+)/)?.[1] || u; s = e.match(/DEBUG_SESSION_ID=(.+)/)?.[1] || s; } catch {} fetch(u, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: s, runId: 'pre', hypothesisId: 'B', location: 'routes/frontendRoutes2026.js:239-244', msg: '[DEBUG] Article query completed', data: { found: !!article, slug: req.params.slug, status: article?.status, isOnline: article?.isOnline }, ts: Date.now() }) }).catch(() => {}); })();
-      // #endregion
       if (!article) return notFound(res);
       const canonical = `https://www.ruihuaconsulting.com/insights/${encodeURIComponent(article.slug)}`;
       const title = article.seoTitle || article.title;
@@ -322,7 +316,10 @@ module.exports = function (app) {
           description, url: canonical, image: absoluteUrl(article.coverImage) || undefined,
           datePublished: article.publishDate, dateModified: article.updatedAt,
           author: { '@type': 'Person', name: author.name || '瑞华智策研究团队' },
-          publisher: { '@type': 'Organization', name: '瑞华智策', url: 'https://www.ruihuaconsulting.com' }
+          publisher: {
+            '@type': 'Organization', name: '瑞华智策', url: 'https://www.ruihuaconsulting.com',
+            logo: { '@type': 'ImageObject', url: 'https://www.ruihuaconsulting.com/images/logo.png' }
+          }
         },
         {
           '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
@@ -344,11 +341,9 @@ module.exports = function (app) {
       // 避免封面为 WebP 或小于 300x300 时微信抓不到图
       res.send(render2026({ title, description, keywords, canonical,
         image: DEFAULT_OG_IMG, type: 'article', structuredData,
+        publishedTime: article.publishDate, modifiedTime: article.updatedAt,
         content: buildArticleDetail(article, author, qa, relatedArticles) }));
     } catch (e) {
-      // #region debug-point C:render-error
-      (() => { const fs = require('fs'), http = require('http'), payload = JSON.stringify({ sessionId: 'article-detail-error', runId: 'pre', hypothesisId: 'C', location: 'routes/frontendRoutes2026.js:287-289', msg: '[DEBUG] Article detail render failed', data: { name: e?.name, message: e?.message, stack: String(e?.stack || '').slice(0, 1200) }, ts: Date.now() }); let u = 'http://127.0.0.1:7777/event'; try { const x = fs.readFileSync('.dbg/article-detail-error.env', 'utf8'); u = x.match(/DEBUG_SERVER_URL=(.+)/)?.[1] || u; } catch {} try { const target = new URL(u), r = http.request({ hostname: target.hostname, port: target.port, path: target.pathname, method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) } }); r.on('error', () => {}); r.end(payload); } catch {} })();
-      // #endregion
       console.error('SSR /insights/:slug failed:', e);
       res.status(500).send('服务器错误');
     }
@@ -601,7 +596,7 @@ async function buildHome() {
   let html = loadBlock('home');
   const [featured, faqs] = await Promise.all([
     Case.find({ status: 'published', isOnline: { $ne: false }, featured: true }).sort({ featuredOrder: 1, createdAt: -1 }).limit(3).lean(),
-    Faq.find({ isActive: true }).sort({ order: 1 }).limit(6).lean()
+    Faq.find({ status: { $in: ['published', undefined] }, isOnline: { $ne: false } }).sort({ order: 1 }).limit(6).lean()
   ]);
   html = html.replace('<!--HOME_FEATURED-->', buildHomeFeatured(featured));
   html = html.replace('<!--HOME_FAQ-->', buildHomeFaq(faqs));

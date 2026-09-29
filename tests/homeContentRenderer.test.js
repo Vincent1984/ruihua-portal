@@ -1,33 +1,32 @@
-const { renderInsightCard, renderFaqItem, formatDateZh } = require('../utils/homeContentRenderer');
+const {
+  renderClientLogos,
+  renderScenarioChips,
+  CLIENT_LOGOS,
+  SCENARIO_CHIPS
+} = require('../utils/homeContentRenderer');
 
 describe('homeContentRenderer', () => {
-  test('formatDateZh should return yyyy-mm-dd', () => {
-    expect(formatDateZh('2026-03-18T08:00:00.000Z')).toMatch(/^2026-\d{2}-\d{2}$/);
-  });
-
-  test('renderInsightCard should include article title and link', () => {
-    const html = renderInsightCard({
-      _id: 'a1',
-      slug: 'test-article',
-      title: '测试文章',
-      summary: '测试摘要',
-      category: 'insight',
-      coverImage: '/images/test.jpg',
-      publishDate: '2026-03-18T08:00:00.000Z'
-    }, { insight: '研究洞察' });
-
-    expect(html).toContain('/insights/test-article');
-    expect(html).toContain('测试文章');
-    expect(html).toContain('研究洞察');
-  });
-
-  test('renderFaqItem should render question and answer', () => {
-    const html = renderFaqItem({
-      question: '什么是HCVM？',
-      answer: '这是核心方法论。'
+  test('renderClientLogos 输出全部客户名称并附带重复轨道', () => {
+    const html = renderClientLogos();
+    CLIENT_LOGOS.forEach(name => {
+      expect(html).toContain(name);
     });
+    expect(html).toContain('lw-chip');
+    expect(html).toContain('lw-dup');
+  });
 
-    expect(html).toContain('什么是HCVM？');
-    expect(html).toContain('这是核心方法论。');
+  test('renderScenarioChips 输出场景标签与关键字', () => {
+    const html = renderScenarioChips();
+    SCENARIO_CHIPS.forEach(chip => {
+      expect(html).toContain(`data-keyword="${chip.keyword}"`);
+      expect(html).toContain(chip.text);
+    });
+  });
+
+  test('导出的首页数据为非空数组', () => {
+    expect(Array.isArray(CLIENT_LOGOS)).toBe(true);
+    expect(CLIENT_LOGOS.length).toBeGreaterThan(0);
+    expect(Array.isArray(SCENARIO_CHIPS)).toBe(true);
+    expect(SCENARIO_CHIPS.length).toBeGreaterThan(0);
   });
 });

@@ -16,7 +16,7 @@ function createAuthMiddleware(secretKey) {
             if (candidates.length === 0) return res.status(401).json({ error: 'Unauthorized' });
             for (const token of candidates) {
                 try {
-                    const payload = jwt.verify(token, secretKey);
+                    const payload = jwt.verify(token, secretKey, { algorithms: ['HS256'] });
                     req.user = payload;
                     return next();
                 } catch (e) {

@@ -84,7 +84,7 @@ function initAuthRoutes(jwtSecret, authRequired, requirePerm) {
       const token = jwt.sign(
         { id: admin._id, username: admin.username, roles: admin.roles },
         jwtSecret,
-        { expiresIn: '24h' }
+        { algorithm: 'HS256', expiresIn: '24h' }
       );
 
       // 收集权限

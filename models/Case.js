@@ -32,4 +32,10 @@ caseSchema.pre('save', async function () {
   this.updatedAt = new Date();
 });
 
+// 查询索引：列表/首页精选/同行业相关案例
+caseSchema.index({ status: 1, isOnline: 1, order: 1, createdAt: -1 });
+caseSchema.index({ status: 1, isOnline: 1, featured: 1, featuredOrder: 1, createdAt: -1 });
+caseSchema.index({ industry: 1, status: 1, isOnline: 1 });
+caseSchema.index({ featured: 1 });
+
 module.exports = mongoose.model('Case', caseSchema);

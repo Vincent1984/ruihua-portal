@@ -75,9 +75,10 @@ describe('行业洞察文章系统', function () {
 
     it('文章写接口清洗新增 SEO 字段并保留局部更新语义', function () {
         const server = read('server.js');
+        const routes = read('routes/api/articles.js');
 
         assert.match(server, /payload\.seoTitle = xss/);
         assert.match(server, /payload\.seoKeywords = payload\.seoKeywords/);
-        assert.match(server, /hasOwnProperty\.call\(payload, 'category'\)/);
+        assert.match(routes, /hasOwnProperty\.call\(payload, 'category'\)/);
     });
 });

@@ -1,22 +1,32 @@
+# robots.txt for www.ruihuaconsulting.com
+# 策略：全站对搜索引擎与 AI 爬虫开放，仅屏蔽后台 / 接口 / 敏感目录。
+# 注意：不为单个爬虫单独建组——独立 UA 分组不会继承 * 规则，反而会意外放大其抓取权限。
+#      因此 GPTBot / ClaudeBot / PerplexityBot / OAI-SearchBot / Google-Extended /
+#      Applebot-Extended / Bytespider / DeepSeek-Crawler 等统一适用下列 * 规则，即表示欢迎收录与引用。
+# AI 可读内容摘要：https://www.ruihuaconsulting.com/llms.txt
+
 User-agent: *
 Allow: /
 
-# Public assets required for page rendering
+# 页面渲染所需的公共静态资源
 Allow: /css/
 Allow: /js/
 Allow: /images/
-Allow: /public/
 Allow: /uploads/
+
+# 屏蔽后台、接口与敏感目录
 Disallow: /admin/
 Disallow: /api/
+Disallow: /user/
 Disallow: /config/
 Disallow: /backup_data/
 Disallow: /k8s/
 Disallow: /models/
 Disallow: /docs/
 Disallow: /node_modules/
-Disallow: /user/
 Disallow: /private-images/
+
+# 屏蔽无收录价值的文件类型
 Disallow: /*.php$
 Disallow: /*.asp$
 Disallow: /*.jsp$
@@ -24,37 +34,5 @@ Disallow: /*.mp4$
 Disallow: /*.avi$
 Disallow: /*.zip$
 Disallow: /*.rar$
-
-User-agent: GPTBot
-Allow: /
-Disallow: /admin/
-Disallow: /api/
-Disallow: /user/
-Disallow: /backup_data/
-
-User-agent: Claude-Web
-Allow: /
-Disallow: /admin/
-Disallow: /api/
-
-User-agent: DeepSeek-Crawler
-Allow: /
-Disallow: /admin/
-Disallow: /api/
-
-User-agent: Bytespider
-Allow: /
-Disallow: /admin/
-Disallow: /api/
-
-User-agent: Googlebot
-Allow: /
-Disallow: /admin/
-Disallow: /api/
-
-User-agent: Bingbot
-Allow: /
-Disallow: /admin/
-Disallow: /api/
 
 Sitemap: https://www.ruihuaconsulting.com/sitemap.xml

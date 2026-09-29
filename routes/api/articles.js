@@ -7,14 +7,21 @@ const router = express.Router();
 
 const Article = require('../../models/Article');
 const ArticleHistory = require('../../models/ArticleHistory');
+const Category = require('../../models/Category');
 const { sendInternalError } = require('../../utils/responseHelpers');
 const { sanitizeArticlePayload, getResolvedArticleAuthor, escapeRegex } = require('../../utils/articleHelpers');
 const logOp = require('../../middleware/operationLog');
 
 /**
  * 初始化文章路由
+ * @param {Function} authRequired 认证中间件
+ * @param {Function} requirePerm 权限检查中间件
+ * @param {Object} [hooks] 由 server.js 注入的副作用钩子
+ * @param {Function} [hooks.generateSeoSlug] 生成 SEO 友好 slug
+ * @param {Function} [hooks.syncLLMsTxt] 同步 llms.txt
  */
-function initArticleRoutes(authRequired, requirePerm) {
+function initArticleRoutes(authRequired, requirePerm, hooks = {}) {
+  const { generateSeoSlug, syncLLMsTxt } = hooks;
 
   // GET /api/articles - 获取文章列表（公开）
   router.get('/articles', async (req, res) => {
@@ -142,6 +149,16 @@ function initArticleRoutes(authRequired, requirePerm) {
   router.post('/articles', authRequired, requirePerm('article:create'), async (req, res) => {
     try {
       const payload = sanitizeArticlePayload(req.body);
+      const { slug } = payload;
+
+      // Check uniqueness when slug is provided
+      if (slug) {
+        const existing = await Article.findOne({ slug });
+        if (existing) {
+          return res.status(400).json({ error: 'URL (Slug) 已存在，请更换' });
+        }
+      }
+
       const newArticle = new Article(payload);
 
       // Ensure publishDate and updatedAt
@@ -149,7 +166,21 @@ function initArticleRoutes(authRequired, requirePerm) {
       if (!newArticle.publishDate) newArticle.publishDate = now;
       if (!newArticle.updatedAt) newArticle.updatedAt = now;
 
+      // Handle slug if not provided: 自动生成 SEO 友好 slug（AI 英文关键词优先，回退拼音）
+      if (!newArticle.slug && typeof generateSeoSlug === 'function') {
+        newArticle.slug = await generateSeoSlug(newArticle.title, Article);
+      }
+
       await newArticle.save();
+
+      // Update category count
+      if (payload.category) {
+        await Category.updateOne({ code: payload.category }, { $inc: { articleCount: 1 } });
+      }
+
+      // Trigger llms.txt sync
+      if (typeof syncLLMsTxt === 'function') await syncLLMsTxt(newArticle);
+
       await logOp('create', 'Article', `Created article: ${newArticle.title}`, req.user.username);
 
       res.json({ success: true, data: newArticle });
@@ -175,6 +206,28 @@ function initArticleRoutes(authRequired, requirePerm) {
         }
       }
 
+      const oldArt = await Article.findById(req.params.id);
+
+      // Save History
+      if (oldArt) {
+        const historyCount = await ArticleHistory.countDocuments({ articleId: oldArt._id });
+        await ArticleHistory.create({
+          articleId: oldArt._id,
+          title: oldArt.title,
+          content: oldArt.content,
+          summary: oldArt.summary,
+          seoTitle: oldArt.seoTitle,
+          seoDescription: oldArt.seoDescription,
+          seoKeywords: oldArt.seoKeywords,
+          qa: oldArt.qa,
+          coverImage: oldArt.coverImage,
+          tags: oldArt.tags,
+          status: oldArt.status,
+          editor: req.user.username,
+          version: historyCount + 1
+        });
+      }
+
       payload.updatedAt = Date.now();
 
       const article = await Article.findByIdAndUpdate(req.params.id, payload, { new: true });
@@ -182,7 +235,16 @@ function initArticleRoutes(authRequired, requirePerm) {
         return res.status(404).json({ error: '文章不存在' });
       }
 
+      // Handle category count update if changed
+      if (oldArt && Object.prototype.hasOwnProperty.call(payload, 'category') && oldArt.category !== payload.category) {
+        if (oldArt.category) await Category.updateOne({ code: oldArt.category }, { $inc: { articleCount: -1 } });
+        if (payload.category) await Category.updateOne({ code: payload.category }, { $inc: { articleCount: 1 } });
+      }
+
       await logOp('update', 'Article', `Updated article: ${article.title}`, req.user.username);
+
+      // Trigger llms.txt sync if published
+      if (typeof syncLLMsTxt === 'function') await syncLLMsTxt(article);
 
       res.json({ success: true, data: article });
     } catch (e) {
@@ -203,6 +265,12 @@ function initArticleRoutes(authRequired, requirePerm) {
 
       await Article.findByIdAndDelete(req.params.id);
       await ArticleHistory.deleteMany({ articleId: req.params.id });
+
+      // Update category count
+      if (article.category) {
+        await Category.updateOne({ code: article.category }, { $inc: { articleCount: -1 } });
+      }
+
       await logOp('delete', 'Article', `Deleted article: ${article.title}`, req.user.username);
 
       res.json({ success: true });

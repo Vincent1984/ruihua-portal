@@ -1,0 +1,19 @@
+{
+  "name": "瑞华智策",
+  "short_name": "瑞华智策",
+  "description": "AI 时代组织进化知识库：AI 赋能培训、AI 转型咨询、AI 落地陪跑与人力资本价值经营。",
+  "lang": "zh-CN",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fafafb",
+  "theme_color": "#fafafb",
+  "icons": [
+    {
+      "src": "/images/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

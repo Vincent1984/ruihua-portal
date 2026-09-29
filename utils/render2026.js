@@ -207,6 +207,18 @@ function render2026({ title = '瑞华智策', description = '', keywords = '', c
   };
   const pub = iso(publishedTime);
   const mod = iso(modifiedTime);
+  // og:image 类型按扩展名推导，避免把 jpg/webp 误标为 png
+  const ogImageType = (() => {
+    const m = /\.([a-z0-9]+)(?:[?#]|$)/i.exec(absImage);
+    const ext = (m ? m[1] : 'png').toLowerCase();
+    return ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg'
+      : ext === 'webp' ? 'image/webp'
+        : ext === 'gif' ? 'image/gif'
+          : ext === 'svg' ? 'image/svg+xml'
+            : 'image/png';
+  })();
+  // 仅在确知尺寸时输出 width/height（默认分享图 weixinshare.png 为 800x800）
+  const ogImageDim = absImage === DEFAULT_OG_IMG ? [800, 800] : null;
   const seoMeta = [
     keywords ? `<meta name="keywords" content="${escAttr(keywords)}" />` : '',
     canonical ? `<link rel="canonical" href="${escAttr(absUrl)}" />` : '',
@@ -218,9 +230,9 @@ function render2026({ title = '瑞华智策', description = '', keywords = '', c
     `<meta property="og:url" content="${escAttr(absUrl)}" />`,
     `<meta property="og:image" content="${escAttr(absImage)}" />`,
     `<meta property="og:image:secure_url" content="${escAttr(absImage)}" />`,
-    `<meta property="og:image:type" content="image/png" />`,
-    `<meta property="og:image:width" content="800" />`,
-    `<meta property="og:image:height" content="800" />`,
+    `<meta property="og:image:type" content="${escAttr(ogImageType)}" />`,
+    ogImageDim ? `<meta property="og:image:width" content="${ogImageDim[0]}" />` : '',
+    ogImageDim ? `<meta property="og:image:height" content="${ogImageDim[1]}" />` : '',
     `<meta property="og:image:alt" content="${escAttr(pageTitle)}" />`,
     `<meta name="twitter:card" content="${escAttr(twitterCard)}" />`,
     `<meta name="twitter:title" content="${escAttr(pageTitle)}" />`,
@@ -242,9 +254,21 @@ function render2026({ title = '瑞华智策', description = '', keywords = '', c
         '@type': 'ImageObject',
         url: `${SITE}/images/logo.png`
       },
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: '上海市',
+        addressRegion: '上海市',
+        addressCountry: 'CN'
+      },
+      contactPoint: {
+        '@type': 'ContactPoint',
+        contactType: 'customer service',
+        telephone: '+86-400-175-0886',
+        areaServed: 'CN',
+        availableLanguage: ['zh', 'en']
+      },
       sameAs: [
-        'https://www.renruihr.com/',
-        'https://weixin.qq.com/'
+        'https://www.renruihr.com/'
       ]
     },
     {

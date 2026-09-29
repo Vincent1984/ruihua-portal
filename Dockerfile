@@ -40,6 +40,9 @@ COPY utils/ ./utils/
 COPY routes/ ./routes/
 COPY middleware/ ./middleware/
 
+# 复制 SSR 模板（utils/render2026.js 运行时读取 views/2026/ 下的 base.html 与 partials）
+COPY views/ ./views/
+
 # 复制静态资源和HTML文件
 COPY public/ ./public/
 COPY admin/ ./admin/
