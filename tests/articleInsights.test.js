@@ -81,4 +81,16 @@ describe('行业洞察文章系统', function () {
         assert.match(server, /payload\.seoKeywords = payload\.seoKeywords/);
         assert.match(routes, /hasOwnProperty\.call\(payload, 'category'\)/);
     });
+
+    it('手动输入作者时清除空 authorId，避免 ObjectId 转换失败', function () {
+        const { sanitizeArticlePayload } = require('../utils/articleHelpers');
+        const payload = sanitizeArticlePayload({
+            title: '测试文章',
+            authorId: '',
+            author: { name: '手动作者', desc: '' }
+        });
+
+        assert.strictEqual(payload.authorId, undefined);
+        assert.deepStrictEqual(payload.author, { name: '手动作者', desc: '' });
+    });
 });

@@ -57,6 +57,7 @@ function sanitizeArticlePayload(body = {}) {
   // Add isOnline and isRecommended fields
   if (body.isOnline !== undefined) payload.isOnline = !!body.isOnline;
   if (body.isRecommended !== undefined) payload.isRecommended = !!body.isRecommended;
+  if (payload.authorId === '') delete payload.authorId;
 
   return payload;
 }
