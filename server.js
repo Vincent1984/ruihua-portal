@@ -3435,14 +3435,23 @@ async function generateDeepseekSlug(title) {
 
         if (!response.ok) {
             const errText = await response.text();
+            console.error(`[Deepseek] API HTTP Error: ${response.status}`, errText);
             throw new Error(`Deepseek API Error: ${response.status} ${errText}`);
         }
 
         const data = await response.json();
-        let slug = data.choices[0].message.content.trim();
+        const rawContent = data.choices[0].message.content.trim();
+        console.log(`[Deepseek] Raw AI response for "${title}":`, rawContent);
         
         // Clean up response if it contains extra text (just in case)
-        slug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '');
+        let slug = rawContent.toLowerCase().replace(/[^a-z0-9-]/g, '');
+        console.log(`[Deepseek] After cleanup:`, slug);
+        
+        if (!slug || slug.length < 3) {
+            console.error(`[Deepseek] Generated slug too short or empty, falling back`);
+            return null;
+        }
+        
         return slug;
     } catch (e) {
         console.error('Deepseek API Failed:', e);
