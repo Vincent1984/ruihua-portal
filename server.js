@@ -3422,7 +3422,7 @@ async function generateDeepseekSlug(title) {
                 messages: [
                     {
                         role: 'system', 
-                        content: 'You are an SEO URL slug generator. Extract 3 to 5 core English keywords from the given Chinese title, translate them to English, and join with hyphens. Rules: all lowercase, hyphens only, no stop words, no special characters or punctuation. Return ONLY the slug string, no explanation, no quotes.'
+                        content: 'You are an SEO URL slug generator. Generate a 3-letter English acronym based on the Chinese title. Rules: exactly 3 lowercase letters, no hyphens, no special characters. Return ONLY the 3-letter slug, no explanation, no quotes. Example: "内容管理系统" -> "cms"'
                     },
                     {
                         role: 'user', 
@@ -3707,31 +3707,36 @@ app.post('/api/tools/slug', authRequired, requirePerm('ai:use'), async (req, res
         if (aiSlug) {
             finalSlug = aiSlug;
         } else {
-            // Fallback to transliteration
-            const stopWords = ['the', 'a', 'an', 'in', 'on', 'at', 'for', 'to', 'of', 'and', 'or', 'with', 'by'];
-            let slug = slugify(text, { 
-                lowercase: true, 
-                separator: '-'
-            });
-            slug = slug.split('-').filter(word => !stopWords.includes(word)).join('-');
-            finalSlug = slug;
+            // Fallback: generate 3-letter acronym from title
+            // Extract first letter of each Chinese character or English word
+            const words = text.trim().split(/[\s\-_]+/);
+            let acronym = '';
+            
+            for (const word of words) {
+                if (acronym.length >= 3) break;
+                // Get first character, convert to lowercase
+                const firstChar = word.charAt(0).toLowerCase();
+                if (/[a-z]/.test(firstChar)) {
+                    acronym += firstChar;
+                }
+            }
+            
+            // If not enough letters, pad with random letters
+            while (acronym.length < 3) {
+                acronym += String.fromCharCode(97 + Math.floor(Math.random() * 26));
+            }
+            
+            finalSlug = acronym.substring(0, 3);
         }
         
-        // Ensure max length 60 chars
-        if (finalSlug.length > 60) {
-             finalSlug = finalSlug.substring(0, 60);
-             const lastHyphen = finalSlug.lastIndexOf('-');
-             if (lastHyphen > 0) finalSlug = finalSlug.substring(0, lastHyphen);
-        }
-        
-        // Remove trailing hyphens
+        // Remove trailing hyphens (if any)
         finalSlug = finalSlug.replace(/-+$/, '');
 
-        // Uniqueness Check (Loop until unique)
+        // Uniqueness Check: for 3-letter slugs, append number suffix
         let uniqueSlug = finalSlug;
         let counter = 1;
         while (await Article.findOne({ slug: uniqueSlug })) {
-            uniqueSlug = `${finalSlug}-${counter}`;
+            uniqueSlug = `${finalSlug}${counter}`;
             counter++;
         }
         
