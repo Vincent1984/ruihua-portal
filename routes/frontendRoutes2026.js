@@ -599,8 +599,8 @@ function buildHomeFaq(faqs) {
 async function buildHome() {
   let html = loadBlock('home');
   const [featured, faqs] = await Promise.all([
-    Case.find({ status: 'published', isOnline: { $ne: false }, featured: true }).sort({ featuredOrder: 1, createdAt: -1 }).limit(3).lean(),
-    Faq.find({ status: { $in: ['published', undefined] }, isOnline: { $ne: false } }).sort({ order: 1 }).limit(6).lean()
+    Case.find({ status: 'published', isOnline: { $ne: false }, featured: true }).sort({ featuredOrder: 1, createdAt: -1 }).limit(3).lean().catch(() => []),
+    Faq.find({ status: { $in: ['published', undefined] }, isOnline: { $ne: false } }).sort({ order: 1 }).limit(6).lean().catch(() => [])
   ]);
   html = html.replace('<!--HOME_FEATURED-->', buildHomeFeatured(featured));
   html = html.replace('<!--HOME_FAQ-->', buildHomeFaq(faqs));
