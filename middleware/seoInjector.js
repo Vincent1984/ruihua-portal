@@ -23,6 +23,11 @@ const seoConfig = {
       description: 'AI 赋能培训、AI 转型咨询、AI 落地陪跑三位一体，陪企业走完 AI 转型全程。',
       keywords: 'AI 转型, 企业培训, 管理咨询, 数字化转型'
     },
+    '/solutions': {
+      title: '产品与服务 · 碳硅共智 × 能力转移',
+      description: '以「碳硅共智」和「能力转移」的服务理念，帮助企业完成 AI 转型。培训解决「人会不会」，陪跑解决「落不落得下去」，咨询解决「机制跟不跟得上」。',
+      keywords: 'AI 赋能培训, Agent 落地服务, 碳硅混合生产力, 生态用工管理, HR 出海咨询'
+    },
     '/article.html': {
       title: '行业洞察 - AI 转型实践与案例分享',
       description: '分享 AI 转型实践经验、行业案例、最佳实践，帮助企业少走弯路。',
