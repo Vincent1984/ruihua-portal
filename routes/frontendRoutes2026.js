@@ -354,7 +354,7 @@ module.exports = function (app) {
   const SITE = 'https://www.ruihuaconsulting.com';
   const DEFAULT_OG_IMG = 'https://ruihua-portal.tos-cn-shanghai.volces.com/page/weixinshare.png'; // 微信分享缩略图 800x800
   const PAGES = {
-    '/solutions': { block: 'solutions', title: '产品与服务 · 三位一体 | 瑞华智策', description: 'AI 赋能培训、AI 转型咨询、AI 落地陪跑三位一体，可单独采购，也可组合成一体化方案。', image: DEFAULT_OG_IMG },
+    '/solutions': { block: 'solutions', title: '产品与服务 · 碳硅共智 × 能力转移 | 瑞华智策', description: '以「碳硅共智」和「能力转移」的服务理念，帮助企业完成 AI 转型。培训解决「人会不会」，陪跑解决「落不落得下去」，咨询解决「机制跟不跟得上」。', image: DEFAULT_OG_IMG },
     '/solutions/training': { block: 'p-training', title: 'AI 赋能培训 · 让团队会想、会用、会和 Agent 并肩作战 | 瑞华智策', description: 'AI 时代，「人」最容易成为硅基员工战力释放的瓶颈。我们从决策层到一线，把 AI 认知与 Agent 协作能力转移给团队——先会想，才会用，能力留在企业自己手里。', image: DEFAULT_OG_IMG },
     '/solutions/consulting': { block: 'p-consulting', title: '碳硅混合生产力管理咨询 · 碳硅共智的新质组织 | 瑞华智策', description: '以 「碳硅共智的新质组织」 为目标框架，从战略、组织、人效、流程、风险、数据 6 个维度，诊断现状、重构结构、配套治理机制与人才发展路径，帮助企业把 「碳基 + 硅基」 混合生产力体系真正建起来、跑起来。', image: DEFAULT_OG_IMG },
     '/solutions/fde': { block: 'p-fde', title: 'Agent 落地全周期服务 · 场景定义到价值闭环 | 瑞华智策', description: '把「AI 转型」拆成「一个个真场景落地」：从场景定义与优先级排序，到 Agent 搭建、冷启动、上线、价值衡量、组织接纳、复制推广，FDE 团队在关键节点提供方法、工具、模板、陪跑，让 Agent 真正嵌入业务流。', image: DEFAULT_OG_IMG },
