@@ -24,6 +24,7 @@ services:
       - SMS_USERNAME=${SMS_USERNAME}
       - SMS_PASSWORD=${SMS_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
       - NODE_TLS_REJECT_UNAUTHORIZED=1
     volumes:
       - ./public/uploads:/app/public/uploads
