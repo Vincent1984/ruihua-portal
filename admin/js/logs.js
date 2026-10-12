@@ -3,6 +3,8 @@
 
 let logPage = 1;
 
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
+
 function loadLogs(page = 1) {
     logPage = page;
     toggleLoading(true);
@@ -13,15 +15,18 @@ function loadLogs(page = 1) {
             if (!tbody) return;
             
             if (data.logs && data.logs.length > 0) {
-                tbody.innerHTML = data.logs.map(log => `
+                tbody.innerHTML = data.logs.map(log => {
+                    const detailText = log.detail || (log.details ? JSON.stringify(log.details) : '');
+                    return `
                     <tr>
-                        <td>${new Date(log.createdAt).toLocaleString()}</td>
-                        <td>${log.operator}</td>
-                        <td>${log.action}</td>
-                        <td>${log.ip || '-'}</td>
-                        <td>${log.details ? JSON.stringify(log.details).substring(0, 50) + (JSON.stringify(log.details).length > 50 ? '...' : '') : '-'}</td>
+                        <td>${esc(new Date(log.createdAt).toLocaleString())}</td>
+                        <td>${esc(log.operator)}</td>
+                        <td>${esc(log.action)}</td>
+                        <td>${esc(log.ip || '-')}</td>
+                        <td>${detailText ? esc(detailText.substring(0, 60)) + (detailText.length > 60 ? '...' : '') : '-'}</td>
                     </tr>
-                `).join('');
+                `;
+                }).join('');
                 
                 document.getElementById('logPageNum').textContent = page;
                 const totalPages = Math.ceil(data.total / 20);

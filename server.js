@@ -4341,12 +4341,19 @@ async function verifyCode(phone, code) {
     }
 }
 
+// 手机号脱敏，仅用于操作日志
+function maskPhone(phone) {
+    const p = String(phone || '');
+    return p.length >= 7 ? `${p.slice(0, 3)}****${p.slice(-4)}` : '***';
+}
+
 // 钉钉通知函数
 async function sendDingTalkNotification(appointment) {
     try {
         const finalUrl = buildSignedDingTalkWebhookUrl();
         if (!finalUrl) {
-            console.log('DingTalk webhook URL not configured');
+            console.error('[DingTalk] Webhook 未配置（DINGTALK_WEBHOOK_URL 缺失），本次线索通知已跳过');
+            await logOp('notify_failed', 'DingTalk', `线索通知未发送：DINGTALK_WEBHOOK_URL 未配置（${maskPhone(appointment && appointment.phone)}）`);
             return;
         }
         
@@ -4379,10 +4386,12 @@ async function sendDingTalkNotification(appointment) {
             console.log('DingTalk notification sent successfully');
         } else {
             console.error('DingTalk notification failed:', response.data);
+            await logOp('notify_failed', 'DingTalk', `线索通知被拒绝：errcode=${response.data.errcode} ${response.data.errmsg || ''}（${maskPhone(appointment && appointment.phone)}）`);
         }
         
     } catch (error) {
         console.error('DingTalk notification error:', error.message);
+        await logOp('notify_failed', 'DingTalk', `线索通知发送异常：${error.message}（${maskPhone(appointment && appointment.phone)}）`);
         throw error;
     }
 }
@@ -5632,6 +5641,26 @@ app.delete('/api/videos/:id', authRequired, requirePerm('video:delete'), async (
     }
 });
 
+// Admin: 操作日志查询（只读，供后台「操作日志」页面使用）
+app.get('/api/logs', authRequired, requirePerm('system:manage'), async (req, res) => {
+    try {
+        const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
+        const query = {};
+        if (req.query.module) query.module = String(req.query.module);
+        if (req.query.action) query.action = String(req.query.action);
+
+        const [logs, total] = await Promise.all([
+            OperationLog.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+            OperationLog.countDocuments(query)
+        ]);
+
+        res.json({ success: true, logs, total, page, pages: Math.ceil(total / limit) || 1 });
+    } catch (e) {
+        return sendInternalError(res, null, e);
+    }
+});
+
 // Inject modular video routes (AI tools, category tree APIs, metadata parsing)
 require('./routes/videoRoutes')(app, authRequired, requirePerm, logOp, generateDeepseekText);
 require('./routes/videoEmbedRoutes')(app, authRequired, requirePerm, logOp);
@@ -5678,10 +5707,26 @@ app.use((err, req, res, next) => {
     }
 });
 
+// 启动自检：通知相关环境变量缺失时醒目告警，避免线上静默失效
+function checkNotificationConfig() {
+    const missing = [];
+    if (!process.env.DINGTALK_WEBHOOK_URL) missing.push('DINGTALK_WEBHOOK_URL');
+    if (!process.env.DINGTALK_SECRET) missing.push('DINGTALK_SECRET');
+    if (missing.length === 0) {
+        console.log('[Config] DingTalk 通知已启用');
+        return;
+    }
+    console.error('============================================================');
+    console.error(`[Config] [WARN] 缺少环境变量: ${missing.join(', ')}`);
+    console.error('[Config] 线索提交后不会发送钉钉通知，将静默跳过');
+    console.error('============================================================');
+}
+
 // Start Server
 let httpServer = null;
 
 function startServer() {
+    checkNotificationConfig();
     httpServer = app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
