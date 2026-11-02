@@ -25,7 +25,11 @@ const aiDemandSurveySchema = new mongoose.Schema({
   q9: String,
   q9_other: String,
   q10: String,
+  // Q10 附件：原件存 TOS，这里保留可读名称与访问地址
   attachment_name: String,
+  attachment_url: String,
+  attachment_size: String,
+  attachment_type: String,
 
   page: String,
   source: String,

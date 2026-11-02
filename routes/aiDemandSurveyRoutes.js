@@ -64,6 +64,8 @@ function toExportRow(doc) {
         'Q9 其他': doc.q9_other || '',
         'Q10 真实案例': doc.q10 || '',
         '附件名称': doc.attachment_name || '',
+        '附件地址': doc.attachment_url || '',
+        '附件大小(字节)': doc.attachment_size || '',
         '页面地址': doc.page || '',
         '来源': doc.source || '',
         '钉钉表格同步': doc.dingtalk_synced ? '成功' : '未同步',

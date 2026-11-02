@@ -19,6 +19,14 @@ function formatTime(value) {
     return d.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false });
 }
 
+function formatFileSize(value) {
+    const bytes = Number(value);
+    if (!bytes || Number.isNaN(bytes)) return '';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return Math.round(bytes / 1024) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
 function buildQuery() {
     const params = new URLSearchParams();
     const keyword = document.getElementById('searchKeyword').value.trim();
@@ -184,7 +192,6 @@ function viewDetail(id) {
         'd-q8': item.q8,
         'd-q9': q9,
         'd-q10': item.q10,
-        'd-attachment': item.attachment_name,
         'd-submission-id': item.submission_id,
         'd-synced': item.dingtalk_synced ? '已同步' : '未同步',
         'd-sync-error': item.dingtalk_error || '',
@@ -195,6 +202,21 @@ function viewDetail(id) {
         const el = document.getElementById(key);
         if (el) el.textContent = map[key] || '-';
     });
+
+    // 附件：有下载地址时渲染成可点击链接
+    const attachmentEl = document.getElementById('d-attachment');
+    if (attachmentEl) {
+        if (!item.attachment_name) {
+            attachmentEl.textContent = '-';
+        } else {
+            const name = escapeHtml(item.attachment_name);
+            const size = formatFileSize(item.attachment_size);
+            const sizeText = size ? `<span class="text-muted small ms-2">${size}</span>` : '';
+            attachmentEl.innerHTML = item.attachment_url
+                ? `<a href="${escapeHtml(item.attachment_url)}" target="_blank" rel="noopener noreferrer">${name}</a>${sizeText}`
+                : `${name}${sizeText}`;
+        }
+    }
 
     const modal = new bootstrap.Modal(document.getElementById('detailModal'));
     modal.show();

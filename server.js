@@ -5668,10 +5668,35 @@ const SURVEY_SUBMIT_FIELDS = [
     'dept', 'title', 'contact',
     'q1', 'q2', 'q3', 'q3_other', 'q4',
     'q5_count', 'q5_minutes', 'q5_people', 'q5_hours',
-    'q6', 'q6_other', 'q7', 'q8', 'q9', 'q9_other', 'q10', 'attachment_name',
+    'q6', 'q6_other', 'q7', 'q8', 'q9', 'q9_other', 'q10',
     'submission_id', 'submitted_at', 'submitted_at_cn', 'page', 'source'
 ];
 const SURVEY_LONG_FIELDS = ['q1', 'q2', 'q10'];
+
+// 问卷附件：与前端一致，单个文件不超过 8 MB
+const surveyUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 8 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const allowedExt = /jpeg|jpg|png|gif|webp|pdf|doc|docx|xls|xlsx|ppt|pptx|csv|txt|zip/;
+        const allowedMime = /image\/jpeg|image\/png|image\/gif|image\/webp|application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument|application\/vnd\.ms-excel|application\/vnd\.ms-powerpoint|text\/plain|text\/csv|application\/csv|application\/zip|application\/x-zip-compressed|application\/octet-stream/;
+        const extname = allowedExt.test(path.extname(file.originalname || '').toLowerCase());
+        const mimetype = allowedMime.test((file.mimetype || '').toLowerCase());
+        if (mimetype && extname) return cb(null, true);
+        cb(new Error('仅支持 pdf/doc/docx/xls/xlsx/ppt/pptx/csv/txt/zip/jpg/png 文件'));
+    }
+});
+
+function surveyUploadMiddleware(req, res, next) {
+    surveyUpload.single('attachment')(req, res, err => {
+        if (!err) return next();
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ ok: false, error: '附件超过 8 MB，请压缩后再上传，或粘贴文档链接' });
+        }
+        const info = parseUploadError(err);
+        return res.status(info.status).json({ ok: false, error: info.error });
+    });
+}
 
 // 钉钉同步失败只记录状态，不影响后台存档与用户提交结果
 function syncSurveyToDingTalk(payload, recordId) {
@@ -5697,7 +5722,7 @@ function syncSurveyToDingTalk(payload, recordId) {
     });
 }
 
-app.post('/api/submit', async (req, res) => {
+app.post('/api/submit', surveyUploadMiddleware, async (req, res) => {
     const body = req.body || {};
 
     // 只接收白名单字段，避免请求体里的任意键写入数据库
@@ -5710,6 +5735,25 @@ app.post('/api/submit', async (req, res) => {
 
     if (!payload.dept || !payload.title || !payload.q1) {
         return res.status(400).json({ ok: false, error: '请填写所属部门、需求名称和需求描述' });
+    }
+
+    // Q10 附件：原件上传到 TOS，数据库只保存名称与访问地址
+    if (req.file) {
+        if (!useTosUpload) {
+            return res.status(503).json({ ok: false, error: '附件上传通道未配置，请先粘贴文档链接' });
+        }
+        try {
+            const ext = path.extname(req.file.originalname || '').toLowerCase().slice(0, 10);
+            const objectKey = `uploads/ai-survey/${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`;
+            const url = await uploadBufferToTos(req.file.buffer, objectKey, req.file.mimetype);
+            payload.attachment_name = String(req.file.originalname || '附件').slice(0, 200);
+            payload.attachment_url = url || '';
+            payload.attachment_size = String(req.file.size);
+            payload.attachment_type = String(req.file.mimetype || '').slice(0, 100);
+        } catch (e) {
+            console.error('[Survey] 附件上传失败:', e);
+            return res.status(500).json({ ok: false, error: '附件上传失败，请稍后重试或粘贴文档链接' });
+        }
     }
 
     let record = null;

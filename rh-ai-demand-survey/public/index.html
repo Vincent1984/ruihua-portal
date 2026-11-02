@@ -136,6 +136,7 @@
   .upload .ic { width: 20px; height: 20px; flex: none; color: var(--muted); }
   .upload .name { color: var(--muted); font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
   .upload .clear { border: 0; background: none; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; padding: 2px 4px; }
+  .file-err { color: var(--danger); font-size: 13px; margin: 8px 0 0; }
 
   /* submit */
   .footer { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--line); }
@@ -326,8 +327,15 @@
 
         <div class="q" data-q="q10">
           <label class="q-title" for="q10"><span class="no">Q10.</span>有没有可以提供的真实案例？<span class="tag">选填</span></label>
-          <p class="hint">例如：一份脱敏的工作表、一份处理结果、现有流程说明、典型问题案例。如有文件，请先上传到钉钉文档、飞书文档或网盘，再把链接粘贴在这里。</p>
+          <p class="hint">例如：一份脱敏的工作表、一份处理结果、现有流程说明、典型问题案例。可直接上传一个文件（8 MB 以内），或把文档 / 网盘链接粘贴在下框。</p>
           <textarea id="q10" name="q10" maxlength="2000" rows="3" placeholder="文字描述，或粘贴文档 / 网盘链接"></textarea>
+          <label class="upload" for="attachment">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="M7.5 8.5L12 4l4.5 4.5"/><path d="M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16"/></svg>
+            <span class="name" id="fileName">上传附件（单个文件，不超过 8 MB）</span>
+            <input type="file" id="attachment" name="attachment" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.zip,.jpg,.jpeg,.png">
+            <button type="button" class="clear" id="fileClear" hidden>移除</button>
+          </label>
+          <p class="file-err" id="fileErr" hidden></p>
         </div>
       </section>
 
@@ -430,7 +438,7 @@
       fileErr.hidden = false;
       f = null;
     }
-    fileName.textContent = f ? f.name : "单个文件，不超过 8 MB";
+    fileName.textContent = f ? f.name : "上传附件（单个文件，不超过 8 MB）";
     fileName.style.color = f ? "var(--ink)" : "";
     fileClear.hidden = !f;
   }
@@ -560,11 +568,20 @@
     return Promise.race([p, new Promise(function (_, rej) { setTimeout(function () { rej(new Error("timeout")); }, ms); })]);
   }
 
-  // 通道 A：Netlify Function → 飞书 / 钉钉 / WorkBuddy 表格
+  // 通道 A：网站 /api/submit → 后台表单存档；有附件时改走 multipart
   function sendWebhook(data) {
-    return withTimeout(fetch(ENDPOINT, {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data)
-    }).then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return r.ok && j.ok; }); }), 15000)
+    var f = getFile();
+    var options;
+    if (f) {
+      var fd = new FormData();
+      Object.keys(data).forEach(function (k) { fd.append(k, data[k] == null ? "" : data[k]); });
+      fd.append("attachment", f);
+      options = { method: "POST", body: fd };
+    } else {
+      options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) };
+    }
+    return withTimeout(fetch(ENDPOINT, options)
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return r.ok && j.ok; }); }), 30000)
       .catch(function () { return false; });
   }
   // 通道 B：Netlify Forms 兜底存档（含附件原件）
