@@ -49,7 +49,8 @@ describe('unified admin sidebar', () => {
       'maturity.html',
       'efficiency.html',
       'activity-management.html',
-      'template-management.html'
+      'template-management.html',
+      'ai-demand-surveys.html'
     ];
     files.forEach(file => {
       const abs = path.join(__dirname, '..', 'admin', file);

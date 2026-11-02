@@ -15,7 +15,8 @@
         { label: '案例管理', href: '/admin/console.html#cases', perm: 'case:list' },
         { label: '首页精选案例', href: '/admin/console.html#featured', perm: 'featured-case:list' },
         { label: 'FAQ 管理', href: '/admin/console.html#faq', perm: 'faq:list' },
-        { label: '讲师 / 专家团队', href: '/admin/console.html#experts', perm: 'expert:list' }
+        { label: '讲师 / 专家团队', href: '/admin/console.html#experts', perm: 'expert:list' },
+        { label: 'AI 需求表单', href: '/admin/console.html#ai-forms', perm: 'appointment:list' }
       ]
     },
     {
