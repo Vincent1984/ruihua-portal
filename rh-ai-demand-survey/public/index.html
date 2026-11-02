@@ -125,7 +125,7 @@
 
   /* upload */
   .upload {
-    position: relative; margin-top: 10px; display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+    margin-top: 10px; display: flex; align-items: center; gap: 12px; padding: 12px 14px;
     border: 1px dashed var(--line-strong); border-radius: 10px; background: var(--surface); cursor: pointer;
     font-size: 14.5px; color: var(--ink-2);
   }
@@ -175,12 +175,9 @@
       <p class="intro">本表用于发现业务中适合使用 AI 改善的工作场景。无需了解 AI 技术，也不需要提前设计解决方案。请根据实际工作情况填写。</p>
     </header>
 
-    <form id="survey" name="ai-demand" method="POST" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data" novalidate>
-      <input type="hidden" name="form-name" value="ai-demand">
+    <form id="survey" name="ai-demand" novalidate>
       <input type="hidden" name="submission_id">
       <input type="hidden" name="q5_hours">
-      <input type="hidden" name="submitted_at_cn">
-      <input type="hidden" name="source" value="AI需求问卷">
       <p class="hp"><label>请勿填写 <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
 
       <!-- 01 -->
@@ -197,8 +194,8 @@
             <input type="text" id="title" name="title" maxlength="60" placeholder="例如：客户资料整理、费用报销审核" required>
           </div>
           <div class="field">
-            <label for="contact">需求联系人<span class="tag req">必填</span></label>
-            <input type="text" id="contact" name="contact" maxlength="60" autocomplete="name" placeholder="姓名或联系方式" required>
+            <label for="contact">需求联系人<span class="tag">选填</span></label>
+            <input type="text" id="contact" name="contact" maxlength="60" autocomplete="name" placeholder="姓名或联系方式">
           </div>
         </div>
       </section>
@@ -327,16 +324,8 @@
 
         <div class="q" data-q="q10">
           <label class="q-title" for="q10"><span class="no">Q10.</span>有没有可以提供的真实案例？<span class="tag">选填</span></label>
-          <p class="hint">例如：一份脱敏的工作表、一份处理结果、现有流程说明、典型问题案例。</p>
-          <textarea id="q10" name="q10" maxlength="2000" rows="3" placeholder="文字描述或粘贴文档链接"></textarea>
-          <label class="upload" id="uploadBox" for="attachment">
-            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.4 11.6l-8.5 8.5a5.5 5.5 0 01-7.8-7.8l8.5-8.5a3.7 3.7 0 015.2 5.2l-8.5 8.5a1.8 1.8 0 01-2.6-2.6l7.8-7.8"/></svg>
-            <span>上传附件</span>
-            <span class="name" id="fileName">单个文件，不超过 8 MB</span>
-            <input type="file" name="attachment" id="attachment" accept=".xlsx,.xls,.csv,.doc,.docx,.pdf,.ppt,.pptx,.txt,.md,.png,.jpg,.jpeg,.zip">
-            <button type="button" class="clear" id="fileClear" hidden>移除</button>
-          </label>
-          <p class="err" id="fileErr" hidden></p>
+          <p class="hint">例如：一份脱敏的工作表、一份处理结果、现有流程说明、典型问题案例。如有文件，请先上传到钉钉文档、飞书文档或网盘，再把链接粘贴在这里。</p>
+          <textarea id="q10" name="q10" maxlength="2000" rows="3" placeholder="文字描述，或粘贴文档 / 网盘链接"></textarea>
         </div>
       </section>
 
@@ -365,7 +354,7 @@
   "use strict";
 
   var ENDPOINT = "/api/submit";          // 转发函数（→ 飞书 / 钉钉 / WorkBuddy）
-  var NETLIFY_FORMS = false;             // 非 Netlify 部署，兜底通道关闭，仅走 /api/submit
+  var NETLIFY_FORMS = false;             // IGA Pages 版：无表单存档，仅走转发函数
   var DRAFT_KEY = "ai-demand-draft-v1";
   var KEEP_KEY = "ai-demand-keep-v1";
   var MAX_FILE = 8 * 1024 * 1024;
@@ -534,7 +523,6 @@
   var REQUIRED = [
     ["dept", "请填写所属部门 / 业务领域"],
     ["title", "请填写需求名称"],
-    ["contact", "请填写需求联系人"],
     ["q1", "请描述希望 AI 帮助完成的工作"]
   ];
   function clearErr(box) {
@@ -611,8 +599,6 @@
     data.submission_id = uid();
     data.submitted_at = new Date().toISOString();
     data.page = location.href.split("#")[0];
-    data.source = "AI需求问卷";
-    data.submitted_at_cn = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 19).replace("T", " ");
 
     Promise.all([sendWebhook(data), sendNetlifyForms(data)]).then(function (res) {
       if (res[0] || res[1]) {

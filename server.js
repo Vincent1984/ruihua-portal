@@ -5664,18 +5664,14 @@ app.get('/api/logs', authRequired, requirePerm('system:manage'), async (req, res
 // 公开：AI 应用需求问卷提交 → 钉钉连接器流程 → AI 表格
 const SURVEY_SUBMIT_FIELDS = [
     'dept', 'title', 'contact',
-    'q1', 'q2', 'q3', 'q4',
+    'q1', 'q2', 'q3', 'q3_other', 'q4',
     'q5_count', 'q5_minutes', 'q5_people', 'q5_hours',
-    'q6', 'q7', 'q8', 'q9', 'q10', 'attachment_name',
+    'q6', 'q6_other', 'q7', 'q8', 'q9', 'q9_other', 'q10', 'attachment_name',
     'submission_id', 'submitted_at', 'submitted_at_cn', 'page', 'source'
 ];
 
 app.post('/api/submit', async (req, res) => {
     const body = req.body || {};
-    const contact = String(body.contact || '').trim();
-    if (!contact) {
-        return res.status(400).json({ ok: false, error: '请填写联系人' });
-    }
 
     const flowUrl = process.env.DINGTALK_FLOW_WEBHOOK_URL;
     if (!flowUrl) {

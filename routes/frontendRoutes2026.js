@@ -393,7 +393,7 @@ module.exports = function (app) {
   // AI 应用需求收集（独立单页，直接返回原文件，不套 2026 站点壳）
   app.get(['/rh-ai-demand-survey', '/rh-ai-demand-survey/'], (req, res) => {
     res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.sendFile(path.join(__dirname, '..', 'rh-ai-demand-survey', 'index.html'));
+    res.sendFile(path.join(__dirname, '..', 'rh-ai-demand-survey', 'public', 'index.html'));
   });
 
   module.exports.buildHome = buildHome;
