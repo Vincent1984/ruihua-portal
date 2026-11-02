@@ -5661,6 +5661,54 @@ app.get('/api/logs', authRequired, requirePerm('system:manage'), async (req, res
     }
 });
 
+// 公开：AI 应用需求问卷提交 → 钉钉连接器流程 → AI 表格
+const SURVEY_SUBMIT_FIELDS = [
+    'dept', 'title', 'contact',
+    'q1', 'q2', 'q3', 'q4',
+    'q5_count', 'q5_minutes', 'q5_people', 'q5_hours',
+    'q6', 'q7', 'q8', 'q9', 'q10', 'attachment_name',
+    'submission_id', 'submitted_at', 'submitted_at_cn', 'page', 'source'
+];
+
+app.post('/api/submit', async (req, res) => {
+    const body = req.body || {};
+    const contact = String(body.contact || '').trim();
+    if (!contact) {
+        return res.status(400).json({ ok: false, error: '请填写联系人' });
+    }
+
+    const flowUrl = process.env.DINGTALK_FLOW_WEBHOOK_URL;
+    if (!flowUrl) {
+        console.error('[Survey] DINGTALK_FLOW_WEBHOOK_URL 未配置，问卷数据无法写入钉钉表格');
+        await logOp('submit_failed', 'Survey', `问卷未转发：DINGTALK_FLOW_WEBHOOK_URL 未配置（${body.dept || '-'}）`);
+        return res.status(503).json({ ok: false, error: '提交通道未配置' });
+    }
+
+    // 只透传白名单字段，避免请求体里的任意键写入表格
+    const payload = {};
+    SURVEY_SUBMIT_FIELDS.forEach(k => {
+        if (body[k] !== undefined && body[k] !== null) payload[k] = body[k];
+    });
+
+    try {
+        const response = await axios.post(flowUrl, payload, {
+            timeout: 15000,
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!(response.data && response.data.success === true)) {
+            console.error('[Survey] 钉钉流程返回失败:', response.data);
+            await logOp('submit_failed', 'Survey', `问卷转发被拒绝：${JSON.stringify(response.data).slice(0, 200)}（${body.dept || '-'}）`);
+            return res.status(502).json({ ok: false, error: '提交失败，请稍后重试' });
+        }
+        console.log('[Survey] 问卷已转发钉钉流程:', payload.submission_id || '-');
+        res.json({ ok: true, id: payload.submission_id || null });
+    } catch (e) {
+        console.error('[Survey] 问卷转发异常:', e.message);
+        await logOp('submit_failed', 'Survey', `问卷转发异常：${e.message}（${body.dept || '-'}）`);
+        return res.status(502).json({ ok: false, error: '提交失败，请稍后重试' });
+    }
+});
+
 // Inject modular video routes (AI tools, category tree APIs, metadata parsing)
 require('./routes/videoRoutes')(app, authRequired, requirePerm, logOp, generateDeepseekText);
 require('./routes/videoEmbedRoutes')(app, authRequired, requirePerm, logOp);
@@ -5714,12 +5762,21 @@ function checkNotificationConfig() {
     if (!process.env.DINGTALK_SECRET) missing.push('DINGTALK_SECRET');
     if (missing.length === 0) {
         console.log('[Config] DingTalk 通知已启用');
-        return;
+    } else {
+        console.error('============================================================');
+        console.error(`[Config] [WARN] 缺少环境变量: ${missing.join(', ')}`);
+        console.error('[Config] 线索提交后不会发送钉钉通知，将静默跳过');
+        console.error('============================================================');
     }
-    console.error('============================================================');
-    console.error(`[Config] [WARN] 缺少环境变量: ${missing.join(', ')}`);
-    console.error('[Config] 线索提交后不会发送钉钉通知，将静默跳过');
-    console.error('============================================================');
+
+    if (!process.env.DINGTALK_FLOW_WEBHOOK_URL) {
+        console.error('============================================================');
+        console.error('[Config] [WARN] 缺少环境变量: DINGTALK_FLOW_WEBHOOK_URL');
+        console.error('[Config] AI 需求问卷提交会失败，无法写入钉钉 AI 表格');
+        console.error('============================================================');
+    } else {
+        console.log('[Config] AI 需求问卷 → 钉钉 AI 表格已启用');
+    }
 }
 
 // Start Server

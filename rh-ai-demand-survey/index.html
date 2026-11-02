@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#F6F3FF">
+<title>AI 应用需求收集</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2317171A'/%3E%3Cpath d='M9 17l4.5 4.5L23 11' stroke='%23fff' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #F6F3FF;
+    --surface: #FFFFFF;
+    --ink: #17171A;
+    --ink-2: #3A3A40;
+    --muted: #6E6E76;
+    --faint: #A6A6AD;
+    --line: #E6E1F2;
+    --line-strong: #CFC8E0;
+    --accent: #2B59C3;
+    --accent-soft: rgba(43, 89, 195, .08);
+    --danger: #C2410C;
+    --radius: 12px;
+    --font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", "Segoe UI", sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 24px; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.65 var(--font); -webkit-font-smoothing: antialiased;
+  }
+  [hidden] { display: none !important; }
+
+  /* progress */
+  .progress { position: fixed; inset: 0 0 auto 0; height: 3px; background: transparent; z-index: 10; }
+  .progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .35s ease; }
+
+  .wrap { max-width: 640px; margin: 0 auto; padding: 56px 20px 96px; }
+  @media (max-width: 480px) { .wrap { padding: 40px 16px 80px; } }
+
+  /* header */
+  header .kicker { font: 500 12px/1 var(--mono); letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+  header h1 { font-size: 26px; line-height: 1.35; font-weight: 650; margin: 14px 0 6px; letter-spacing: -.01em; }
+  header .meta { color: var(--muted); font-size: 14px; margin: 0 0 20px; }
+  .intro {
+    font-size: 14.5px; color: var(--ink-2); background: var(--surface);
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; margin: 0;
+  }
+
+  /* sections */
+  section { margin-top: 56px; }
+  .sec-head { display: flex; align-items: baseline; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+  .sec-no { font: 500 13px/1 var(--mono); color: var(--faint); }
+  .sec-head h2 { font-size: 17px; font-weight: 600; margin: 0; }
+
+  .q { padding: 22px 0 6px; }
+  .q + .q { border-top: 1px dashed var(--line); }
+  .q-title { display: block; font-size: 16px; font-weight: 600; margin: 0 0 4px; color: var(--ink); }
+  .q-title .no { color: var(--muted); font-weight: 500; margin-right: 4px; font-variant-numeric: tabular-nums; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 500; color: var(--muted); margin-left: 6px; white-space: nowrap; }
+  .tag.req { color: var(--danger); }
+  .hint { font-size: 14px; color: var(--muted); margin: 0 0 12px; }
+  .example { font-size: 13.5px; color: var(--muted); margin: 10px 0 0; padding-left: 12px; border-left: 2px solid var(--line); }
+
+  /* fields */
+  .field { margin: 14px 0 0; }
+  .field > label { display: block; font-size: 14px; color: var(--ink-2); margin-bottom: 6px; }
+  input[type="text"], input[type="number"], textarea {
+    width: 100%; font: inherit; font-size: 16px; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px;
+    padding: 11px 14px; outline: none; transition: border-color .15s, box-shadow .15s;
+    -webkit-appearance: none; appearance: none;
+  }
+  textarea { min-height: 96px; resize: none; line-height: 1.6; display: block; }
+  input::placeholder, textarea::placeholder { color: var(--faint); }
+  input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .invalid input, .invalid textarea { border-color: var(--danger); }
+  .err { color: var(--danger); font-size: 13px; margin: 6px 0 0; }
+
+  /* options */
+  .opts { display: grid; gap: 8px; margin-top: 12px; }
+  .opt {
+    position: relative; display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 14px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
+    transition: border-color .15s, background .15s;
+  }
+  .opt:hover { border-color: var(--line-strong); }
+  .opt input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+  .opt .mark {
+    flex: none; width: 18px; height: 18px; margin-top: 3px; border: 1.5px solid var(--line-strong);
+    border-radius: 5px; display: grid; place-items: center; transition: all .15s; background: var(--surface);
+  }
+  .opt input[type="radio"] + .mark { border-radius: 50%; }
+  .opt .mark::after { content: ""; opacity: 0; transition: opacity .12s; }
+  .opt input[type="checkbox"] + .mark::after {
+    width: 9px; height: 5px; border: 2px solid #fff; border-top: 0; border-right: 0;
+    transform: rotate(-45deg) translate(1px, -1px);
+  }
+  .opt input[type="radio"] + .mark::after { width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+  .opt input:checked + .mark { background: var(--accent); border-color: var(--accent); }
+  .opt input:checked + .mark::after { opacity: 1; }
+  .opt:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+  .opt input:focus-visible + .mark { box-shadow: 0 0 0 3px var(--accent-soft); }
+  .opt .txt { font-size: 15px; line-height: 1.55; }
+  .opt.is-disabled { opacity: .45; cursor: not-allowed; }
+  .other-input { margin-top: -2px; }
+  .counter { font-size: 12.5px; color: var(--muted); margin-left: 6px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .counter.full { color: var(--accent); }
+
+  /* Q5 inline sentence */
+  .metrics { display: grid; gap: 10px; margin-top: 12px; }
+  .metric {
+    display: flex; align-items: center; gap: 10px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 10px; padding: 8px 8px 8px 14px; font-size: 15px;
+  }
+  .metric span.l { flex: 1; color: var(--ink-2); }
+  .metric input { width: 88px; text-align: right; padding: 8px 10px; font-variant-numeric: tabular-nums; }
+  .metric span.u { width: 50px; flex: none; white-space: nowrap; color: var(--muted); font-size: 14px; padding-right: 6px; }
+  .estimate { font-size: 13.5px; color: var(--muted); margin: 10px 0 0; min-height: 1.6em; }
+  .estimate b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* upload */
+  .upload {
+    position: relative; margin-top: 10px; display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+    border: 1px dashed var(--line-strong); border-radius: 10px; background: var(--surface); cursor: pointer;
+    font-size: 14.5px; color: var(--ink-2);
+  }
+  .upload:hover { border-color: var(--accent); }
+  .upload input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .upload .ic { width: 20px; height: 20px; flex: none; color: var(--muted); }
+  .upload .name { color: var(--muted); font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+  .upload .clear { border: 0; background: none; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; padding: 2px 4px; }
+
+  /* submit */
+  .footer { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--line); }
+  .notice { font-size: 13.5px; color: var(--muted); margin: 0 0 20px; }
+  .btn {
+    width: 100%; height: 52px; border: 0; border-radius: 12px; background: var(--ink); color: var(--bg);
+    font: 600 16px/1 var(--font); cursor: pointer; letter-spacing: .02em; transition: opacity .15s, transform .05s;
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .btn:active { transform: scale(.995); }
+  .btn[disabled] { opacity: .55; cursor: progress; }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line-strong); }
+  .spinner { width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .saved { text-align: center; font-size: 12.5px; color: var(--faint); margin: 12px 0 0; min-height: 1.5em; }
+  .form-err { color: var(--danger); font-size: 14px; text-align: center; margin: 0 0 12px; }
+
+  /* done */
+  .done { min-height: 70vh; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 40px 0; }
+  .done .ok { width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; margin: 0 auto 20px; }
+  .done h2 { font-size: 22px; margin: 0 0 8px; font-weight: 650; }
+  .done p { color: var(--muted); margin: 0 0 28px; font-size: 15px; }
+  .done .btn { max-width: 280px; margin: 0 auto; }
+  .done .ref { font: 12px var(--mono); color: var(--faint); margin-top: 18px; }
+
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i id="bar"></i></div>
+
+<main class="wrap">
+  <div id="formView">
+    <header>
+      <div class="kicker">AI Use Case Survey</div>
+      <h1>企业 AI 应用需求收集表</h1>
+      <p class="meta">快速版 · 约 5 分钟 · 一张表只描述一个业务场景</p>
+      <p class="intro">本表用于发现业务中适合使用 AI 改善的工作场景。无需了解 AI 技术，也不需要提前设计解决方案。请根据实际工作情况填写。</p>
+    </header>
+
+    <form id="survey" name="ai-demand" method="POST" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data" novalidate>
+      <input type="hidden" name="form-name" value="ai-demand">
+      <input type="hidden" name="submission_id">
+      <input type="hidden" name="q5_hours">
+      <input type="hidden" name="submitted_at_cn">
+      <input type="hidden" name="source" value="AI需求问卷">
+      <p class="hp"><label>请勿填写 <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+
+      <!-- 01 -->
+      <section>
+        <div class="sec-head"><span class="sec-no">01</span><h2>基本信息</h2></div>
+
+        <div class="q" data-q="dept">
+          <div class="field" style="margin-top:0">
+            <label for="dept">所属部门 / 业务领域<span class="tag req">必填</span></label>
+            <input type="text" id="dept" name="dept" maxlength="60" autocomplete="organization" placeholder="例如：财务部、销售运营" required>
+          </div>
+          <div class="field">
+            <label for="title">需求名称<span class="tag req">必填</span></label>
+            <input type="text" id="title" name="title" maxlength="60" placeholder="例如：客户资料整理、费用报销审核" required>
+          </div>
+          <div class="field">
+            <label for="contact">需求联系人<span class="tag req">必填</span></label>
+            <input type="text" id="contact" name="contact" maxlength="60" autocomplete="name" placeholder="姓名或联系方式" required>
+          </div>
+        </div>
+      </section>
+
+      <!-- 02 -->
+      <section>
+        <div class="sec-head"><span class="sec-no">02</span><h2>您希望解决什么问题？</h2></div>
+
+        <div class="q" data-q="q1">
+          <label class="q-title" for="q1"><span class="no">Q1.</span>您希望 AI 帮助完成哪件具体工作？<span class="tag req">必填</span></label>
+          <p class="hint">请用日常工作语言描述。</p>
+          <textarea id="q1" name="q1" maxlength="2000" rows="3" required></textarea>
+          <p class="example">参考示例：每周要人工从多个 Excel 中汇总销售数据，希望 AI 自动汇总并生成周报。</p>
+        </div>
+
+        <div class="q" data-q="q2">
+          <label class="q-title" for="q2"><span class="no">Q2.</span>目前这件工作是怎么完成的？</label>
+          <p class="hint">请简单描述主要步骤，通常 3–5 步即可。</p>
+          <textarea id="q2" name="q2" maxlength="2000" rows="4" placeholder="1. &#10;2. &#10;3. "></textarea>
+        </div>
+
+        <div class="q" data-q="q3">
+          <div class="q-title"><span class="no">Q3.</span>目前最让您头疼的问题是什么？<span class="tag">可多选</span></div>
+          <div class="opts" role="group" aria-label="Q3">
+            <label class="opt"><input type="checkbox" name="q3" value="重复操作多，浪费时间"><span class="mark"></span><span class="txt">重复操作多，浪费时间</span></label>
+            <label class="opt"><input type="checkbox" name="q3" value="需要阅读、查找、整理大量资料"><span class="mark"></span><span class="txt">需要阅读、查找、整理大量资料</span></label>
+            <label class="opt"><input type="checkbox" name="q3" value="经常需要人工判断、核对"><span class="mark"></span><span class="txt">经常需要人工判断、核对</span></label>
+            <label class="opt"><input type="checkbox" name="q3" value="系统之间不互通，需要复制粘贴"><span class="mark"></span><span class="txt">系统之间不互通，需要复制粘贴</span></label>
+            <label class="opt"><input type="checkbox" name="q3" value="人工处理慢，容易积压"><span class="mark"></span><span class="txt">人工处理慢，容易积压</span></label>
+            <label class="opt"><input type="checkbox" name="q3" value="容易出错、遗漏"><span class="mark"></span><span class="txt">容易出错、遗漏</span></label>
+            <label class="opt"><input type="checkbox" name="q3" value="需要多人协作，沟通成本高"><span class="mark"></span><span class="txt">需要多人协作，沟通成本高</span></label>
+            <label class="opt"><input type="checkbox" name="q3" value="其他" data-other="q3_other"><span class="mark"></span><span class="txt">其他</span></label>
+            <input type="text" class="other-input" name="q3_other" maxlength="200" placeholder="请简要说明" hidden>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 -->
+      <section>
+        <div class="sec-head"><span class="sec-no">03</span><h2>这件工作消耗多少人力？</h2></div>
+
+        <div class="q" data-q="q4">
+          <div class="q-title"><span class="no">Q4.</span>这件工作通常发生多频繁？</div>
+          <div class="opts" role="radiogroup" aria-label="Q4">
+            <label class="opt"><input type="radio" name="q4" value="每天多次"><span class="mark"></span><span class="txt">每天多次</span></label>
+            <label class="opt"><input type="radio" name="q4" value="每天一次"><span class="mark"></span><span class="txt">每天一次</span></label>
+            <label class="opt"><input type="radio" name="q4" value="每周多次"><span class="mark"></span><span class="txt">每周多次</span></label>
+            <label class="opt"><input type="radio" name="q4" value="每月几次"><span class="mark"></span><span class="txt">每月几次</span></label>
+            <label class="opt"><input type="radio" name="q4" value="不定期发生"><span class="mark"></span><span class="txt">不定期发生</span></label>
+          </div>
+        </div>
+
+        <div class="q" data-q="q5">
+          <div class="q-title"><span class="no">Q5.</span>大概有多少工作量？</div>
+          <p class="hint">不清楚可以填写估计值。</p>
+          <div class="metrics">
+            <label class="metric"><span class="l">每月处理约</span><input type="number" name="q5_count" inputmode="numeric" min="0" step="1" placeholder="0"><span class="u">件</span></label>
+            <label class="metric"><span class="l">每件平均需要</span><input type="number" name="q5_minutes" inputmode="decimal" min="0" step="any" placeholder="0"><span class="u">分钟</span></label>
+            <label class="metric"><span class="l">通常有</span><input type="number" name="q5_people" inputmode="numeric" min="0" step="1" placeholder="0"><span class="u">人参与</span></label>
+          </div>
+          <p class="estimate" id="estimate" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <!-- 04 -->
+      <section>
+        <div class="sec-head"><span class="sec-no">04</span><h2>AI 需要哪些信息？</h2></div>
+
+        <div class="q" data-q="q6">
+          <div class="q-title"><span class="no">Q6.</span>目前完成这件工作需要哪些资料或系统？<span class="tag">可多选</span></div>
+          <div class="opts" role="group" aria-label="Q6">
+            <label class="opt"><input type="checkbox" name="q6" value="Excel / 数据表格"><span class="mark"></span><span class="txt">Excel / 数据表格</span></label>
+            <label class="opt"><input type="checkbox" name="q6" value="Word / PDF / 业务文档"><span class="mark"></span><span class="txt">Word / PDF / 业务文档</span></label>
+            <label class="opt"><input type="checkbox" name="q6" value="企业制度、流程或知识库"><span class="mark"></span><span class="txt">企业制度、流程或知识库</span></label>
+            <label class="opt"><input type="checkbox" name="q6" value="ERP / CRM / HR 等业务系统"><span class="mark"></span><span class="txt">ERP / CRM / HR 等业务系统</span></label>
+            <label class="opt"><input type="checkbox" name="q6" value="邮件、聊天记录、会议记录"><span class="mark"></span><span class="txt">邮件、聊天记录、会议记录</span></label>
+            <label class="opt"><input type="checkbox" name="q6" value="外部网站或公开资料"><span class="mark"></span><span class="txt">外部网站或公开资料</span></label>
+            <label class="opt"><input type="checkbox" name="q6" value="其他" data-other="q6_other"><span class="mark"></span><span class="txt">其他</span></label>
+            <input type="text" class="other-input" name="q6_other" maxlength="200" placeholder="请简要说明" hidden>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 -->
+      <section>
+        <div class="sec-head"><span class="sec-no">05</span><h2>哪些事情必须由人决定？</h2></div>
+
+        <div class="q" data-q="q7">
+          <div class="q-title"><span class="no">Q7.</span>这件工作的处理方式是什么情况？</div>
+          <div class="opts" role="radiogroup" aria-label="Q7">
+            <label class="opt"><input type="radio" name="q7" value="有明确规则，大多数情况处理方式一致"><span class="mark"></span><span class="txt">有明确规则，大多数情况处理方式一致</span></label>
+            <label class="opt"><input type="radio" name="q7" value="有明确规则，但存在少量特殊情况"><span class="mark"></span><span class="txt">有明确规则，但存在少量特殊情况</span></label>
+            <label class="opt"><input type="radio" name="q7" value="主要依赖人员经验判断"><span class="mark"></span><span class="txt">主要依赖人员经验判断</span></label>
+            <label class="opt"><input type="radio" name="q7" value="不太清楚"><span class="mark"></span><span class="txt">不太清楚</span></label>
+          </div>
+        </div>
+
+        <div class="q" data-q="q8">
+          <div class="q-title"><span class="no">Q8.</span>如果 AI 处理出错，可能产生什么影响？</div>
+          <div class="opts" role="radiogroup" aria-label="Q8">
+            <label class="opt"><input type="radio" name="q8" value="影响较小，容易修改"><span class="mark"></span><span class="txt">影响较小，容易修改</span></label>
+            <label class="opt"><input type="radio" name="q8" value="需要人工检查，错误可能影响业务"><span class="mark"></span><span class="txt">需要人工检查，错误可能影响业务</span></label>
+            <label class="opt"><input type="radio" name="q8" value="影响较大，涉及资金、法律、客户权益等"><span class="mark"></span><span class="txt">影响较大，涉及资金、法律、客户权益等</span></label>
+            <label class="opt"><input type="radio" name="q8" value="不确定"><span class="mark"></span><span class="txt">不确定</span></label>
+          </div>
+        </div>
+      </section>
+
+      <!-- 06 -->
+      <section>
+        <div class="sec-head"><span class="sec-no">06</span><h2>您期望 AI 带来什么改变？</h2></div>
+
+        <div class="q" data-q="q9">
+          <div class="q-title"><span class="no">Q9.</span>最希望达到什么效果？<span class="tag">最多选两项</span><span class="counter" id="q9count">0 / 2</span></div>
+          <div class="opts" role="group" aria-label="Q9" data-max="2">
+            <label class="opt"><input type="checkbox" name="q9" value="减少人工操作时间"><span class="mark"></span><span class="txt">减少人工操作时间</span></label>
+            <label class="opt"><input type="checkbox" name="q9" value="减少错误、提高准确率"><span class="mark"></span><span class="txt">减少错误、提高准确率</span></label>
+            <label class="opt"><input type="checkbox" name="q9" value="缩短业务处理周期"><span class="mark"></span><span class="txt">缩短业务处理周期</span></label>
+            <label class="opt"><input type="checkbox" name="q9" value="减少重复劳动，让员工做更有价值的工作"><span class="mark"></span><span class="txt">减少重复劳动，让员工做更有价值的工作</span></label>
+            <label class="opt"><input type="checkbox" name="q9" value="提升客户或员工体验"><span class="mark"></span><span class="txt">提升客户或员工体验</span></label>
+            <label class="opt"><input type="checkbox" name="q9" value="实现部分或全部自动处理"><span class="mark"></span><span class="txt">实现部分或全部自动处理</span></label>
+            <label class="opt"><input type="checkbox" name="q9" value="其他" data-other="q9_other"><span class="mark"></span><span class="txt">其他</span></label>
+            <input type="text" class="other-input" name="q9_other" maxlength="200" placeholder="请简要说明" hidden>
+          </div>
+        </div>
+
+        <div class="q" data-q="q10">
+          <label class="q-title" for="q10"><span class="no">Q10.</span>有没有可以提供的真实案例？<span class="tag">选填</span></label>
+          <p class="hint">例如：一份脱敏的工作表、一份处理结果、现有流程说明、典型问题案例。</p>
+          <textarea id="q10" name="q10" maxlength="2000" rows="3" placeholder="文字描述或粘贴文档链接"></textarea>
+          <label class="upload" id="uploadBox" for="attachment">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.4 11.6l-8.5 8.5a5.5 5.5 0 01-7.8-7.8l8.5-8.5a3.7 3.7 0 015.2 5.2l-8.5 8.5a1.8 1.8 0 01-2.6-2.6l7.8-7.8"/></svg>
+            <span>上传附件</span>
+            <span class="name" id="fileName">单个文件，不超过 8 MB</span>
+            <input type="file" name="attachment" id="attachment" accept=".xlsx,.xls,.csv,.doc,.docx,.pdf,.ppt,.pptx,.txt,.md,.png,.jpg,.jpeg,.zip">
+            <button type="button" class="clear" id="fileClear" hidden>移除</button>
+          </label>
+          <p class="err" id="fileErr" hidden></p>
+        </div>
+      </section>
+
+      <div class="footer">
+        <p class="notice">无需提供完整解决方案。如果部分问题暂时不清楚，可以留空。请勿上传未脱敏的客户隐私、个人敏感信息或企业机密数据。</p>
+        <p class="form-err" id="formErr" hidden></p>
+        <button type="submit" class="btn" id="submitBtn">提交</button>
+        <p class="saved" id="saved"></p>
+      </div>
+    </form>
+  </div>
+
+  <div id="doneView" class="done" hidden>
+    <div class="ok" aria-hidden="true">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+    </div>
+    <h2>提交成功，感谢您的填写</h2>
+    <p>还有其他适合用 AI 改善的场景？<br>每个场景单独填一份，部门和联系人会自动保留。</p>
+    <button type="button" class="btn" id="againBtn">再填一个场景</button>
+    <div class="ref" id="refNo"></div>
+  </div>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  var ENDPOINT = "/api/submit";          // 转发函数（→ 飞书 / 钉钉 / WorkBuddy）
+  var NETLIFY_FORMS = false;             // 非 Netlify 部署，兜底通道关闭，仅走 /api/submit
+  var DRAFT_KEY = "ai-demand-draft-v1";
+  var KEEP_KEY = "ai-demand-keep-v1";
+  var MAX_FILE = 8 * 1024 * 1024;
+
+  var form = document.getElementById("survey");
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+
+  var store = {
+    get: function (k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } },
+    del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
+  };
+
+  /* ---------- auto-grow textareas ---------- */
+  function grow(t) { t.style.height = "auto"; t.style.height = Math.max(t.scrollHeight + 2, 96) + "px"; }
+  $$("textarea").forEach(function (t) { t.addEventListener("input", function () { grow(t); }); });
+
+  /* ---------- "其他" inputs ---------- */
+  function syncOther(cb) {
+    var inp = form.elements[cb.dataset.other];
+    if (!inp) return;
+    inp.hidden = !cb.checked;
+    if (!cb.checked) inp.value = "";
+  }
+  $$("input[data-other]").forEach(function (cb) {
+    cb.addEventListener("change", function () { syncOther(cb); if (cb.checked) form.elements[cb.dataset.other].focus(); });
+  });
+
+  /* ---------- Q9 max 2 ---------- */
+  var q9Box = $('[data-max]');
+  function syncMax() {
+    var max = +q9Box.dataset.max;
+    var boxes = $$('input[type="checkbox"]', q9Box);
+    var n = boxes.filter(function (b) { return b.checked; }).length;
+    boxes.forEach(function (b) {
+      var off = !b.checked && n >= max;
+      b.disabled = off;
+      b.closest(".opt").classList.toggle("is-disabled", off);
+    });
+    var c = document.getElementById("q9count");
+    c.textContent = n + " / " + max;
+    c.classList.toggle("full", n >= max);
+  }
+  q9Box.addEventListener("change", syncMax);
+
+  /* ---------- Q5 estimate ---------- */
+  function num(name) { var v = parseFloat(form.elements[name].value); return isFinite(v) && v >= 0 ? v : null; }
+  function monthlyHours() {
+    var c = num("q5_count"), m = num("q5_minutes");
+    return c != null && m != null && c > 0 && m > 0 ? Math.round(c * m / 60 * 10) / 10 : null;
+  }
+  function syncEstimate() {
+    var h = monthlyHours();
+    $("#estimate").innerHTML = h != null ? "约合每月 <b>" + h + "</b> 小时人工投入" : "";
+  }
+
+  /* ---------- file ---------- */
+  var fileInput = document.getElementById("attachment");
+  var fileName = document.getElementById("fileName");
+  var fileClear = document.getElementById("fileClear");
+  var fileErr = document.getElementById("fileErr");
+  function getFile() { return (fileInput && fileInput.files && fileInput.files[0]) || null; }
+  function syncFile() {
+    if (!fileInput) return;
+    var f = getFile();
+    fileErr.hidden = true;
+    if (f && f.size > MAX_FILE) {
+      fileInput.value = "";
+      fileErr.textContent = "文件超过 8 MB，请压缩后再上传，或在上方粘贴文档链接。";
+      fileErr.hidden = false;
+      f = null;
+    }
+    fileName.textContent = f ? f.name : "单个文件，不超过 8 MB";
+    fileName.style.color = f ? "var(--ink)" : "";
+    fileClear.hidden = !f;
+  }
+  if (fileInput) {
+    fileInput.addEventListener("change", syncFile);
+    fileClear.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); fileInput.value = ""; syncFile(); });
+  }
+
+  /* ---------- collect ---------- */
+  function checked(name) {
+    return $$('input[name="' + name + '"]:checked').map(function (i) { return i.value; });
+  }
+  function multi(name) {
+    var other = (form.elements[name + "_other"] || {}).value;
+    return checked(name).map(function (v) { return v === "其他" ? "其他：" + ((other || "").trim() || "未说明") : v; }).join("；");
+  }
+  function val(name) { return (form.elements[name].value || "").trim(); }
+
+  function collect() {
+    var h = monthlyHours();
+    var f = getFile();
+    return {
+      dept: val("dept"), title: val("title"), contact: val("contact"),
+      q1: val("q1"), q2: val("q2"), q3: multi("q3"),
+      q4: checked("q4")[0] || "",
+      q5_count: val("q5_count"), q5_minutes: val("q5_minutes"), q5_people: val("q5_people"),
+      q5_hours: h != null ? String(h) : "",
+      q6: multi("q6"), q7: checked("q7")[0] || "", q8: checked("q8")[0] || "",
+      q9: multi("q9"), q10: val("q10"),
+      attachment_name: f ? f.name : ""
+    };
+  }
+
+  /* ---------- progress ---------- */
+  var UNITS = ["dept", "title", "q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"];
+  function syncProgress() {
+    var d = collect();
+    var done = UNITS.filter(function (k) {
+      if (k === "q5") return d.q5_count || d.q5_minutes || d.q5_people;
+      if (k === "q10") return d.q10 || d.attachment_name;
+      return d[k];
+    }).length;
+    document.getElementById("bar").style.width = (done / UNITS.length * 100) + "%";
+  }
+
+  /* ---------- draft ---------- */
+  var savedEl = document.getElementById("saved"), saveTimer;
+  function snapshot() {
+    var s = {};
+    $$("input, textarea", form).forEach(function (el) {
+      if (!el.name || el.type === "file" || el.type === "hidden" || el.name === "bot-field") return;
+      if (el.type === "checkbox" || el.type === "radio") { if (el.checked) (s[el.name] = s[el.name] || []).push(el.value); }
+      else s[el.name] = el.value;
+    });
+    return s;
+  }
+  function restore(s) {
+    if (!s) return;
+    $$("input, textarea", form).forEach(function (el) {
+      if (!(el.name in s) || el.type === "file" || el.type === "hidden") return;
+      if (el.type === "checkbox" || el.type === "radio") el.checked = s[el.name].indexOf(el.value) > -1;
+      else el.value = s[el.name];
+    });
+  }
+  function saveDraft() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () {
+      if (store.set(DRAFT_KEY, snapshot())) savedEl.textContent = "草稿已自动保存在本机";
+    }, 500);
+  }
+
+  function refreshAll() {
+    $$("input[data-other]").forEach(function (cb) { var i = form.elements[cb.dataset.other]; if (i) i.hidden = !cb.checked; });
+    $$("textarea").forEach(grow);
+    syncMax(); syncEstimate(); syncProgress();
+  }
+
+  form.addEventListener("input", function (e) {
+    if (e.target.name && /^q5_/.test(e.target.name)) syncEstimate();
+    clearErr(e.target.closest(".field, .q"));
+    syncProgress(); saveDraft();
+  });
+  form.addEventListener("change", function () { syncProgress(); saveDraft(); });
+  function flushDraft() {
+    if (!saveTimer || document.getElementById("formView").hidden) return;
+    clearTimeout(saveTimer); saveTimer = null; store.set(DRAFT_KEY, snapshot());
+  }
+  window.addEventListener("pagehide", flushDraft);
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") flushDraft(); });
+
+  /* ---------- validation ---------- */
+  var REQUIRED = [
+    ["dept", "请填写所属部门 / 业务领域"],
+    ["title", "请填写需求名称"],
+    ["contact", "请填写需求联系人"],
+    ["q1", "请描述希望 AI 帮助完成的工作"]
+  ];
+  function clearErr(box) {
+    if (!box) return;
+    box.classList.remove("invalid");
+    var e = box.querySelector(".err.v"); if (e) e.remove();
+  }
+  function validate() {
+    var first = null;
+    REQUIRED.forEach(function (r) {
+      var el = form.elements[r[0]];
+      var box = el.closest(".field") || el.closest(".q");
+      clearErr(box);
+      if (!el.value.trim()) {
+        box.classList.add("invalid");
+        var p = document.createElement("p"); p.className = "err v"; p.textContent = r[1];
+        el.insertAdjacentElement("afterend", p);
+        first = first || el;
+      }
+    });
+    if (first) { first.focus({ preventScroll: true }); first.scrollIntoView({ behavior: "smooth", block: "center" }); }
+    return !first;
+  }
+
+  /* ---------- submit ---------- */
+  function uid() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+      var r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16);
+    });
+  }
+  function withTimeout(p, ms) {
+    return Promise.race([p, new Promise(function (_, rej) { setTimeout(function () { rej(new Error("timeout")); }, ms); })]);
+  }
+
+  // 通道 A：Netlify Function → 飞书 / 钉钉 / WorkBuddy 表格
+  function sendWebhook(data) {
+    return withTimeout(fetch(ENDPOINT, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data)
+    }).then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return r.ok && j.ok; }); }), 15000)
+      .catch(function () { return false; });
+  }
+  // 通道 B：Netlify Forms 兜底存档（含附件原件）
+  function sendNetlifyForms(data) {
+    if (!NETLIFY_FORMS) return Promise.resolve(false);
+    var fd = new FormData();
+    fd.append("form-name", "ai-demand");
+    Object.keys(data).forEach(function (k) {
+      if (k === "attachment_name") return;
+      if (form.elements[k]) fd.append(k, data[k]);
+    });
+    var f = getFile();
+    if (f) fd.append("attachment", f);
+    return withTimeout(fetch("/", { method: "POST", body: fd }).then(function (r) { return r.ok; }), 30000)
+      .catch(function () { return false; });
+  }
+
+  var btn = document.getElementById("submitBtn");
+  var formErr = document.getElementById("formErr");
+  var busy = false;
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (busy) return;
+    formErr.hidden = true;
+    if (!validate()) return;
+    if (form.elements["bot-field"].value) return;
+
+    busy = true;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" aria-hidden="true"></span>正在提交';
+
+    var data = collect();
+    data.submission_id = uid();
+    data.submitted_at = new Date().toISOString();
+    data.page = location.href.split("#")[0];
+    data.source = "AI需求问卷";
+    data.submitted_at_cn = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 19).replace("T", " ");
+
+    Promise.all([sendWebhook(data), sendNetlifyForms(data)]).then(function (res) {
+      if (res[0] || res[1]) {
+        store.set(KEEP_KEY, { dept: data.dept, contact: data.contact });
+        store.del(DRAFT_KEY);
+        document.getElementById("refNo").textContent = "提交编号 " + data.submission_id.slice(0, 8).toUpperCase();
+        document.getElementById("formView").hidden = true;
+        document.getElementById("doneView").hidden = false;
+        document.getElementById("bar").style.width = "100%";
+        window.scrollTo(0, 0);
+      } else {
+        formErr.textContent = "提交没有成功，可能是网络不稳定。您填写的内容已保存，请稍后再点一次提交。";
+        formErr.hidden = false;
+      }
+    }).finally(function () {
+      busy = false;
+      btn.disabled = false;
+      btn.textContent = "提交";
+    });
+  });
+
+  document.getElementById("againBtn").addEventListener("click", function () {
+    form.reset();
+    if (fileInput) { fileInput.value = ""; syncFile(); }
+    var keep = store.get(KEEP_KEY);
+    if (keep) { form.elements.dept.value = keep.dept || ""; form.elements.contact.value = keep.contact || ""; }
+    savedEl.textContent = "";
+    refreshAll();
+    document.getElementById("doneView").hidden = true;
+    document.getElementById("formView").hidden = false;
+    window.scrollTo(0, 0);
+    setTimeout(function () { form.elements.title.focus({ preventScroll: true }); }, 50);
+  });
+
+  /* ---------- init ---------- */
+  var draft = store.get(DRAFT_KEY);
+  if (draft) { restore(draft); savedEl.textContent = "已恢复上次未提交的草稿"; }
+  else { var keep = store.get(KEEP_KEY); if (keep) { form.elements.dept.value = keep.dept || ""; form.elements.contact.value = keep.contact || ""; } }
+  refreshAll();
+})();
+</script>
+</body>
+</html>
