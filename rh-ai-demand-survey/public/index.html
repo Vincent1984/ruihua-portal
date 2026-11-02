@@ -580,9 +580,16 @@
     } else {
       options = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) };
     }
+    // 有附件时请求体更大，给足上传时间，避免大文件被误判为超时
     return withTimeout(fetch(ENDPOINT, options)
-      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return r.ok && j.ok; }); }), 30000)
-      .catch(function () { return false; });
+      .then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (j) {
+          return { ok: r.ok && !!j.ok, error: j.error || (r.ok ? "" : "服务返回 HTTP " + r.status) };
+        });
+      }), f ? 60000 : 30000)
+      .catch(function (e) {
+        return { ok: false, error: e && e.message === "timeout" ? "上传或提交超时，请检查网络后重试" : "" };
+      });
   }
   // 通道 B：Netlify Forms 兜底存档（含附件原件）
   function sendNetlifyForms(data) {
@@ -620,7 +627,8 @@
     data.page = location.href.split("#")[0];
 
     Promise.all([sendWebhook(data), sendNetlifyForms(data)]).then(function (res) {
-      if (res[0] || res[1]) {
+      var webhook = res[0] || {};
+      if (webhook.ok || res[1]) {
         store.set(KEEP_KEY, { dept: data.dept, contact: data.contact });
         store.del(DRAFT_KEY);
         document.getElementById("refNo").textContent = "提交编号 " + data.submission_id.slice(0, 8).toUpperCase();
@@ -629,7 +637,9 @@
         document.getElementById("bar").style.width = "100%";
         window.scrollTo(0, 0);
       } else {
-        formErr.textContent = "提交没有成功，可能是网络不稳定。您填写的内容已保存，请稍后再点一次提交。";
+        formErr.textContent = webhook.error
+          ? "提交没有成功：" + webhook.error + "。您填写的内容已保存，请处理后重试。"
+          : "提交没有成功，可能是网络不稳定。您填写的内容已保存，请稍后再点一次提交。";
         formErr.hidden = false;
       }
     }).finally(function () {
