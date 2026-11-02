@@ -46,6 +46,7 @@ COPY views/ ./views/
 # 复制静态资源和HTML文件
 COPY public/ ./public/
 COPY admin/ ./admin/
+COPY rh-ai-demand-survey/ ./rh-ai-demand-survey/
 COPY *.html ./
 COPY *.txt ./
 COPY favicon.ico ./
