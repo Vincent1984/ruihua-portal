@@ -2466,28 +2466,15 @@ const NqocWhitepaperRequest = require('./models/NqocWhitepaperRequest');
 
 app.post('/api/nqoc/whitepaper/apply', async (req, res) => {
     try {
-        const { name, phone, email, company, position, smsCode } = req.body;
+        const { name, phone, email, company, position } = req.body;
         
-        if (!name || !phone || !email || !company || !position || !smsCode) {
-            return res.status(400).json({ success: false, error: '请填写所有必填项并输入验证码' });
+        if (!name || !phone || !email || !company || !position) {
+            return res.status(400).json({ success: false, error: '请填写所有必填项' });
         }
         
         if (!/^1[3-9]\d{9}$/.test(phone)) {
             return res.status(400).json({ success: false, error: '手机号格式不正确' });
         }
-
-        const hit = await VerificationCode.findOne({
-            phone,
-            code: smsCode,
-            used: false,
-            createdAt: { $gt: new Date(Date.now() - 3 * 60 * 1000) }
-        }).sort({ createdAt: -1 });
-
-        if (!hit) {
-            return res.status(400).json({ success: false, error: '验证码错误或已过期' });
-        }
-        hit.used = true;
-        await hit.save();
 
         const newRequest = new NqocWhitepaperRequest({
             name, phone, email, company, position
