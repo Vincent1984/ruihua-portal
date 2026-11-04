@@ -656,7 +656,7 @@ app.get('/nqoc', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/nqoc/index.html'));
 });
 
-const nqocPages = ['survey', 'awards', 'cases', 'insights', 'events', 'whitepaper', 'about', 'debate-vote', 'flyer', 'poster', 'expert-apply'];
+const nqocPages = ['survey', 'awards', 'cases', 'insights', 'events', 'whitepaper', 'whitepaper-apply', 'about', 'debate-vote', 'flyer', 'poster', 'expert-apply'];
 nqocPages.forEach(page => {
     app.get(`/nqoc/${page}`, (req, res) => {
         // expert-apply is a form page, should not be indexed
