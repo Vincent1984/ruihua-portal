@@ -5,7 +5,7 @@ const IV_LENGTH = 16;
 // 新版密文前缀，用于区分历史格式，实现平滑迁移
 const V2_PREFIX = 'v2:';
 
-// 密钥来源：优先 SECRET_KEY，其次 JWT_SECRET（生产环境 JWT_SECRET 由 K8s Secret 注入且必填）
+// 密钥来源：优先 SECRET_KEY，其次 JWT_SECRET（生产环境建议由 K8s Secret 注入）
 const rawSecret = process.env.SECRET_KEY || process.env.JWT_SECRET;
 
 // 旧实现曾在缺少环境变量时使用该硬编码兜底密钥。
@@ -22,14 +22,17 @@ function deriveKeyLegacy(secret) {
     return String(secret).padEnd(32, '0').slice(0, 32);
 }
 
+let missingSecretWarned = false;
+
+// 缺少密钥时不再抛错（生产环境抛错会让提交接口 500，且历史上曾导致启动即退出）。
+// 降级为明文存储并只告警一次：这样配置到正确密钥后历史数据仍可直接读取，
+// 不会留下用一次性密钥加密、事后无法解密的数据。
 function resolveSecret() {
     if (rawSecret) return rawSecret;
-    const err = new Error('[cryptoUtils] 未配置 SECRET_KEY/JWT_SECRET，无法加密敏感字段');
-    if (process.env.NODE_ENV === 'production') {
-        // 生产环境必须配置密钥，直接抛错，避免使用弱兜底密钥
-        throw err;
+    if (!missingSecretWarned) {
+        missingSecretWarned = true;
+        console.error('[cryptoUtils] 未配置 SECRET_KEY/JWT_SECRET：敏感字段将以明文存储，请尽快在 K8s Secret 中配置密钥');
     }
-    console.warn(err.message);
     return null;
 }
 

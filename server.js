@@ -60,14 +60,20 @@ app.use(compression());
 app.set('trust proxy', 1); // Trust the first proxy (Kubernetes ingress/load balancer)
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.JWT_SECRET || process.env.SECRET_KEY;
-if (!SECRET_KEY) {
-    if (process.env.NODE_ENV === 'production') {
-        console.error('[FATAL] JWT secret is missing. Please set JWT_SECRET.');
-        process.exit(1);
-    }
-    console.warn('[WARN] JWT_SECRET is missing, using temporary dev secret.');
+// 缺少密钥不再直接退出进程：历史上 ConfigMap 被整段覆盖丢失 JWT_SECRET 后，
+// 生产环境 process.exit(1) 导致 Pod CrashLoopBackOff，整站不可用。
+// 改为打印 FATAL 告警并降级启动，保证站点可用；兜底密钥由集群内已有的稳定配置派生，
+// 保证多副本 / 重启后签发的令牌互相通用，否则后台登录会随机失效。
+const FALLBACK_SECRET_SEED = process.env.MONGODB_URL || process.env.DB_HOST || 'ruihua-local';
+const USING_FALLBACK_SECRET = !SECRET_KEY;
+if (USING_FALLBACK_SECRET) {
+    console.error('[FATAL] JWT_SECRET / SECRET_KEY 未配置：已启用派生兜底密钥，服务继续启动。'
+        + '兜底密钥安全性弱于正式密钥，请立即在 Kubernetes Secret (ruihuawebsite-app-secret) 中配置 JWT_SECRET；'
+        + '在配置正确密钥前，历史加密字段（如问卷微信 ID）将无法解密。');
 }
-const RUNTIME_SECRET_KEY = SECRET_KEY || `dev-secret-${crypto.randomUUID()}`;
+const RUNTIME_SECRET_KEY = SECRET_KEY || crypto.createHash('sha256')
+    .update(`ruihua-jwt-fallback-v1:${FALLBACK_SECRET_SEED}`)
+    .digest('hex');
 
 // Auth / Permission / Log middleware (extracted to middleware/ to avoid routes depending on server.js closure)
 const { createAuthMiddleware } = require('./middleware/auth');
