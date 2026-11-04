@@ -4270,7 +4270,7 @@ app.post('/api/send-verification-code', smsLimiter, async (req, res) => {
         }
 
         // 准备短信内容
-        let smsContent = `【瑞华智策】验证码为：${code} 你正在预约新质组织白皮书，需要进行验证码校验（3分钟内有效），请勿向任何人提供此验证码。`;
+        let smsContent = `【瑞华智策】验证码为：${code}，需要进行验证码校验（3分钟内有效），请勿向任何人提供此验证码。`;
         if (scene === 'activity') {
             smsContent = `【瑞华智策】验证码为：${code}，用于活动信息校验（3分钟内有效），请勿向任何人提供此验证码。`;
         } else if (scene === 'survey') {
