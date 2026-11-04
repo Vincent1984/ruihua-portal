@@ -4258,6 +4258,17 @@ app.post('/api/send-verification-code', smsLimiter, async (req, res) => {
             });
         }
         
+        // 短信通道配置校验：缺账号密码时给出明确错误，避免把 undefined 发给服务商
+        const smsApiUrl = (process.env.SMS_API_URL || '').trim();
+        const smsUsername = (process.env.SMS_USERNAME || '').trim();
+        const smsPassword = (process.env.SMS_PASSWORD || '').trim();
+        if (!smsApiUrl || !smsUsername || !smsPassword) {
+            const missing = [!smsApiUrl && 'SMS_API_URL', !smsUsername && 'SMS_USERNAME', !smsPassword && 'SMS_PASSWORD']
+                .filter(Boolean).join(', ');
+            console.error(`[SMS FATAL] 短信通道未配置，缺少：${missing}`);
+            return res.status(503).json({ error: '短信服务未配置，请联系管理员' });
+        }
+
         // 准备短信内容
         let smsContent = `【瑞华智策】验证码为：${code} 你正在预约新质组织白皮书，需要进行验证码校验（3分钟内有效），请勿向任何人提供此验证码。`;
         if (scene === 'activity') {
@@ -4278,24 +4289,27 @@ app.post('/api/send-verification-code', smsLimiter, async (req, res) => {
         
         // 发送短信，带有重试和超时监控
         try {
-            const maskedUser = (process.env.SMS_USERNAME || '').replace(/.(?=.{2})/g, '*');
+            const maskedUser = smsUsername.replace(/.(?=.{2})/g, '*');
             console.log(`[SMS DEBUG] Preparing to send SMS to ${phone}, User: ${maskedUser}`);
             
             const smsPayload = {
-                loginname: process.env.SMS_USERNAME,
-                password: process.env.SMS_PASSWORD,
+                loginname: smsUsername,
+                password: smsPassword,
                 phone: phone,
                 content: smsContent
             };
             
             // 限制最大重试 1 次，首次超时 5 秒，确保总体在 10s 内返回响应
-            const smsResponse = await sendSmsWithRetry(process.env.SMS_API_URL, smsPayload, 1, 5000);
+            const smsResponse = await sendSmsWithRetry(smsApiUrl, smsPayload, 1, 5000);
             
             console.log('[SMS DEBUG] SMS API Response Status:', smsResponse.status);
             console.log('[SMS DEBUG] SMS API Response Data:', JSON.stringify(smsResponse.data));
             
-            if (smsResponse.data.retcode !== '0') {
-                console.error('[SMS ERROR] SMS send failed. Retcode:', smsResponse.data.retcode);
+            // 服务商 retcode 可能返回字符串或数字，统一转字符串比较
+            if (String(smsResponse.data.retcode) !== '0') {
+                console.error('[SMS ERROR] SMS send failed. Retcode:', smsResponse.data.retcode, 'Reason:', smsResponse.data.pno);
+                await dbSavePromise.catch(() => {});
+                await VerificationCode.deleteOne({ phone: phone, code: code });
                 return res.status(500).json({ error: '短信发送失败：' + (smsResponse.data.pno || '未知错误') });
             }
             
@@ -4315,6 +4329,9 @@ app.post('/api/send-verification-code', smsLimiter, async (req, res) => {
             if (smsError.response) {
                 console.error('[SMS ERROR] Response Data:', smsError.response.data);
             }
+            // 发送失败时清掉预留的验证码，避免用户重试被 60 秒频控挡住
+            await dbSavePromise.catch(() => {});
+            await VerificationCode.deleteOne({ phone: phone, code: code }).catch(() => {});
             return res.status(500).json({ error: '短信通道拥堵或超时，请稍后重试' });
         }
         
