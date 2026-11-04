@@ -3,7 +3,8 @@ kind: Kustomization
 
 resources:
 - configmap.yaml
-- app-secret.yaml
+# Secret 由控制台维护，不纳入 kustomize，避免用占位符覆盖线上敏感值
+# 模板见 app-secret.yaml
 - mongodb-deployment.yaml
 - app-deployment.yaml
 
