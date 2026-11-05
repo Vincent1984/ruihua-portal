@@ -28,7 +28,7 @@ let _cache = null;
 let _cacheMtimes = [];
 // 全局配置缓存：初始给默认值，保证 DB 未就绪时占位符也能被替换掉
 let _globalConfigCache = {
-  tel: '400-175-0886',
+  tel: '400-059-8121',
   mail: 'rxzj@renruihr.com',
   icp: '沪ICP备12042344号-24',
   cities: '上海 · 北京 · 深圳 · 成都',
@@ -43,7 +43,7 @@ async function reloadGlobalConfig() {
       const GlobalConfig = require('../models/GlobalConfig');
       const doc = (await GlobalConfig.findOne({ key: 'website' }).lean()) || {};
       _globalConfigCache = {
-        tel: doc.tel || '400-175-0886',
+        tel: doc.tel || '400-059-8121',
         mail: doc.mail || 'rxzj@renruihr.com',
         icp: doc.icp || '沪ICP备12042344号-24',
         cities: Array.isArray(doc.cities) && doc.cities.length ? doc.cities.join(' · ') : '上海 · 北京 · 深圳 · 成都',
@@ -263,7 +263,7 @@ function render2026({ title = '瑞华智策', description = '', keywords = '', c
       contactPoint: {
         '@type': 'ContactPoint',
         contactType: 'customer service',
-        telephone: '+86-400-175-0886',
+        telephone: '+86-400-059-8121',
         areaServed: 'CN',
         availableLanguage: ['zh', 'en']
       },

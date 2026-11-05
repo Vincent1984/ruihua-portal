@@ -1555,7 +1555,7 @@ app.get('/', async (req, res) => {
         const DEFAULT_OG_IMG = 'https://ruihua-portal.tos-cn-shanghai.volces.com/page/weixinshare.png';
         res.send(render2026({
             title: '瑞华智策 · 碳硅混合生产力专家',
-            description: '瑞华智策 —— 碳硅混合生产力专家。陪企业走完 AI 转型全生命周期，从战略、组织、人效、流程到 Agent 场景落地，实现碳基与硅基员工的协同价值最大化。',
+            description: '瑞华智策（上海瑞华智策企业管理咨询有限公司）是人瑞人才（6919.HK）全资旗下 AI 原生咨询机构，碳硅混合生产力解决方案供应商，面向企业提供 AI 落地转型的全案服务，帮助企业打造碳硅共智的新质组织。',
             canonical: `${SITE}/`,
             image: DEFAULT_OG_IMG,
             content: await buildHome(),

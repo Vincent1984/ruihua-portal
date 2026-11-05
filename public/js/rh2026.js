@@ -1371,7 +1371,7 @@ async function submitForm(e){
     try{sessionStorage.removeItem('rh_talk');RH_TALK.length=0;}catch(e){}
   }catch(error){
     button.disabled=false; button.textContent='提交预约 →';
-    fieldErr(pEl,'提交失败，请稍后重试或拨打 400-175-0886');
+    fieldErr(pEl,'提交失败，请稍后重试或拨打 400-059-8121');
   }
   return false;
 }

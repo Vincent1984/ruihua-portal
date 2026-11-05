@@ -15,7 +15,7 @@ describe('2026 后台 HTML 内容导入', function () {
     assert.strictEqual(data.cases.length, 27);
     assert.strictEqual(data.faqs.length, 6);
     assert.strictEqual(data.experts.length, 6);
-    assert.strictEqual(data.config.tel, '400-175-0886');
+    assert.strictEqual(data.config.tel, '400-059-8121');
   });
 
   it('使用稳定的外部 ID 保存线索，保证重复导入不会新增记录', function () {
