@@ -230,32 +230,18 @@ function seoInjector(req, res, next) {
         }
       });
 
-      // 6. Twitter Card
-      const twitterTags = [
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: ogTitle },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: absoluteUrl(ogImage) }
-      ];
-
-      twitterTags.forEach(tag => {
-        if ($(`meta[name="${tag.name}"]`).length === 0) {
-          $('head').append(`<meta name="${tag.name}" content="${tag.content}">`);
-        }
-      });
-
-      // 7. 添加结构化数据
+      // 6. 添加结构化数据
       if ($('script[type="application/ld+json"]:contains("Organization")').length === 0) {
         const orgSchemaScript = `<script type="application/ld+json">${JSON.stringify(generateOrgSchema(), null, 2)}</script>`;
         $('head').append(orgSchemaScript);
       }
 
-      // 8. 如果是文章页面，添加 Article Schema
+      // 7. 如果是文章页面，添加 Article Schema
       if (article) {
         const articleSchemaScript = `<script type="application/ld+json">${JSON.stringify(generateArticleSchema(article), null, 2)}</script>`;
         $('head').append(articleSchemaScript);
 
-        // 9. 如果文章有 Q&A，添加 FAQPage Schema
+        // 8. 如果文章有 Q&A，添加 FAQPage Schema
         if (article.qa && article.qa.length > 0) {
           const faqSchema = generateFAQSchema(article.qa);
           if (faqSchema) {
@@ -265,7 +251,7 @@ function seoInjector(req, res, next) {
         }
       }
 
-      // 10. 图片优化：自动添加 loading="lazy"
+      // 9. 图片优化：自动添加 loading="lazy"
       $('img').each((i, elem) => {
         const $img = $(elem);
         // 首屏图片（前3张）不懒加载
@@ -281,7 +267,7 @@ function seoInjector(req, res, next) {
         }
       });
 
-      // 11. 链接优化：外部链接自动添加 rel
+      // 10. 链接优化：外部链接自动添加 rel
       $('a[href^="http"]').each((i, elem) => {
         const $link = $(elem);
         const href = $link.attr('href');

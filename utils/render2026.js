@@ -188,7 +188,7 @@ function loadBlock(key) {
  * @param {string} opts.content      页面主体 HTML（已是最终 HTML，原样注入）
  * @param {string} [opts.preScript]  引擎脚本之前注入的内联脚本（如 window.__CASES__）
  */
-function render2026({ title = '瑞华智策', description = '', keywords = '', canonical = '', image = '', type = 'website', structuredData = null, content = '', preScript = '', activePath = '', publishedTime = '', modifiedTime = '', siteName = '瑞华智策', twitterCard = 'summary_large_image', headExtra = '' } = {}) {
+function render2026({ title = '瑞华智策', description = '', keywords = '', canonical = '', image = '', type = 'website', structuredData = null, content = '', preScript = '', activePath = '', publishedTime = '', modifiedTime = '', siteName = '瑞华智策', headExtra = '' } = {}) {
   const c = loadCache();
   const SITE = 'https://www.ruihuaconsulting.com';
   const DEFAULT_OG_IMG = 'https://ruihua-portal.tos-cn-shanghai.volces.com/page/weixinshare.png';
@@ -234,12 +234,6 @@ function render2026({ title = '瑞华智策', description = '', keywords = '', c
     ogImageDim ? `<meta property="og:image:width" content="${ogImageDim[0]}" />` : '',
     ogImageDim ? `<meta property="og:image:height" content="${ogImageDim[1]}" />` : '',
     `<meta property="og:image:alt" content="${escAttr(pageTitle)}" />`,
-    `<meta name="twitter:card" content="${escAttr(twitterCard)}" />`,
-    `<meta name="twitter:title" content="${escAttr(pageTitle)}" />`,
-    `<meta name="twitter:description" content="${escAttr(pageDesc)}" />`,
-    `<meta name="twitter:image" content="${escAttr(absImage)}" />`,
-    `<meta name="twitter:image:alt" content="${escAttr(pageTitle)}" />`,
-    `<meta name="twitter:site" content="@RuihuaConsulting" />`,
     pub ? `<meta property="article:published_time" content="${escAttr(pub)}" />` : '',
     mod ? `<meta property="article:modified_time" content="${escAttr(mod)}" />` : ''
   ].filter(Boolean).join('\n    ');
