@@ -59,9 +59,6 @@ function initApiRoutes(dependencies) {
   const subscriptionRoutes = require('./subscriptions')();
   router.use('/', subscriptionRoutes);  // 挂载到根路径
 
-  // Sitemap 路由已移除：/sitemap.xml 由 server.js 内联生成（唯一权威来源），
-  // 原 routes/api/sitemap.js 输出的是旧世界 URL（/training.html、/videos.html 等），会与主 sitemap 冲突。
-
   return router;
 }
 

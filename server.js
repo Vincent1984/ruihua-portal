@@ -637,14 +637,10 @@ app.get('/googled5b214b19ca84994.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'googled5b214b19ca84994.html'));
 });
 
-// Apply Rate Limiter AFTER static files
-// Rate limiter removed
-
 // Serve specific HTML files from root
 // 注意：privacy.html 不在此列表——它的规范 URL 是 /privacy（无扩展名），
 // /privacy.html 与 /privacy/ 需 301 收敛到 /privacy，故由下方精确中间件统一处理。
-// 说明：video-detail.html 仅作为 /video/:slug/ 的 SSR 模板，不直接对外提供（避免重复内容）；
-// ai-strategic-special.html 已下线（源文件不存在），故从列表中移除。
+// 说明：video-detail.html 仅作为 /video/:slug/ 的 SSR 模板，不直接对外提供（避免重复内容）。
 const rootHtmlFiles = [
     'efficiency-diagnostic.html'
 ];
@@ -1532,9 +1528,6 @@ app.use((req, res, next) => {
     next();
 });
 app.get('/privacy', (req, res) => renderStaticHtmlWith2026Shell(req, res, 'privacy.html'));
-
-// 7. ai-strategic-special.html 已下线（源文件不存在），相关渲染与跳转路由一并移除，直接 404。
-
 
 // Handle /index.html redirection to root
 app.get('/index.html', (req, res) => {
@@ -5115,11 +5108,6 @@ app.delete('/api/efficiency-diagnosis/:id', authRequired, requirePerm('appointme
 });
 
 // --- Video Module ---
-// Legacy Video Categories (replaced by the dynamic tree in routes/videoRoutes.js)
-// But we keep this for legacy frontend compatibility if needed, or remove it to avoid conflicts
-// Since videoRoutes.js handles /api/video-categories for POST/PUT/DELETE, this GET route 
-// was likely causing conflicts or masking the POST route in videoRoutes.js if not ordered correctly.
-// We have moved the full Video module logic to routes/videoRoutes.js
 
 // Public: List videos (with optional pagination)
 app.get('/api/videos', async (req, res) => {

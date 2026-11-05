@@ -1,13 +1,5 @@
 /**
  * 静态资源缓存头部中间件
- *
- * 说明：原 resourceOptimizer（dns-prefetch/preconnect/preload 注入）在 res.send 内读取
- * 尚未写入的 Content-Type，导致永久短路、从未生效，已移除；preconnect/dns-prefetch/preload
- * 由 SSR 模板与 seoInjector 承担。
- */
-
-/**
- * 缓存头部中间件
  */
 function setCacheHeaders(req, res, next) {
   const path = req.path;

@@ -9,10 +9,7 @@
  */
 
 const cheerio = require('cheerio');
-const {
-  renderClientLogos,
-  renderScenarioChips
-} = require('../utils/homeContentRenderer');
+const { renderClientLogos } = require('../utils/homeContentRenderer');
 
 /**
  * SSR 内容注入中间件
@@ -49,41 +46,11 @@ function ssrContentInjector(req, res, next) {
             lwHome.html(logosHtml);
 
             modified = true;
-            // console.log('[SSR] Injected client logos');
           }
         }
 
         // ========================================
-        // 2. 注入场景标签（业务关键词）- 已禁用，由前端 JS 动态渲染
-        // ========================================
-        // const tlChips = $('#tlChips');
-        // if (tlChips.length > 0) {
-        //   const currentContent = tlChips.html().trim();
-        //
-        //   if (!currentContent || currentContent === '') {
-        //     const chipsHtml = renderScenarioChips();
-        //     tlChips.html(chipsHtml);
-        //
-        //     // 添加 SEO 友好的隐藏文本
-        //     tlChips.after(`
-        //       <div class="sr-only" aria-label="服务场景">
-        //         AI 转型服务场景：HR自动化、知识库管理、销售赋能、运营效率提升、数据分析
-        //       </div>
-        //     `);
-        //
-        //     modified = true;
-        //     // console.log('[SSR] Injected scenario chips');
-        //   }
-        // }
-
-        // ========================================
-        // 3. 添加结构化数据（Schema.org）
-        // ========================================
-        // 注释：客户案例和场景服务的结构化数据已移除
-        // 原因：用户要求删除这些结构化数据
-
-        // ========================================
-        // 4. 添加 noscript 后备（JS 禁用时的兜底）
+        // 2. 添加 noscript 后备（JS 禁用时的兜底）
         // ========================================
         if (!$('noscript.ssr-fallback').length) {
           $('body').append(`
