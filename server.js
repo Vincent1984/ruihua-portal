@@ -288,7 +288,9 @@ app.use(helmet({
             upgradeInsecureRequests: null, // Disable auto-upgrade for localhost dev environment
         },
     },
-    crossOriginEmbedderPolicy: false
+    crossOriginEmbedderPolicy: false,
+    // helmet 8 默认 no-referrer，会剥离 Referer，导致百度统计后台校验提示「referrer被禁用」
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
 
 // Global Rate Limiting
