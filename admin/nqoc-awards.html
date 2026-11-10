@@ -1,235 +1,271 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>瑞华智策 - NQOC 奖项申报管理</title>
-    <script>
-        (function () {
-            try {
-                var isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
-                var token = sessionStorage.getItem('token');
-                if (!isLoggedIn || !token) {
-                    window.location.href = '/admin/index.html';
-                }
-            } catch (e) {
-                window.location.href = '/admin/index.html';
-            }
-        })();
-    </script>
-    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="admin-theme.css">
-    <link rel="stylesheet" href="/admin/admin-sidebar.css">
-    <style>
-        .loading-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.7);
-            z-index: 9999;
-            display: none;
-            justify-content: center;
-            align-items: center;
-        }
-        .card-header .form-control, .card-header .form-select, .card-header .btn { font-size: 13px; }
-        .table { font-size: 13px; }
-        .table th { font-size: 12px; font-weight: 600; }
-        .table td { font-size: 13px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>瑞华智策 - NQOC 奖项申报管理</title>
+  <script>
+    (function () {
+      try {
+        var isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+        var token = sessionStorage.getItem('token');
+        if (!isLoggedIn || !token) { window.location.href = '/admin/index.html'; }
+      } catch (e) { window.location.href = '/admin/index.html'; }
+    })();
+  </script>
+  <link rel="stylesheet" href="/admin/admin-2026.css?v=20261102-attach">
+  <style>
+    .loading-overlay{position:fixed;inset:0;z-index:9999;display:none;justify-content:center;align-items:center;background:rgba(250,250,251,.72);backdrop-filter:blur(2px);}
+    .loading-overlay i{width:26px;height:26px;border:2.5px solid var(--p200);border-top-color:var(--purple);border-radius:50%;animation:aw-spin .7s linear infinite;}
+    @keyframes aw-spin{to{transform:rotate(360deg)}}
+    .sidebar nav a.active{background:var(--purple);color:#fff;font-weight:800;box-shadow:0 6px 18px rgba(124,77,255,.36);}
+    .sidebar-account-actions a{flex:1;display:block;text-align:center;padding:5px 7px;border:1px solid #4a4359;border-radius:7px;color:#c9c4d2;text-decoration:none;font-size:10px;}
+    .sidebar-account-actions a:hover{border-color:#bda5ff;color:#fff;background:rgba(189,165,255,.1);}
+    .pager{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;color:var(--muted);font-size:12.5px;}
+    .pager-actions{display:flex;gap:9px;}
+    .pager-actions button{padding:7px 14px;border:1px solid var(--hair);border-radius:10px;background:#fff;color:var(--ink);cursor:pointer;font-weight:700;}
+    .pager-actions button:hover{border-color:var(--p200);color:var(--purple);}
+    .segments{margin-bottom:16px;display:inline-flex;}
+    .segments button{font-size:12.5px;}
+    .table-wrap td select{padding:6px 8px;border:1px solid var(--hair);border-radius:8px;background:#fff;font-size:12px;color:var(--ink);}
+    #data-pane .table-wrap table{min-width:940px;}
+    #data-pane .table-wrap th,#data-pane .table-wrap td{padding:10px 9px;}
+    #channel-pane .table-wrap table{min-width:1020px;}
+    .table-wrap td{white-space:nowrap;}
+    #data-pane .table-wrap td:first-child{white-space:normal;min-width:170px;max-width:210px;}
+    .mono{font-family:var(--mono);font-size:12px;}
+    .row-link{color:var(--p600);font-weight:700;font-size:12.5px;text-decoration:underline;text-underline-offset:2px;}
+    .row-actions{display:flex;gap:6px;flex-wrap:nowrap;}
+    .row-actions button{padding:5px 10px;border:1px solid var(--hair);border-radius:8px;background:#fff;font-size:11.5px;font-weight:700;cursor:pointer;color:var(--ink2);white-space:nowrap;}
+    .row-actions button:hover{border-color:var(--p200);color:var(--purple);}
+    .row-actions button.danger{color:#b3261e;border-color:#f3c9c6;}
+    .row-actions button.danger:hover{border-color:#e6a19b;color:#8f1d17;}
+    .link-cell{display:flex;gap:6px;align-items:center;}
+    .link-cell input{flex:1;min-width:0;padding:6px 9px;border:1px solid var(--hair);border-radius:8px;background:#faf9fb;color:var(--ink2);font:600 11px var(--mono);}
+    .link-cell button{padding:6px 9px;border:1px solid var(--hair);border-radius:8px;background:#fff;cursor:pointer;font-size:11.5px;font-weight:700;color:var(--ink2);}
+    .link-cell button:hover{border-color:var(--p200);color:var(--purple);}
+    .modal-card .form-row{display:flex;gap:12px;}
+    .modal-card .form-row>label{flex:1;}
+    .modal-card .hint{margin-top:4px;color:var(--muted);font-size:11px;font-weight:500;}
+    .kv-line{margin:0 0 12px;color:var(--ink2);font-size:12.5px;}
+    .qr-box{display:flex;justify-content:center;padding:8px 0 4px;}
+    .qr-box > div{padding:12px;border:1px solid var(--line);border-radius:14px;background:#fff;}
+    .modal-actions .ghost{border:1px solid var(--hair);background:#fff;color:var(--ink);}
+    @media(max-width:900px){
+      #awardStats strong{font-size:20px;}
+      #awardStats article{padding:13px 14px;}
+      .filters>input{flex:1 1 100%;}
+      .filters>select{flex:1 1 calc(50% - 5px);}
+    }
+  </style>
 </head>
 <body>
-
-<div class="loading-overlay" id="loadingOverlay">
-    <div class="spinner-border text-primary" role="status"></div>
-</div>
-
-<div class="admin-layout">
-    <div id="unified-sidebar-container"></div>
-
-    <div class="main-content">
-        <div class="header">
-            <h4 class="m-0">NQOC 奖项申报管理</h4>
-            <div class="d-flex align-items-center">
-                <div class="dropdown">
-                    <button class="btn btn-outline border-0 dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-person-circle me-1"></i> 管理员
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item text-danger" href="/admin/index.html">退出</a></li>
-                    </ul>
-                </div>
-            </div>
+<div class="loading-overlay" id="loadingOverlay"><i></i></div>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="brand-bar"></span><div><b>瑞华智策</b><small>ADMIN CONSOLE</small></div></div>
+    <nav aria-label="后台导航">
+      <div class="nav-group"><div class="nav-title">线索</div>
+        <a href="/admin/console.html#leads" data-permission="lead:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h8"/></svg><span>线索管理</span></a>
+        <a href="/admin/console.html#ai-forms" data-permission="appointment:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 2.5h10v15H5z"/><path d="M7.5 6.5h5M7.5 10h5M7.5 13.5h3"/></svg><span>AI 需求表单</span></a>
+      </div>
+      <div class="nav-group"><div class="nav-title">内容配置</div>
+        <a href="/admin/console.html#articles" data-permission="article:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3.5h12v13H4z"/><path d="M7 7h6M7 10h6M7 13h4"/></svg><span>文章管理</span></a>
+        <a href="/admin/console.html#cases" data-permission="case:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6.5h14v9H3z"/><path d="M7.5 6.5v-2h5v2"/></svg><span>案例管理</span></a>
+        <a href="/admin/console.html#featured" data-permission="case:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="m10 3 2.1 4.3 4.7.7-3.4 3.3.8 4.7-4.2-2.2-4.2 2.2.8-4.7L3.2 8l4.7-.7z"/></svg><span>首页精选案例</span></a>
+        <a href="/admin/console.html#faq" data-permission="faq:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4h12v9H8l-4 3z"/></svg><span>FAQ 管理</span></a>
+        <a href="/admin/console.html#experts" data-permission="expert:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3"/><path d="M4.5 16c.6-3 2.8-4.5 5.5-4.5s4.9 1.5 5.5 4.5"/></svg><span>讲师 / 专家团队</span></a>
+      </div>
+      <div class="nav-group nqoc-group">
+        <button type="button" class="nav-title nqoc-toggle" id="nqocToggle" aria-expanded="true" aria-controls="nqocNavItems"><span>新质组织</span><svg class="nav-arrow" viewBox="0 0 12 12" aria-hidden="true"><path d="m4 2 4 4-4 4"/></svg></button>
+        <div class="nqoc-items" id="nqocNavItems">
+          <a href="/admin/nqoc-awards.html" class="active">申报数据</a>
+          <a href="/admin/nqoc-survey.html">调研问卷</a>
+          <a href="/admin/nqoc-debate.html">在线投票</a>
+          <a href="/admin/nqoc-experts.html">专家申请</a>
+          <a href="/admin/nqoc-whitepaper.html">白皮书</a>
         </div>
-
-        <div class="page-content">
-            <!-- Tabs -->
-            <ul class="nav nav-tabs mb-4" id="awardTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="data-tab" data-bs-toggle="tab" data-bs-target="#data-pane" type="button" role="tab">申报数据</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="channel-tab" data-bs-toggle="tab" data-bs-target="#channel-pane" type="button" role="tab">渠道溯源</button>
-                </li>
-            </ul>
-
-            <div class="tab-content" id="awardTabsContent">
-                <!-- Data Pane -->
-                <div class="tab-pane fade show active" id="data-pane" role="tabpanel" tabindex="0">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white py-3">
-                            <div class="row g-3 align-items-center">
-                                <div class="col-md-3">
-                                    <input type="text" id="searchKeyword" class="form-control" placeholder="搜索企业名称/姓名/手机号...">
-                                </div>
-                                <div class="col-md-2">
-                                    <select id="searchChannel" class="form-select">
-                                        <option value="">所有渠道 (不限)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <input type="date" id="searchStartDate" class="form-control" placeholder="开始时间">
-                                </div>
-                                <div class="col-md-2">
-                                    <input type="date" id="searchEndDate" class="form-control" placeholder="结束时间">
-                                </div>
-                                <div class="col-md-3 d-flex gap-2">
-                                    <button class="btn btn-primary w-100" onclick="loadData(1)"><i class="bi bi-search"></i> 查询</button>
-                                    <button class="btn btn-success w-100" onclick="exportData()"><i class="bi bi-file-earmark-excel"></i> 导出</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>企业名称</th>
-                                            <th>渠道来源</th>
-                                            <th>联系人</th>
-                                            <th>手机号</th>
-                                            <th>申报奖项</th>
-                                            <th>提交时间</th>
-                                            <th>附件</th>
-                                            <th>状态</th>
-                                            <th>前端展示</th>
-                                            <th>操作</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="dataTableBody">
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="card-footer bg-white d-flex justify-content-between align-items-center">
-                            <div class="text-secondary small">
-                                共 <span id="totalCount">0</span> 条记录，当前第 <span id="currentPage">1</span>/<span id="totalPages">1</span> 页
-                            </div>
-                            <nav>
-                                <ul class="pagination pagination-sm mb-0">
-                                    <li class="page-item"><button class="page-link" onclick="changePage(-1)">上一页</button></li>
-                                    <li class="page-item"><button class="page-link" onclick="changePage(1)">下一页</button></li>
-                                </ul>
-                            </nav>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Channel Pane -->
-                <div class="tab-pane fade" id="channel-pane" role="tabpanel" tabindex="0">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                            <h5 class="m-0 text-primary">渠道管理</h5>
-                            <button class="btn btn-primary" onclick="showChannelModal()"><i class="bi bi-plus-lg"></i> 新增渠道</button>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>渠道名称</th>
-                                            <th>渠道代码 (code)</th>
-                                            <th>描述说明</th>
-                                            <th>专属链接</th>
-                                            <th>二维码</th>
-                                            <th>申报数</th>
-                                            <th>创建时间</th>
-                                            <th>操作</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="channelTableBody"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+      </div>
+      <div class="nav-group"><div class="nav-title">系统全局配置</div>
+        <a href="/admin/console.html#settings" data-permission="system:manage"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.6"/><path d="M10 3v2M10 15v2M3 10h2M15 10h2M5 5l1.4 1.4M13.6 13.6 15 15M15 5l-1.4 1.4M6.4 13.6 5 15"/></svg><span>全局配置</span></a>
+      </div>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="sidebar-user"><div class="avatar">瑞</div><div><b id="currentUserName">瑞华管理员</b><small>正式环境 · 全部权限</small></div></div>
+      <div class="sidebar-account-actions"><a href="/admin/console.html#settings">修改密码</a><button type="button" data-action="logout">退出登录</button></div>
     </div>
-</div>
+  </aside>
+  <main>
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle" aria-label="打开菜单"><i></i><i></i><i></i></button>
+      <div><small>NQOC · AWARDS</small><h1>奖项申报管理</h1></div>
+      <span class="spacer"></span><span class="env">PRODUCTION</span><a href="/" target="_blank" rel="noopener">查看官网 ↗</a>
+    </header>
+    <div class="content">
+      <div class="stats" id="awardStats">
+        <article class="accent"><small>申报总量</small><strong data-stat="total">—</strong><span>当前检索条件下的记录数</span></article>
+        <article><small>本页记录</small><strong data-stat="pageCount">—</strong><span>每页 <em data-stat="limit">20</em> 条</span></article>
+        <article><small>当前页码</small><strong data-stat="page">—</strong><span>共 <em data-stat="totalPages">—</em> 页</span></article>
+        <article><small>本页最新提交</small><strong data-stat="latest">—</strong><span data-stat="latestWho">—</span></article>
+      </div>
 
-<!-- Channel Modal -->
-<div class="modal fade" id="channelModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="channelModalTitle">新增渠道</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="channelForm">
-                    <input type="hidden" id="channelId">
-                    <div class="mb-3">
-                        <label class="form-label">渠道名称 <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="channelName" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">渠道代码 (code) <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="channelCode" required placeholder="如: wechat_oa">
-                        <div class="form-text">用于URL参数，需唯一，仅限字母数字下划线。</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">描述说明</label>
-                        <textarea class="form-control" id="channelDescription" rows="2"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" onclick="saveChannel()">保存</button>
-            </div>
+      <div class="segments" id="awardSegments">
+        <button type="button" class="on" data-pane="data-pane">申报数据</button>
+        <button type="button" data-pane="channel-pane">渠道溯源</button>
+      </div>
+
+      <section id="data-pane">
+        <div class="notice"><b>每条记录对应一次奖项申报。</b> 支持按企业、联系人、手机号检索，并按来源渠道与申报时间筛选。</div>
+        <div class="filters">
+          <input class="search" id="searchKeyword" placeholder="搜索企业名称 / 联系人 / 手机号">
+          <select id="searchChannel">
+            <option value="">所有渠道 (不限)</option>
+          </select>
+          <input type="date" id="searchStartDate" title="开始时间">
+          <input type="date" id="searchEndDate" title="结束时间">
+          <button class="primary" onclick="loadData(1)">查询</button>
+          <span class="spacer"></span>
+          <button onclick="exportData()">导出 CSV</button>
         </div>
-    </div>
-</div>
-
-<!-- QR Code Modal -->
-<div class="modal fade" id="qrCodeModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header border-bottom-0 pb-0">
-                <h5 class="modal-title fw-bold">专属推广二维码</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center pt-2">
-                <p class="text-muted small mb-4" id="qrChannelName"></p>
-                <div class="d-flex justify-content-center mb-4">
-                    <div id="qrCodeContainer" class="bg-white p-3 rounded-4 shadow-sm border" style="width: fit-content;">
-                        <!-- Canvas will be injected here -->
-                    </div>
-                </div>
-                <div>
-                    <button class="btn btn-primary px-4 rounded-pill" onclick="downloadQRCode()">
-                        <i class="bi bi-download me-1"></i> 下载高质量海报
-                    </button>
-                </div>
-            </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>企业名称</th><th>渠道来源</th><th>联系人 / 手机号</th><th>申报奖项</th><th>提交时间</th><th>附件</th><th>状态</th><th>前端展示</th><th>操作</th></tr></thead>
+          <tbody id="dataTableBody"></tbody>
+        </table></div>
+        <div class="pager">
+          <div>共 <span id="totalCount">0</span> 条记录，当前第 <span id="currentPage">1</span> / <span id="totalPages">1</span> 页</div>
+          <div class="pager-actions"><button type="button" onclick="changePage(-1)">上一页</button><button type="button" onclick="changePage(1)">下一页</button></div>
         </div>
+      </section>
+
+      <section id="channel-pane" hidden>
+        <div class="panel">
+          <div class="panel-head">
+            <div><h2>渠道管理</h2><span>为每个投放渠道生成专属链接与二维码，用于溯源申报来源。</span></div>
+            <button class="primary" type="button" onclick="showChannelModal()">新增渠道</button>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>渠道名称</th><th>渠道代码</th><th>描述说明</th><th>专属链接</th><th>二维码</th><th>申报数</th><th>创建时间</th><th>操作</th></tr></thead>
+            <tbody id="channelTableBody"></tbody>
+          </table></div>
+        </div>
+      </section>
     </div>
+  </main>
 </div>
 
-<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<div class="modal" id="channelModal">
+  <div class="modal-card">
+    <div class="modal-head"><h2 id="channelModalTitle">新增渠道</h2><button type="button" onclick="closeModal('channelModal')" aria-label="关闭">×</button></div>
+    <form id="channelForm" onsubmit="event.preventDefault();saveChannel();">
+      <input type="hidden" id="channelId">
+      <label>渠道名称
+        <input type="text" id="channelName" required placeholder="如：微信公众号">
+      </label>
+      <label>渠道代码 (code)
+        <input type="text" id="channelCode" required placeholder="如: wechat_oa">
+        <span class="hint">用于 URL 参数，需唯一，仅限字母、数字、下划线。</span>
+      </label>
+      <label>描述说明
+        <textarea id="channelDescription" rows="2" placeholder="可选"></textarea>
+      </label>
+    </form>
+    <div class="modal-actions">
+      <button type="button" class="ghost" onclick="closeModal('channelModal')">取消</button>
+      <button type="button" onclick="saveChannel()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="feModal">
+  <div class="modal-card">
+    <div class="modal-head"><h2>前端展示设置</h2><button type="button" onclick="closeModal('feModal')" aria-label="关闭">×</button></div>
+    <form onsubmit="event.preventDefault();submitFeDetails();">
+      <p class="kv-line">企业：<b id="feOrgName">—</b></p>
+      <label>企业介绍
+        <textarea id="feDescription" rows="4" placeholder="显示在前端奖项展示页的企业介绍"></textarea>
+      </label>
+      <label>初始票数
+        <input type="number" id="feVoteCount" min="0" step="1">
+      </label>
+    </form>
+    <div class="modal-actions">
+      <button type="button" class="ghost" onclick="closeModal('feModal')">取消</button>
+      <button type="button" onclick="submitFeDetails()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="qrCodeModal">
+  <div class="modal-card" style="width:min(400px,100%)">
+    <div class="modal-head"><h2>专属推广二维码</h2><button type="button" onclick="closeModal('qrCodeModal')" aria-label="关闭">×</button></div>
+    <div style="padding:6px 22px 18px;text-align:center">
+      <p class="kv-line" id="qrChannelName"></p>
+      <div class="qr-box"><div id="qrCodeContainer"></div></div>
+      <div class="modal-actions" style="border-top:0;justify-content:center;padding-bottom:0">
+        <button type="button" onclick="downloadQRCode()">下载高质量海报</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
 <script src="https://cdn.bootcdn.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="js/utils.js?v=6"></script>
-<script src="/admin/js/unified-admin-sidebar.js?v=6"></script>
-<script src="js/nqoc-awards.js?v=6"></script>
+<script src="js/nqoc-awards.js?v=10"></script>
+<script>
+  (function () {
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menuToggle');
+    if (menuToggle) menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+    const nqocToggle = document.getElementById('nqocToggle');
+    const nqocItems = document.getElementById('nqocNavItems');
+    if (nqocToggle && nqocItems) {
+      const key = 'adminSidebarGroups';
+      let groups = {}; try { groups = JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch (e) { groups = {}; }
+      const setExpanded = expanded => { nqocToggle.setAttribute('aria-expanded', String(expanded)); nqocItems.hidden = !expanded; };
+      setExpanded(groups.nqoc !== false);
+      nqocToggle.addEventListener('click', () => {
+        const expanded = nqocToggle.getAttribute('aria-expanded') !== 'true';
+        setExpanded(expanded); groups.nqoc = expanded; localStorage.setItem(key, JSON.stringify(groups));
+      });
+    }
+    document.querySelectorAll('#awardSegments button').forEach(button => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('#awardSegments button').forEach(b => b.classList.toggle('on', b === button));
+        document.getElementById('data-pane').hidden = button.dataset.pane !== 'data-pane';
+        document.getElementById('channel-pane').hidden = button.dataset.pane !== 'channel-pane';
+      });
+    });
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', event => { if (event.target === modal) modal.classList.remove('show'); });
+    });
+    let user = {}; try { user = JSON.parse(sessionStorage.getItem('user') || localStorage.getItem('adminUser') || '{}'); } catch (e) { user = {}; }
+    const nameEl = document.getElementById('currentUserName');
+    if (nameEl && (user.name || user.username)) nameEl.textContent = user.name || user.username;
+    const applyPermissions = current => {
+      const perms = new Set(current && Array.isArray(current.permissions) ? current.permissions : []);
+      if (!perms.size) return;
+      document.querySelectorAll('[data-permission]').forEach(el => { el.style.display = (perms.has('all') || perms.has(el.dataset.permission)) ? '' : 'none'; });
+    };
+    applyPermissions(user);
+    const token = sessionStorage.getItem('token') || sessionStorage.getItem('adminToken') || localStorage.getItem('adminToken') || '';
+    fetch('/api/auth/verify', { headers: token ? { Authorization: 'Bearer ' + token } : {}, credentials: 'same-origin' })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data || !data.success || !data.user) return;
+        sessionStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('adminUser', JSON.stringify(data.user));
+        if (nameEl && (data.user.name || data.user.username)) nameEl.textContent = data.user.name || data.user.username;
+        applyPermissions(data.user);
+      }).catch(() => {});
+    document.querySelectorAll('[data-action="logout"]').forEach(button => {
+      button.addEventListener('click', async () => {
+        try { await fetch('/api/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }); } catch (e) {}
+        sessionStorage.clear(); localStorage.removeItem('adminToken'); localStorage.removeItem('adminUser');
+        location.href = '/admin/index.html';
+      });
+    });
+  })();
+</script>
 </body>
 </html>

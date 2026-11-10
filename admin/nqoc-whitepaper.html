@@ -1,126 +1,179 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>瑞华智策 - NQOC 白皮书预约下载管理</title>
-    <script>
-        (function () {
-            try {
-                var isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
-                var token = sessionStorage.getItem('token');
-                if (!isLoggedIn || !token) {
-                    window.location.href = '/admin/index.html';
-                }
-            } catch (e) {
-                window.location.href = '/admin/index.html';
-            }
-        })();
-    </script>
-    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="admin-theme.css">
-    <link rel="stylesheet" href="/admin/admin-sidebar.css">
-    <style>
-        .loading-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.7);
-            z-index: 9999;
-            display: none;
-            justify-content: center;
-            align-items: center;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>瑞华智策 · 白皮书预约管理</title>
+  <script>
+    (function () {
+      try {
+        var isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+        var token = sessionStorage.getItem('token');
+        if (!isLoggedIn || !token) {
+          window.location.href = '/admin/index.html';
         }
-        .card-header .form-control, .card-header .form-select, .card-header .btn { font-size: 13px; }
-        .table { font-size: 13px; }
-        .table th { font-size: 12px; font-weight: 600; }
-        .table td { font-size: 13px; }
-    </style>
+      } catch (e) {
+        window.location.href = '/admin/index.html';
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="/admin/admin-2026.css?v=20261102-attach">
+  <style>
+    .loading-overlay { position: fixed; inset: 0; z-index: 9999; display: none; justify-content: center; align-items: center; background: rgba(250, 250, 251, .72); backdrop-filter: blur(2px); }
+    .loading-overlay i { width: 26px; height: 26px; border: 2.5px solid var(--p200); border-top-color: var(--purple); border-radius: 50%; animation: wp-spin .7s linear infinite; }
+    @keyframes wp-spin { to { transform: rotate(360deg); } }
+    .sidebar nav a.active { background: var(--purple); color: #fff; font-weight: 800; box-shadow: 0 6px 18px rgba(124, 77, 255, .36); }
+    .sidebar-account-actions a { flex: 1; display: block; text-align: center; padding: 5px 7px; border: 1px solid #4a4359; border-radius: 7px; color: #c9c4d2; text-decoration: none; font-size: 10px; }
+    .sidebar-account-actions a:hover { border-color: #bda5ff; color: #fff; background: rgba(189, 165, 255, .1); }
+    .pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 14px; color: var(--muted); font-size: 12.5px; }
+    .pager-actions { display: flex; gap: 9px; }
+    .pager-actions button { padding: 7px 14px; border: 1px solid var(--hair); border-radius: 10px; background: #fff; color: var(--ink); cursor: pointer; font-weight: 700; }
+    .pager-actions button:hover { border-color: var(--p200); color: var(--purple); }
+    @media (max-width: 900px) {
+      #whitepaperStats strong { font-size: 20px; }
+      #whitepaperStats article { padding: 13px 14px; }
+      .filters > input { flex: 1 1 100%; }
+    }
+  </style>
 </head>
 <body>
 
-<div class="loading-overlay" id="loadingOverlay">
-    <div class="spinner-border text-primary" role="status"></div>
-</div>
+<div class="loading-overlay" id="loadingOverlay"><i></i></div>
 
-<div class="admin-layout">
-    <div id="unified-sidebar-container"></div>
-
-    <div class="main-content">
-        <div class="header">
-            <h4 class="m-0">NQOC 白皮书预约下载管理</h4>
-            <div class="d-flex align-items-center">
-                <div class="dropdown">
-                    <button class="btn btn-outline border-0 dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-person-circle me-1"></i> 管理员
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item text-danger" href="/admin/index.html">退出</a></li>
-                    </ul>
-                </div>
-            </div>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="brand-bar"></span><div><b>瑞华智策</b><small>ADMIN CONSOLE</small></div></div>
+    <nav aria-label="后台导航">
+      <div class="nav-group"><div class="nav-title">线索</div>
+        <a href="/admin/console.html#leads" data-permission="lead:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5.5A2.5 2.5 0 0 1 5.5 3h9A2.5 2.5 0 0 1 17 5.5v9a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 3 14.5z"/><path d="M6.5 7.5h7M6.5 10.5h7M6.5 13.5h4"/></svg><span>线索管理</span></a>
+        <a href="/admin/console.html#ai-forms" data-permission="appointment:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3h7l3.5 3.5V17H5z"/><path d="M11.5 3v4H16M7.5 11h5M7.5 13.8h3"/></svg><span>AI 需求表单</span></a>
+      </div>
+      <div class="nav-group"><div class="nav-title">内容配置</div>
+        <a href="/admin/console.html#articles" data-permission="article:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3h7l3.5 3.5V17H5z"/><path d="M11.5 3v4H16M7.5 11h5M7.5 13.8h3"/></svg><span>文章管理</span></a>
+        <a href="/admin/console.html#cases" data-permission="case:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.8" y="6" width="14.4" height="10.5" rx="2"/><path d="M7.2 6V4.6A1.6 1.6 0 0 1 8.8 3h2.4a1.6 1.6 0 0 1 1.6 1.6V6M2.8 10.5h14.4"/></svg><span>案例管理</span></a>
+        <a href="/admin/console.html#featured" data-permission="featured-case:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="m10 2.8 2.2 4.5 5 .7-3.6 3.5.85 4.95L10 14.1l-4.45 2.35.85-4.95L2.8 8l5-.7z"/></svg><span>首页精选案例</span></a>
+        <a href="/admin/console.html#faq" data-permission="faq:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.2"/><path d="M8.1 8a2 2 0 1 1 2.6 1.9c-.5.2-.7.6-.7 1.1v.4M10 14.2v.05"/></svg><span>FAQ 管理</span></a>
+        <a href="/admin/console.html#experts" data-permission="expert:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3.2"/><path d="M4 16.6a6 6 0 0 1 12 0"/></svg><span>讲师 / 专家团队</span></a>
+      </div>
+      <div class="nav-group nqoc-group">
+        <button type="button" class="nav-title nqoc-toggle" id="nqocToggle" aria-expanded="true" aria-controls="nqocNavItems"><span>新质组织</span><svg class="nav-arrow" viewBox="0 0 12 12" aria-hidden="true"><path d="m4 2 4 4-4 4"/></svg></button>
+        <div class="nqoc-items" id="nqocNavItems">
+          <a href="/admin/nqoc-awards.html">申报数据</a>
+          <a href="/admin/nqoc-survey.html">调研问卷</a>
+          <a href="/admin/nqoc-debate.html">在线投票</a>
+          <a href="/admin/nqoc-experts.html">专家申请</a>
+          <a href="/admin/nqoc-whitepaper.html" class="active">白皮书</a>
         </div>
-
-        <div class="page-content">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white py-3">
-                    <div class="row g-3 align-items-center">
-                        <div class="col-md-3">
-                            <input type="text" id="searchKeyword" class="form-control" placeholder="搜索企业名称/姓名/手机号...">
-                        </div>
-                        <div class="col-md-2">
-                            <input type="text" id="searchChannel" class="form-control" placeholder="搜索来源渠道...">
-                        </div>
-                        <div class="col-md-2">
-                            <input type="date" id="searchStartDate" class="form-control" placeholder="开始时间">
-                        </div>
-                        <div class="col-md-2">
-                            <input type="date" id="searchEndDate" class="form-control" placeholder="结束时间">
-                        </div>
-                        <div class="col-md-3 d-flex gap-2">
-                            <button class="btn btn-primary w-100" onclick="loadData(1)"><i class="bi bi-search"></i> 查询</button>
-                            <button class="btn btn-success w-100" onclick="exportData()"><i class="bi bi-file-earmark-excel"></i> 导出</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>姓名</th>
-                                    <th>手机号</th>
-                                    <th>邮箱</th>
-                                    <th>公司名称</th>
-                                    <th>职位</th>
-                                    <th>提交时间</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody id="dataTableBody">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="card-footer bg-white d-flex justify-content-between align-items-center">
-                    <div class="text-secondary small">
-                        共 <span id="totalCount">0</span> 条记录，当前第 <span id="currentPage">1</span>/<span id="totalPages">1</span> 页
-                    </div>
-                    <nav>
-                        <ul class="pagination pagination-sm mb-0">
-                            <li class="page-item"><button class="page-link" onclick="changePage(-1)">上一页</button></li>
-                            <li class="page-item"><button class="page-link" onclick="changePage(1)">下一页</button></li>
-                        </ul>
-                    </nav>
-                </div>
-            </div>
-        </div>
+      </div>
+      <div class="nav-group"><div class="nav-title">系统全局配置</div>
+        <a href="/admin/console.html#settings" data-permission="system:manage"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.6"/><path d="M10 2.6v1.7M10 15.7v1.7M17.4 10h-1.7M4.3 10H2.6M15.2 4.8 14 6M6 14l-1.2 1.2M15.2 15.2 14 14M6 6 4.8 4.8"/></svg><span>全局配置</span></a>
+      </div>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="sidebar-user"><div class="avatar">瑞</div><div><b id="currentUserName">瑞华管理员</b><small>正式环境 · 全部权限</small></div></div>
+      <div class="sidebar-account-actions"><a href="/admin/console.html#settings">修改密码</a><button type="button" data-action="logout">退出登录</button></div>
     </div>
+  </aside>
+  <main>
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle" aria-label="打开菜单"><i></i><i></i><i></i></button>
+      <div><small>NQOC · WHITEPAPER</small><h1>白皮书预约管理</h1></div>
+      <span class="spacer"></span><span class="env">PRODUCTION</span><a href="/" target="_blank" rel="noopener">查看官网 ↗</a>
+    </header>
+    <div class="content">
+      <div class="stats" id="whitepaperStats">
+        <article class="accent"><small>预约总量</small><strong data-stat="total">—</strong><span>当前检索条件下的记录数</span></article>
+        <article><small>本页记录</small><strong data-stat="pageCount">—</strong><span>每页 <em data-stat="limit">20</em> 条</span></article>
+        <article><small>当前页码</small><strong data-stat="page">—</strong><span>共 <em data-stat="totalPages">—</em> 页</span></article>
+        <article><small>本页最新提交</small><strong data-stat="latest">—</strong><span data-stat="latestWho">—</span></article>
+      </div>
+      <div class="notice"><b>每条记录对应一次白皮书领取申请。</b> 按姓名、手机号或企业名称检索，导出后可直接交给市场团队跟进。</div>
+      <div class="filters">
+        <input class="search" id="searchKeyword" placeholder="搜索企业名称 / 姓名 / 手机号">
+        <button class="primary" onclick="loadData(1)">查询</button>
+        <span class="spacer"></span>
+        <button onclick="exportData()">导出 CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>姓名</th><th>手机号</th><th>邮箱</th><th>公司名称</th><th>职位</th><th>提交时间</th><th>操作</th></tr></thead>
+          <tbody id="dataTableBody"></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <div>共 <span id="totalCount">0</span> 条记录，当前第 <span id="currentPage">1</span> / <span id="totalPages">1</span> 页</div>
+        <div class="pager-actions">
+          <button type="button" onclick="changePage(-1)">上一页</button>
+          <button type="button" onclick="changePage(1)">下一页</button>
+        </div>
+      </div>
+    </div>
+  </main>
 </div>
 
-<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<div class="toast" id="toast" role="status"></div>
+
 <script src="js/utils.js?v=6"></script>
-<script src="/admin/js/unified-admin-sidebar.js?v=6"></script>
-<script src="js/nqoc-whitepaper.js?v=6"></script>
+<script src="js/nqoc-whitepaper.js?v=10"></script>
+<script>
+  (function () {
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menuToggle');
+    if (menuToggle) menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+
+    const nqocToggle = document.getElementById('nqocToggle');
+    const nqocItems = document.getElementById('nqocNavItems');
+    if (nqocToggle && nqocItems) {
+      const key = 'adminSidebarGroups';
+      let groups = {};
+      try { groups = JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch (e) { groups = {}; }
+      const setExpanded = expanded => {
+        nqocToggle.setAttribute('aria-expanded', String(expanded));
+        nqocItems.hidden = !expanded;
+      };
+      setExpanded(groups.nqoc !== false);
+      nqocToggle.addEventListener('click', () => {
+        const expanded = nqocToggle.getAttribute('aria-expanded') !== 'true';
+        setExpanded(expanded);
+        groups.nqoc = expanded;
+        localStorage.setItem(key, JSON.stringify(groups));
+      });
+    }
+
+    let user = {};
+    try { user = JSON.parse(sessionStorage.getItem('user') || localStorage.getItem('adminUser') || '{}'); } catch (e) { user = {}; }
+    const nameEl = document.getElementById('currentUserName');
+    if (nameEl && (user.name || user.username)) nameEl.textContent = user.name || user.username;
+
+    const applyPermissions = current => {
+      const perms = new Set(current && Array.isArray(current.permissions) ? current.permissions : []);
+      if (!perms.size) return;
+      document.querySelectorAll('[data-permission]').forEach(el => { el.style.display = (perms.has('all') || perms.has(el.dataset.permission)) ? '' : 'none'; });
+    };
+    applyPermissions(user);
+
+    const token = sessionStorage.getItem('token') || sessionStorage.getItem('adminToken') || localStorage.getItem('adminToken') || '';
+    fetch('/api/auth/verify', { headers: token ? { Authorization: 'Bearer ' + token } : {}, credentials: 'same-origin' })
+      .then(response => response.ok ? response.json() : null)
+      .then(data => {
+        if (!data || !data.success || !data.user) return;
+        sessionStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('adminUser', JSON.stringify(data.user));
+        if (nameEl && (data.user.name || data.user.username)) nameEl.textContent = data.user.name || data.user.username;
+        applyPermissions(data.user);
+      })
+      .catch(() => {});
+
+    document.querySelectorAll('[data-action="logout"]').forEach(button => {
+      button.addEventListener('click', async () => {
+        try { await fetch('/api/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }); } catch (e) {}
+        sessionStorage.clear();
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUser');
+        location.href = '/admin/index.html';
+      });
+    });
+  })();
+</script>
 </body>
 </html>

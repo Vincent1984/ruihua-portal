@@ -1,373 +1,318 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>瑞华智策 - NQOC调研问卷管理</title>
-    <script>
-        (function () {
-            try {
-                var isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
-                var token = sessionStorage.getItem('token');
-                if (!isLoggedIn || !token) {
-                    window.location.href = '/admin/index.html';
-                }
-            } catch (e) {
-                window.location.href = '/admin/index.html';
-            }
-        })();
-    </script>
-    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="admin-theme.css">
-    <link rel="stylesheet" href="/admin/admin-sidebar.css">
-    <style>
-        .loading-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.7); z-index: 9999;
-            display: none; justify-content: center; align-items: center;
-        }
-        .nav-tabs .nav-link { color: #6c757d; font-weight: 500; }
-        .nav-tabs .nav-link.active { color: #0d6efd; font-weight: bold; }
-        
-        /* Custom Funnel Chart Styles */
-        .funnel-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-        }
-        .funnel-step-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            position: relative;
-        }
-        .funnel-bar {
-            background: linear-gradient(90deg, #9b6dff, #7c4dff);
-            color: white;
-            border-radius: 8px;
-            padding: 12px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 12px rgba(124, 77, 255, 0.15);
-            min-width: 250px;
-            max-width: 100%;
-        }
-        .funnel-bar:hover {
-            transform: scale(1.02);
-            box-shadow: 0 6px 16px rgba(124, 77, 255, 0.25);
-            filter: brightness(1.05);
-        }
-        .funnel-rate {
-            font-size: 12px;
-            color: #6c757d;
-            background: #f8f9fa;
-            padding: 2px 12px;
-            border-radius: 12px;
-            border: 1px solid #e9ecef;
-            z-index: 1;
-            margin: 6px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .funnel-rate i {
-            color: #7c4dff;
-            font-size: 14px;
-        }
-        .card-header .form-control, .card-header .form-select, .card-header .btn { font-size: 13px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>瑞华智策 - NQOC 调研问卷管理</title>
+  <script>
+    (function () {
+      try {
+        var isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+        var token = sessionStorage.getItem('token');
+        if (!isLoggedIn || !token) { window.location.href = '/admin/index.html'; }
+      } catch (e) { window.location.href = '/admin/index.html'; }
+    })();
+  </script>
+  <link rel="stylesheet" href="/admin/admin-2026.css?v=20261102-attach">
+  <style>
+    .loading-overlay{position:fixed;inset:0;z-index:9999;display:none;justify-content:center;align-items:center;background:rgba(250,250,251,.72);backdrop-filter:blur(2px);}
+    .loading-overlay i{width:26px;height:26px;border:2.5px solid var(--p200);border-top-color:var(--purple);border-radius:50%;animation:sv-spin .7s linear infinite;}
+    @keyframes sv-spin{to{transform:rotate(360deg)}}
+    .sidebar nav a.active{background:var(--purple);color:#fff;font-weight:800;box-shadow:0 6px 18px rgba(124,77,255,.36);}
+    .sidebar-account-actions a{flex:1;display:block;text-align:center;padding:5px 7px;border:1px solid #4a4359;border-radius:7px;color:#c9c4d2;text-decoration:none;font-size:10px;}
+    .sidebar-account-actions a:hover{border-color:#bda5ff;color:#fff;background:rgba(189,165,255,.1);}
+    .pager{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;color:var(--muted);font-size:12.5px;}
+    .pager-actions{display:flex;gap:9px;}
+    .pager-actions button{padding:7px 14px;border:1px solid var(--hair);border-radius:10px;background:#fff;color:var(--ink);cursor:pointer;font-weight:700;}
+    .pager-actions button:hover{border-color:var(--p200);color:var(--purple);}
+    .pager-actions button:disabled{opacity:.45;cursor:not-allowed;}
+    .segments{margin-bottom:16px;display:inline-flex;}
+    .segments button{font-size:12.5px;}
+    .mono{font-family:var(--mono);font-size:12px;}
+    .table-wrap td{white-space:nowrap;}
+    #data-pane .table-wrap table{min-width:960px;}
+    #data-pane .table-wrap th,#data-pane .table-wrap td{padding:10px 11px;}
+    #data-pane .table-wrap td:first-child{white-space:normal;min-width:180px;max-width:230px;}
+    .row-actions{display:flex;gap:6px;flex-wrap:nowrap;}
+    .row-actions button{padding:5px 10px;border:1px solid var(--hair);border-radius:8px;background:#fff;font-size:11.5px;font-weight:700;cursor:pointer;color:var(--ink2);white-space:nowrap;}
+    .row-actions button:hover{border-color:var(--p200);color:var(--purple);}
+    .row-actions button.danger{color:#b3261e;border-color:#f3c9c6;}
+    .row-actions button.danger:hover{border-color:#e6a19b;color:#8f1d17;}
+    .link-cell{display:flex;gap:6px;align-items:center;}
+    .link-cell input{flex:1;min-width:0;padding:6px 9px;border:1px solid var(--hair);border-radius:8px;background:#faf9fb;color:var(--ink2);font:600 11px var(--mono);}
+    .link-cell button{padding:6px 9px;border:1px solid var(--hair);border-radius:8px;background:#fff;cursor:pointer;font-size:11.5px;font-weight:700;color:var(--ink2);}
+    .link-cell button:hover{border-color:var(--p200);color:var(--purple);}
+    #channel-pane .table-wrap table{min-width:1020px;}
+    .modal-card .hint{margin-top:4px;color:var(--muted);font-size:11px;font-weight:500;}
+    .modal-actions .ghost{border:1px solid var(--hair);background:#fff;color:var(--ink);}
+    .qr-box{display:flex;justify-content:center;padding:8px 0 4px;}
+    .qr-box > div{padding:12px;border:1px solid var(--line);border-radius:14px;background:#fff;}
+    .analysis-grid{display:grid;grid-template-columns:220px 1fr;gap:16px;margin-bottom:16px;align-items:start;}
+    .stat-total{display:flex;flex-direction:column;justify-content:center;gap:2px;text-align:center;}
+    .stat-total small{color:var(--muted);font-size:11.5px;font-weight:700;}
+    .stat-total strong{font:800 40px/1.15 var(--mono);color:var(--purple);}
+    .stat-total span{color:var(--muted);font-size:11.5px;}
+    .funnel-wrap{display:flex;flex-direction:column;gap:2px;padding:6px 0;min-height:280px;justify-content:center;}
+    .funnel-step{display:flex;flex-direction:column;align-items:center;width:100%;}
+    .funnel-bar{display:flex;justify-content:space-between;align-items:center;gap:14px;min-width:240px;padding:10px 18px;border-radius:10px;background:linear-gradient(90deg,#9b6dff,#7c4dff);color:#fff;font-size:12.5px;font-weight:700;box-shadow:0 4px 12px rgba(124,77,255,.15);transition:.2s;}
+    .funnel-bar:hover{transform:scale(1.01);box-shadow:0 8px 20px rgba(124,77,255,.24);}
+    .funnel-bar span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .funnel-count{padding:3px 10px;border-radius:20px;background:rgba(255,255,255,.92);color:var(--p600);font:800 11.5px var(--mono);white-space:nowrap;}
+    .funnel-rate{margin:5px 0;display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border:1px solid var(--line);border-radius:20px;background:var(--soft);color:var(--muted);font-size:11px;}
+    .funnel-rate b{color:var(--p600);font-family:var(--mono);}
+    .detail-body{max-height:64vh;overflow:auto;padding:2px 22px 18px;}
+    .detail-section{margin-bottom:18px;}
+    .detail-section h3{margin:0 0 10px;padding-bottom:7px;border-bottom:1px solid var(--line);color:var(--p600);font-size:13px;font-weight:800;}
+    .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px 20px;}
+    .detail-item{font-size:12px;color:var(--ink2);}
+    .detail-item span{display:block;margin-bottom:2px;color:var(--muted);font-size:11px;font-weight:700;}
+    .detail-item b{font-weight:600;word-break:break-word;}
+    .detail-item.full{grid-column:1/-1;}
+    .batch-hint{margin:0 0 12px;color:var(--muted);font-size:12px;}
+    @media(max-width:900px){
+      #surveyStats strong{font-size:20px;}
+      #surveyStats article{padding:13px 14px;}
+      .filters>input,.filters>select{flex:1 1 calc(50% - 5px);}
+      .filters>.search{flex:1 1 100%;}
+      .analysis-grid{grid-template-columns:1fr;}
+      .detail-grid{grid-template-columns:1fr;}
+      .stat-total strong{font-size:32px;}
+    }
+  </style>
 </head>
 <body>
-
-<div class="loading-overlay" id="loadingOverlay">
-    <div class="spinner-border text-primary" role="status"></div>
-</div>
-
-<div class="admin-layout">
-    <div id="unified-sidebar-container"></div>
-
-    <div class="main-content">
-        <div class="header">
-            <h4 class="m-0">NQOC 调研问卷管理</h4>
-            <div class="d-flex align-items-center">
-                <div class="dropdown">
-                    <button class="btn btn-outline border-0 dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-person-circle me-1"></i> 管理员
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item text-danger" href="/admin/index.html">退出</a></li>
-                    </ul>
-                </div>
-            </div>
+<div class="loading-overlay" id="loadingOverlay"><i></i></div>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="brand-bar"></span><div><b>瑞华智策</b><small>ADMIN CONSOLE</small></div></div>
+    <nav aria-label="后台导航">
+      <div class="nav-group"><div class="nav-title">线索</div>
+        <a href="/admin/console.html#leads" data-permission="lead:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h8"/></svg><span>线索管理</span></a>
+        <a href="/admin/console.html#ai-forms" data-permission="appointment:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 2.5h10v15H5z"/><path d="M7.5 6.5h5M7.5 10h5M7.5 13.5h3"/></svg><span>AI 需求表单</span></a>
+      </div>
+      <div class="nav-group"><div class="nav-title">内容配置</div>
+        <a href="/admin/console.html#articles" data-permission="article:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3.5h12v13H4z"/><path d="M7 7h6M7 10h6M7 13h4"/></svg><span>文章管理</span></a>
+        <a href="/admin/console.html#cases" data-permission="case:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6.5h14v9H3z"/><path d="M7.5 6.5v-2h5v2"/></svg><span>案例管理</span></a>
+        <a href="/admin/console.html#featured" data-permission="case:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="m10 3 2.1 4.3 4.7.7-3.4 3.3.8 4.7-4.2-2.2-4.2 2.2.8-4.7L3.2 8l4.7-.7z"/></svg><span>首页精选案例</span></a>
+        <a href="/admin/console.html#faq" data-permission="faq:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4h12v9H8l-4 3z"/></svg><span>FAQ 管理</span></a>
+        <a href="/admin/console.html#experts" data-permission="expert:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3"/><path d="M4.5 16c.6-3 2.8-4.5 5.5-4.5s4.9 1.5 5.5 4.5"/></svg><span>讲师 / 专家团队</span></a>
+      </div>
+      <div class="nav-group nqoc-group">
+        <button type="button" class="nav-title nqoc-toggle" id="nqocToggle" aria-expanded="true" aria-controls="nqocNavItems"><span>新质组织</span><svg class="nav-arrow" viewBox="0 0 12 12" aria-hidden="true"><path d="m4 2 4 4-4 4"/></svg></button>
+        <div class="nqoc-items" id="nqocNavItems">
+          <a href="/admin/nqoc-awards.html">申报数据</a>
+          <a href="/admin/nqoc-survey.html" class="active">调研问卷</a>
+          <a href="/admin/nqoc-debate.html">在线投票</a>
+          <a href="/admin/nqoc-experts.html">专家申请</a>
+          <a href="/admin/nqoc-whitepaper.html">白皮书</a>
         </div>
-
-        <div class="page-content">
-            <!-- Tabs -->
-            <ul class="nav nav-tabs mb-4" id="surveyTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="data-tab" data-bs-toggle="tab" data-bs-target="#data-pane" type="button" role="tab">问卷数据</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="analysis-tab" data-bs-toggle="tab" data-bs-target="#analysis-pane" type="button" role="tab">数据分析</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="channel-tab" data-bs-toggle="tab" data-bs-target="#channel-pane" type="button" role="tab">渠道溯源</button>
-                </li>
-            </ul>
-
-            <div class="tab-content" id="surveyTabsContent">
-                <!-- Data Pane -->
-                <div class="tab-pane fade show active" id="data-pane" role="tabpanel" tabindex="0">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white py-3">
-                            <div class="row g-2 align-items-center">
-                                <div class="col-md-2">
-                                    <input type="text" id="searchOrgName" class="form-control" placeholder="搜索公司名称">
-                                </div>
-                                <div class="col-md-1">
-                                    <input type="text" id="searchName" class="form-control" placeholder="填答人">
-                                </div>
-                                <div class="col-md-2">
-                                    <input type="text" id="searchPhone" class="form-control" placeholder="手机号码">
-                                </div>
-                                <div class="col-md-2">
-                                    <select id="searchChannel" class="form-select">
-                                        <option value="">所有渠道 (不限)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <input type="date" id="searchStartDate" class="form-control" placeholder="开始时间">
-                                </div>
-                                <div class="col-md-2">
-                                    <input type="date" id="searchEndDate" class="form-control" placeholder="结束时间">
-                                </div>
-                                <div class="col-md-1 d-flex gap-1">
-                                    <button class="btn btn-primary w-100" onclick="loadData(1)"><i class="bi bi-search"></i></button>
-                                    <button class="btn btn-success w-100" onclick="exportData()"><i class="bi bi-file-earmark-excel"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0 table-sm small">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>企业名称</th>
-                                            <th>渠道来源</th>
-                                            <th>行业</th>
-                                            <th>规模</th>
-                                            <th>企业性质</th>
-                                            <th>营收规模</th>
-                                            <th>成立年限</th>
-                                            <th>上市状态</th>
-                                            <th>填答人</th>
-                                            <th>职务</th>
-                                            <th>联系方式</th>
-                                            <th>提交时间</th>
-                                            <th>操作</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="dataTableBody"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="card-footer bg-white py-3">
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination justify-content-center mb-0" id="pagination"></ul>
-                            </nav>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Analysis Pane -->
-                <div class="tab-pane fade" id="analysis-pane" role="tabpanel" tabindex="0">
-                    <div class="card border-0 shadow-sm mb-4">
-                        <div class="card-body py-3">
-                            <div class="row g-3 align-items-center">
-                                <div class="col-md-3">
-                                    <select id="statSearchChannel" class="form-select">
-                                        <option value="">所有渠道 (不限)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <input type="date" id="statStartDate" class="form-control" placeholder="开始时间">
-                                </div>
-                                <div class="col-md-3">
-                                    <input type="date" id="statEndDate" class="form-control" placeholder="结束时间">
-                                </div>
-                                <div class="col-md-3">
-                                    <button class="btn btn-primary w-100" onclick="loadStats()"><i class="bi bi-filter"></i> 筛选分析数据</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-3">
-                            <div class="card border-0 shadow-sm text-center py-4 h-100">
-                                <h6 class="text-secondary mb-2">总问卷回收量</h6>
-                                <h2 class="text-primary mb-0 fw-bold" id="statTotalCount">0</h2>
-                            </div>
-                        </div>
-                        <div class="col-md-9">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-white py-3 border-bottom">
-                                    <h6 class="mb-0">填写转化漏斗 (全链路)</h6>
-                                </div>
-                                <div class="card-body" style="min-height: 300px; display: flex; align-items: center; overflow-x: auto;">
-                                    <div id="customFunnelContainer" class="w-100 px-3"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row g-4 mt-2 mb-4">
-                        <div class="col-md-12">
-                            <div class="card border-0 shadow-sm rounded-4">
-                                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0 fw-bold"><i class="bi bi-list-columns-reverse text-danger me-2"></i>字段级流失卡点分析</h6>
-                                    <span class="badge bg-light text-dark border">根据填答人光标聚焦自动捕获</span>
-                                </div>
-                                <div class="card-body py-0 px-0">
-                                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                                        <table class="table table-hover align-middle mb-0 text-sm">
-                                            <thead class="table-light sticky-top" style="z-index: 1;">
-                                                <tr>
-                                                    <th class="ps-4">所属模块</th>
-                                                    <th>字段题干 (自动映射)</th>
-                                                    <th>触达人数 (UV)</th>
-                                                    <th>步骤内流失</th>
-                                                    <th class="pe-4">单题流失率</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="fieldDropoffTableBody">
-                                                <tr><td colspan="5" class="text-center py-4 text-muted">加载中...</td></tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Channel Pane -->
-                <div class="tab-pane fade" id="channel-pane" role="tabpanel" tabindex="0">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                            <h5 class="m-0 text-primary">渠道管理</h5>
-                            <button class="btn btn-primary" onclick="showChannelModal()"><i class="bi bi-plus-lg"></i> 新增渠道</button>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>渠道名称</th>
-                                            <th>渠道代码 (code)</th>
-                                            <th>描述说明</th>
-                                            <th>专属链接</th>
-                                            <th>二维码</th>
-                                            <th>创建时间</th>
-                                            <th>操作</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="channelTableBody"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
+      </div>
+      <div class="nav-group"><div class="nav-title">系统全局配置</div>
+        <a href="/admin/console.html#settings" data-permission="system:manage"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.6"/><path d="M10 3v2M10 15v2M3 10h2M15 10h2M5 5l1.4 1.4M13.6 13.6 15 15M15 5l-1.4 1.4M6.4 13.6 5 15"/></svg><span>全局配置</span></a>
+      </div>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="sidebar-user"><div class="avatar">瑞</div><div><b id="currentUserName">瑞华管理员</b><small>正式环境 · 全部权限</small></div></div>
+      <div class="sidebar-account-actions"><a href="/admin/console.html#settings">修改密码</a><button type="button" data-action="logout">退出登录</button></div>
     </div>
-</div>
+  </aside>
+  <main>
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle" aria-label="打开菜单"><i></i><i></i><i></i></button>
+      <div><small>NQOC · SURVEY</small><h1>调研问卷管理</h1></div>
+      <span class="spacer"></span><span class="env">PRODUCTION</span><a href="/nqoc/survey" target="_blank" rel="noopener">查看问卷 ↗</a>
+    </header>
+    <div class="content">
+      <div class="stats" id="surveyStats">
+        <article class="accent"><small>问卷总量</small><strong data-stat="total">—</strong><span>当前检索条件下的记录数</span></article>
+        <article><small>本页记录</small><strong data-stat="pageCount">—</strong><span>每页 <em data-stat="limit">20</em> 条</span></article>
+        <article><small>当前页码</small><strong data-stat="page">—</strong><span>共 <em data-stat="totalPages">—</em> 页</span></article>
+        <article><small>本页最新提交</small><strong data-stat="latest">—</strong><span data-stat="latestWho">—</span></article>
+      </div>
 
-<!-- Channel Modal -->
-<div class="modal fade" id="channelModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="channelModalTitle">新增渠道</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="channelForm">
-                    <input type="hidden" id="channelId">
-                    <div class="mb-3">
-                        <label class="form-label">渠道名称 <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="channelName" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">渠道代码 (code) <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="channelCode" required placeholder="如: wechat_oa">
-                        <div class="form-text">用于URL参数，需唯一，仅限字母数字下划线。</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">描述说明</label>
-                        <textarea class="form-control" id="channelDescription" rows="2"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" onclick="saveChannel()">保存</button>
-            </div>
+      <div class="segments" id="surveySegments">
+        <button type="button" class="on" data-pane="data-pane">问卷数据</button>
+        <button type="button" data-pane="analysis-pane">数据分析</button>
+        <button type="button" data-pane="channel-pane">渠道溯源</button>
+      </div>
+
+      <section id="data-pane">
+        <div class="notice"><b>每条记录对应一次问卷提交。</b> 支持按公司名称、填答人、手机号检索，并按来源渠道与提交时间筛选。</div>
+        <div class="filters">
+          <input class="search" id="searchOrgName" placeholder="搜索公司名称">
+          <input id="searchName" placeholder="填答人" style="width:120px">
+          <input id="searchPhone" placeholder="手机号码" style="width:150px">
+          <select id="searchChannel"><option value="">所有渠道 (不限)</option></select>
+          <input type="date" id="searchStartDate" title="开始时间">
+          <input type="date" id="searchEndDate" title="结束时间">
+          <button class="primary" onclick="loadData(1)">查询</button>
+          <span class="spacer"></span>
+          <button onclick="exportData()">导出 CSV</button>
         </div>
-    </div>
-</div>
-
-<!-- Survey Details Modal -->
-<div class="modal fade" id="surveyDetailsModal" tabindex="-1">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">问卷详细内容</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="surveyDetailsBody">
-                <!-- Dynamic content -->
-            </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>企业名称</th><th>渠道来源</th><th>规模 / 营收</th><th>性质 / 上市</th><th>成立年限</th><th>填答人</th><th>联系方式</th><th>提交时间</th><th>操作</th></tr></thead>
+          <tbody id="dataTableBody"></tbody>
+        </table></div>
+        <div class="pager">
+          <div>共 <span id="totalCount">0</span> 条记录，当前第 <span id="currentPage">1</span> / <span id="totalPages">1</span> 页</div>
+          <div class="pager-actions"><button type="button" id="prevPage" onclick="changePage(-1)">上一页</button><button type="button" id="nextPage" onclick="changePage(1)">下一页</button></div>
         </div>
-    </div>
-</div>
+      </section>
 
-<!-- QR Code Modal -->
-<div class="modal fade" id="qrCodeModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header border-bottom-0 pb-0">
-                <h5 class="modal-title fw-bold">专属推广二维码</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center pt-2">
-                <p class="text-muted small mb-4" id="qrChannelName"></p>
-                <div class="d-flex justify-content-center mb-4">
-                    <div id="qrCodeContainer" class="bg-white p-3 rounded-4 shadow-sm border" style="width: fit-content;">
-                        <!-- Canvas will be injected here -->
-                    </div>
-                </div>
-                <div>
-                    <button class="btn btn-primary px-4 rounded-pill" onclick="downloadQRCode()">
-                        <i class="bi bi-download me-1"></i> 下载高质量海报
-                    </button>
-                </div>
-            </div>
+      <section id="analysis-pane" hidden>
+        <div class="panel" style="margin-bottom:16px">
+          <div class="filters" style="margin-bottom:0">
+            <select id="statSearchChannel"><option value="">所有渠道 (不限)</option></select>
+            <input type="date" id="statStartDate" title="开始时间">
+            <input type="date" id="statEndDate" title="结束时间">
+            <button class="primary" type="button" onclick="loadStats()">筛选分析数据</button>
+          </div>
         </div>
+        <div class="analysis-grid">
+          <div class="panel stat-total">
+            <small>总问卷回收量</small>
+            <strong id="statTotalCount">0</strong>
+            <span>份</span>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h2>填写转化漏斗（全链路）</h2><span>按用户去重统计，逐级转化率</span></div></div>
+            <div id="customFunnelContainer" class="funnel-wrap"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><h2>字段级流失卡点分析</h2><span>根据填答人光标聚焦自动捕获</span></div></div>
+          <div class="table-wrap" style="max-height:420px;overflow:auto">
+            <table>
+              <thead><tr><th>所属模块</th><th>字段题干（自动映射）</th><th>触达人数 (UV)</th><th>步骤内流失</th><th>单题流失率</th></tr></thead>
+              <tbody id="fieldDropoffTableBody">
+                <tr><td colspan="5" class="empty-cell">加载中…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="channel-pane" hidden>
+        <div class="panel">
+          <div class="panel-head">
+            <div><h2>渠道管理</h2><span>为每个投放渠道生成专属链接与二维码，用于溯源问卷来源。</span></div>
+            <button class="primary" type="button" onclick="showChannelModal()">新增渠道</button>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>渠道名称</th><th>渠道代码</th><th>描述说明</th><th>专属链接</th><th>二维码</th><th>创建时间</th><th>操作</th></tr></thead>
+            <tbody id="channelTableBody"></tbody>
+          </table></div>
+        </div>
+      </section>
     </div>
+  </main>
 </div>
 
-<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<div class="modal" id="channelModal">
+  <div class="modal-card">
+    <div class="modal-head"><h2 id="channelModalTitle">新增渠道</h2><button type="button" onclick="closeModal('channelModal')" aria-label="关闭">×</button></div>
+    <form id="channelForm" onsubmit="event.preventDefault();saveChannel();">
+      <input type="hidden" id="channelId">
+      <label>渠道名称
+        <input type="text" id="channelName" required placeholder="如：微信公众号">
+      </label>
+      <label>渠道代码 (code)
+        <input type="text" id="channelCode" required placeholder="如: wechat_oa">
+        <span class="hint">用于 URL 参数，需唯一，仅限字母、数字、下划线。</span>
+      </label>
+      <label>描述说明
+        <textarea id="channelDescription" rows="2" placeholder="可选"></textarea>
+      </label>
+    </form>
+    <div class="modal-actions">
+      <button type="button" class="ghost" onclick="closeModal('channelModal')">取消</button>
+      <button type="button" onclick="saveChannel()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="surveyDetailsModal">
+  <div class="modal-card" style="width:min(920px,100%)">
+    <div class="modal-head"><h2>问卷详细内容</h2><button type="button" onclick="closeModal('surveyDetailsModal')" aria-label="关闭">×</button></div>
+    <div class="detail-body" id="surveyDetailsBody"></div>
+    <div class="modal-actions">
+      <button type="button" class="ghost" onclick="closeModal('surveyDetailsModal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="qrCodeModal">
+  <div class="modal-card" style="width:min(400px,100%)">
+    <div class="modal-head"><h2>专属推广二维码</h2><button type="button" onclick="closeModal('qrCodeModal')" aria-label="关闭">×</button></div>
+    <div style="padding:6px 22px 18px;text-align:center">
+      <p class="batch-hint" id="qrChannelName"></p>
+      <div class="qr-box"><div id="qrCodeContainer"></div></div>
+      <div class="modal-actions" style="border-top:0;justify-content:center;padding-bottom:0">
+        <button type="button" onclick="downloadQRCode()">下载高质量海报</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
 <script src="https://cdn.bootcdn.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="/admin/js/unified-admin-sidebar.js"></script>
-<script src="/admin/js/nqoc-survey.js"></script>
+<script src="js/utils.js?v=6"></script>
+<script src="js/nqoc-survey.js?v=11"></script>
+<script>
+  (function () {
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menuToggle');
+    if (menuToggle) menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+    const nqocToggle = document.getElementById('nqocToggle');
+    const nqocItems = document.getElementById('nqocNavItems');
+    if (nqocToggle && nqocItems) {
+      const key = 'adminSidebarGroups';
+      let groups = {}; try { groups = JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch (e) { groups = {}; }
+      const setExpanded = expanded => { nqocToggle.setAttribute('aria-expanded', String(expanded)); nqocItems.hidden = !expanded; };
+      setExpanded(groups.nqoc !== false);
+      nqocToggle.addEventListener('click', () => {
+        const expanded = nqocToggle.getAttribute('aria-expanded') !== 'true';
+        setExpanded(expanded); groups.nqoc = expanded; localStorage.setItem(key, JSON.stringify(groups));
+      });
+    }
+    document.querySelectorAll('#surveySegments button').forEach(button => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('#surveySegments button').forEach(b => b.classList.toggle('on', b === button));
+        ['data-pane', 'analysis-pane', 'channel-pane'].forEach(id => {
+          document.getElementById(id).hidden = id !== button.dataset.pane;
+        });
+      });
+    });
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', event => { if (event.target === modal) modal.classList.remove('show'); });
+    });
+    let user = {}; try { user = JSON.parse(sessionStorage.getItem('user') || localStorage.getItem('adminUser') || '{}'); } catch (e) { user = {}; }
+    const nameEl = document.getElementById('currentUserName');
+    if (nameEl && (user.name || user.username)) nameEl.textContent = user.name || user.username;
+    const applyPermissions = current => {
+      const perms = new Set(current && Array.isArray(current.permissions) ? current.permissions : []);
+      if (!perms.size) return;
+      document.querySelectorAll('[data-permission]').forEach(el => { el.style.display = (perms.has('all') || perms.has(el.dataset.permission)) ? '' : 'none'; });
+    };
+    applyPermissions(user);
+    const token = sessionStorage.getItem('token') || sessionStorage.getItem('adminToken') || localStorage.getItem('adminToken') || '';
+    fetch('/api/auth/verify', { headers: token ? { Authorization: 'Bearer ' + token } : {}, credentials: 'same-origin' })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data || !data.success || !data.user) return;
+        sessionStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('adminUser', JSON.stringify(data.user));
+        if (nameEl && (data.user.name || data.user.username)) nameEl.textContent = data.user.name || data.user.username;
+        applyPermissions(data.user);
+      }).catch(() => {});
+    document.querySelectorAll('[data-action="logout"]').forEach(button => {
+      button.addEventListener('click', async () => {
+        try { await fetch('/api/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }); } catch (e) {}
+        sessionStorage.clear(); localStorage.removeItem('adminToken'); localStorage.removeItem('adminUser');
+        location.href = '/admin/index.html';
+      });
+    });
+  })();
+</script>
 </body>
 </html>

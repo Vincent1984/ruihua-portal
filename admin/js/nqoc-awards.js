@@ -1,15 +1,43 @@
 let currentPage = 1;
 const limit = 20;
 let totalPages = 1;
+let currentData = [];
+let channelData = [];
+let feEditId = '';
 
 document.addEventListener('DOMContentLoaded', () => {
     loadData(1);
+    loadChannels();
 });
+
+function toast(message) {
+    const el = document.getElementById('toast');
+    if (!el) return;
+    el.textContent = message;
+    el.classList.add('on');
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => el.classList.remove('on'), 2200);
+}
+
+function setStat(key, value) {
+    const el = document.querySelector(`[data-stat="${key}"]`);
+    if (el) el.textContent = value;
+}
+
+function openModal(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('show');
+}
+
+function closeModal(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('show');
+}
 
 async function loadData(page) {
     if (page < 1 || (page > totalPages && totalPages > 0)) return;
     currentPage = page;
-    
+
     const keyword = document.getElementById('searchKeyword').value;
     const channel = document.getElementById('searchChannel').value;
     const startDate = document.getElementById('searchStartDate').value;
@@ -31,16 +59,17 @@ async function loadData(page) {
             headers: authHeaders()
         });
         const result = await response.json();
-        
+
         if (result.success) {
             renderTable(result.data);
             updatePagination(result.total, result.page, result.totalPages);
+            updateStats(result.data, result.total, result.page);
         } else {
-            alert(result.error || '获取数据失败');
+            toast(result.error || '获取数据失败');
         }
     } catch (e) {
         console.error(e);
-        alert('获取数据失败');
+        toast('获取数据失败');
     } finally {
         document.getElementById('loadingOverlay').style.display = 'none';
     }
@@ -68,62 +97,68 @@ function escapeHtml(unsafe) {
 }
 
 function formatDate(dateString) {
-    if (!dateString) return '-';
+    if (!dateString) return '—';
     const date = new Date(dateString);
     return date.toLocaleString('zh-CN', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        hour12: false
     });
+}
+
+function shortDateTime(dateString) {
+    if (!dateString) return '—';
+    const value = new Date(dateString);
+    if (Number.isNaN(value.getTime())) return '—';
+    const pad = n => String(n).padStart(2, '0');
+    return `${pad(value.getMonth() + 1)}-${pad(value.getDate())} ${pad(value.getHours())}:${pad(value.getMinutes())}`;
 }
 
 function renderTable(data) {
     const tbody = document.getElementById('dataTableBody');
+    currentData = Array.isArray(data) ? data : [];
     tbody.innerHTML = '';
 
-    if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-secondary py-4">暂无申报记录</td></tr>';
+    if (!currentData.length) {
+        tbody.innerHTML = '<tr><td colspan="9" class="empty-cell">暂无申报记录</td></tr>';
         return;
     }
 
-    data.forEach(item => {
-        const tr = document.createElement('tr');
-        
-        let fileHtml = '<span class="text-muted small">无附件</span>';
-        if (item.fileUrl) {
-            fileHtml = `<a href="${item.fileUrl}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i> 下载</a>`;
-        }
+    tbody.innerHTML = currentData.map(item => {
+        const id = escapeHtml(item._id);
+        const fileHtml = item.fileUrl
+            ? `<a class="row-link" href="${escapeHtml(item.fileUrl)}" target="_blank" rel="noopener">下载附件</a>`
+            : '<span class="sub">无附件</span>';
 
-        tr.innerHTML = `
-            <td><div class="fw-bold">${escapeHtml(item.orgName || '-')}</div></td>
-            <td><span class="badge bg-light text-dark border">${item.channel === 'organic' ? '自然流量' : escapeHtml(item.channel || 'organic')}</span></td>
-            <td>${escapeHtml(item.contactName || '-')}</td>
-            <td>${escapeHtml(item.phone || '-')}</td>
-            <td><span class="badge bg-info">${escapeHtml(getAwardName(item.awardCategory))}</span></td>
-            <td>${formatDate(item.createdAt)}</td>
-            <td>${fileHtml}</td>
-            <td>
-                <select class="form-select form-select-sm" onchange="updateStatus('${item._id}', this.value)">
-                    <option value="pending" ${item.status === 'pending' ? 'selected' : ''}>待处理</option>
-                    <option value="processing" ${item.status === 'processing' ? 'selected' : ''}>处理中</option>
-                    <option value="approved" ${item.status === 'approved' ? 'selected' : ''}>已通过</option>
-                    <option value="rejected" ${item.status === 'rejected' ? 'selected' : ''}>已拒绝</option>
-                </select>
-            </td>
-            <td>
-                <div class="form-check form-switch d-flex justify-content-center">
-                    <input class="form-check-input" type="checkbox" onchange="toggleFrontendDisplay('${item._id}', this.checked)" ${item.showOnFrontend ? 'checked' : ''}>
-                </div>
-            </td>
-            <td>
-                <button class="btn btn-sm btn-primary" onclick="editFrontendDetails('${item._id}', '${escapeHtml(item.orgName || '')}', '${escapeHtml(item.description || '')}', ${item.voteCount || 0})"><i class="bi bi-pencil"></i></button>
-                <button class="btn btn-sm btn-danger" onclick="deleteRecord('${item._id}')"><i class="bi bi-trash"></i></button>
-            </td>
+        return `
+            <tr>
+                <td><div class="person">${escapeHtml(item.orgName || '—')}</div></td>
+                <td><span class="chip n">${item.channel === 'organic' || !item.channel ? '自然流量' : escapeHtml(item.channel)}</span></td>
+                <td><div>${escapeHtml(item.contactName || '—')}</div><span class="sub">${escapeHtml(item.phone || '—')}</span></td>
+                <td><span class="chip w">${escapeHtml(getAwardName(item.awardCategory))}</span></td>
+                <td><div class="mono">${formatDate(item.createdAt)}</div></td>
+                <td>${fileHtml}</td>
+                <td>
+                    <select onchange="updateStatus('${id}', this.value)">
+                        <option value="pending" ${item.status === 'pending' ? 'selected' : ''}>待处理</option>
+                        <option value="processing" ${item.status === 'processing' ? 'selected' : ''}>处理中</option>
+                        <option value="approved" ${item.status === 'approved' ? 'selected' : ''}>已通过</option>
+                        <option value="rejected" ${item.status === 'rejected' ? 'selected' : ''}>已拒绝</option>
+                    </select>
+                </td>
+                <td><button class="expert-switch ${item.showOnFrontend ? 'on' : ''}" type="button" onclick="toggleFrontendDisplay('${id}', ${item.showOnFrontend ? 'false' : 'true'})" aria-label="前端展示开关"></button></td>
+                <td>
+                    <div class="row-actions">
+                        <button type="button" onclick="editFrontendDetails('${id}')">编辑</button>
+                        <button type="button" class="danger" onclick="deleteRecord('${id}')">删除</button>
+                    </div>
+                </td>
+            </tr>
         `;
-        tbody.appendChild(tr);
-    });
+    }).join('');
 }
 
 function updatePagination(total, page, pages) {
@@ -131,6 +166,18 @@ function updatePagination(total, page, pages) {
     document.getElementById('totalCount').textContent = total;
     document.getElementById('currentPage').textContent = page;
     document.getElementById('totalPages').textContent = totalPages;
+}
+
+function updateStats(data, total, page) {
+    setStat('total', total || 0);
+    setStat('page', page || currentPage);
+    setStat('totalPages', totalPages);
+    setStat('limit', limit);
+    setStat('pageCount', data ? data.length : 0);
+
+    const latest = data && data.length ? data[0] : null;
+    setStat('latest', latest ? shortDateTime(latest.createdAt) : '—');
+    setStat('latestWho', latest ? [latest.orgName || '匿名', latest.contactName].filter(Boolean).join(' · ') : '本页暂无记录');
 }
 
 function changePage(delta) {
@@ -148,14 +195,14 @@ async function deleteRecord(id) {
         const result = await response.json();
 
         if (result.success) {
-            alert('删除成功');
+            toast('记录已删除');
             loadData(currentPage);
         } else {
-            alert(result.error || '删除失败');
+            toast(result.error || '删除失败');
         }
     } catch (e) {
         console.error(e);
-        alert('删除失败');
+        toast('删除失败');
     }
 }
 
@@ -170,10 +217,14 @@ async function updateStatus(id, status) {
             body: JSON.stringify({ status })
         });
         const result = await response.json();
-        if (!result.success) alert(result.error || '状态更新失败');
+        if (result.success) {
+            toast('状态已更新');
+        } else {
+            toast(result.error || '状态更新失败');
+        }
     } catch (e) {
         console.error(e);
-        alert('状态更新失败');
+        toast('状态更新失败');
     }
 }
 
@@ -188,25 +239,34 @@ async function toggleFrontendDisplay(id, showOnFrontend) {
             body: JSON.stringify({ showOnFrontend })
         });
         const result = await response.json();
-        if (!result.success) {
-            alert(result.error || '更新失败');
+        if (result.success) {
+            toast(showOnFrontend ? '已在前端展示' : '已取消前端展示');
+            loadData(currentPage);
+        } else {
+            toast(result.error || '更新失败');
             loadData(currentPage);
         }
     } catch (e) {
         console.error(e);
-        alert('更新失败');
+        toast('更新失败');
         loadData(currentPage);
     }
 }
 
-function editFrontendDetails(id, orgName, description, voteCount) {
-    const newDescription = prompt(`请输入前端展示的企业介绍 ( ${orgName} )：`, description || '');
-    if (newDescription === null) return;
-    
-    const newVoteCount = prompt(`请输入初始票数 (当前：${voteCount})：`, voteCount);
-    if (newVoteCount === null) return;
-    
-    updateFrontendDetails(id, newDescription, parseInt(newVoteCount) || 0);
+function editFrontendDetails(id) {
+    const item = currentData.find(row => row._id === id) || {};
+    feEditId = id;
+    document.getElementById('feOrgName').textContent = item.orgName || '—';
+    document.getElementById('feDescription').value = item.description || '';
+    document.getElementById('feVoteCount').value = item.voteCount || 0;
+    openModal('feModal');
+}
+
+function submitFeDetails() {
+    if (!feEditId) return;
+    const description = document.getElementById('feDescription').value;
+    const voteCount = parseInt(document.getElementById('feVoteCount').value, 10) || 0;
+    updateFrontendDetails(feEditId, description, voteCount);
 }
 
 async function updateFrontendDetails(id, description, voteCount) {
@@ -221,14 +281,15 @@ async function updateFrontendDetails(id, description, voteCount) {
         });
         const result = await response.json();
         if (result.success) {
-            alert('前端展示信息更新成功！');
+            closeModal('feModal');
+            toast('前端展示信息已更新');
             loadData(currentPage);
         } else {
-            alert(result.error || '更新失败');
+            toast(result.error || '更新失败');
         }
     } catch (e) {
         console.error(e);
-        alert('更新失败');
+        toast('更新失败');
     }
 }
 
@@ -249,27 +310,23 @@ async function exportData() {
     try {
         const response = await fetch(url, { credentials: 'same-origin' });
         if (!response.ok) {
-            alert('导出失败，请稍后重试');
+            toast('导出失败，请稍后重试');
             return;
         }
         const blob = await response.blob();
         const downloadUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = downloadUrl;
-        a.download = `申报管理_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        a.download = `申报管理_${new Date().toISOString().slice(0, 10)}.csv`;
         a.click();
         URL.revokeObjectURL(downloadUrl);
+        toast('导出已开始');
     } catch (e) {
-        alert('导出失败: ' + e.message);
+        toast('导出失败: ' + e.message);
     }
 }
 
 // --- Channel Management ---
-let channelModal;
-
-document.addEventListener('DOMContentLoaded', () => {
-    loadChannels();
-});
 
 async function loadChannels() {
     try {
@@ -278,8 +335,9 @@ async function loadChannels() {
         });
         const res = await response.json();
         if (res.success) {
-            renderChannelTable(res.data);
-            populateChannelSelects(res.data);
+            channelData = res.data || [];
+            renderChannelTable(channelData);
+            populateChannelSelects(channelData);
         }
     } catch (e) {
         console.error('Failed to load channels', e);
@@ -289,10 +347,10 @@ async function loadChannels() {
 function populateChannelSelects(data) {
     const dataSelect = document.getElementById('searchChannel');
     if (!dataSelect) return;
-    
+
     const currentVal = dataSelect.value;
-    const optionsHtml = '<option value="">所有渠道 (不限)</option><option value="organic">自然流量 (organic)</option>' + 
-        data.map(item => `<option value="${item.code}">${item.name} (${item.code})</option>`).join('');
+    const optionsHtml = '<option value="">所有渠道 (不限)</option><option value="organic">自然流量 (organic)</option>' +
+        data.map(item => `<option value="${escapeHtml(item.code)}">${escapeHtml(item.name)} (${escapeHtml(item.code)})</option>`).join('');
 
     dataSelect.innerHTML = optionsHtml;
     dataSelect.value = currentVal;
@@ -301,60 +359,64 @@ function populateChannelSelects(data) {
 function renderChannelTable(data) {
     const tbody = document.getElementById('channelTableBody');
     if (!tbody) return;
-    if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">暂无渠道数据</td></tr>';
+    if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-cell">暂无渠道数据</td></tr>';
         return;
     }
-    
+
     const baseUrl = window.location.origin;
-    
-    tbody.innerHTML = data.map(item => `
+
+    tbody.innerHTML = data.map(item => {
+        const id = escapeHtml(item._id);
+        return `
         <tr>
-            <td class="fw-bold">${item.name}</td>
-            <td><code>${item.code}</code></td>
-            <td>${item.description || '-'}</td>
+            <td><div class="person">${escapeHtml(item.name)}</div></td>
+            <td><span class="chip n">${escapeHtml(item.code)}</span></td>
+            <td>${escapeHtml(item.description || '—')}</td>
             <td>
-                <div class="input-group input-group-sm" style="max-width: 300px;">
-                    <input type="text" class="form-control" value="${baseUrl}/nqoc/awards?channel=${item.code}" readonly id="link-${item.code}">
-                    <button class="btn btn-outline-secondary" onclick="copyLink('link-${item.code}')"><i class="bi bi-clipboard"></i></button>
+                <div class="link-cell">
+                    <input type="text" value="${baseUrl}/nqoc/awards?channel=${escapeHtml(item.code)}" readonly id="link-${escapeHtml(item.code)}">
+                    <button type="button" onclick="copyLink('link-${escapeHtml(item.code)}')">复制</button>
                 </div>
             </td>
+            <td><button type="button" onclick="showQRCode('${id}')">二维码</button></td>
+            <td><span class="chip">${item.submissionCount || 0}</span></td>
+            <td><div class="mono">${formatDate(item.createdAt)}</div></td>
             <td>
-                <button class="btn btn-sm btn-outline-info" onclick="showQRCode('${item.name}', '${item.code}')"><i class="bi bi-qr-code"></i></button>
-            </td>
-            <td><span class="badge bg-primary rounded-pill">${item.submissionCount || 0}</span></td>
-            <td class="text-muted small">${new Date(item.createdAt).toLocaleString('zh-CN')}</td>
-            <td>
-                <button class="btn btn-sm btn-outline-primary me-1" onclick="editChannel('${item._id}', '${item.name}', '${item.code}', '${item.description || ''}')"><i class="bi bi-pencil"></i></button>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteChannel('${item._id}')"><i class="bi bi-trash"></i></button>
+                <div class="row-actions">
+                    <button type="button" onclick="editChannel('${id}')">编辑</button>
+                    <button type="button" class="danger" onclick="deleteChannel('${id}')">删除</button>
+                </div>
             </td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 }
 
 function copyLink(id) {
     const input = document.getElementById(id);
+    if (!input) return;
     input.select();
     document.execCommand('copy');
-    alert('链接已复制到剪贴板');
+    toast('链接已复制到剪贴板');
 }
 
 function showChannelModal() {
     document.getElementById('channelForm').reset();
     document.getElementById('channelId').value = '';
     document.getElementById('channelModalTitle').textContent = '新增渠道';
-    if (!channelModal) channelModal = new bootstrap.Modal(document.getElementById('channelModal'));
-    channelModal.show();
+    openModal('channelModal');
 }
 
-function editChannel(id, name, code, description) {
-    document.getElementById('channelId').value = id;
-    document.getElementById('channelName').value = name;
-    document.getElementById('channelCode').value = code;
-    document.getElementById('channelDescription').value = description;
+function editChannel(id) {
+    const item = channelData.find(row => row._id === id);
+    if (!item) return;
+    document.getElementById('channelId').value = item._id;
+    document.getElementById('channelName').value = item.name || '';
+    document.getElementById('channelCode').value = item.code || '';
+    document.getElementById('channelDescription').value = item.description || '';
     document.getElementById('channelModalTitle').textContent = '编辑渠道';
-    if (!channelModal) channelModal = new bootstrap.Modal(document.getElementById('channelModal'));
-    channelModal.show();
+    openModal('channelModal');
 }
 
 async function saveChannel() {
@@ -362,12 +424,12 @@ async function saveChannel() {
     const name = document.getElementById('channelName').value;
     const code = document.getElementById('channelCode').value;
     const description = document.getElementById('channelDescription').value;
-    
-    if (!name || !code) return alert('请填写渠道名称和代码');
-    
+
+    if (!name || !code) return toast('请填写渠道名称和代码');
+
     const method = id ? 'PUT' : 'POST';
     const url = id ? `/api/admin/nqoc/awards/channels/${id}` : '/api/admin/nqoc/awards/channels';
-    
+
     try {
         const response = await fetch(url, {
             method,
@@ -378,21 +440,22 @@ async function saveChannel() {
             body: JSON.stringify({ name, code, description })
         });
         const res = await response.json();
-        
+
         if (res.success) {
-            channelModal.hide();
+            closeModal('channelModal');
+            toast(id ? '渠道已更新' : '渠道已创建');
             loadChannels();
         } else {
-            alert(res.error || '保存失败');
+            toast(res.error || '保存失败');
         }
     } catch (e) {
-        alert('网络错误');
+        toast('网络错误');
     }
 }
 
 async function deleteChannel(id) {
     if (!confirm('确定要删除此渠道吗？')) return;
-    
+
     try {
         const response = await fetch(`/api/admin/nqoc/awards/channels/${id}`, {
             method: 'DELETE',
@@ -400,27 +463,29 @@ async function deleteChannel(id) {
         });
         const res = await response.json();
         if (res.success) {
+            toast('渠道已删除');
             loadChannels();
         } else {
-            alert('删除失败');
+            toast('删除失败');
         }
     } catch (e) {
-        alert('网络错误');
+        toast('网络错误');
     }
 }
 
 // --- QR Code Management ---
-let qrModal;
-function showQRCode(name, code) {
-    const baseUrl = window.location.origin;
-    const link = `${baseUrl}/nqoc/awards?channel=${code}`;
-    
-    document.getElementById('qrChannelName').textContent = `渠道: ${name} (${code})`;
-    const container = document.getElementById('qrCodeContainer');
-    container.innerHTML = ''; // clear old
 
-    if (!qrModal) qrModal = new bootstrap.Modal(document.getElementById('qrCodeModal'));
-    qrModal.show();
+function showQRCode(id) {
+    const item = channelData.find(row => row._id === id);
+    if (!item) return;
+    const baseUrl = window.location.origin;
+    const link = `${baseUrl}/nqoc/awards?channel=${item.code}`;
+
+    document.getElementById('qrChannelName').textContent = `渠道: ${item.name} (${item.code})`;
+    const container = document.getElementById('qrCodeContainer');
+    container.innerHTML = '';
+
+    openModal('qrCodeModal');
 
     new QRCode(container, {
         text: link,
@@ -436,7 +501,7 @@ function downloadQRCode() {
     const container = document.getElementById('qrCodeContainer');
     const canvas = container.querySelector('canvas');
     if (!canvas) return;
-    
+
     const link = document.createElement('a');
     link.download = `NQOC_Awards_QR.png`;
     link.href = canvas.toDataURL('image/png');
