@@ -11,3 +11,6 @@ node_modules
 .env.production
 .DS_Store
 .server.log
+
+# 百度主动推送的本地进度记录（每日配额有限，需跨天续推）
+.baidu-pushed.json

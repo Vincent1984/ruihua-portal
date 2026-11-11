@@ -20,7 +20,7 @@ const seoConfig = {
   pages: {
     '/': {
       title: 'AI 时代组织进化全生命周期服务商',
-      description: 'AI 赋能培训、AI 转型咨询、AI 落地陪跑三位一体，陪企业走完 AI 转型全程。',
+      description: '瑞华智策是人瑞人才（6919.HK）全资旗下 AI 原生咨询机构、碳硅混合生产力解决方案供应商，提供 AI 落地转型全案服务，帮助企业打造碳硅共智的新质组织。',
       keywords: 'AI 转型, 企业培训, 管理咨询, 数字化转型'
     },
     '/solutions': {
