@@ -66,4 +66,19 @@
     </form>
   </div>
 </dialog>
+<!-- 领取报告提交成功弹窗：信息已提交但报告文件尚未就绪时使用 -->
+<dialog class="report-dialog rounded-2xl bg-gradient-to-b from-[#1a1c2e] to-[#111424] border border-white/10 text-left shadow-[0_0_50px_rgba(124,77,255,0.15)]" id="report-result-dialog" aria-labelledby="report-result-title" data-dialog>
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-32 bg-[var(--nqoc-brand)]/20 blur-[60px] rounded-full pointer-events-none" aria-hidden="true"></div>
+  <button type="button" class="absolute right-4 top-4 z-20 rounded-full w-11 h-11 flex items-center justify-center bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-colors" aria-label="关闭" data-dialog-close><i class="fas fa-times text-lg" aria-hidden="true"></i></button>
+  <div class="px-6 pb-8 pt-10 sm:px-10 relative z-10">
+    <div class="text-center mb-8">
+      <div class="mx-auto flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--nqoc-brand)] to-[var(--nqoc-brand-dark)] shadow-lg shadow-[var(--nqoc-brand)]/30 mb-5 relative overflow-hidden">
+        <i class="fas fa-check text-white text-2xl relative z-10" aria-hidden="true"></i>
+      </div>
+      <h2 class="text-xl sm:text-[22px] font-bold text-white mb-2" id="report-result-title">提交成功</h2>
+      <p class="text-sm text-slate-300 leading-relaxed" data-result-message></p>
+    </div>
+    <button type="button" class="w-full bg-white text-[#0a0c16] font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:bg-slate-100 transition-all" data-dialog-close>知道了</button>
+  </div>
+</dialog>
 <div class="toast" role="status" data-toast hidden></div>

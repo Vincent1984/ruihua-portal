@@ -29,7 +29,7 @@ describe('unified admin sidebar', () => {
     });
   });
 
-  test('新质组织默认收起并由标题按钮控制五项', () => {
+  test('新质组织默认收起并由标题按钮控制四项', () => {
     global.sessionStorage = { getItem: key => key === 'user' ? JSON.stringify({ permissions: ['all'] }) : '' };
     global.localStorage = { getItem: key => key === 'adminSidebarGroups' ? JSON.stringify({ nqoc: false }) : '' };
     global.location = { pathname: '/admin/console.html' };
@@ -39,7 +39,7 @@ describe('unified admin sidebar', () => {
     expect(nqoc).toMatch(/<button[^>]+class="u-nav-header"[^>]+aria-expanded="false"/);
     expect(nqoc).toMatch(/<svg class="u-header-arrow"/);
     expect(nqoc).not.toMatch(/u-nav-items expanded/);
-    expect((nqoc.match(/u-sub-menu-item/g) || [])).toHaveLength(5);
+    expect((nqoc.match(/u-sub-menu-item/g) || [])).toHaveLength(4);
   });
 
   test('admin pages include unified sidebar assets', () => {

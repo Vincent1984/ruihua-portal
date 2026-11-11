@@ -16,6 +16,26 @@ const DEFAULT_REPORTS = REPORTS.map(report => ({
     cover: String(report.cover || '').replace(/^\/img\//, '/nqoc/img/'),
     status: report.status || 'published'
 }));
+// 后台尚未配置 Banner 时，首页首屏使用默认内容（与旧版首页 Hero 一致）
+const DEFAULT_BANNERS = [{
+    titlePrefix: '中国',
+    titleHighlight: '新质组织',
+    highlightOnNewLine: false,
+    titleLine2: '研究项目',
+    desc: '洞察 AI 时代组织发展趋势，赋能中国企业组织进化',
+    primaryText: '参与调研',
+    primaryAction: 'link',
+    primaryUrl: '/nqoc/survey',
+    secondaryText: '评选申报',
+    secondaryUrl: '/nqoc/awards',
+    image: 'https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/nqoc-banner.png',
+    imageAlt: '中国新质组织研究体系',
+    stats: [
+        { value: '5大', label: '维度组织模型' },
+        { value: '50+', label: '智库专家（持续更新中）' },
+        { value: '500+', label: '企业参与研究' }
+    ]
+}];
 
 const postSanitizer = new xss.FilterXSS({
     whiteList: {
@@ -281,18 +301,19 @@ function renderShell({ pathName, activeKey, title, description, content, latestR
         .replace('<!--FOOTER-->', footer)
         .replace('<!--DRAWER-->', drawer)
         .replace('<!--PRESCRIPT-->', prescript || '')
-        .replace('/css/app.build.css?v=20261110-2', '/nqoc/css/app.build.css?v=20261111a')
-        .replace('/js/app.js?v=20261110-2', '/nqoc/js/app-20261110.js?v=20261111a');
+        .replace('/css/app.build.css?v=20261110-2', '/nqoc/css/app.build.css?v=20261111b')
+        .replace('/js/app.js?v=20261110-2', '/nqoc/js/app-20261110.js?v=20261111b');
     return pathAssets(shell);
 }
 
 async function getCollections() {
-    const [banners, insights, cases, videos] = await Promise.all([
+    const [bannerDocs, insights, cases, videos] = await Promise.all([
         NqocBanner.find({ isOnline: true }).sort({ sort: 1, _id: 1 }).limit(3).lean(),
         NqocInsight.find({ status: 'published' }).sort({ top: -1, publishDate: -1 }).lean(),
         NqocCase.find({ status: 'published' }).sort({ top: -1, publishDate: -1 }).lean(),
         NqocVideo.find({ status: 'published' }).sort({ publishDate: -1 }).lean()
     ]);
+    const banners = bannerDocs.length ? bannerDocs : DEFAULT_BANNERS;
     const reports = sortPublished(DEFAULT_REPORTS);
     return { banners, insights: sortPublished(insights, true), cases: sortPublished(cases, true), videos: sortPublished(videos), reports };
 }
@@ -377,13 +398,13 @@ function renderLegacyPage(page, latestReport, activeKey) {
     html = html.replace(/<nav class="nqoc-nav\b[\s\S]*?<\/nav>/i, nav.nav)
         .replace(/<nav id="nqocMobileMenu"[\s\S]*?<\/nav>/i, nav.mobile)
         .replace(/<footer\b[\s\S]*?<\/footer>/i, readView('partials/footer.html').replace('<!--CONFIG_ICP-->', '沪ICP备12042344号-24'));
-    html = html.replace(/<head>/i, '<head><link rel="stylesheet" href="/nqoc/css/app.build.css?v=20261111a">');
+    html = html.replace(/<head>/i, '<head><link rel="stylesheet" href="/nqoc/css/app.build.css?v=20261111b">');
     html = html.replace('</body>', `${readView('partials/drawer.html')
         .replaceAll('<!--CONFIG_REPORT_NAME-->', esc(latestReport.title || '领取报告'))
         .replaceAll('<!--CONFIG_REPORT_SUBTITLE-->', esc(latestReport.subtitle || ''))
         .replaceAll('<!--CONFIG_REPORT_SLUG-->', esc(latestReport.slug || ''))}
 <div class="toast" role="status" data-toast hidden></div>
-<script src="/nqoc/js/app-20261110.js?v=20261111a" defer></script></body>`);
+<script src="/nqoc/js/app-20261110.js?v=20261111b" defer></script></body>`);
     if (page === 'expert-apply') html = html.replace('<head>', '<head><meta name="robots" content="noindex, nofollow">');
     return html;
 }

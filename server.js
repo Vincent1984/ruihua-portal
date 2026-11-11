@@ -560,7 +560,6 @@ const ADMIN_STATIC_PAGE_PERMS = {
     '/admin/nqoc-debate.html': ['nqoc:list', 'nqoc:manage'],
     '/admin/nqoc-experts.html': ['nqoc:list', 'nqoc:manage'],
     '/admin/nqoc-survey.html': ['nqoc:list', 'nqoc:manage'],
-    '/admin/nqoc-whitepaper.html': ['nqoc:list', 'nqoc:manage'],
     '/admin/survey.html': 'appointment:list',
     '/admin/template-management.html': 'appointment:list',
     '/admin/training-applications.html': 'appointment:list',
@@ -2488,77 +2487,7 @@ app.post('/api/nqoc/whitepaper/apply', async (req, res) => {
     }
 });
 
-// Admin API for NQOC Whitepaper Requests
-app.get('/api/admin/nqoc/whitepaper', authRequired, requireAnyPerm(['nqoc:list', 'nqoc:manage']), async (req, res) => {
-    try {
-        const { page = 1, limit = 20, keyword } = req.query;
-        let query = {};
-
-        if (keyword && keyword.length <= 200) {
-            query.$or = [
-                { name: new RegExp(escapeRegex(keyword), 'i') },
-                { phone: new RegExp(escapeRegex(keyword), 'i') },
-                { company: new RegExp(escapeRegex(keyword), 'i') }
-            ];
-        }
-
-        const skip = (parseInt(page) - 1) * parseInt(limit);
-        const [total, list] = await Promise.all([
-            NqocWhitepaperRequest.countDocuments(query),
-            NqocWhitepaperRequest.find(query).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit))
-        ]);
-
-        res.json({
-            success: true,
-            data: { list, total, page: parseInt(page), totalPages: Math.ceil(total / parseInt(limit)) }
-        });
-    } catch (e) {
-        console.error('Fetch whitepaper requests error:', e);
-        res.status(500).json({ success: false, error: '服务器内部错误' });
-    }
-});
-
-app.delete('/api/admin/nqoc/whitepaper/:id', authRequired, requireAnyPerm(['nqoc:delete', 'nqoc:manage']), async (req, res) => {
-    try {
-        const deleted = await NqocWhitepaperRequest.findByIdAndDelete(req.params.id);
-        if (!deleted) return res.status(404).json({ success: false, error: '记录不存在' });
-        res.json({ success: true });
-    } catch (e) {
-        console.error('Delete whitepaper request error:', e);
-        res.status(500).json({ success: false, error: '服务器内部错误' });
-    }
-});
-
-app.get('/api/admin/nqoc/whitepaper/export', authRequired, requireAnyPerm(['nqoc:export', 'nqoc:manage']), async (req, res) => {
-    try {
-        const { keyword } = req.query;
-        let query = {};
-        if (keyword && keyword.length <= 200) {
-            query.$or = [
-                { name: new RegExp(escapeRegex(keyword), 'i') },
-                { phone: new RegExp(escapeRegex(keyword), 'i') },
-                { company: new RegExp(escapeRegex(keyword), 'i') }
-            ];
-        }
-
-        const list = await NqocWhitepaperRequest.find(query).sort({ createdAt: -1 });
-
-        let csvContent = '\uFEFF'; // BOM
-        csvContent += '姓名,手机号,邮箱,公司名称,职位,提交时间\n';
-
-        list.forEach(item => {
-            const dateStr = item.createdAt ? new Date(item.createdAt).toLocaleString('zh-CN') : '';
-            csvContent += `"${item.name}","${item.phone}","${item.email}","${item.company}","${item.position}","${dateStr}"\n`;
-        });
-
-        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-        res.setHeader('Content-Disposition', 'attachment; filename="nqoc_whitepaper_requests.csv"');
-        res.send(csvContent);
-    } catch (e) {
-        console.error('Export NQOC Whitepaper Requests Error:', e);
-        res.status(500).send('导出失败');
-    }
-});
+// 白皮书预约记录统一在「报告领取记录」中查看（routes/api/nqoc.js 合并历史数据）。
 
 // CSV Export for NQOC Awards
 // Use JWT authentication via query string since it's accessed via window.open

@@ -27,8 +27,7 @@
         { label: '申报数据', href: '/admin/nqoc-awards.html', perm: ['nqoc:list', 'nqoc:manage'] },
         { label: '调研问卷', href: '/admin/nqoc-survey.html', perm: ['nqoc:list', 'nqoc:manage'] },
         { label: '在线投票', href: '/admin/nqoc-debate.html', perm: ['nqoc:list', 'nqoc:manage'] },
-        { label: '专家申请', href: '/admin/nqoc-experts.html', perm: ['nqoc:list', 'nqoc:manage'] },
-        { label: '白皮书', href: '/admin/nqoc-whitepaper.html', perm: ['nqoc:list', 'nqoc:manage'] }
+        { label: '专家申请', href: '/admin/nqoc-experts.html', perm: ['nqoc:list', 'nqoc:manage'] }
       ]
     },
     {
