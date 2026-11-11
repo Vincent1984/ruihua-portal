@@ -9,6 +9,7 @@ const path = require('path');
 const multer = require('multer');
 const sharp = require('sharp');
 const fs = require('fs');
+const os = require('os');
 const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -1758,6 +1759,22 @@ async function uploadBufferToTos(fileBuffer, objectKey, contentType) {
             Key: objectKey,
             Body: fileBuffer,
             ContentLength: fileBuffer.length,
+            ContentType: contentType || 'application/octet-stream',
+            ContentDisposition: 'inline'
+        })
+    );
+    return toTosPublicUrl(objectKey);
+}
+
+// 大文件（节目视频）走流式上传，避免整个文件读进内存
+async function uploadFileToTos(filePath, objectKey, contentType, contentLength) {
+    if (!useTosUpload || !tosClient) return null;
+    await tosClient.send(
+        new PutObjectCommand({
+            Bucket: process.env.TOS_BUCKET_NAME,
+            Key: objectKey,
+            Body: fs.createReadStream(filePath),
+            ContentLength: contentLength,
             ContentType: contentType || 'application/octet-stream',
             ContentDisposition: 'inline'
         })
@@ -3948,6 +3965,57 @@ app.post('/api/upload', authRequired, requirePerm('upload:write'), uploadLimiter
             console.error('Upload processing error:', e);
             await logOp('upload_failed', 'Image', `Upload processing failed: ${e.message}`, req.user?.username);
             return res.status(500).json({ success: false, error: '上传处理失败，请稍后重试' });
+        }
+    });
+});
+
+// 新质组织「值得看见」节目视频：临时盘接收后流式写入 TOS 的 nqoc/zdkj/ 目录
+const NQOC_VIDEO_MAX = 500 * 1024 * 1024;
+const nqocVideoTmpDir = path.join(os.tmpdir(), 'nqoc-video-uploads');
+try { fs.mkdirSync(nqocVideoTmpDir, { recursive: true }); } catch (e) { console.error('nqoc video tmp dir error:', e.message); }
+const nqocVideoUpload = multer({
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => cb(null, nqocVideoTmpDir),
+        filename: (req, file, cb) => cb(null, `${Date.now()}-${crypto.randomBytes(5).toString('hex')}${(path.extname(file.originalname) || '.mp4').toLowerCase()}`)
+    }),
+    limits: { fileSize: NQOC_VIDEO_MAX },
+    fileFilter: (req, file, cb) => {
+        const ext = path.extname(file.originalname || '').toLowerCase();
+        const extOk = ['.mp4', '.m4v', '.mov', '.webm'].includes(ext);
+        const mimeOk = /^video\/(mp4|quicktime|webm|x-m4v)$/i.test(file.mimetype || '') || file.mimetype === 'application/octet-stream';
+        if (extOk && mimeOk) return cb(null, true);
+        cb(new Error('仅支持 MP4 / MOV / WebM 视频'));
+    }
+});
+
+app.post('/api/upload/nqoc-video', authRequired, requirePerm('upload:write'), uploadLimiter, (req, res) => {
+    nqocVideoUpload.single('file')(req, res, async (uploadErr) => {
+        const cleanup = () => { if (req.file && req.file.path) fs.unlink(req.file.path, () => {}); };
+        if (uploadErr) {
+            const status = uploadErr.code === 'LIMIT_FILE_SIZE' ? 400 : 400;
+            const error = uploadErr.code === 'LIMIT_FILE_SIZE' ? '视频大小超限：请控制在 500MB 以内' : (uploadErr.message || '视频上传失败，请稍后重试');
+            console.error('Nqoc video upload middleware error:', uploadErr);
+            cleanup();
+            return res.status(status).json({ success: false, error });
+        }
+        if (!req.file) return res.status(400).json({ success: false, error: '未检测到上传文件' });
+        if (!useTosUpload) {
+            cleanup();
+            return res.status(503).json({ success: false, error: '对象存储服务未配置，请联系管理员' });
+        }
+        const ext = (path.extname(req.file.originalname) || '.mp4').toLowerCase();
+        const objectKey = `nqoc/zdkj/${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`;
+        try {
+            const url = await uploadFileToTos(req.file.path, objectKey, req.file.mimetype || 'video/mp4', req.file.size);
+            if (!url) throw new Error('TOS 未返回视频地址');
+            await logOp('upload', 'NqocVideo', `Nqoc video uploaded: ${objectKey}`, req.user?.username);
+            cleanup();
+            return res.json({ success: true, url });
+        } catch (e) {
+            console.error('Nqoc video upload error:', e.message || e);
+            await logOp('upload_failed', 'NqocVideo', `Nqoc video upload failed: ${e.message}`, req.user?.username);
+            cleanup();
+            return res.status(502).json({ success: false, error: '视频上传失败，请稍后重试' });
         }
     });
 });
