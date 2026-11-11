@@ -11,6 +11,7 @@ const Category = require('../../models/Category');
 const { sendInternalError } = require('../../utils/responseHelpers');
 const { sanitizeArticlePayload, getResolvedArticleAuthor, escapeRegex } = require('../../utils/articleHelpers');
 const logOp = require('../../middleware/operationLog');
+const { pushPage } = require('../../utils/baiduPush');
 
 /**
  * 初始化文章路由
@@ -181,6 +182,11 @@ function initArticleRoutes(authRequired, requirePerm, hooks = {}) {
       // Trigger llms.txt sync
       if (typeof syncLLMsTxt === 'function') await syncLLMsTxt(newArticle);
 
+      // 新页面发布后主动推送百度收录
+      if (newArticle.status === 'published' && newArticle.slug) {
+        pushPage(`insights/${encodeURIComponent(newArticle.slug)}`);
+      }
+
       await logOp('create', 'Article', `Created article: ${newArticle.title}`, req.user.username);
 
       res.json({ success: true, data: newArticle });
@@ -245,6 +251,11 @@ function initArticleRoutes(authRequired, requirePerm, hooks = {}) {
 
       // Trigger llms.txt sync if published
       if (typeof syncLLMsTxt === 'function') await syncLLMsTxt(article);
+
+      // 发布态的文章（含首次发布）推送到百度收录
+      if (article.status === 'published' && article.slug) {
+        pushPage(`insights/${encodeURIComponent(article.slug)}`);
+      }
 
       res.json({ success: true, data: article });
     } catch (e) {

@@ -26,6 +26,7 @@ const NqocReportLead = require('../../models/NqocReportLead');
 const NqocWhitepaperRequest = require('../../models/NqocWhitepaperRequest');
 const { sendInternalError } = require('../../utils/responseHelpers');
 const { escapeRegex } = require('../../utils/articleHelpers');
+const { pushPage } = require('../../utils/baiduPush');
 const logOp = require('../../middleware/operationLog');
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -603,6 +604,9 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
                 }
 
                 const doc = await cfg.Model.create(payload);
+                if (doc.status === 'published' && doc.slug) {
+                    pushPage(`nqoc/${segment}/${encodeURIComponent(doc.slug)}`);
+                }
                 await logOp('create', `新质组织-${cfg.name}`, `新增：${doc.title}`, req.user && req.user.username);
                 res.json(serializePost(doc));
             } catch (e) {
@@ -637,6 +641,10 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
 
                 Object.assign(existing, payload);
                 await existing.save();
+
+                if (publishing && existing.slug) {
+                    pushPage(`nqoc/${segment}/${encodeURIComponent(existing.slug)}`);
+                }
 
                 await logOp('update', `新质组织-${cfg.name}`, `${publishing ? '发布' : '保存'}：${existing.title}`, req.user && req.user.username);
                 res.json(serializePost(existing));
@@ -700,6 +708,9 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             }
 
             const doc = await NqocVideo.create(payload);
+            if (doc.status === 'published' && doc.slug) {
+                pushPage(`nqoc/worth-seeing/${encodeURIComponent(doc.slug)}`);
+            }
             await logOp('create', '新质组织-值得看见', `新增：${doc.episode} ${doc.title}`, req.user && req.user.username);
             res.json(serializePost(doc));
         } catch (e) {
@@ -736,6 +747,9 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
 
             Object.assign(existing, payload);
             await existing.save();
+            if (publishing && existing.slug) {
+                pushPage(`nqoc/worth-seeing/${encodeURIComponent(existing.slug)}`);
+            }
             await logOp('update', '新质组织-值得看见', `${publishing ? '发布' : '保存'}：${existing.episode} ${existing.title}`, req.user && req.user.username);
             res.json(serializePost(existing));
         } catch (e) {

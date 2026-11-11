@@ -1,6 +1,7 @@
 const Case = require('../models/Case');
 const PageContent = require('../models/PageContent');
 const GlobalConfig = require('../models/GlobalConfig');
+const { pushPage } = require('../utils/baiduPush');
 
 // 案例 + 页面内容 路由模块
 // 挂载：require('./routes/contentRoutes')(app, authRequired, requirePerm, logOp);
@@ -112,6 +113,9 @@ module.exports = function (app, authRequired, requirePerm, logOp, generateSeoSlu
         : await generateSeoSlug(payload.title, Case);
       const doc = new Case(payload);
       await doc.save();
+      if (doc.status === 'published' && doc.slug) {
+        pushPage(`cases/${encodeURIComponent(doc.slug)}`);
+      }
       if (logOp) await logOp('create', 'Case', `Created case: ${doc.title}`, req.user?.username);
       res.json({ success: true, data: doc });
     } catch (e) {
@@ -160,6 +164,9 @@ module.exports = function (app, authRequired, requirePerm, logOp, generateSeoSlu
       Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
       const doc = await Case.findByIdAndUpdate(req.params.id, payload, { new: true });
       if (!doc) return res.status(404).json({ error: '案例不存在' });
+      if (doc.status === 'published' && doc.slug) {
+        pushPage(`cases/${encodeURIComponent(doc.slug)}`);
+      }
       if (logOp) await logOp('update', 'Case', `Updated case: ${doc.title}`, req.user?.username);
       res.json({ success: true, data: doc });
     } catch (e) {
