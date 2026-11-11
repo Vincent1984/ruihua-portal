@@ -1,0 +1,49 @@
+<div class="page" data-page="reports">
+  <section class="page-head page-head--hero">
+    <div class="page-head__bg page-head__bg--img" aria-hidden="true"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/img/hero/reports-static.svg" /><img src="/img/hero/reports.svg" alt="" width="1920" height="600" fetchpriority="high" /></picture></div>
+    <div class="wrap">
+      <nav class="crumbs" aria-label="面包屑" data-crumbs><a href="/nqoc">首页</a><span aria-current="page">研究成果</span></nav>
+      <p class="eyebrow">Research</p>
+      <h1>研究成果</h1>
+      <p class="page-head__lead">研究报告、行业报告与案例集，把新质组织的研究发现转化为企业可以参照的行动依据。</p>
+    </div>
+  </section>
+  <section class="section section--flush">
+    <div class="wrap">
+      {{#each view.reportFeatured}}
+      <article class="report-feature card glass-panel">
+        <div class="report-feature__cover"><img src="{{cover}}" alt="{{coverAlt}}" width="600" height="800" fetchpriority="high" /></div>
+        <div class="report-feature__body">
+          <p class="meta"><span class="expert-tag">{{reportType}}</span><span>最新发布</span><time datetime="{{publishDate}}">{{rel.dateText}}</time></p>
+          <h2 class="report-feature__title"><a class="card__link" href="/nqoc/whitepaper/{{slug}}">{{title}}</a></h2>
+          <p class="report-feature__summary">{{summary}}</p>
+          {{#if highlights}}
+          <dl class="stats">
+            {{#each highlights}}<div class="stat data-anchor-item"><dt>{{label}}</dt><dd>{{value}}{{#if unit}}<small>{{unit}}</small>{{/if}}</dd></div>{{/each}}
+          </dl>
+          {{/if}}
+          <p class="report-feature__cta"><span class="btn-primary" aria-hidden="true">查看报告</span></p>
+        </div>
+      </article>
+      {{else}}
+      <div class="empty"><p>研究成果正在整理中。</p><p>可以先看看 <a href="/nqoc/insights">新质观点</a>。</p></div>
+      {{/each}}
+
+      {{#if view.reportRest}}
+      <h2 class="list-title heading-decorative">更多成果</h2>
+      <ul class="report-grid">
+        {{#each view.reportRest}}
+        <li class="report-card card glass-panel">
+          <div class="report-card__cover"><img src="{{cover}}" alt="{{coverAlt}}" width="600" height="800" loading="lazy" /></div>
+          <div class="report-card__body">
+            <p class="meta"><span class="chip">{{reportType}}</span><time datetime="{{publishDate}}">{{rel.dateText}}</time></p>
+            <h3 class="report-card__title"><a class="card__link" href="/nqoc/whitepaper/{{slug}}">{{title}}</a></h3>
+            <p class="clamp-3">{{summary}}</p>
+          </div>
+        </li>
+        {{/each}}
+      </ul>
+      {{/if}}
+    </div>
+  </section>
+</div>

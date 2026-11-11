@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>瑞华智策 · 官网管理后台</title>
-  <link rel="stylesheet" href="/admin/admin-2026.css?v=20261102-attach">
+  <link rel="stylesheet" href="/admin/admin-2026.css?v=20261111a">
   <link rel="stylesheet" href="/admin/lib/wangeditor/css/style.css">
 </head>
 <body>
@@ -20,7 +20,7 @@
         <button data-target="articles" data-permission="article:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3h7l3.5 3.5V17H5z"/><path d="M11.5 3v4H16M7.5 11h5M7.5 13.8h3"/></svg><span>文章管理</span></button><button data-target="cases" data-permission="case:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.8" y="6" width="14.4" height="10.5" rx="2"/><path d="M7.2 6V4.6A1.6 1.6 0 0 1 8.8 3h2.4a1.6 1.6 0 0 1 1.6 1.6V6M2.8 10.5h14.4"/></svg><span>案例管理</span></button>
         <button data-target="featured" data-permission="featured-case:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="m10 2.8 2.2 4.5 5 .7-3.6 3.5.85 4.95L10 14.1l-4.45 2.35.85-4.95L2.8 8l5-.7z"/></svg><span>首页精选案例</span></button><button data-target="faq" data-permission="faq:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.2"/><path d="M8.1 8a2 2 0 1 1 2.6 1.9c-.5.2-.7.6-.7 1.1v.4M10 14.2v.05"/></svg><span>FAQ 管理</span></button><button data-target="experts" data-permission="expert:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3.2"/><path d="M4 16.6a6 6 0 0 1 12 0"/></svg><span>讲师 / 专家团队</span></button>
       </div>
-      <div class="nav-group nqoc-group"><button type="button" class="nav-title nqoc-toggle" aria-expanded="false" aria-controls="nqocNavItems"><span>新质组织</span><svg class="nav-arrow" viewBox="0 0 12 12" aria-hidden="true"><path d="m4 2 4 4-4 4"/></svg></button><div class="nqoc-items" id="nqocNavItems" hidden><a href="/admin/nqoc-awards.html">申报数据</a><a href="/admin/nqoc-survey.html">调研问卷</a><a href="/admin/nqoc-debate.html">在线投票</a><a href="/admin/nqoc-experts.html">专家申请</a><a href="/admin/nqoc-whitepaper.html">白皮书</a></div></div>
+      <div class="nav-group nqoc-group"><button type="button" class="nav-title nqoc-toggle" aria-expanded="false" aria-controls="nqocNavItems"><span>新质组织</span><svg class="nav-arrow" viewBox="0 0 12 12" aria-hidden="true"><path d="m4 2 4 4-4 4"/></svg></button><div class="nqoc-items" id="nqocNavItems" hidden><a href="/admin/nqoc-awards.html">申报数据</a><a href="/admin/nqoc-survey.html">调研问卷</a><a href="/admin/nqoc-debate.html">在线投票</a><a href="/admin/nqoc-experts.html">专家申请</a><a href="/admin/nqoc-whitepaper.html">白皮书</a><button data-target="nqoc-banner" data-permission="nqoc-banner:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.6" y="5.4" width="14.8" height="9.6" rx="2"/><path d="M5.4 2.9h9.2M5.4 17.1h9.2"/></svg><span>首页 Banner</span></button><button data-target="nqoc-insights" data-permission="nqoc-insights:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M4.2 3h8.6l3.2 3.2V17H4.2z"/><path d="M12.4 3v3.6h3.4M7.2 10.4h5.6M7.2 13.2h3.8"/></svg><span>新质观点</span></button><button data-target="nqoc-cases" data-permission="nqoc-cases:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.8" y="6" width="14.4" height="10.5" rx="2"/><path d="M7.2 6V4.6A1.6 1.6 0 0 1 8.8 3h2.4a1.6 1.6 0 0 1 1.6 1.6V6M2.8 10.5h14.4"/></svg><span>案例研究</span></button><button data-target="nqoc-videos" data-permission="nqoc-videos:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="5" width="15" height="10" rx="2.4"/><path d="m8.6 7.9 4 2.1-4 2.1z"/></svg><span>值得看见</span></button><button data-target="nqoc-report-leads" data-permission="nqoc-report-leads:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M4.2 3h8.6l3.2 3.2V17H4.2z"/><path d="M12.4 3v3.6h3.4M10 9.6v4.8M7.8 12.2 10 14.4l2.2-2.2"/></svg><span>报告领取记录</span><em id="nqLeadBadge">0</em></button></div></div>
       <div class="nav-group"><div class="nav-title">系统全局配置</div>
         <button data-target="settings"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.6"/><path d="M10 2.6v1.7M10 15.7v1.7M17.4 10h-1.7M4.3 10H2.6M15.2 4.8 14 6M6 14l-1.2 1.2M15.2 15.2 14 14M6 6 4.8 4.8"/></svg><span>全局配置</span></button>
       </div>
@@ -75,6 +75,33 @@
         <article class="panel recipients-card"><div class="settings-head"><b>线索通知接收人</b><span>按意向方向分派；未匹配的走值班兜底</span><i></i><button class="primary small" data-action="add-recipient">＋ 添加接收人</button></div><div class="table-wrap"><table><thead><tr><th>姓名 / 角色</th><th>接收账号</th><th>负责的意向方向</th><th>接收渠道</th><th>启用</th><th>操作</th></tr></thead><tbody id="recipientRows"></tbody></table></div></article>
         <div class="config-actions"><button class="primary" data-action="save-global-config">保存全局配置</button><button data-action="test-notification">发送一条测试通知</button><span id="configSaved"></span></div>
       </section>
+      <section class="view" data-view="nqoc-banner" data-module="nqoc-banner">
+        <div class="notice"><b>新质组织首页首屏的轮播图，最多 3 张</b>，前台每 6 秒自动切换。拖动调整轮播顺序；关闭开关后该张不参与轮播，<b>至少保留 1 张展示</b>。主按钮可选「领取最新报告」——点击后弹出领取表单，始终对应最新一份研究成果。</div>
+        <div class="section-head"><div><h2>轮播 Banner</h2><p id="nqBanCount"></p></div><button type="button" class="primary" id="nqBanAdd" data-action="new" data-type="banner" data-permission="nqoc-banner:create">＋ 新增 Banner</button></div>
+        <div class="sort-list" id="nqBanList"></div>
+      </section>
+      <section class="view" data-view="nqoc-insights" data-module="nqoc-insights">
+        <div class="notice"><b>对应前台「新质观点」列表页与详情页，不分类</b>，按发布日期倒序，置顶的排最前。<b>草稿</b>只在后台可见；<b>发布</b>后前台立即可见，无需审核；<b>下架</b>后前台立即不可见，数据保留。新建、编辑走「创作工作台」，发布前必须有标题、摘要、封面图和正文。</div>
+        <div class="filters"><input class="search" type="search" data-filter="q" placeholder="搜索标题 / 作者 / 来源"><div class="segments" data-filter="status"><button type="button" class="on" data-action="filter" data-value="">全部</button><button type="button" data-action="filter" data-value="published">已发布</button><button type="button" data-action="filter" data-value="draft">草稿</button><button type="button" data-action="filter" data-value="archived">已下架</button></div><span class="spacer"></span><button type="button" class="primary" data-action="new" data-type="insight" data-permission="nqoc-insights:create">＋ 新建观点</button></div>
+        <div class="table-wrap"><table><thead><tr><th style="width:48px">置顶</th><th style="width:104px">封面</th><th>标题</th><th style="width:150px">作者 / 来源</th><th style="width:104px">发布日期</th><th style="width:88px">状态</th><th style="width:66px">发布</th><th style="width:176px">操作</th></tr></thead><tbody id="nqInsRows"></tbody></table></div>
+      </section>
+      <section class="view" data-view="nqoc-cases" data-module="nqoc-cases">
+        <div class="notice"><b>对应前台「案例研究」列表页与详情页，与主站案例库互不影响</b>，按发布日期倒序，置顶的排最前。发布前必须有标题、摘要、封面图和正文。</div>
+        <div class="filters"><input class="search" type="search" data-filter="q" placeholder="搜索案例标题"><div class="segments" data-filter="status"><button type="button" class="on" data-action="filter" data-value="">全部</button><button type="button" data-action="filter" data-value="published">已发布</button><button type="button" data-action="filter" data-value="draft">草稿</button><button type="button" data-action="filter" data-value="archived">已下架</button></div><span class="spacer"></span><button type="button" class="primary" data-action="new" data-type="case" data-permission="nqoc-cases:create">＋ 新建案例</button></div>
+        <div class="table-wrap"><table><thead><tr><th style="width:48px">置顶</th><th style="width:104px">封面</th><th>案例标题</th><th style="width:104px">发布日期</th><th style="width:88px">状态</th><th style="width:66px">发布</th><th style="width:176px">操作</th></tr></thead><tbody id="nqCasRows"></tbody></table></div>
+      </section>
+      <section class="view" data-view="nqoc-videos" data-module="nqoc-videos">
+        <div class="notice"><b>视频文件与封面图上传到自有对象存储</b>；最新一期自动成为列表页头条大图。发布前必须有标题、封面图、视频文件和至少 1 位对谈嘉宾。</div>
+        <div class="filters"><input class="search" type="search" data-filter="q" placeholder="搜索期数 / 标题 / 嘉宾"><div class="segments" data-filter="status"><button type="button" class="on" data-action="filter" data-value="">全部</button><button type="button" data-action="filter" data-value="published">已发布</button><button type="button" data-action="filter" data-value="draft">草稿</button><button type="button" data-action="filter" data-value="archived">已下架</button></div><span class="spacer"></span><button type="button" class="primary" data-action="new" data-type="video" data-permission="nqoc-videos:create">＋ 新建一期</button></div>
+        <div class="table-wrap"><table><thead><tr><th style="width:104px">封面</th><th style="width:76px">期数</th><th>标题</th><th style="width:210px">对谈嘉宾</th><th style="width:116px">视频</th><th style="width:104px">发布日期</th><th style="width:88px">状态</th><th style="width:66px">发布</th><th style="width:176px">操作</th></tr></thead><tbody id="nqVidRows"></tbody></table></div>
+      </section>
+      <section class="view" data-view="nqoc-report-leads" data-module="nqoc-report-leads">
+        <div class="stats"><article class="accent"><small>今日领取</small><strong id="nqLTd">0</strong><span>昨日 <em id="nqLYd">0</em> 条</span></article><article><small>近 7 天</small><strong id="nqL7">0</strong><span>近 30 天 <em id="nqL30">0</em> 条</span></article><article><small>累计领取</small><strong id="nqLAll">0</strong><span>自栏目上线起</span></article><article><small>涉及企业</small><strong id="nqLCo">0</strong><span>按公司名去重</span></article></div>
+        <div class="notice"><b>这里是报告领取表单提交的记录，只读，不可修改或删除</b>；可按条件筛选后导出 Excel 表格。拖动表头右边缘可调整列宽。</div>
+        <div class="filters"><input class="search" type="search" data-filter="q" placeholder="搜索姓名 / 公司 / 手机号 / 邮箱"><select data-filter="range"><option value="">全部时间</option><option value="1">今天</option><option value="7">近 7 天</option><option value="30">近 30 天</option></select><span class="spacer"></span><button type="button" data-action="export" data-permission="nqoc-report-leads:export">导出 Excel</button></div>
+        <div class="table-wrap"><table><thead><tr><th style="width:120px">姓名</th><th style="width:130px">手机号</th><th>公司 / 职位</th><th style="width:200px">邮箱</th><th style="width:230px">领取的报告</th><th style="width:170px">提交页面</th><th style="width:118px">提交时间</th></tr></thead><tbody id="nqLeadRows"></tbody></table></div>
+        <p class="sub" style="margin-top:10px" id="nqLeadCount"></p>
+      </section>
     </div>
   </main>
 </div>
@@ -86,7 +113,8 @@
 <div id="passwordModal" class="modal" aria-hidden="true"><div class="modal-card password-card"><div class="modal-head"><h2>修改密码</h2><button data-action="close-password">×</button></div><form id="passwordForm"><label>当前密码<input id="currentPassword" type="password" autocomplete="current-password" required></label><label>新密码<small>至少 8 位，需包含字母和数字</small><input id="newPassword" type="password" autocomplete="new-password" minlength="8" required></label><label>确认新密码<input id="confirmPassword" type="password" autocomplete="new-password" minlength="8" required></label></form><div class="modal-actions"><button type="button" data-action="close-password">取消</button><button type="button" class="primary" data-action="submit-password">确认修改</button></div></div></div>
 <div class="toast" id="toast" role="status"></div>
 <script src="/admin/lib/wangeditor/index.js"></script>
-<script src="/admin/js/article-management.js?v=20260902c"></script>
-<script src="/admin/js/admin-2026.js?v=20261102-attach"></script>
+<script src="/admin/js/article-management.js?v=20261111a"></script>
+<script src="/admin/js/admin-2026.js?v=20261111a"></script>
+<script src="/admin/js/nqoc.js?v=20261111a"></script>
 </body>
 </html>

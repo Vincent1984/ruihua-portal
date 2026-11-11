@@ -1,0 +1,888 @@
+<div class="page" data-page="home">
+<!-- 01 Hero：现有 Hero 改为轮播（最多 3 张，后台维护）。每张的版式与现有 Hero 一致：左文案 + 右图 -->
+<section class="hero-section flex-col" id="hero">
+<div id="particles-js" data-particles></div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full hero-content my-auto pt-4 md:pt-10">
+<div class="hero-carousel" data-carousel aria-roledescription="carousel" aria-label="首页推荐">
+  <div class="hero-carousel__track">
+    {{#each view.banners}}
+    <div class="hero-slide{{#if @first}} is-active{{/if}}" role="group" aria-roledescription="slide" aria-label="{{rel.label}}" data-slide>
+      <div>
+        {{#if @first}}<h1 class="hero-slide__title font-extrabold text-white mb-6 text-center md:text-left">{{titlePrefix}}{{#if highlightOnNewLine}}<br/>{{/if}}<span class="text-gradient">{{titleHighlight}}</span>{{#if titleLine2}}<br/>{{titleLine2}}{{/if}}</h1>
+        {{else}}<p class="hero-slide__title font-extrabold text-white mb-6 text-center md:text-left">{{titlePrefix}}{{#if highlightOnNewLine}}<br/>{{/if}}<span class="text-gradient">{{titleHighlight}}</span>{{#if titleLine2}}<br/>{{titleLine2}}{{/if}}</p>{{/if}}
+        <p class="hero-slide__summary mb-8 text-center md:text-left">{{desc}}</p>
+        <div class="flex flex-wrap justify-center md:justify-start gap-4 mb-8">
+          <a class="btn-shiny" href="{{rel.primaryHref}}"{{#if rel.primaryIsReport}} data-report-open{{/if}}><span>{{primaryText}}</span> <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+          {{#if secondaryText}}<a class="btn-outline" href="{{secondaryUrl}}">{{secondaryText}}</a>{{/if}}
+        </div>
+        {{#if stats}}
+        <div class="grid grid-cols-3 gap-2 md:gap-6 text-center md:text-left">
+          {{#each stats}}
+          <div class="data-anchor-item">
+            <div class="text-2xl font-bold text-white">{{value}}</div>
+            <div class="text-xs text-slate-400 mt-1">{{label}}</div>
+          </div>
+          {{/each}}
+        </div>
+        {{/if}}
+      </div>
+      <div class="hero-slide__media">
+        <div class="absolute inset-0 bg-gradient-to-tr from-[#7c4dff] to-[#00f0ff] rounded-full blur-[120px] opacity-20 animate-pulse"></div>
+        <div class="relative z-10 w-full flex justify-center hero-banner-img"><img alt="{{imageAlt}}" src="{{image}}"{{#if @first}} fetchpriority="high"{{else}} loading="lazy"{{/if}} /></div>
+      </div>
+    </div>
+    {{/each}}
+  </div>
+  {{#if view.bannerMulti}}
+  <div class="hero-carousel__controls">
+    <button class="hero-carousel__btn" type="button" aria-label="上一张" data-carousel-prev><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="hero-carousel__dots">
+      {{#each view.banners}}<button class="hero-carousel__dot" type="button" aria-label="{{rel.label}}" aria-current="{{rel.current}}" data-carousel-dot></button>{{/each}}
+    </div>
+    <button class="hero-carousel__btn" type="button" aria-label="下一张" data-carousel-next><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+  </div>
+  {{/if}}
+</div>
+</div>
+<!-- Bottom Organizers Bar：原样保留 -->
+<div class="w-full relative z-10 mt-auto pb-4 border-t border-white/10 pt-4">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-3 items-center text-sm text-slate-300 gap-4 lg:gap-0">
+    <div class="whitespace-nowrap text-center lg:text-left">
+        <span class="font-bold text-white mr-3">发起单位:</span>人瑞人才&amp;瑞华智策 · 新质组织研究中心
+    </div>
+    <div class="whitespace-nowrap text-center">
+        <span class="font-bold text-white mr-3">联合主办:</span>中国经营报
+    </div>
+    <div class="whitespace-nowrap text-center lg:text-right">
+        <span class="font-bold text-white mr-3">学术支持:</span>北京大学光华管理学院
+    </div>
+</div>
+</div>
+</section>
+<!-- 02 Industry Trends -->
+<section class="py-24 relative bg-[#050814] overflow-hidden" id="trends">
+<!-- Abstract Cyber Background -->
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(99,102,241,0.3) 2px,rgba(99,102,241,0.3) 4px),repeating-linear-gradient(90deg,transparent,transparent 2px,rgba(99,102,241,0.2) 2px,rgba(99,102,241,0.2) 4px);background-size:4px 4px,4px 4px"></div>
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-[#7c4dff]/50 to-transparent"></div>
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[500px] bg-gradient-to-b from-[#7c4dff]/10 to-transparent blur-[120px] pointer-events-none"></div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+<div class="text-center mb-16 animate-on-scroll">
+<p class="text-[#00f0ff] mb-4 tracking-[0.2em] uppercase text-xs font-mono font-bold">Industry Trends</p>
+<h2 class="text-3xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 heading-decorative tracking-wide">行业趋势</h2>
+<div class="max-w-4xl mx-auto mt-10 mb-16 relative p-8 md:p-10 rounded-2xl bg-gradient-to-b from-[#111424]/80 to-transparent border border-[#7c4dff]/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] backdrop-blur-md">
+    <!-- Top Decorative Line -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-[2px] bg-gradient-to-r from-transparent via-[#7c4dff] to-transparent"></div>
+    <!-- Quote Icon -->
+    <div class="absolute -top-4 left-8 text-[#7c4dff]/30 text-4xl">
+        <i class="fas fa-quote-left"></i>
+    </div>
+    
+    <p class="text-slate-300 text-[15px] md:text-[16px] leading-loose text-justify md:text-center mb-10 font-light tracking-wide relative z-10">
+        AI浪潮奔涌，所有企业正在面临一场空前的组织变革挑战。“新质生产力”的深化发展，呼唤企业必须进化为“<span class="text-white font-medium">新质组织</span>”！这不仅是未来十年乃至更长时期的系统工程，也是中国企业迎接AI时代全球化竞争的必赢之战。从人机协同到人机共治，组织进化势在必行。
+    </p>
+    
+    <div class="flex flex-col md:flex-row items-center justify-center gap-4 relative z-10">
+        <div class="hidden md:block h-px w-16 bg-gradient-to-r from-transparent to-[#00f0ff]/60"></div>
+        <h3 class="text-xl md:text-[22px] font-bold text-white tracking-widest text-center">
+            中国企业组织正在全面进入 <span class="text-[#00f0ff] drop-shadow-[0_0_12px_rgba(0,240,255,0.8)]">AI 重构时代</span>
+        </h3>
+        <div class="hidden md:block h-px w-16 bg-gradient-to-l from-transparent to-[#00f0ff]/60"></div>
+    </div>
+</div>
+</div>
+<div class="grid md:grid-cols-3 gap-6 lg:gap-8">
+<!-- Trend 1 -->
+<div class="group relative animate-on-scroll">
+<!-- Glowing backdrop -->
+<div class="absolute inset-0 bg-gradient-to-b from-[#7c4dff]/20 to-transparent rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+<!-- Card -->
+<div class="relative h-full bg-[#0d111d]/90 backdrop-blur-sm border border-slate-800 rounded-2xl p-8 overflow-hidden hover:border-[#7c4dff]/50 transition-colors duration-500 shadow-xl">
+<!-- Top accent line -->
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#7c4dff] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left"></div>
+<!-- Icon -->
+<div class="w-16 h-16 rounded-xl bg-gradient-to-br from-[#7c4dff]/20 to-[#111424] border border-[#7c4dff]/30 flex items-center justify-center mb-8 relative group-hover:scale-110 transition-transform duration-500 shadow-[0_0_15px_rgba(124,77,255,0.2)] group-hover:shadow-[0_0_25px_rgba(124,77,255,0.4)]">
+<div class="absolute inset-0 bg-[#7c4dff] rounded-xl blur-md opacity-20 animate-pulse"></div>
+<i class="fas fa-robot text-2xl text-[#7c4dff] relative z-10 drop-shadow-[0_0_5px_rgba(124,77,255,0.8)]"></i>
+</div>
+<h3 class="text-lg font-bold text-white mb-6 leading-tight group-hover:text-[#7c4dff] transition-colors whitespace-nowrap">AI 正在成为组织“新成员”</h3>
+<div class="space-y-4 relative z-10">
+<div class="flex items-center text-slate-300 bg-slate-900/80 rounded-lg p-3 border border-slate-800/80 group-hover:border-[#7c4dff]/30 transition-colors">
+<i class="fas fa-arrow-right text-[#7c4dff] mr-3 text-sm"></i>
+<span class="text-sm font-medium">从传统岗位 <span class="mx-2 text-slate-600 font-light">→</span> Agent 任务单元</span>
+</div>
+<div class="flex items-center text-slate-300 bg-slate-900/80 rounded-lg p-3 border border-slate-800/80 group-hover:border-[#7c4dff]/30 transition-colors">
+<i class="fas fa-arrow-right text-[#7c4dff] mr-3 text-sm"></i>
+<span class="text-sm font-medium">从单一人效 <span class="mx-2 text-slate-600 font-light">→</span> 人机协同网络</span>
+</div>
+</div>
+<!-- Decorative background element -->
+<i class="fas fa-microchip absolute -bottom-8 -right-8 text-8xl text-white/[0.02] group-hover:text-[#7c4dff]/10 transition-colors duration-500 transform group-hover:rotate-12 pointer-events-none"></i>
+</div>
+</div>
+<!-- Trend 2 -->
+<div class="group relative animate-on-scroll" style="animation-delay: 100ms;">
+<div class="absolute inset-0 bg-gradient-to-b from-[#00f0ff]/20 to-transparent rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+<div class="relative h-full bg-[#0d111d]/90 backdrop-blur-sm border border-slate-800 rounded-2xl p-8 overflow-hidden hover:border-[#00f0ff]/50 transition-colors duration-500 shadow-xl">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00f0ff] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left"></div>
+<div class="w-16 h-16 rounded-xl bg-gradient-to-br from-[#00f0ff]/20 to-[#111424] border border-[#00f0ff]/30 flex items-center justify-center mb-8 relative group-hover:scale-110 transition-transform duration-500 shadow-[0_0_15px_rgba(0,240,255,0.2)] group-hover:shadow-[0_0_25px_rgba(0,240,255,0.4)]">
+<div class="absolute inset-0 bg-[#00f0ff] rounded-xl blur-md opacity-20 animate-pulse"></div>
+<i class="fas fa-chart-line text-2xl text-[#00f0ff] relative z-10 drop-shadow-[0_0_5px_rgba(0,240,255,0.8)]"></i>
+</div>
+<h3 class="text-lg font-bold text-white mb-6 leading-tight group-hover:text-[#00f0ff] transition-colors whitespace-nowrap">人效从“结果”变成“系统能力”</h3>
+<div class="space-y-4 relative z-10">
+<div class="flex items-center text-slate-300 bg-slate-900/80 rounded-lg p-3 border border-slate-800/80 group-hover:border-[#00f0ff]/30 transition-colors">
+<i class="fas fa-arrow-right text-[#00f0ff] mr-3 text-sm"></i>
+<span class="text-sm font-medium">不再只是单纯的业务 KPI</span>
+</div>
+<div class="flex items-center text-slate-300 bg-slate-900/80 rounded-lg p-3 border border-slate-800/80 group-hover:border-[#00f0ff]/30 transition-colors">
+<i class="fas fa-arrow-right text-[#00f0ff] mr-3 text-sm"></i>
+<span class="text-sm font-medium">而是组织结构的内生效率</span>
+</div>
+</div>
+<i class="fas fa-tachometer-alt absolute -bottom-8 -right-8 text-8xl text-white/[0.02] group-hover:text-[#00f0ff]/10 transition-colors duration-500 transform group-hover:-rotate-12 pointer-events-none"></i>
+</div>
+</div>
+<!-- Trend 3 -->
+<div class="group relative animate-on-scroll" style="animation-delay: 200ms;">
+<div class="absolute inset-0 bg-gradient-to-b from-[#ff00a0]/20 to-transparent rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+<div class="relative h-full bg-[#0d111d]/90 backdrop-blur-sm border border-slate-800 rounded-2xl p-8 overflow-hidden hover:border-[#ff00a0]/50 transition-colors duration-500 shadow-xl">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#ff00a0] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left"></div>
+<div class="w-16 h-16 rounded-xl bg-gradient-to-br from-[#ff00a0]/20 to-[#111424] border border-[#ff00a0]/30 flex items-center justify-center mb-8 relative group-hover:scale-110 transition-transform duration-500 shadow-[0_0_15px_rgba(255,0,160,0.2)] group-hover:shadow-[0_0_25px_rgba(255,0,160,0.4)]">
+<div class="absolute inset-0 bg-[#ff00a0] rounded-xl blur-md opacity-20 animate-pulse"></div>
+<i class="fas fa-project-diagram text-2xl text-[#ff00a0] relative z-10 drop-shadow-[0_0_5px_rgba(255,0,160,0.8)]"></i>
+</div>
+<h3 class="text-lg font-bold text-white mb-6 leading-tight group-hover:text-[#ff00a0] transition-colors whitespace-nowrap">组织从“静态结构”走向“动态网络”</h3>
+<div class="space-y-4 relative z-10">
+<div class="flex items-center text-slate-300 bg-slate-900/80 rounded-lg p-3 border border-slate-800/80 group-hover:border-[#ff00a0]/30 transition-colors">
+<i class="fas fa-arrow-right text-[#ff00a0] mr-3 text-sm"></i>
+<span class="text-sm font-medium">固定层级结构被大幅弱化</span>
+</div>
+<div class="flex items-center text-slate-300 bg-slate-900/80 rounded-lg p-3 border border-slate-800/80 group-hover:border-[#ff00a0]/30 transition-colors">
+<i class="fas fa-arrow-right text-[#ff00a0] mr-3 text-sm"></i>
+<span class="text-sm font-medium">网状协同与生态网络增强</span>
+</div>
+</div>
+<i class="fas fa-network-wired absolute -bottom-8 -right-8 text-8xl text-white/[0.02] group-hover:text-[#ff00a0]/10 transition-colors duration-500 transform group-hover:rotate-12 pointer-events-none"></i>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 03 5D Model -->
+<section class="py-24" id="five-d">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16 animate-on-scroll">
+        <h2 class="text-3xl md:text-4xl font-bold text-white heading-decorative">什么是“新质组织”</h2>
+        <!-- Premium Definition Card -->
+        <div class="glass-panel p-6 md:p-12 mt-8 mb-12 text-center relative overflow-hidden animate-on-scroll border border-[#7c4dff]/30 shadow-[0_0_40px_rgba(124,77,255,0.15)] max-w-5xl mx-auto rounded-2xl">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#7c4dff] via-[#00f0ff] to-[#7c4dff]"></div>
+            <div class="absolute -top-24 -left-24 w-48 h-48 bg-[#7c4dff] rounded-full blur-[100px] opacity-20"></div>
+            <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-[#00f0ff] rounded-full blur-[100px] opacity-20"></div>
+            
+            <p class="text-slate-300 text-sm md:text-lg leading-relaxed relative z-10 font-medium text-left md:text-center">
+                新质组织是在“人工智能+”驱动的新质生产力跃升的时代背景下，以绿色、创新、可持续为<span class="text-[#7c4dff]">核心价值观</span>，在<span class="text-[#7c4dff]">商业模式</span>、<span class="text-[#7c4dff]">生产方式</span>、<span class="text-[#7c4dff]">管理范式</span>、<span class="text-[#7c4dff]">生态协同</span>等维度上实现系统性重构的新型组织。新质组织的目标是追求人与技术的共生共智，实现人、组织以及社会的和谐共赢。
+            </p>
+        </div>
+    </div>
+    
+    <!-- First Grid: Characteristics of NQOC -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 animate-on-scroll mb-20">
+        <!-- 01 -->
+        <div class="glass-panel p-6 relative overflow-hidden group hover:border-[#7c4dff]/50 transition-all duration-300 hover:-translate-y-2 flex flex-col justify-between">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-[#7c4dff]/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+            <div>
+                <div class="text-[#7c4dff] font-black text-4xl mb-4 opacity-50 group-hover:opacity-100 transition-opacity">01</div>
+                <h4 class="text-white font-bold text-lg mb-2 relative z-10">时代背景<br><span class="text-xs text-slate-400 font-normal uppercase tracking-wider">BACKGROUND</span></h4>
+            </div>
+            <p class="text-sm text-slate-400 relative z-10 mt-4">诞生于“人工智能+”驱动的新质生产力跃升期，AI 与数智化重构价值链与组织形态。</p>
+        </div>
+        <!-- 02 -->
+        <div class="glass-panel p-6 relative overflow-hidden group hover:border-[#7c4dff]/50 transition-all duration-300 hover:-translate-y-2 flex flex-col justify-between">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-[#7c4dff]/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+            <div>
+                <div class="text-[#7c4dff] font-black text-4xl mb-4 opacity-50 group-hover:opacity-100 transition-opacity">02</div>
+                <h4 class="text-white font-bold text-lg mb-2 relative z-10">价值内核<br><span class="text-xs text-slate-400 font-normal uppercase tracking-wider">CORE VALUE</span></h4>
+            </div>
+            <p class="text-sm text-slate-400 relative z-10 mt-4">以绿色、创新、可持续为核心，以“人机共生共智”为根本理念。</p>
+        </div>
+        <!-- 03 -->
+        <div class="glass-panel p-6 relative overflow-hidden group hover:border-[#7c4dff]/50 transition-all duration-300 hover:-translate-y-2 flex flex-col justify-between">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-[#7c4dff]/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+            <div>
+                <div class="text-[#7c4dff] font-black text-4xl mb-4 opacity-50 group-hover:opacity-100 transition-opacity">03</div>
+                <h4 class="text-white font-bold text-lg mb-2 relative z-10">形态特征<br><span class="text-xs text-slate-400 font-normal uppercase tracking-wider">CHARACTERISTICS</span></h4>
+            </div>
+            <p class="text-sm text-slate-400 relative z-10 mt-4">突破传统科层制，形成网络化、平台化、生态化的形态。</p>
+        </div>
+        <!-- 04 -->
+        <div class="glass-panel p-6 relative overflow-hidden group hover:border-[#7c4dff]/50 transition-all duration-300 hover:-translate-y-2 flex flex-col justify-between">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-[#7c4dff]/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+            <div>
+                <div class="text-[#7c4dff] font-black text-4xl mb-4 opacity-50 group-hover:opacity-100 transition-opacity">04</div>
+                <h4 class="text-white font-bold text-lg mb-2 relative z-10">重构维度<br><span class="text-xs text-slate-400 font-normal uppercase tracking-wider">DIMENSIONS</span></h4>
+            </div>
+            <p class="text-sm text-slate-400 relative z-10 mt-4">在核心价值观、商业模式、生产方式、管理范式、生态协同上系统性重构。</p>
+        </div>
+        <!-- 05 -->
+        <div class="glass-panel p-6 relative overflow-hidden group hover:border-[#7c4dff]/50 transition-all duration-300 hover:-translate-y-2 flex flex-col justify-between md:col-span-1 sm:col-span-2">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-[#7c4dff]/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+            <div>
+                <div class="text-[#7c4dff] font-black text-4xl mb-4 opacity-50 group-hover:opacity-100 transition-opacity">05</div>
+                <h4 class="text-white font-bold text-lg mb-2 relative z-10">终极目标<br><span class="text-xs text-slate-400 font-normal uppercase tracking-wider">ULTIMATE GOAL</span></h4>
+            </div>
+            <p class="text-sm text-slate-400 relative z-10 mt-4">追求人与技术的共生共智，实现人、组织、社会的和谐共赢。</p>
+        </div>
+    </div>
+
+    <!-- Maturity Model content merged into 5D Model section -->
+        <div class="mt-16 relative">
+            <!-- Decorative Background Glow -->
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[300px] bg-gradient-to-b from-[#7c4dff]/10 to-transparent blur-[120px] pointer-events-none"></div>
+            
+            <div class="text-center mb-16 animate-on-scroll relative z-10">
+                <h2 class="text-3xl md:text-3xl md:text-4xl font-bold text-white heading-decorative">新质组织成熟度模型</h2>
+                <p class="text-slate-400 mt-6 text-lg">该模型用于企业组织能力诊断体系，呈现企业在组织进化道路上的成果。</p>
+            </div>
+            
+            <!-- Premium Hexagon/Ladder Layout -->
+            <div class="flex flex-col md:flex-row justify-center items-center md:items-end gap-4 md:gap-2 animate-on-scroll max-w-6xl mx-auto">
+                <!-- L1 -->
+                <div class="flex-1 w-full md:w-auto glass-panel relative p-6 text-center border-t-4 border-t-slate-600 hover:border-t-[#7c4dff] hover:-translate-y-2 transition-all duration-300 group opacity-50 hover:opacity-100 h-auto md:h-[200px]">
+                    <div class="text-slate-500 font-black text-2xl mb-2 group-hover:text-[#7c4dff] transition-colors">L1</div>
+                    <div class="w-10 h-10 mx-auto bg-slate-800 rounded-full flex items-center justify-center mb-3 group-hover:bg-[#7c4dff]/20 transition-colors">
+                        <i class="fas fa-sitemap text-slate-400 group-hover:text-[#7c4dff]"></i>
+                    </div>
+                    <h4 class="text-white font-bold mb-1">职能驱动</h4>
+                    <p class="text-xs text-slate-500">科层制管理，局部信息化</p>
+                </div>
+                
+                <!-- L2 -->
+                <div class="flex-1 w-full md:w-auto glass-panel relative p-6 text-center border-t-4 border-t-slate-500 hover:border-t-[#7c4dff] hover:-translate-y-2 transition-all duration-300 group opacity-60 hover:opacity-100 h-auto md:h-[220px]">
+                    <div class="text-slate-400 font-black text-2xl mb-2 group-hover:text-[#7c4dff] transition-colors">L2</div>
+                    <div class="w-10 h-10 mx-auto bg-slate-800 rounded-full flex items-center justify-center mb-3 group-hover:bg-[#7c4dff]/20 transition-colors">
+                        <i class="fas fa-project-diagram text-slate-400 group-hover:text-[#7c4dff]"></i>
+                    </div>
+                    <h4 class="text-white font-bold mb-1">流程协同</h4>
+                    <p class="text-xs text-slate-400">流程标准化与跨部门在线协作</p>
+                </div>
+                
+                <!-- L3 -->
+                <div class="flex-1 w-full md:w-auto glass-panel relative p-6 text-center border-t-4 border-t-slate-400 hover:border-t-[#7c4dff] hover:-translate-y-2 transition-all duration-300 group opacity-70 hover:opacity-100 h-auto md:h-[240px]">
+                    <div class="text-slate-300 font-black text-2xl mb-2 group-hover:text-[#7c4dff] transition-colors">L3</div>
+                    <div class="w-10 h-10 mx-auto bg-slate-800 rounded-full flex items-center justify-center mb-3 group-hover:bg-[#7c4dff]/20 transition-colors">
+                        <i class="fas fa-chart-bar text-slate-300 group-hover:text-[#7c4dff]"></i>
+                    </div>
+                    <h4 class="text-white font-bold mb-1">数字运营</h4>
+                    <p class="text-xs text-slate-300">数据驱动决策与全链路数字化</p>
+                </div>
+                
+                <!-- L4 -->
+                <div class="flex-1 w-full md:w-auto glass-panel relative p-6 text-center border-t-4 border-t-slate-300 hover:border-t-[#00f0ff] hover:-translate-y-2 transition-all duration-300 group opacity-80 hover:opacity-100 h-auto md:h-[260px]">
+                    <div class="text-slate-200 font-black text-2xl mb-2 group-hover:text-[#00f0ff] transition-colors">L4</div>
+                    <div class="w-10 h-10 mx-auto bg-slate-800 rounded-full flex items-center justify-center mb-3 group-hover:bg-[#00f0ff]/20 transition-colors">
+                        <i class="fas fa-network-wired text-slate-200 group-hover:text-[#00f0ff]"></i>
+                    </div>
+                    <h4 class="text-white font-bold mb-1">智能敏捷</h4>
+                    <p class="text-xs text-slate-200">AI赋能业务与组织柔性敏捷</p>
+                </div>
+                
+                <!-- L5 -->
+                <div class="flex-1 w-full md:w-auto glass-panel relative p-6 text-center border-t-4 border-t-white hover:border-t-[#00f0ff] hover:-translate-y-2 transition-all duration-300 group opacity-90 hover:opacity-100 h-auto md:h-[280px]">
+                    <div class="text-white font-black text-2xl mb-2 group-hover:text-[#00f0ff] transition-colors">L5</div>
+                    <div class="w-10 h-10 mx-auto bg-gradient-to-r from-[#7c4dff] to-[#00f0ff] rounded-full flex items-center justify-center mb-3">
+                        <i class="fas fa-brain text-white group-hover:scale-110 transition-transform"></i>
+                    </div>
+                    <h4 class="text-white font-bold mb-1">生态共生</h4>
+                    <p class="text-xs text-white">无边界组织，人机共治与生态协同</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- 06 Research Contribution -->
+<section class="py-24 relative overflow-hidden" id="contribution">
+<div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image:repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(99,102,241,0.25) 8px,rgba(99,102,241,0.25) 10px),repeating-linear-gradient(-45deg,transparent,transparent 8px,rgba(99,102,241,0.15) 8px,rgba(99,102,241,0.15) 10px);background-size:14px 14px"></div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+<div class="text-center mb-16 animate-on-scroll">
+<h2 class="text-3xl md:text-3xl md:text-4xl font-bold text-white heading-decorative">研究价值</h2>
+<p class="text-slate-400 mt-6 text-lg">聚焦AI时代组织进化，构建学术、实践与案例三位一体赋能体系</p>
+</div>
+<div class="grid md:grid-cols-3 gap-8 relative">
+<!-- Background Glows -->
+<div class="absolute top-1/2 left-0 w-64 h-64 bg-[#7c4dff] rounded-full blur-[120px] opacity-20 -translate-y-1/2 pointer-events-none"></div>
+<div class="absolute top-1/2 right-0 w-64 h-64 bg-[#00f0ff] rounded-full blur-[120px] opacity-10 -translate-y-1/2 pointer-events-none"></div>
+<!-- Card 1 -->
+<div class="glass-panel p-[1px] relative overflow-hidden group hover:-translate-y-3 transition-all duration-500 animate-on-scroll shadow-lg">
+<div class="absolute inset-0 bg-gradient-to-br from-[#7c4dff]/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+<div class="bg-[#0b0e1a]/90 backdrop-blur-xl h-full w-full rounded-[11px] p-8 relative z-10 border border-white/5">
+<div class="absolute right-0 top-0 text-[100px] font-black text-white/[0.02] -mt-6 -mr-2 group-hover:text-[#7c4dff]/10 transition-colors duration-500 pointer-events-none select-none">01</div>
+<div class="w-16 h-16 bg-gradient-to-br from-[#7c4dff]/20 to-transparent rounded-2xl flex items-center justify-center mb-8 border border-[#7c4dff]/30 group-hover:border-[#7c4dff] group-hover:shadow-[0_0_25px_rgba(124,77,255,0.4)] transition-all">
+<i class="fas fa-lightbulb text-2xl text-[#7c4dff] group-hover:scale-110 transition-transform"></i>
+</div>
+<h3 class="text-2xl font-bold text-white mb-6 flex items-center">
+                        理论贡献
+                        <span class="ml-3 h-px flex-1 bg-gradient-to-r from-[#7c4dff]/50 to-transparent"></span>
+</h3>
+<ul class="space-y-5">
+<li class="flex items-start group/item">
+<div class="mt-1 mr-4 w-5 h-5 rounded-full bg-[#7c4dff]/10 flex items-center justify-center border border-[#7c4dff]/30 group-hover/item:bg-[#7c4dff] transition-colors">
+<i class="fas fa-check text-[10px] text-[#7c4dff] group-hover/item:text-white"></i>
+</div>
+<span class="text-slate-300 font-medium group-hover/item:text-white transition-colors">定义新质组织框架</span>
+</li>
+<li class="flex items-start group/item">
+<div class="mt-1 mr-4 w-5 h-5 rounded-full bg-[#7c4dff]/10 flex items-center justify-center border border-[#7c4dff]/30 group-hover/item:bg-[#7c4dff] transition-colors">
+<i class="fas fa-check text-[10px] text-[#7c4dff] group-hover/item:text-white"></i>
+</div>
+<span class="text-slate-300 font-medium group-hover/item:text-white transition-colors">构建 AI 组织模型</span>
+</li>
+</ul>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="glass-panel p-[1px] relative overflow-hidden group hover:-translate-y-3 transition-all duration-500 animate-on-scroll shadow-lg" style="animation-delay: 100ms;">
+<div class="absolute inset-0 bg-gradient-to-br from-[#00f0ff]/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+<div class="bg-[#0b0e1a]/90 backdrop-blur-xl h-full w-full rounded-[11px] p-8 relative z-10 border border-white/5">
+<div class="absolute right-0 top-0 text-[100px] font-black text-white/[0.02] -mt-6 -mr-2 group-hover:text-[#00f0ff]/10 transition-colors duration-500 pointer-events-none select-none">02</div>
+<div class="w-16 h-16 bg-gradient-to-br from-[#00f0ff]/20 to-transparent rounded-2xl flex items-center justify-center mb-8 border border-[#00f0ff]/30 group-hover:border-[#00f0ff] group-hover:shadow-[0_0_25px_rgba(0,240,255,0.4)] transition-all">
+<i class="fas fa-cube text-2xl text-[#00f0ff] group-hover:scale-110 transition-transform"></i>
+</div>
+<h3 class="text-2xl font-bold text-white mb-6 flex items-center">
+                        方法贡献
+                        <span class="ml-3 h-px flex-1 bg-gradient-to-r from-[#00f0ff]/50 to-transparent"></span>
+</h3>
+<ul class="space-y-5">
+<li class="flex items-start group/item">
+<div class="mt-1 mr-4 w-5 h-5 rounded-full bg-[#00f0ff]/10 flex items-center justify-center border border-[#00f0ff]/30 group-hover/item:bg-[#00f0ff] transition-colors">
+<i class="fas fa-check text-[10px] text-[#00f0ff] group-hover/item:text-[#111424]"></i>
+</div>
+<span class="text-slate-300 font-medium group-hover/item:text-white transition-colors">首创五维评价模型</span>
+</li>
+<li class="flex items-start group/item">
+<div class="mt-1 mr-4 w-5 h-5 rounded-full bg-[#00f0ff]/10 flex items-center justify-center border border-[#00f0ff]/30 group-hover/item:bg-[#00f0ff] transition-colors">
+<i class="fas fa-check text-[10px] text-[#00f0ff] group-hover/item:text-[#111424]"></i>
+</div>
+<span class="text-slate-300 font-medium group-hover/item:text-white transition-colors">新质组织成熟度模型</span>
+</li>
+
+</ul>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="glass-panel p-[1px] relative overflow-hidden group hover:-translate-y-3 transition-all duration-500 animate-on-scroll shadow-lg" style="animation-delay: 200ms;">
+<div class="absolute inset-0 bg-gradient-to-br from-[#ff00a0]/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+<div class="bg-[#0b0e1a]/90 backdrop-blur-xl h-full w-full rounded-[11px] p-8 relative z-10 border border-white/5">
+<div class="absolute right-0 top-0 text-[100px] font-black text-white/[0.02] -mt-6 -mr-2 group-hover:text-[#ff00a0]/10 transition-colors duration-500 pointer-events-none select-none">03</div>
+<div class="w-16 h-16 bg-gradient-to-br from-[#ff00a0]/20 to-transparent rounded-2xl flex items-center justify-center mb-8 border border-[#ff00a0]/30 group-hover:border-[#ff00a0] group-hover:shadow-[0_0_25px_rgba(255,0,160,0.4)] transition-all">
+<i class="fas fa-rocket text-2xl text-[#ff00a0] group-hover:scale-110 transition-transform"></i>
+</div>
+<h3 class="text-2xl font-bold text-white mb-6 flex items-center">
+                        实践贡献
+                        <span class="ml-3 h-px flex-1 bg-gradient-to-r from-[#ff00a0]/50 to-transparent"></span>
+</h3>
+<ul class="space-y-5">
+<li class="flex items-start group/item">
+<div class="mt-1 mr-4 w-5 h-5 rounded-full bg-[#ff00a0]/10 flex items-center justify-center border border-[#ff00a0]/30 group-hover/item:bg-[#ff00a0] transition-colors">
+<i class="fas fa-check text-[10px] text-[#ff00a0] group-hover/item:text-white"></i>
+</div>
+<span class="text-slate-300 font-medium group-hover/item:text-white transition-colors">企业评估与诊断体系</span>
+</li>
+<li class="flex items-start group/item">
+<div class="mt-1 mr-4 w-5 h-5 rounded-full bg-[#ff00a0]/10 flex items-center justify-center border border-[#ff00a0]/30 group-hover/item:bg-[#ff00a0] transition-colors">
+<i class="fas fa-check text-[10px] text-[#ff00a0] group-hover/item:text-white"></i>
+</div>
+<span class="text-slate-300 font-medium group-hover/item:text-white transition-colors">行业人效标准化落地</span>
+</li>
+<li class="flex items-start group/item">
+<div class="mt-1 mr-4 w-5 h-5 rounded-full bg-[#ff00a0]/10 flex items-center justify-center border border-[#ff00a0]/30 group-hover/item:bg-[#ff00a0] transition-colors">
+<i class="fas fa-check text-[10px] text-[#ff00a0] group-hover/item:text-white"></i>
+</div>
+<span class="text-slate-300 font-medium group-hover/item:text-white transition-colors">组织数据资产化转型</span>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 07 Research Process -->
+<section class="py-24 bg-[#080b14] relative overflow-hidden" id="process">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+<div class="text-center mb-20 animate-on-scroll">
+<h2 class="text-3xl md:text-3xl md:text-4xl font-bold text-white heading-decorative">研究进程与发布体系</h2>
+<p class="text-slate-400 mt-4 max-w-3xl mx-auto">科学严谨的研究路径，确保输出成果的权威性与指导价值</p>
+</div>
+<div class="process-arrow-container">
+                    <div class="flex flex-col md:flex-row justify-between items-stretch gap-4 md:gap-0">
+                        <!-- Phase 1 -->
+                        <div class="process-arrow-step animate-on-scroll">
+                            <div class="arrow-content">
+                                <div class="arrow-header">
+                                    <span class="arrow-phase">P1</span>
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <h3 class="arrow-title">企业调研</h3>
+                                <p class="arrow-desc">深入企业一线开展结构化调研与高管访谈。</p>
+                            </div>
+                            <div class="arrow-tail hidden md:block"></div>
+                        </div>
+                        <!-- Phase 2 -->
+                        <div class="process-arrow-step animate-on-scroll" style="animation-delay: 100ms;">
+                            <div class="arrow-content">
+                                <div class="arrow-header">
+                                    <span class="arrow-phase">P2</span>
+                                    <i class="fas fa-chart-pie"></i>
+                                </div>
+                                <h3 class="arrow-title">样本分析</h3>
+                                <p class="arrow-desc">对海量调研数据进行清洗与多维度量化分析。</p>
+                            </div>
+                            <div class="arrow-tail hidden md:block"></div>
+                        </div>
+                        <!-- Phase 3 -->
+                        <div class="process-arrow-step animate-on-scroll" style="animation-delay: 200ms;">
+                            <div class="arrow-content">
+                                <div class="arrow-header">
+                                    <span class="arrow-phase">P3</span>
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <h3 class="arrow-title">案例采集</h3>
+                                <p class="arrow-desc">深度挖掘行业标杆，采集代表性的成功实践。</p>
+                            </div>
+                            <div class="arrow-tail hidden md:block"></div>
+                        </div>
+                        <!-- Phase 4 -->
+                        <div class="process-arrow-step animate-on-scroll" style="animation-delay: 300ms;">
+                            <div class="arrow-content">
+                                <div class="arrow-header">
+                                    <span class="arrow-phase">P4</span>
+                                    <i class="fas fa-pen-nib"></i>
+                                </div>
+                                <h3 class="arrow-title">报告编写</h3>
+                                <p class="arrow-desc">提炼研究发现，撰写并打磨研究白皮书。</p>
+                            </div>
+                            <div class="arrow-tail hidden md:block"></div>
+                        </div>
+                        <!-- Phase 5 -->
+                        <div class="process-arrow-step animate-on-scroll" style="animation-delay: 400ms;">
+                            <div class="arrow-content">
+                                <div class="arrow-header">
+                                    <span class="arrow-phase">P5</span>
+                                    <i class="fas fa-bullhorn"></i>
+                                </div>
+                                <h3 class="arrow-title">成果发布</h3>
+                                <p class="arrow-desc">权威发布研究报告与年度发展趋势洞察。</p>
+                            </div>
+                            <div class="arrow-tail hidden md:block"></div>
+                        </div>
+                        <!-- Phase 6 -->
+                        <div class="process-arrow-step step-final animate-on-scroll" style="animation-delay: 500ms;">
+                            <div class="arrow-content">
+                                <div class="arrow-header">
+                                    <span class="arrow-phase">P6</span>
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <h3 class="arrow-title">行业论坛</h3>
+                                <p class="arrow-desc">举办高峰论坛，汇聚生态力量共议未来。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+<!-- 08 Think Tank -->
+<section class="py-24 bg-[#080b14] overflow-hidden" id="about">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+<div class="text-center mb-16 animate-on-scroll">
+<h2 class="text-3xl md:text-3xl md:text-4xl font-bold text-white heading-decorative">智库专家团</h2>
+<p class="text-[var(--nqoc-text-muted)] mt-4 max-w-3xl mx-auto">产学研专家打造优质研究生态，为组织变革前沿课题持续贡献深度智慧</p>
+<p class="text-sm text-[var(--nqoc-brand-light)] mt-2 tracking-widest font-semibold">（持续更新中）</p>
+</div>
+</div>
+<!-- Full-width Marquee Container -->
+<div class="expert-marquee-container animate-on-scroll">
+<div class="expert-marquee-track">
+<!-- Group 1 -->
+<div class="expert-card">
+<div class="expert-photo-wrapper">
+<img alt="张建国" rel="nofollow" loading="lazy" src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-zhangjianguo.png" class="object-cover w-full h-full" style="object-position: center top;" />
+</div>
+<div class="expert-content">
+<div class="expert-name">张建国</div>
+<div class="expert-title">人瑞人才创始人/瑞华智策CEO</div>
+<div class="expert-tags">
+<span class="expert-tag">人力资本价值经营</span>
+<span class="expert-tag">AI时代的系统性组织重构</span>
+</div>
+</div>
+</div>
+<div class="expert-card">
+<div class="expert-photo-wrapper">
+<img alt="彭剑锋" rel="nofollow" loading="lazy" src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-pengjianfeng.png" class="object-cover w-full h-full" style="object-position: center top;" />
+</div>
+<div class="expert-content">
+<div class="expert-name">彭剑锋</div>
+<div class="expert-title">中国人民大学教授/华夏基石创始人</div>
+<div class="expert-tags">
+<span class="expert-tag">人力资源管理</span>
+<span class="expert-tag">企业战略管理</span>
+<span class="expert-tag">企业文化建设</span>
+<span class="expert-tag">组织变革</span>
+</div>
+</div>
+</div>
+<div class="expert-card">
+<div class="expert-photo-wrapper">
+<img alt="周文霞" rel="nofollow" loading="lazy" src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-nv.png" class="object-cover w-full h-full" style="object-position: center top;" />
+</div>
+<div class="expert-content">
+<div class="expert-name">周文霞</div>
+<div class="expert-title">中国人民大学劳人院教授/北京市人才战略发展研究院副院长</div>
+<div class="expert-tags">
+<span class="expert-tag">组织行为</span>
+<span class="expert-tag">职业生涯管理</span>
+<span class="expert-tag">人力资源管理</span>
+<span class="expert-tag">人才激励</span>
+</div>
+</div>
+</div>
+<div class="expert-card">
+<div class="expert-photo-wrapper">
+<img alt="张闫龙" rel="nofollow" loading="lazy" src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-nan.png" class="object-cover w-full h-full" style="object-position: center top;" />
+</div>
+<div class="expert-content">
+<div class="expert-name">张闫龙</div>
+<div class="expert-title">北京大学光华管理学院副院长/教授</div>
+<div class="expert-tags">
+<span class="expert-tag">AI时代的组织变革</span>
+</div>
+</div>
+</div>
+<div class="expert-card">
+<div class="expert-photo-wrapper">
+<img alt="姜铠丰" rel="nofollow" loading="lazy" src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-jiangkaifeng.png" class="object-cover w-full h-full" style="object-position: center top;" />
+</div>
+<div class="expert-content">
+<div class="expert-name">姜铠丰</div>
+<div class="expert-title">北大光华管理学院/组织与战略管理系教授</div>
+<div class="expert-tags">
+<span class="expert-tag">战略人力资源管理</span>
+</div>
+</div>
+</div>
+<div class="expert-card">
+<div class="expert-photo-wrapper">
+<img alt="胡佳" rel="nofollow" loading="lazy" src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-nv.png" class="object-cover w-full h-full" style="object-position: center top;" />
+</div>
+<div class="expert-content">
+<div class="expert-name">胡佳</div>
+<div class="expert-title">清华大学经济与管理学院和苏世民书院双聘教授</div>
+<div class="expert-tags">
+<span class="expert-tag">亲社会领导力</span>
+<span class="expert-tag">团队效能</span>
+<span class="expert-tag">数字技术与领导</span>
+<span class="expert-tag">女性管理者</span>
+</div>
+</div>
+</div>
+<div class="expert-card">
+<div class="expert-photo-wrapper">
+<img alt="张永力" rel="nofollow" loading="lazy" src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-zhangyongli.png" class="object-cover w-full h-full" style="object-position: center top;" />
+</div>
+<div class="expert-content">
+<div class="expert-name">张永力</div>
+<div class="expert-title">中央财经大学副教授、英赛孚工业智能CEO兼首席数据科学家</div>
+<div class="expert-tags">
+<span class="expert-tag">工业大数据</span>
+<span class="expert-tag">智能制造领域的AI落地</span>
+</div>
+</div>
+</div>
+<div class="expert-card">
+<div class="expert-photo-wrapper">
+<img alt="王太文" rel="nofollow" loading="lazy" src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-wangtaiwen.png" class="object-cover w-full h-full" style="object-position: center top;" />
+</div>
+<div class="expert-content">
+<div class="expert-name">王太文</div>
+<div class="expert-title">华为大学特级教授/高级管理顾问/清华大学高级访问学者</div>
+<div class="expert-tags">
+<span class="expert-tag">战略解码</span>
+<span class="expert-tag">组织变革</span>
+</div>
+</div>
+</div>
+<!-- Group 2 (Clone for infinite scrolling) -->
+<div aria-hidden="true" class="expert-card">
+<div class="expert-photo-wrapper">
+<img alt="张建国" rel="nofollow" loading="lazy" src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-zhangjianguo.png" class="object-cover w-full h-full" style="object-position: center top;" />
+</div>
+<div class="expert-content">
+<div class="expert-name">张建国</div>
+<div class="expert-title">人瑞人才创始人/瑞华智策CEO</div>
+<div class="expert-tags">
+<span class="expert-tag">人力资本价值经营</span>
+<span class="expert-tag">AI时代的系统性组织重构</span>
+</div>
+</div>
+</div>
+<div aria-hidden="true" class="expert-card">
+<div class="expert-photo-wrapper">
+<img alt="彭剑锋" rel="nofollow" loading="lazy" src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-pengjianfeng.png" class="object-cover w-full h-full" style="object-position: center top;" />
+</div>
+<div class="expert-content">
+<div class="expert-name">彭剑锋</div>
+<div class="expert-title">中国人民大学教授/华夏基石创始人</div>
+<div class="expert-tags">
+<span class="expert-tag">人力资源管理</span>
+<span class="expert-tag">企业战略管理</span>
+<span class="expert-tag">企业文化建设</span>
+<span class="expert-tag">组织变革</span>
+</div>
+</div>
+</div>
+<div aria-hidden="true" class="expert-card">
+<div class="expert-photo-wrapper">
+<img alt="周文霞" rel="nofollow" loading="lazy" src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-nv.png" class="object-cover w-full h-full" style="object-position: center top;" />
+</div>
+<div class="expert-content">
+<div class="expert-name">周文霞</div>
+<div class="expert-title">中国人民大学劳人院教授/北京市人才战略发展研究院副院长</div>
+<div class="expert-tags">
+<span class="expert-tag">组织行为</span>
+<span class="expert-tag">职业生涯管理</span>
+<span class="expert-tag">人力资源管理</span>
+<span class="expert-tag">人才激励</span>
+</div>
+</div>
+</div>
+<div aria-hidden="true" class="expert-card">
+<div class="expert-photo-wrapper">
+<img alt="张闫龙" rel="nofollow" loading="lazy" src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-nan.png" class="object-cover w-full h-full" style="object-position: center top;" />
+</div>
+<div class="expert-content">
+<div class="expert-name">张闫龙</div>
+<div class="expert-title">北京大学光华管理学院副院长/教授</div>
+<div class="expert-tags">
+<span class="expert-tag">AI时代的组织变革</span>
+</div>
+</div>
+</div>
+<div aria-hidden="true" class="expert-card">
+<div class="expert-photo-wrapper">
+<img alt="姜铠丰" rel="nofollow" loading="lazy" src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-jiangkaifeng.png" class="object-cover w-full h-full" style="object-position: center top;" />
+</div>
+<div class="expert-content">
+<div class="expert-name">姜铠丰</div>
+<div class="expert-title">北大光华管理学院/组织与战略管理系教授</div>
+<div class="expert-tags">
+<span class="expert-tag">战略人力资源管理</span>
+</div>
+</div>
+</div>
+<div aria-hidden="true" class="expert-card">
+<div class="expert-photo-wrapper">
+<img alt="胡佳" rel="nofollow" loading="lazy" src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-nv.png" class="object-cover w-full h-full" style="object-position: center top;" />
+</div>
+<div class="expert-content">
+<div class="expert-name">胡佳</div>
+<div class="expert-title">清华大学经济与管理学院和苏世民书院双聘教授</div>
+<div class="expert-tags">
+<span class="expert-tag">亲社会领导力</span>
+<span class="expert-tag">团队效能</span>
+<span class="expert-tag">数字技术与领导</span>
+<span class="expert-tag">女性管理者</span>
+</div>
+</div>
+</div>
+<div aria-hidden="true" class="expert-card">
+<div class="expert-photo-wrapper">
+<img alt="张永力" rel="nofollow" loading="lazy" src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-zhangyongli.png" class="object-cover w-full h-full" style="object-position: center top;" />
+</div>
+<div class="expert-content">
+<div class="expert-name">张永力</div>
+<div class="expert-title">中央财经大学副教授、英赛孚工业智能CEO兼首席数据科学家</div>
+<div class="expert-tags">
+<span class="expert-tag">工业大数据</span>
+<span class="expert-tag">智能制造领域的AI落地</span>
+</div>
+</div>
+</div>
+<div aria-hidden="true" class="expert-card">
+<div class="expert-photo-wrapper">
+<img alt="王太文" rel="nofollow" loading="lazy" src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/zhuanjia/nqoc-wangtaiwen.png" class="object-cover w-full h-full" style="object-position: center top;" />
+</div>
+<div class="expert-content">
+<div class="expert-name">王太文</div>
+<div class="expert-title">华为大学特级教授/高级管理顾问/清华大学高级访问学者</div>
+<div class="expert-tags">
+<span class="expert-tag">战略解码</span>
+<span class="expert-tag">组织变革</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 09 Ecosystem Network -->
+<section class="py-24 bg-[#04060d] relative overflow-hidden" id="ecosystem">
+    <!-- Abstract Decoration -->
+    <div class="absolute left-1/2 top-0 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-[var(--nqoc-brand)]/5 to-transparent rounded-[100%] blur-[100px] pointer-events-none"></div>
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="text-center mb-16 animate-on-scroll">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight mb-4">合作机构</h2>
+            <p class="text-[var(--nqoc-brand-light)] text-base md:text-lg max-w-2xl mx-auto font-medium tracking-wide">产学研权威阵容，打造“新质组织”研究的优质生态</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto animate-on-scroll">
+            
+            <!-- Card 1 -->
+            <div class="glass-panel p-6 sm:p-8 rounded-2xl flex flex-col sm:flex-row gap-5 sm:gap-6 items-start group hover:-translate-y-2 transition-transform duration-300 border border-white/5 hover:border-[var(--nqoc-brand)]/50 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-[var(--nqoc-brand)]/10 rounded-full blur-[40px] group-hover:bg-[var(--nqoc-brand)]/20 transition-colors"></div>
+                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[var(--nqoc-brand)]/20 flex items-center justify-center shrink-0 border border-[var(--nqoc-brand)]/30 group-hover:bg-[var(--nqoc-brand)] transition-colors duration-300 relative z-10">
+                    <i class="fas fa-user-tie text-xl sm:text-2xl text-[var(--nqoc-brand-light)] group-hover:text-white transition-colors"></i>
+                </div>
+                <div class="relative z-10 flex-1">
+                    <h3 class="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3">发起方</h3>
+                    <div class="text-base sm:text-lg text-white/90 font-medium mb-4 leading-relaxed">
+                        人瑞人才 (HK.06919)<br>
+                        瑞华智策【新质组织研究中心】
+                    </div>
+                    <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                        依托在人力资本价值经营、组织效能提升及企业AI化转型领域的深厚专业积淀。
+                    </p>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="glass-panel p-6 sm:p-8 rounded-2xl flex flex-col sm:flex-row gap-5 sm:gap-6 items-start group hover:-translate-y-2 transition-transform duration-300 border border-white/5 hover:border-[var(--nqoc-brand)]/50 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-[var(--nqoc-brand)]/10 rounded-full blur-[40px] group-hover:bg-[var(--nqoc-brand)]/20 transition-colors"></div>
+                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[var(--nqoc-brand)]/20 flex items-center justify-center shrink-0 border border-[var(--nqoc-brand)]/30 group-hover:bg-[var(--nqoc-brand)] transition-colors duration-300 relative z-10">
+                    <i class="fas fa-copy text-xl sm:text-2xl text-[var(--nqoc-brand-light)] group-hover:text-white transition-colors"></i>
+                </div>
+                <div class="relative z-10 flex-1 flex flex-col h-full">
+                    <div>
+                        <h3 class="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3">联合主办</h3>
+                        <div class="text-base sm:text-lg text-white/90 font-medium mb-4 leading-relaxed">
+                            《中国经营报》
+                        </div>
+                    </div>
+                    <div class="mt-auto pt-4">
+                        <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                            国内权威财经媒体，提供强大的主流传播平台与公信力背书，助力项目影响力辐射。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="glass-panel p-6 sm:p-8 rounded-2xl flex flex-col sm:flex-row gap-5 sm:gap-6 items-start group hover:-translate-y-2 transition-transform duration-300 border border-white/5 hover:border-[var(--nqoc-brand)]/50 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-[var(--nqoc-brand)]/10 rounded-full blur-[40px] group-hover:bg-[var(--nqoc-brand)]/20 transition-colors"></div>
+                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[var(--nqoc-brand)]/20 flex items-center justify-center shrink-0 border border-[var(--nqoc-brand)]/30 group-hover:bg-[var(--nqoc-brand)] transition-colors duration-300 relative z-10">
+                    <i class="fas fa-graduation-cap text-xl sm:text-2xl text-[var(--nqoc-brand-light)] group-hover:text-white transition-colors"></i>
+                </div>
+                <div class="relative z-10 flex-1 flex flex-col h-full">
+                    <div>
+                        <h3 class="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3">学术合作</h3>
+                        <div class="text-base sm:text-lg text-white/90 font-medium mb-4 leading-relaxed">
+                            北京大学光华管理学院【组织与战略管理系】
+                        </div>
+                    </div>
+                    <div class="mt-auto pt-4">
+                        <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                            汇聚管理学顶尖学者资源，为项目提供坚实的学术研究支撑与前沿的理论框架指导。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="glass-panel p-6 sm:p-8 rounded-2xl flex flex-col sm:flex-row gap-5 sm:gap-6 items-start group hover:-translate-y-2 transition-transform duration-300 border border-white/5 hover:border-[var(--nqoc-brand)]/50 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-[var(--nqoc-brand)]/10 rounded-full blur-[40px] group-hover:bg-[var(--nqoc-brand)]/20 transition-colors"></div>
+                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[var(--nqoc-brand)]/20 flex items-center justify-center shrink-0 border border-[var(--nqoc-brand)]/30 group-hover:bg-[var(--nqoc-brand)] transition-colors duration-300 relative z-10">
+                    <i class="fas fa-broadcast-tower text-xl sm:text-2xl text-[var(--nqoc-brand-light)] group-hover:text-white transition-colors"></i>
+                </div>
+                <div class="relative z-10 flex-1">
+                    <h3 class="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3">支持媒体矩阵</h3>
+                    <div class="text-xs sm:text-sm text-white/80 font-medium mb-4 leading-relaxed space-y-1.5">
+                        <div class="flex"><span class="text-[var(--nqoc-brand-light)] w-10 shrink-0">专业:</span><span>智享会、第一资源、HRflag、MeetHR</span></div>
+                        <div class="flex"><span class="text-[var(--nqoc-brand-light)] w-10 shrink-0">财经:</span><span>第一财经、投资中国、东方财富、智通财经</span></div>
+                        <div class="flex"><span class="text-[var(--nqoc-brand-light)] w-10 shrink-0">网络:</span><span>新华网、中新网、中国网、腾讯网等</span></div>
+                        <div class="text-[10px] sm:text-xs text-slate-500 pt-1">......持续更新中</div>
+                    </div>
+                    <p class="text-slate-400 text-xs sm:text-sm leading-relaxed pt-3 border-t border-white/10 mt-3">
+                        覆盖全渠道传播网络，确保研究成果的最大化传播，让更多企业受益。
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+<!-- 10 Outcomes -->
+<section class="py-24 relative overflow-hidden" id="whitepaper">
+<!-- Abstract Decoration -->
+<div class="absolute -right-64 -bottom-64 w-96 h-96 bg-[var(--nqoc-accent-purple)] rounded-full blur-[150px] opacity-20"></div>
+<div class="absolute -left-64 -top-64 w-96 h-96 bg-[var(--nqoc-accent-cyan)] rounded-full blur-[150px] opacity-10"></div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+<div class="text-center mb-16 animate-on-scroll">
+<h2 class="text-3xl md:text-3xl md:text-4xl font-bold text-white heading-decorative">研究成果与方法论输出</h2>
+<p class="text-slate-400 mt-4 max-w-3xl mx-auto">将前沿理论转化为可落地的企业赋能资产</p>
+</div>
+<div class="grid md:grid-cols-2 gap-8 mb-12">
+<!-- Main Feature: Whitepaper -->
+<div class="glass-panel p-10 relative overflow-hidden flex flex-col justify-center animate-on-scroll group border border-[rgba(124,77,255,0.3)]">
+<div class="absolute right-0 top-0 w-64 h-64 bg-[var(--nqoc-brand)] rounded-full blur-[80px] opacity-10 group-hover:opacity-30 transition-opacity duration-500"></div>
+<i class="fas fa-book-open text-5xl text-[var(--nqoc-brand-light)] mb-6"></i>
+<h3 class="text-2xl md:text-3xl font-bold text-white mb-4">《2026 中国企业新质组织成熟度研究报告》</h3>
+<p class="text-slate-400 mb-8 leading-relaxed">全面解析 AI 时代中国企业的组织进化路径与实战指南。基于10万+数据样本，深度刻画“新质组织”五维能力建设地图。</p>
+<div class="flex flex-wrap gap-4 mt-auto">
+<button class="btn-primary" type="button" data-report-open>领取报告 <i class="fas fa-download ml-2"></i></button>
+<button class="btn-outline" type="button" data-report-open>获取完整版报告</button>
+</div>
+</div>
+<!-- Other Modules Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-on-scroll" style="animation-delay: 100ms;">
+<!-- Module 1 -->
+<div class="outcome-card">
+<i class="fas fa-chart-bar outcome-icon"></i>
+<h4 class="outcome-title">行业研究报告</h4>
+<p class="outcome-desc">垂直领域的组织趋势深度剖析，洞悉行业前沿变化。</p>
+</div>
+<!-- Module 2 -->
+<div class="outcome-card">
+<i class="fas fa-folder-open outcome-icon"></i>
+<h4 class="outcome-title">企业案例集</h4>
+<p class="outcome-desc">收录标杆企业的最佳实践，提供可借鉴的转型模板。</p>
+</div>
+<!-- Module 3 -->
+<div class="outcome-card sm:col-span-2">
+<i class="fas fa-cubes outcome-icon"></i>
+<h4 class="outcome-title">组织模型体系</h4>
+<p class="outcome-desc">输出包含五维模型、成熟度模型、在内的全套量化评估与诊断工具集。</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 11 CTA -->
+<section class="py-24 bg-gradient-to-b from-[#0b0f19] to-[#120a2b]" id="join">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center animate-on-scroll">
+<h2 class="text-4xl md:text-5xl font-extrabold text-white mb-6">共建中国新质组织未来</h2>
+<p class="text-xl text-slate-300 mb-12">期待与您携手探索AI时代的组织变革之旅！</p>
+<div class="flex flex-col md:flex-row justify-center gap-6">
+<div class="glass-panel p-8 max-w-md w-full text-left">
+<h4 class="text-xl font-bold text-white mb-2">领取报告</h4>
+<p class="text-sm text-slate-400 mb-6">留下联系方式，获取最新发布的研究报告。</p>
+<a class="btn-primary w-full justify-center" href="{{view.latestReportUrl}}" data-report-open>领取报告</a>
+</div>
+<!-- 「评选申报」卡片（链接 /nqoc/awards）暂时隐藏，页面保留；需要时把这张卡片加回来 -->
+<div class="glass-panel p-8 max-w-md w-full text-left">
+<h4 class="text-xl font-bold text-white mb-2">申请智库专家</h4>
+<p class="text-sm text-slate-400 mb-6">加入专家智库，共建新质组织未来生态。</p>
+<a class="btn-outline w-full justify-center hover:scale-105 hover:bg-white/10 hover:border-white/50 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300" href="/nqoc/expert-apply">立即申请</a>
+</div>
+</div>
+
+</div>
+</section>
+</div>

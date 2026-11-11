@@ -22,3 +22,42 @@
 /* FAQ 单选按钮组 */
 .field-group{margin-bottom:13px}.field-group>label{display:block;margin-bottom:8px;font-size:12px;font-weight:800}.radio-group{display:flex;gap:12px;padding:8px 0}.radio-group label{display:flex;align-items:center;gap:6px;margin:0;font-size:13px;font-weight:600;cursor:pointer}.radio-group input[type="radio"]{accent-color:var(--purple);cursor:pointer;width:16px;height:16px}
 .chip.featured{border-color:#ffd27a;background:#fff9e6;color:#875300}
+/* ===== 新质组织（NQOC）后台：工作台 / 弹窗 / 表格 补充样式 ===== */
+.thumb{display:inline-flex;align-items:center;justify-content:center;width:64px;height:42px;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:var(--soft);color:var(--muted);font-size:10.5px;font-weight:700;text-align:center;line-height:1.3}
+.thumb img{display:block;width:100%;height:100%;object-fit:cover}
+.thumb.lg{width:124px;height:76px}
+.thumb.none{background:repeating-linear-gradient(45deg,var(--soft),var(--soft) 6px,#fbfafc 6px,#fbfafc 12px)}
+.upload-row{display:flex;align-items:center;gap:10px;margin-top:6px}
+.upload-row input[type=file]{flex:1;min-width:0;font-size:11.5px}
+.upload-row .sub{margin-top:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+.config-field .hint{margin-left:4px;color:var(--muted);font-size:10.5px;font-weight:500}
+.count{margin-left:6px;color:var(--muted);font:700 10px var(--mono)}
+.count.over{color:#b3261e}
+.stats span em{font-style:normal;color:var(--ink2);font-weight:800}
+button.switch{position:relative;width:35px;height:20px;border:0;border-radius:20px;background:var(--hair);cursor:pointer;transition:.16s;flex:0 0 auto;padding:0}
+button.switch:after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.16s}
+button.switch.on{background:var(--purple)}
+button.switch.on:after{transform:translateX(15px)}
+button.star{border:0;background:transparent;color:var(--hair);font-size:15px;line-height:1;cursor:pointer;padding:2px 4px}
+button.star.on{color:#f0a91d}
+.chip.top{border-color:#ffd27a;background:#fff9e6;color:#875300}
+.sort-item .switch{margin-left:auto}
+.sort-item.off{opacity:.6}
+.sort-item.dragging{opacity:.5;border-style:dashed}
+.sort-item .copy .sub{color:var(--muted)}
+button[disabled]{opacity:.5;cursor:not-allowed}
+/* 列表列宽拖拽 */
+.table-wrap thead th{position:relative}
+.col-rs{position:absolute;top:0;right:0;width:9px;height:100%;cursor:col-resize;user-select:none;touch-action:none}
+.col-rs::after{content:"";position:absolute;top:6px;bottom:6px;right:3px;width:2px;border-radius:2px;background:transparent;transition:.16s}
+.col-rs:hover::after,.col-rs.on::after{background:var(--purple)}
+table.rz{table-layout:fixed}
+table.rz thead th,table.rz tbody td{overflow:hidden;text-overflow:ellipsis}
+body.col-rz{cursor:col-resize;user-select:none}
+body.col-rz *{cursor:col-resize!important}
+/* 新质组织创作工作台：隐藏 GEO 面板，正文区 + 配置区两栏 */
+.studio.nqoc-mode .studio-geo{display:none}
+.studio.nqoc-mode .studio-body{grid-template-columns:minmax(0,1fr) 340px}
+@media(max-width:860px){.studio.nqoc-mode .studio-body{grid-template-columns:1fr}.studio.nqoc-mode .studio-config{max-height:52vh}}

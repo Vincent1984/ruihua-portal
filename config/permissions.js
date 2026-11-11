@@ -58,7 +58,25 @@ const PERMISSION_GROUPS = [
             { code: 'nqoc:list', name: '查看新质组织数据' },
             { code: 'nqoc:edit', name: '编辑新质组织数据' },
             { code: 'nqoc:delete', name: '删除新质组织数据', dangerous: true },
-            { code: 'nqoc:export', name: '导出新质组织数据', dangerous: true }
+            { code: 'nqoc:export', name: '导出新质组织数据', dangerous: true },
+            { code: 'nqoc-banner:list', name: '查看首页 Banner' },
+            { code: 'nqoc-banner:create', name: '新增首页 Banner' },
+            { code: 'nqoc-banner:update', name: '编辑首页 Banner' },
+            { code: 'nqoc-banner:delete', name: '删除首页 Banner', dangerous: true },
+            { code: 'nqoc-insights:list', name: '查看新质观点' },
+            { code: 'nqoc-insights:create', name: '新增新质观点' },
+            { code: 'nqoc-insights:update', name: '编辑新质观点' },
+            { code: 'nqoc-insights:delete', name: '删除新质观点', dangerous: true },
+            { code: 'nqoc-cases:list', name: '查看新质组织案例研究' },
+            { code: 'nqoc-cases:create', name: '新增案例研究' },
+            { code: 'nqoc-cases:update', name: '编辑案例研究' },
+            { code: 'nqoc-cases:delete', name: '删除案例研究', dangerous: true },
+            { code: 'nqoc-videos:list', name: '查看值得看见' },
+            { code: 'nqoc-videos:create', name: '新增值得看见' },
+            { code: 'nqoc-videos:update', name: '编辑值得看见' },
+            { code: 'nqoc-videos:delete', name: '删除值得看见', dangerous: true },
+            { code: 'nqoc-report-leads:list', name: '查看报告领取记录' },
+            { code: 'nqoc-report-leads:export', name: '导出报告领取记录', dangerous: true }
         ]
     },
     {

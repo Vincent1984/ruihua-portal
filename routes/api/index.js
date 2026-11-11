@@ -59,6 +59,10 @@ function initApiRoutes(dependencies) {
   const subscriptionRoutes = require('./subscriptions')();
   router.use('/', subscriptionRoutes);  // 挂载到根路径
 
+  // 新质组织路由（迷你站 /nqoc：Banner / 观点 / 案例 / 值得看见 / 报告领取）
+  const nqocRoutes = require('./nqoc')(authRequired, requirePerm, requireAnyPerm);
+  router.use('/', nqocRoutes);  // 挂载到根路径，内部已有 /admin/nqoc/... 与 /nqoc/reports/apply
+
   return router;
 }
 

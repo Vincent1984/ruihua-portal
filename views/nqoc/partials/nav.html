@@ -1,0 +1,26 @@
+<!-- Navigation：结构与类名沿用现有页面，只调整了栏目项。
+     参与调研（/nqoc/survey）、评选申报（/nqoc/awards）、研讨活动（/nqoc/events）三个页面保留但暂不放进菜单，需要时在这里和 mobile-nav.html 各加回一条链接 -->
+<nav class="nqoc-nav py-4 fixed w-full z-50 bg-[#080b14]/90 backdrop-blur-md border-b border-white/5" aria-label="主导航" data-site-nav>
+    <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+        <div class="flex items-center">
+            <a href="/nqoc" class="flex items-center">
+                <img src="<!--CONFIG_LOGO-->" alt="NQOC 新质组织研究中心" class="nqoc-logo" width="556" height="288">
+            </a>
+        </div>
+        <div class="hidden md:flex items-center space-x-6 text-sm font-medium flex-1 justify-end">
+            <div class="flex space-x-6 top-nav-links">
+                <a href="/nqoc" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition" data-nav-key="home">首页</a>
+                <a href="/nqoc/whitepaper" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition" data-nav-key="whitepaper">研究成果</a>
+                <a href="/nqoc/insights" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition" data-nav-key="insights">新质观点</a>
+                <a href="/nqoc/cases" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition" data-nav-key="cases">案例研究</a>
+                <a href="/nqoc/worth-seeing" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition" data-nav-key="worth-seeing">值得看见</a>
+                <a href="/nqoc/about" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition" data-nav-key="about">关于我们</a>
+            </div>
+            <a href="/nqoc/whitepaper/<!--CONFIG_REPORT_SLUG-->" class="btn-primary ml-6 !py-2 !px-4 !text-sm whitespace-nowrap" data-report-open>领取报告</a>
+        </div>
+        <div class="md:hidden flex items-center">
+            <a href="/nqoc/whitepaper/<!--CONFIG_REPORT_SLUG-->" class="btn-primary mr-2 min-h-11 !py-1.5 !px-3 !text-xs whitespace-nowrap" data-report-open>领取报告</a>
+            <button class="text-white w-11 h-11" id="mobile-menu-btn" type="button" aria-label="打开菜单" aria-expanded="false" aria-controls="nqocMobileMenu" data-menu-toggle><i class="fas fa-bars text-xl" aria-hidden="true"></i></button>
+        </div>
+    </div>
+</nav>

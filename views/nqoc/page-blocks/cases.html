@@ -1,0 +1,29 @@
+<div class="page" data-page="cases">
+  <section class="page-head page-head--hero">
+    <div class="page-head__bg page-head__bg--img" aria-hidden="true"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/img/hero/cases-static.svg" /><img src="/img/hero/cases.svg" alt="" width="1920" height="600" fetchpriority="high" /></picture></div>
+    <div class="wrap">
+      <nav class="crumbs" aria-label="面包屑" data-crumbs><a href="/nqoc">首页</a><span aria-current="page">案例研究</span></nav>
+      <p class="eyebrow">Case Studies</p>
+      <h1>案例研究</h1>
+      <p class="page-head__lead">标杆企业的新质组织实践：做了什么、遇到什么挑战、可以借鉴什么。</p>
+    </div>
+  </section>
+  <section class="section section--flush">
+    <div class="wrap">
+      <ul class="post-grid">
+        {{#each cases}}
+        <li class="post-card card glass-panel">
+          <div class="post-card__cover"><img src="{{cover}}" alt="{{coverAlt}}" width="1200" height="675" loading="lazy" /></div>
+          <div class="post-card__body">
+            <p class="meta"><time datetime="{{publishDate}}">{{rel.dateText}}</time></p>
+            <h2 class="post-card__title"><a class="card__link" href="/nqoc/cases/{{slug}}">{{title}}</a></h2>
+            <p class="clamp-3">{{summary}}</p>
+          </div>
+        </li>
+        {{else}}
+        <li class="empty"><p>案例正在整理中。</p><p>可以先看看 <a href="/nqoc/whitepaper">研究成果</a>。</p></li>
+        {{/each}}
+      </ul>
+    </div>
+  </section>
+</div>

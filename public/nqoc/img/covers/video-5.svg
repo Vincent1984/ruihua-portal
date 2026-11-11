@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+<defs>
+<linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7e3ae"/><stop offset=".45" stop-color="#d4a650"/><stop offset="1" stop-color="#8f6728"/></linearGradient>
+<radialGradient id="glow"><stop offset="0" stop-color="#c9973f" stop-opacity=".22"/><stop offset="1" stop-color="#c9973f" stop-opacity="0"/></radialGradient>
+<linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".7"/></linearGradient>
+</defs>
+<rect width="1280" height="720" fill="#0a0a0c"/>
+<circle cx="420" cy="230" r="520" fill="url(#glow)"/>
+<g transform="translate(96 0) skewX(-10)">
+<text x="60" y="252" font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, Noto Sans SC, sans-serif" font-size="150" font-weight="700" fill="url(#gold)" letter-spacing="6">值得看见</text>
+</g>
+<path d="M96 284 H470 L452 338 L500 284 H760" fill="none" stroke="url(#gold)" stroke-width="3" stroke-linejoin="round"/>
+<g transform="translate(96 0) skewX(-10)"><text x="62" y="330" font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, Noto Sans SC, sans-serif" font-size="34" font-weight="700" fill="url(#gold)" letter-spacing="3">WORTH SEEING</text></g>
+<rect width="1280" height="720" fill="url(#fade)"/>
+<text x="1176" y="118" text-anchor="end" font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, Noto Sans SC, sans-serif" font-size="56" font-weight="200" fill="#f7e3ae" letter-spacing="4">E05</text>
+<text x="104" y="636" font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, Noto Sans SC, sans-serif" font-size="46" font-weight="400" fill="#ffffff">本期主题待定</text>
+</svg>

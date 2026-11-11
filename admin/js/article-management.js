@@ -983,15 +983,199 @@ function caseOverviewText(value) {
     return (el.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
 }
 
+/* ==========================================================================
+   新质组织（迷你站 /nqoc）—— 复用 #studioModal，新增 nqoc-insight / nqoc-case 两种 type
+   正文沿用 wangEditor（#studioContainer / #studioToolbar），GEO 面板由 .nqoc-mode 隐藏，
+   右侧 #studioConfig 渲染 NQOC 自己的字段；保存走 /api/admin/nqoc/*。
+   ========================================================================== */
+const NQ_STUDIO_API = { 'nqoc-insight': '/api/admin/nqoc/insights', 'nqoc-case': '/api/admin/nqoc/cases' };
+const NQ_STUDIO_LABEL = { 'nqoc-insight': '观点', 'nqoc-case': '案例' };
+const NQ_STUDIO_PREVIEW = { 'nqoc-insight': '/nqoc/insights/', 'nqoc-case': '/nqoc/cases/' };
+const NQ_STUDIO_STATUS = [
+    ['draft', '草稿 — 仅后台可见'],
+    ['published', '发布 — 前台可见'],
+    ['archived', '下架 — 前台不可见，数据保留']
+];
+const NQ_STUDIO_SECTIONS = {
+    'nqoc-insight': [['基础配置', ['slug', 'author', 'source', 'credits']], ['摘要与标签', ['tags', 'summary']], ['封面图', ['cover', 'coverAlt']], ['发布设置', ['publishDate', 'status']]],
+    'nqoc-case': [['基础配置', ['slug']], ['摘要', ['summary']], ['封面图', ['cover', 'coverAlt']], ['发布设置', ['publishDate', 'status']]]
+};
+let nqStudioCtx = null;   // 当前 NQOC 工作台上下文 { type, id, locked, cover }
+
+function nqStudioThumb(src) {
+    return src
+        ? `<span class="thumb lg"><img src="${esc(src)}" alt=""></span>`
+        : `<span class="thumb lg none">未上传</span>`;
+}
+
+function nqStudioFieldHtml(key, o) {
+    const v = x => esc(x == null ? '' : x);
+    switch (key) {
+        case 'slug':
+            return `<label>自定义链接 (Slug)</label>
+                <input id="st_slug" value="${v(o.slug)}" maxlength="80" placeholder="留空自动生成" ${o.locked ? 'disabled' : ''}>
+                <span class="sub">${o.locked ? '已发布过，为避免旧链接失效不可再改。' : ''}<span id="st_slugPrev"></span></span>`;
+        case 'author':
+            return `<label>作者 <span class="hint">可留空</span></label><input id="st_author" value="${v(o.author)}" maxlength="30">`;
+        case 'source':
+            return `<label>来源 <span class="hint">转载时填写，如《中国经营报》</span></label><input id="st_source" value="${v(o.source)}" maxlength="30">`;
+        case 'credits':
+            return `<label>署名说明 <span class="hint">显示在文末，可留空</span></label>
+                <input id="st_credits" value="${v(o.credits)}" maxlength="80" placeholder="编辑：… · 校对：… · 审核：…">`;
+        case 'tags':
+            return `<label>文章标签 <span class="hint">（逗号分隔，最多 3 个）</span></label>
+                <input id="st_tags" value="${v((o.tags || []).join(', '))}" placeholder="新质组织, 人机协同">`;
+        case 'summary':
+            return `<label>摘要 <span class="count" id="st_summaryCount"></span> <span class="hint">列表卡片、搜索结果和分享卡片上显示</span></label>
+                <textarea id="st_summary" rows="4" maxlength="140">${v(o.summary)}</textarea>`;
+        case 'cover':
+            return `<label>封面图 <span class="required">*</span> <span class="hint">横版 16:9，建议 1200×675；≤ 2MB</span></label>
+                <div class="upload-row"><span id="st_coverPrev">${nqStudioThumb(o.cover)}</span>
+                <input type="file" id="st_cover" accept="image/png,image/jpeg,image/webp"></div>`;
+        case 'coverAlt':
+            return `<label>封面图说明 <span class="hint">留空则用标题</span></label><input id="st_coverAlt" value="${v(o.coverAlt)}" maxlength="60">`;
+        case 'publishDate':
+            return `<label>发布日期 <span class="hint">前台显示，决定列表排序</span></label><input type="date" id="st_publishDate" value="${v(o.publishDate)}">`;
+        case 'status': {
+            const opts = NQ_STUDIO_STATUS.filter(p => !(o.isNew && p[0] === 'archived'));
+            return `<label>内容状态 <span class="hint">无需审核，选「发布」保存后前台立即可见</span></label>
+                <select id="st_status">${opts.map(p => `<option value="${p[0]}"${o.status === p[0] ? ' selected' : ''}>${p[1]}</option>`).join('')}</select>`;
+        }
+        default:
+            return '';
+    }
+}
+
+function nqStudioConfigHtml(type, isNew) {
+    const o = {
+        slug: '', author: '', source: '', credits: '', tags: [], summary: '', cover: '', coverAlt: '',
+        publishDate: new Date().toISOString().slice(0, 10), status: 'draft', locked: false, isNew: !!isNew
+    };
+    return NQ_STUDIO_SECTIONS[type].map(g =>
+        `<div class="cfg-block"><h4 class="cfg-title">${g[0]}</h4>` +
+        g[1].map(k => `<div class="f" data-field="${k}">${nqStudioFieldHtml(k, o)}</div>`).join('') +
+        '</div>'
+    ).join('');
+}
+
+function nqStudioSync() {
+    if (!nqStudioCtx) return;
+    const pre = NQ_STUDIO_PREVIEW[nqStudioCtx.type] || '';
+    const slugEl = document.getElementById('st_slug');
+    const prevEl = document.getElementById('st_slugPrev');
+    if (prevEl) prevEl.textContent = '预览: ' + pre + (slugEl && slugEl.value.trim() ? slugEl.value.trim() : '（保存时自动生成）');
+    const sumEl = document.getElementById('st_summary');
+    const cntEl = document.getElementById('st_summaryCount');
+    if (sumEl && cntEl) {
+        cntEl.textContent = sumEl.value.length + '/140';
+        cntEl.classList.toggle('over', sumEl.value.length >= 140);
+    }
+}
+
+function nqStudioCoverPreview(url) {
+    const box = document.getElementById('st_coverPrev');
+    if (box) box.innerHTML = nqStudioThumb(url);
+}
+
+function nqStudioInitNew(type) {
+    nqStudioCtx = { type, id: null, locked: false, cover: '' };
+    if (window.wangEditorInstance) window.wangEditorInstance.setHtml('<p><br></p>');
+    const dateEl = document.getElementById('st_publishDate');
+    if (dateEl) dateEl.value = new Date().toISOString().slice(0, 10);
+    const statusEl = document.getElementById('st_status');
+    if (statusEl) statusEl.value = 'draft';
+    nqStudioCoverPreview('');
+    nqStudioSync();
+}
+
+function nqStudioFill(type, data) {
+    nqStudioCtx = { type, id: data.id, locked: !!data.slugLocked, cover: data.cover || '' };
+    document.getElementById('studioTitleInput').value = data.title || '';
+    if (window.wangEditorInstance) window.wangEditorInstance.setHtml(data.body || '<p><br></p>');
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+    const slugEl = document.getElementById('st_slug');
+    if (slugEl) { slugEl.value = data.slug || ''; slugEl.disabled = nqStudioCtx.locked; }
+    set('st_author', data.author || '');
+    set('st_source', data.source || '');
+    set('st_credits', data.credits || '');
+    set('st_tags', (data.tags || []).join(', '));
+    set('st_summary', data.summary || '');
+    set('st_coverAlt', data.coverAlt || '');
+    set('st_publishDate', data.publishDate || '');
+    set('st_status', data.status || 'draft');
+    nqStudioCoverPreview(nqStudioCtx.cover);
+    nqStudioSync();
+}
+
+async function loadNqocStudioData(type, id) {
+    try {
+        const res = await fetch(NQ_STUDIO_API[type], { headers: authHeaders() });
+        if (res.status === 401) {
+            sessionStorage.removeItem('token');
+            throw new Error('登录已过期，请重新登录');
+        }
+        if (!res.ok) throw new Error(`加载失败（${res.status}）`);
+        const list = await res.json();
+        const data = (Array.isArray(list) ? list : []).find(x => String(x.id) === String(id));
+        if (!data) throw new Error('未找到这条内容');
+        nqStudioFill(type, data);
+    } catch (e) {
+        alert(e.message);
+    }
+}
+
+async function nqUploadStudioCover(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+        toast('图片超过 2MB，先压缩一下');
+        input.value = '';
+        return;
+    }
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+        const res = await fetch('/api/upload', {
+            method: 'POST',
+            headers: { Authorization: authHeaders().Authorization },
+            body: formData
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || '上传失败');
+        if (nqStudioCtx) nqStudioCtx.cover = data.url;
+        nqStudioCoverPreview(data.url);
+        toast('封面上传成功');
+    } catch (e) {
+        toast(e.message || '上传失败');
+    } finally {
+        input.value = '';
+    }
+}
+
+// NQOC 工作台内的输入联动（摘要字数、Slug 预览、封面上传）—— 全局委托，不用内联事件
+document.addEventListener('input', e => {
+    const t = e.target;
+    if (!t || !t.closest || !t.closest('#studioModal')) return;
+    if (!document.getElementById('studioModal').classList.contains('nqoc-mode')) return;
+    if (t.id === 'st_summary' || t.id === 'st_slug') nqStudioSync();
+});
+
+document.addEventListener('change', e => {
+    const t = e.target;
+    if (t && t.id === 'st_cover' && t.closest('#studioModal')) nqUploadStudioCover(t);
+});
+
 window.openStudio = function(type, id) {
     window.studioType = type;
     window.studioId = id;
+    const isNqoc = Object.prototype.hasOwnProperty.call(NQ_STUDIO_API, type);
     const studioModal = document.getElementById('studioModal');
     studioModal.classList.toggle('case-mode', type === 'case');
+    studioModal.classList.toggle('nqoc-mode', isNqoc);
     document.getElementById('caseOverviewInput').value = '';
     
-    // 文章模式使用富文本编辑器，案例概览使用普通文本框
-    if (type === 'article' && !window.wangEditorInstance && window.wangEditor) {
+    // 文章 / 新质组织正文使用富文本编辑器，案例概览使用普通文本框
+    if ((type === 'article' || isNqoc) && !window.wangEditorInstance && window.wangEditor) {
         const { createEditor, createToolbar } = window.wangEditor;
         window.wangEditorInstance = createEditor({
             selector: '#studioContainer',
@@ -1088,6 +1272,8 @@ window.openStudio = function(type, id) {
         `;
         // 加载分类和作者下拉
         setTimeout(() => { loadCategories(); loadStudioAuthors(); }, 0);
+    } else if (isNqoc) {
+        configEl.innerHTML = nqStudioConfigHtml(type, !id);
     } else {
         configEl.innerHTML = `
             <section class="cfg-block case-config-section" id="case-section-basic">
@@ -1125,8 +1311,8 @@ window.openStudio = function(type, id) {
         `;
     }
 
-    // 渲染 GEO 侧边栏
-    document.getElementById('studioGeo').innerHTML = type === 'article' ? `
+    // 渲染 GEO 侧边栏（新质组织用不到，留空并由 .nqoc-mode 隐藏）
+    document.getElementById('studioGeo').innerHTML = isNqoc ? '' : type === 'article' ? `
         <div class="geo-card">
             <h4><i style="color:var(--purple);font-style:normal">⚡</i> GEO 综合评分 <span class="spacer"></span><span class="geo-score-badge" id="geoScore">0分</span></h4>
             <div class="geo-progress"><i id="geoProgress" style="width:0%"></i></div>
@@ -1171,18 +1357,28 @@ window.openStudio = function(type, id) {
         hidden.type = 'hidden'; hidden.id = 'artId';
         document.getElementById('studioConfig').appendChild(hidden);
     }
-    document.getElementById('artId').value = id || '';
-    document.getElementById('studioTitleInput').addEventListener('input', () => { updateGeoScore(); autoGenerateSlug(false); });
+    document.getElementById('artId').value = isNqoc ? '' : (id || '');
+    // 标题输入只挂一次监听，避免反复打开工作台造成重复绑定
+    const titleInputEl = document.getElementById('studioTitleInput');
+    if (!titleInputEl.dataset.studioBound) {
+        titleInputEl.dataset.studioBound = '1';
+        titleInputEl.addEventListener('input', () => {
+            if (studioModal.classList.contains('nqoc-mode')) { nqStudioSync(); return; }
+            updateGeoScore();
+            autoGenerateSlug(false);
+        });
+    }
     if(type === 'article' && window.wangEditorInstance) {
         window.wangEditorInstance.setHtml('<p><br></p>');
     }
     
     // 加载数据
+    const studioLabel = NQ_STUDIO_LABEL[type] || (type === 'article' ? '文章' : '案例');
     if (id) {
-        document.getElementById('studioTitle').textContent = `编辑${type === 'article' ? '文章' : '案例'}`;
-        loadStudioData(type, id);
+        document.getElementById('studioTitle').textContent = `编辑${studioLabel}`;
+        if (isNqoc) loadNqocStudioData(type, id); else loadStudioData(type, id);
     } else {
-        document.getElementById('studioTitle').textContent = `新建${type === 'article' ? '文章' : '案例'}`;
+        document.getElementById('studioTitle').textContent = `新建${studioLabel}`;
         document.getElementById('studioTitleInput').value = '';
         if(type === 'article') {
             document.getElementById('artTags').value = '';
@@ -1203,6 +1399,8 @@ window.openStudio = function(type, id) {
             qaList = [];
             renderQAList();
             setTimeout(() => { loadCategories(); loadStudioAuthors(); }, 0);
+        } else if (isNqoc) {
+            nqStudioInitNew(type);
         } else {
             document.getElementById('caseClient').value = '';
             document.getElementById('caseIndustry').value = '制造业';
@@ -1211,10 +1409,12 @@ window.openStudio = function(type, id) {
             document.getElementById('artFeaturedBtn').className = 'switch';
             document.getElementById('artStatus').value = 'published';
         }
-        document.getElementById('artCover').value = '';
-        document.getElementById('artCoverImg').style.display = 'none';
-        document.getElementById('artCoverPlaceholder').style.display = 'flex';
-        updateGeoScore();
+        if (!isNqoc) {
+            document.getElementById('artCover').value = '';
+            document.getElementById('artCoverImg').style.display = 'none';
+            document.getElementById('artCoverPlaceholder').style.display = 'flex';
+            updateGeoScore();
+        }
     }
 
     document.getElementById('studioModal').classList.add('show');
@@ -1224,6 +1424,7 @@ window.openStudio = function(type, id) {
 window.closeStudio = function() {
     document.getElementById('studioModal').classList.remove('show');
     document.getElementById('studioModal').setAttribute('aria-hidden', 'true');
+    nqStudioCtx = null;
 };
 
 document.addEventListener('click', e => {
@@ -1375,10 +1576,11 @@ async function saveStudioData() {
         }
         
         const content = window.wangEditorInstance ? window.wangEditorInstance.getHtml() : '';
-        const cover = document.getElementById('artCover').value;
-        const slug = document.getElementById('artSlug').value;
-        const status = document.getElementById('artStatus').value;
-        const featured = document.getElementById('artFeaturedBtn').classList.contains('on');
+        const cover = studioVal('artCover');
+        const slug = studioVal('artSlug');
+        const status = studioVal('artStatus');
+        const featuredEl = document.getElementById('artFeaturedBtn');
+        const featured = featuredEl ? featuredEl.classList.contains('on') : false;
         
         let payload = {};
         let url = '';
@@ -1429,6 +1631,37 @@ async function saveStudioData() {
                 publishDate: document.getElementById('artStatus').value === 'scheduled' ? document.getElementById('artPublishDate').value : undefined,
                 qa: qaList
             };
+        } else if (type === 'nqoc-insight' || type === 'nqoc-case') {
+            const isInsight = type === 'nqoc-insight';
+            const base = NQ_STUDIO_API[type];
+            url = id ? `${base}/${id}` : base;
+            const ctx = nqStudioCtx || {};
+            const bodyHtml = window.wangEditorInstance ? window.wangEditorInstance.getHtml() : '';
+            const bodyText = String(bodyHtml || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+            const hasImg = /<img\b/i.test(bodyHtml || '');
+            const slugVal = document.getElementById('st_slug') ? document.getElementById('st_slug').value.trim().toLowerCase() : '';
+            payload = {
+                title,
+                body: (bodyText || hasImg) ? bodyHtml : '',
+                summary: studioVal('st_summary').trim(),
+                cover: ctx.cover || '',
+                coverAlt: studioVal('st_coverAlt').trim(),
+                status: studioVal('st_status') || 'draft',
+                publishDate: studioVal('st_publishDate') || undefined,
+                slug: slugVal
+            };
+            if (isInsight) {
+                const tags = studioVal('st_tags').split(/[,，]/).map(x => x.trim()).filter(Boolean);
+                if (tags.length > 3 || tags.some(t => t.length > 8)) {
+                    const tagEl = document.getElementById('st_tags');
+                    if (tagEl) tagEl.focus();
+                    throw new Error('标签最多 3 个，每个不超过 8 个字');
+                }
+                payload.tags = tags;
+                payload.author = studioVal('st_author').trim();
+                payload.source = studioVal('st_source').trim();
+                payload.credits = studioVal('st_credits').trim();
+            }
         } else {
             url = id ? `/api/cases/${id}` : '/api/cases';
             const lineToList = (s) => String(s || '').split('\n').map(x => x.trim()).filter(Boolean);
@@ -1481,6 +1714,7 @@ async function saveStudioData() {
         
         closeStudio();
         if (type === 'article') loadArticles();
+        else if (type === 'nqoc-insight' || type === 'nqoc-case') { if (window.nqocRefresh) window.nqocRefresh(type); }
         else loadCases();
         toast('保存成功');
     } catch(e) {

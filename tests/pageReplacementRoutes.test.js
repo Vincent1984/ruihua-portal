@@ -58,10 +58,11 @@ describe('2026 页面替换路由', function () {
 
     it('非 NQOC 旧版页面通过统一公共壳渲染，NQOC 页面保持独立页面壳', function () {
         const server = fs.readFileSync(path.join(ROOT, 'server.js'), 'utf8');
+        const nqocFrontend = fs.readFileSync(path.join(ROOT, 'routes', 'nqocFrontend.js'), 'utf8');
         assert.match(server, /renderStaticHtmlWith2026Shell/);
         assert.match(server, /app\.get\('\/videos\/', \(req, res\) => res\.redirect\(301, '\/insights'\)\)/);
-        assert.match(server, /app\.get\('\/nqoc', \(req, res\) => \{/);
-        assert.doesNotMatch(server, /app\.get\('\/nqoc', \(req, res\) => renderStaticHtmlWith2026Shell/);
+        assert.match(server, /require\('\.\/routes\/nqocFrontend'\)\(app\)/);
+        assert.match(nqocFrontend, /app\.get\('\/nqoc', pageHandler\(/);
         assert.match(fs.readFileSync(path.join(ROOT, 'views', '2026', 'partials', 'nav.html'), 'utf8'), /href="\/nqoc"/);
     });
 

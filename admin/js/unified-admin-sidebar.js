@@ -187,34 +187,63 @@
     if (!path.startsWith('/admin/') || path === '/admin/index.html') return;
     const sidebar = document.querySelector('.sidebar') || document.querySelector('#unified-sidebar-container');
     if (!sidebar) return;
+    // 首屏同步渲染，并临时禁用宽度过渡，避免侧边栏从 0 宽动画滑出（点击二级菜单页时
+    // 会出现「先收起再展开」的闪烁）。
+    sidebar.style.transition = 'none';
     sidebar.classList.add('u-admin-sidebar', 'sidebar');
     sidebar.innerHTML = buildSidebarHtml();
     bindSectionJump(sidebar);
     bindCollapse(sidebar);
     bindGroupCollapse(sidebar);
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => { sidebar.style.transition = ''; });
+    } else {
+      sidebar.style.transition = '';
+    }
   }
 
   async function refreshCurrentUserPermissions() {
-    if (typeof fetch !== 'function') return;
+    if (typeof fetch !== 'function') return false;
     try {
       const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken') || '';
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const res = await fetch('/api/auth/verify', { headers, credentials: 'same-origin' });
-      if (!res.ok) return;
+      if (!res.ok) return false;
       const data = await res.json();
-      if (!data || !data.success || !data.user) return;
+      if (!data || !data.success || !data.user) return false;
+
+      const before = getCurrentUserPermissions();
+      const nextPerms = Array.isArray(data.user.permissions) ? data.user.permissions : [];
       sessionStorage.setItem('user', JSON.stringify(data.user));
       localStorage.setItem('adminUser', JSON.stringify(data.user));
+
+      // 仅当权限集合发生变化时才需要重新渲染侧边栏。
+      if (nextPerms.length !== before.size) return true;
+      return nextPerms.some(perm => !before.has(perm));
     } catch (e) {
       // Use the cached permissions if the refresh fails.
+      return false;
     }
   }
 
   function init() {
     if (typeof document === 'undefined') return;
-    const start = () => refreshCurrentUserPermissions().finally(renderSidebar);
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
-    else start();
+    const start = () => {
+      // 先用本地缓存的权限同步渲染，避免等待 /api/auth/verify 网络往返造成的空白闪烁。
+      renderSidebar();
+      refreshCurrentUserPermissions().then(changed => {
+        if (changed) renderSidebar();
+      });
+    };
+    // 容器已在 DOM 中时立即渲染，不要等 DOMContentLoaded——否则会被页面里的 CDN 脚本拖慢，
+    // 造成跳转后左侧菜单空白一段时间再弹出的闪烁。
+    if (document.querySelector('.sidebar, #unified-sidebar-container')) {
+      start();
+    } else if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', start);
+    } else {
+      start();
+    }
   }
 
   init();

@@ -1,0 +1,41 @@
+<div class="page" data-page="insight-detail">
+  <article>
+    <header class="page-head page-head--detail">
+    <div class="page-head__bg" aria-hidden="true"></div>
+      <div class="wrap wrap--narrow">
+        <nav class="crumbs" aria-label="面包屑" data-crumbs><a href="/nqoc">首页</a><a href="/nqoc/insights">新质观点</a><span aria-current="page">{{title}}</span></nav>
+        <p class="meta"><time datetime="{{publishDate}}">{{rel.dateText}}</time>{{#if rel.byline}}<span>{{rel.byline}}</span>{{/if}}</p>
+        <h1>{{title}}</h1>
+        <p class="article-summary">{{summary}}</p>
+      </div>
+    </header>
+    <div class="wrap wrap--narrow">
+      <figure class="article-cover"><img src="{{cover}}" alt="{{coverAlt}}" width="1200" height="675" fetchpriority="high" /></figure>
+      <div class="nqoc-prose">{{{rel.bodyHtml}}}</div>
+      <footer class="article-foot">
+        {{#if source}}<p>来源：{{source}}</p>{{/if}}
+        {{#if credits}}<p>{{credits}}</p>{{/if}}
+        {{#if tags}}<ul class="tags" aria-label="标签">{{#each tags}}<li class="chip">{{this}}</li>{{/each}}</ul>{{/if}}
+      </footer>
+    </div>
+  </article>
+  {{#if rel.related}}
+  <section class="section section--alt">
+    <div class="wrap">
+      <h2 class="list-title heading-decorative">继续阅读</h2>
+      <ul class="post-grid">
+        {{#each rel.related}}
+        <li class="post-card card glass-panel">
+          <div class="post-card__cover"><img src="{{cover}}" alt="{{coverAlt}}" width="1200" height="675" loading="lazy" /></div>
+          <div class="post-card__body">
+            <p class="meta"><time datetime="{{publishDate}}">{{rel.dateText}}</time></p>
+            <h3 class="post-card__title"><a class="card__link" href="/nqoc/insights/{{slug}}">{{title}}</a></h3>
+            <p class="clamp-2">{{summary}}</p>
+          </div>
+        </li>
+        {{/each}}
+      </ul>
+    </div>
+  </section>
+  {{/if}}
+</div>
