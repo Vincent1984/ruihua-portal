@@ -504,7 +504,12 @@ const ADMIN_CONSOLE_ROUTES = [
     '/admin/cases',
     '/admin/featured',
     '/admin/faq',
-    '/admin/experts'
+    '/admin/experts',
+    '/admin/nqoc-banner',
+    '/admin/nqoc-insights',
+    '/admin/nqoc-cases',
+    '/admin/nqoc-videos',
+    '/admin/nqoc-report-leads'
 ];
 const ADMIN_CONSOLE_PERMS = [
     'dashboard:view',
@@ -513,7 +518,13 @@ const ADMIN_CONSOLE_PERMS = [
     'faq:list',
     'case:list',
     'page:list',
-    'system:manage'
+    'system:manage',
+    // 新质组织（迷你站）5 个菜单的细粒度权限，任一即允许加载 console.html
+    'nqoc-banner:list',
+    'nqoc-insights:list',
+    'nqoc-cases:list',
+    'nqoc-videos:list',
+    'nqoc-report-leads:list'
 ];
 const ADMIN_CONSOLE_ROUTE_PERMS = {
     '/admin/leads': ['lead:list', 'appointment:list'],
@@ -521,7 +532,12 @@ const ADMIN_CONSOLE_ROUTE_PERMS = {
     '/admin/cases': 'case:list',
     '/admin/featured': 'featured-case:list',
     '/admin/faq': 'faq:list',
-    '/admin/experts': 'expert:list'
+    '/admin/experts': 'expert:list',
+    '/admin/nqoc-banner': 'nqoc-banner:list',
+    '/admin/nqoc-insights': 'nqoc-insights:list',
+    '/admin/nqoc-cases': 'nqoc-cases:list',
+    '/admin/nqoc-videos': 'nqoc-videos:list',
+    '/admin/nqoc-report-leads': 'nqoc-report-leads:list'
 };
 const ADMIN_STATIC_PAGE_PERMS = {
     '/admin/console.html': ADMIN_CONSOLE_PERMS,
@@ -655,24 +671,13 @@ rootHtmlFiles.forEach(file => {
 app.get('/survey', (req, res) => res.redirect(301, '/survey/'));
 app.get('/survey.html', (req, res) => res.redirect(301, '/survey/'));
 
-// NQOC Routes
-app.get('/nqoc', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/nqoc/index.html'));
+// NQOC 白皮书独立申请页（保留上游页面）
+app.get('/nqoc/whitepaper-apply', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/nqoc/whitepaper-apply.html'));
 });
 
-const nqocPages = ['survey', 'awards', 'cases', 'insights', 'events', 'whitepaper', 'whitepaper-apply', 'about', 'debate-vote', 'flyer', 'poster', 'expert-apply'];
-nqocPages.forEach(page => {
-    app.get(`/nqoc/${page}`, (req, res) => {
-        // expert-apply is a form page, should not be indexed
-        if (page === 'expert-apply') {
-            const fsSync = require('fs');
-            const html = fsSync.readFileSync(path.join(__dirname, `public/nqoc/${page}.html`), 'utf8');
-            const modified = html.replace('<head>', '<head><meta name="robots" content="noindex, nofollow" />');
-            return res.send(modified);
-        }
-        res.sendFile(path.join(__dirname, `public/nqoc/${page}.html`));
-    });
-});
+// NQOC：新栏目使用服务端渲染；旧业务页面保留正文并共享新版导航。
+require('./routes/nqocFrontend')(app);
 
 // Helper for SEO SSR on Article Page
 const { JSDOM } = require('jsdom');

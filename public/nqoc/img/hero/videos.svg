@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 600" width="1920" height="600" preserveAspectRatio="xMidYMid slice">
+<style>
+.fb{transform-box:fill-box}
+@keyframes grow{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.86)}}
+@keyframes wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(1.5)}}
+@keyframes ripple{0%{opacity:0;transform:scale(.25)}18%{opacity:.75}100%{opacity:0;transform:scale(1)}}
+@keyframes ring{0%{opacity:.7;transform:scale(.6)}100%{opacity:0;transform:scale(2.4)}}
+@keyframes breathe{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(14px,-10px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}50%{transform:translate(-12px,8px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes near{0%,100%{transform:translateX(0)}50%{transform:translateY(var(--dy))}}
+@keyframes glow{0%,100%{opacity:.75}50%{opacity:1}}
+.grow{transform-origin:50% 100%;animation:grow 5s ease-in-out infinite}
+.wave{transform-origin:50% 50%;animation:wave 1.8s ease-in-out infinite}
+.pulse{transform-origin:50% 50%;animation:pulse 3s ease-in-out infinite}
+.ripple{transform-origin:50% 50%;animation:ripple 7s linear infinite}
+.ring{transform-origin:50% 50%;animation:ring 3.6s ease-out infinite}
+.breathe{animation:breathe 6s ease-in-out infinite}
+.drift{animation:drift 14s ease-in-out infinite}
+.drift2{animation:drift2 18s ease-in-out infinite}
+.glow{animation:glow 8s ease-in-out infinite}
+.spin{transform-origin:50% 50%;animation:spin 60s linear infinite}
+.spin-r{transform-origin:50% 50%;animation:spin 80s linear infinite reverse}
+.near{animation:near 10s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){*{animation:none!important}}
+</style>
+<defs>
+<radialGradient id="gp"><stop offset="0" stop-color="#7c4dff" stop-opacity=".42"/><stop offset="1" stop-color="#7c4dff" stop-opacity="0"/></radialGradient>
+<radialGradient id="gc"><stop offset="0" stop-color="#00f0ff" stop-opacity=".22"/><stop offset="1" stop-color="#00f0ff" stop-opacity="0"/></radialGradient>
+<radialGradient id="gv"><stop offset="0" stop-color="#b026ff" stop-opacity=".28"/><stop offset="1" stop-color="#b026ff" stop-opacity="0"/></radialGradient>
+<linearGradient id="scrim" x1="0" x2="1"><stop offset="0" stop-color="#07090f"/><stop offset=".3" stop-color="#07090f" stop-opacity=".85"/><stop offset=".62" stop-color="#07090f" stop-opacity="0"/></linearGradient>
+<linearGradient id="lineP" x1="0" x2="1"><stop offset="0" stop-color="#7c4dff" stop-opacity="0"/><stop offset=".5" stop-color="#7c4dff"/><stop offset="1" stop-color="#00f0ff"/></linearGradient>
+<linearGradient id="barUp" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#7c4dff" stop-opacity="0"/><stop offset="1" stop-color="#7c4dff" stop-opacity=".55"/></linearGradient>
+</defs>
+<rect width="1920" height="600" fill="#07090f"/><circle class="glow" style="animation-delay:-0s" cx="1520" cy="120" r="480" fill="url(#gp)"/><circle class="glow" style="animation-delay:-3s" cx="1520" cy="480" r="440" fill="url(#gv)"/><g class="near" style="--dy:8px"><circle cx="1520" cy="135" r="270" fill="#7c4dff" fill-opacity=".06" stroke="#7c4dff" stroke-opacity=".7" stroke-width="1.6"/><circle class="breathe" style="animation-delay:-2s" cx="1520" cy="135" r="340" fill="none" stroke="#7c4dff" stroke-opacity="0.18"/><circle class="breathe" style="animation-delay:-4s" cx="1520" cy="135" r="410" fill="none" stroke="#7c4dff" stroke-opacity="0.10"/><g class="fb spin"><circle cx="1520" cy="135" r="304" fill="none" stroke="#7c4dff" stroke-opacity=".5" stroke-dasharray="2 16"/></g></g><g class="near" style="--dy:-8px"><circle cx="1520" cy="465" r="270" fill="#b026ff" fill-opacity=".06" stroke="#b026ff" stroke-opacity=".7" stroke-width="1.6"/><circle class="breathe" style="animation-delay:-2s" cx="1520" cy="465" r="340" fill="none" stroke="#b026ff" stroke-opacity="0.18"/><circle class="breathe" style="animation-delay:-4s" cx="1520" cy="465" r="410" fill="none" stroke="#b026ff" stroke-opacity="0.10"/><g class="fb spin-r"><circle cx="1520" cy="465" r="304" fill="none" stroke="#b026ff" stroke-opacity=".5" stroke-dasharray="2 16"/></g></g><path class="breathe" d="M1306.3 300 A270 270 0 0 1 1733.7 300 A270 270 0 0 1 1306.3 300Z" fill="#00f0ff" fill-opacity=".13" stroke="#00f0ff" stroke-width="2"/><circle cx="1520" cy="300" r="62" fill="#00f0ff" fill-opacity=".08" stroke="#00f0ff" stroke-opacity=".75" stroke-width="1.6"/><circle class="fb ring" cx="1520" cy="300" r="34" fill="none" stroke="#00f0ff" stroke-width="1.5"/><circle class="fb pulse" cx="1520" cy="300" r="15" fill="#00f0ff"/><rect width="1920" height="600" fill="url(#scrim)"/></svg>
