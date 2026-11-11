@@ -1593,7 +1593,11 @@ app.get('/sitemap.xml', async (req, res) => {
             { url: 'productivity/', file: 'productivity.html', priority: 0.8, changefreq: 'weekly' },
             { url: 'diagnostic/', file: 'diagnostic.html', priority: 0.8, changefreq: 'weekly' },
             // nqoc 不带尾斜杠：带斜杠会被服务器 301 到 /nqoc，sitemap 应直接给规范 URL
-            { url: 'nqoc', file: 'public/nqoc/index.html', priority: 0.7, changefreq: 'weekly' },
+            { url: 'nqoc', file: 'views/nqoc/page-blocks/home.html', priority: 0.7, changefreq: 'weekly' },
+            { url: 'nqoc/whitepaper', file: 'views/nqoc/page-blocks/reports.html', priority: 0.7, changefreq: 'weekly' },
+            { url: 'nqoc/insights', file: 'views/nqoc/page-blocks/insights.html', priority: 0.7, changefreq: 'weekly' },
+            { url: 'nqoc/cases', file: 'views/nqoc/page-blocks/cases.html', priority: 0.7, changefreq: 'weekly' },
+            { url: 'nqoc/worth-seeing', file: 'views/nqoc/page-blocks/videos.html', priority: 0.7, changefreq: 'weekly' },
             // privacy 不带尾斜杠：/privacy/ 会 301 到 /privacy，sitemap 应给规范 URL
             { url: 'privacy', file: 'privacy.html', priority: 0.3, changefreq: 'yearly' }
         ];
@@ -1661,6 +1665,36 @@ app.get('/sitemap.xml', async (req, res) => {
         <lastmod>${lastmod}</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.5</priority>
+    </url>`;
+        });
+
+        // Add NQOC detail pages（报告 / 新质观点 / 案例 / 值得看见）
+        const NqocInsight = require('./models/NqocInsight');
+        const NqocCase = require('./models/NqocCase');
+        const NqocVideo = require('./models/NqocVideo');
+        const nqocReports = require('./config/nqocReports.json');
+        const nqocSlugFilter = { status: 'published', slug: { $exists: true, $nin: [null, ''] } };
+        const [nqocInsights, nqocCases, nqocVideos] = await Promise.all([
+            NqocInsight.find(nqocSlugFilter, 'slug updatedAt publishDate').lean(),
+            NqocCase.find(nqocSlugFilter, 'slug updatedAt publishDate').lean(),
+            NqocVideo.find(nqocSlugFilter, 'slug updatedAt publishDate').lean()
+        ]);
+        const nqocEntries = [
+            ...nqocReports
+                .filter(report => (report.status || 'published') === 'published' && report.slug)
+                .map(report => ({ url: `nqoc/whitepaper/${report.slug}`, date: report.updatedAt || report.publishDate })),
+            ...nqocInsights.map(doc => ({ url: `nqoc/insights/${doc.slug}`, date: doc.updatedAt || doc.publishDate })),
+            ...nqocCases.map(doc => ({ url: `nqoc/cases/${doc.slug}`, date: doc.updatedAt || doc.publishDate })),
+            ...nqocVideos.map(doc => ({ url: `nqoc/worth-seeing/${doc.slug}`, date: doc.updatedAt || doc.publishDate }))
+        ];
+        nqocEntries.forEach(entry => {
+            const lastmod = new Date(entry.date || Date.now()).toISOString().split('T')[0];
+            xml += `
+    <url>
+        <loc>${SITE_URL}/${entry.url}</loc>
+        <lastmod>${lastmod}</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
     </url>`;
         });
 

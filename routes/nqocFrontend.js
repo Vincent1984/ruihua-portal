@@ -241,23 +241,59 @@ function renderNav(activeKey, latestReport) {
     };
 }
 
-function buildSeoMeta({ pathName, title, description, image, noindex }) {
+function buildSeoMeta({ pathName, title, description, image, noindex, pageType }) {
     const canonical = `${SITE_URL}${pathName}`;
     const safeImage = image && /^https:\/\//i.test(image) ? image : `${SITE_URL}${image || '/nqoc/img/share.jpg'}`;
     return [
-        noindex ? '<meta name="robots" content="noindex, nofollow">' : '',
+        noindex
+            ? '<meta name="robots" content="noindex, nofollow">'
+            : '<meta name="robots" content="index, follow, max-image-preview:large">',
         `<link rel="canonical" href="${esc(canonical)}">`,
         '<meta property="og:site_name" content="中国新质组织研究中心">',
-        `<meta property="og:type" content="${noindex ? 'website' : 'article'}">`,
+        '<meta property="og:locale" content="zh_CN">',
+        `<meta property="og:type" content="${noindex ? 'website' : (pageType || 'article')}">`,
         `<meta property="og:title" content="${esc(title)}">`,
         `<meta property="og:description" content="${esc(description)}">`,
         `<meta property="og:url" content="${esc(canonical)}">`,
-        `<meta property="og:image" content="${esc(safeImage)}">`,
-        `<meta name="twitter:card" content="summary_large_image">`
+        `<meta property="og:image" content="${esc(safeImage)}">`
     ].filter(Boolean).join('\n');
 }
 
-function structuredData(type, item) {
+// 栏目路径 → 面包屑名称与详情页标题用词
+const NQOC_SECTIONS = {
+    whitepaper: { name: '研究成果', path: '/nqoc/whitepaper', detailLabel: '新质组织研究报告' },
+    insights: { name: '新质观点', path: '/nqoc/insights', detailLabel: '新质观点' },
+    cases: { name: '案例研究', path: '/nqoc/cases', detailLabel: '新质组织案例' },
+    'worth-seeing': { name: '值得看见', path: '/nqoc/worth-seeing', detailLabel: '值得看见' }
+};
+
+function sectionOf(pathName) {
+    return Object.values(NQOC_SECTIONS).find(section =>
+        pathName === section.path || pathName.startsWith(`${section.path}/`)) || null;
+}
+
+// 详情页标题：标题过长时只保留品牌后缀，避免被搜索结果截断
+function detailTitle(item, label) {
+    const base = String((item && item.title) || '').trim();
+    return base.length > 18
+        ? `${base} - 中国新质组织研究中心`
+        : `${base} - ${label} - 中国新质组织研究中心`;
+}
+
+function breadcrumbList(entries) {
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: entries.map((entry, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            name: entry.name,
+            item: entry.item
+        }))
+    };
+}
+
+function structuredData({ type, item, pathName, title, description, listItems }) {
     const organization = {
         '@context': 'https://schema.org',
         '@type': 'Organization',
@@ -266,20 +302,64 @@ function structuredData(type, item) {
         url: `${SITE_URL}/nqoc`,
         logo: `${SITE_URL}/nqoc/img/nqoc-logo.png`
     };
-    if (!type || !item) return [organization];
-    if (type === 'video' && !item.videoUrl) return [organization];
-    const data = type === 'report'
-        ? { '@type': 'Report', headline: item.title, description: item.summary, datePublished: item.publishDate, dateModified: item.updatedAt }
-        : type === 'video'
-            ? { '@type': 'VideoObject', name: item.title, description: item.summary, thumbnailUrl: item.cover, contentUrl: item.videoUrl, uploadDate: item.publishDate }
-            : { '@type': 'Article', headline: item.title, description: item.summary, datePublished: item.publishDate, dateModified: item.updatedAt, articleSection: type === 'insight' ? '新质观点' : '案例研究' };
-    data.publisher = { '@id': `${SITE_URL}/nqoc#organization` };
-    data.mainEntityOfPage = `${SITE_URL}${item.rel.detailPath}`;
-    if (item.cover) data.image = item.cover;
-    return [organization, data];
+    const website = {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        '@id': `${SITE_URL}/nqoc#website`,
+        name: '中国新质组织研究中心',
+        url: `${SITE_URL}/nqoc`,
+        inLanguage: 'zh-CN',
+        publisher: { '@id': `${SITE_URL}/nqoc#organization` }
+    };
+    const graph = [organization, website];
+    const section = sectionOf(pathName);
+
+    if (section && item) {
+        if (type === 'video' && !item.videoUrl) return graph;
+        const data = type === 'report'
+            ? { '@type': 'Report', headline: item.title, description: item.summary, datePublished: item.publishDate, dateModified: item.updatedAt }
+            : type === 'video'
+                ? { '@type': 'VideoObject', name: item.title, description: item.summary, thumbnailUrl: item.cover, contentUrl: item.videoUrl, uploadDate: item.publishDate }
+                : { '@type': 'Article', headline: item.title, description: item.summary, datePublished: item.publishDate, dateModified: item.updatedAt, articleSection: section.name };
+        data.publisher = { '@id': `${SITE_URL}/nqoc#organization` };
+        data.mainEntityOfPage = `${SITE_URL}${item.rel.detailPath}`;
+        if (item.cover) data.image = item.cover;
+        graph.push(data, breadcrumbList([
+            { name: '首页', item: `${SITE_URL}/nqoc` },
+            { name: section.name, item: `${SITE_URL}${section.path}` },
+            { name: item.title, item: `${SITE_URL}${item.rel.detailPath}` }
+        ]));
+        return graph;
+    }
+
+    if (section && listItems && listItems.length) {
+        graph.push({
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            '@id': `${SITE_URL}${pathName}#collection`,
+            name: title,
+            description,
+            url: `${SITE_URL}${pathName}`,
+            inLanguage: 'zh-CN',
+            isPartOf: { '@id': `${SITE_URL}/nqoc#website` },
+            mainEntity: {
+                '@type': 'ItemList',
+                itemListElement: listItems.map((entry, index) => ({
+                    '@type': 'ListItem',
+                    position: index + 1,
+                    name: entry.title,
+                    url: entry.url
+                }))
+            }
+        }, breadcrumbList([
+            { name: '首页', item: `${SITE_URL}/nqoc` },
+            { name: section.name, item: `${SITE_URL}${section.path}` }
+        ]));
+    }
+    return graph;
 }
 
-function renderShell({ pathName, activeKey, title, description, content, latestReport, item, itemType, noindex, prescript }) {
+function renderShell({ pathName, activeKey, title, description, content, latestReport, item, itemType, noindex, prescript, pageType, listItems }) {
     const nav = renderNav(activeKey, latestReport);
     const footer = readView('partials/footer.html').replace('<!--CONFIG_ICP-->', '沪ICP备12042344号-24');
     const drawer = readView('partials/drawer.html')
@@ -287,8 +367,8 @@ function renderShell({ pathName, activeKey, title, description, content, latestR
         .replaceAll('<!--CONFIG_REPORT_SUBTITLE-->', esc(latestReport.subtitle || ''))
         .replaceAll('<!--CONFIG_REPORT_SLUG-->', esc(latestReport.slug || ''));
     const seoImage = item && item.cover ? item.cover : '/nqoc/img/share.jpg';
-    const meta = buildSeoMeta({ pathName, title, description, image: seoImage, noindex });
-    const jsonLd = JSON.stringify(structuredData(itemType, item)).replace(/</g, '\\u003c');
+    const meta = buildSeoMeta({ pathName, title, description, image: seoImage, noindex, pageType });
+    const jsonLd = JSON.stringify(structuredData({ type: itemType, item, pathName, title, description, listItems })).replace(/</g, '\\u003c');
     const shell = readView('base.html')
         .replace('<!--TITLE-->', esc(title))
         .replace('<!--DESCRIPTION-->', esc(description))
@@ -369,6 +449,10 @@ function pageHandler(config, queryData) {
                 item: payload.item,
                 itemType: payload.itemType,
                 noindex: payload.noindex,
+                pageType: config.pageType || (payload.item
+                    ? (payload.itemType === 'video' ? 'video.other' : 'article')
+                    : 'website'),
+                listItems: payload.listItems || [],
                 prescript: config.block === 'home'
                     ? '<script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js" defer></script>'
                     : ''
@@ -411,7 +495,7 @@ function renderLegacyPage(page, latestReport, activeKey) {
 
 function initNqocFrontend(app) {
     app.get('/nqoc', pageHandler({
-        block: 'home', activeKey: 'home', title: '中国新质组织研究项目',
+        block: 'home', activeKey: 'home', title: '新质组织研究 - AI时代组织进化 - 中国新质组织研究中心',
         description: '中国新质组织研究项目由人瑞人才与瑞华智策联合发起，中国经营报联合主办，洞察 AI 时代组织发展趋势，赋能中国企业组织进化。'
     }, async (_req, c) => {
         const banners = c.banners.map((banner, index) => ({
@@ -450,11 +534,15 @@ function initNqocFrontend(app) {
     }));
 
     app.get('/nqoc/whitepaper', pageHandler({
-        block: 'reports', activeKey: 'whitepaper', title: '研究成果',
+        block: 'reports', activeKey: 'whitepaper', title: '新质组织研究报告 - 免费下载 - 中国新质组织研究中心',
         description: '中国新质组织研究中心发布的研究报告、行业报告与案例集，呈现中国企业新质组织的发展现状、演进路径与行动方向。'
     }, async (_req, c) => {
         const reports = decorateList(c.reports, 'report');
-        return { data: {}, view: { reportFeatured: reports.slice(0, 1), reportRest: reports.slice(1) } };
+        return {
+            data: {},
+            view: { reportFeatured: reports.slice(0, 1), reportRest: reports.slice(1) },
+            listItems: reports.map(report => ({ title: report.title, url: `${SITE_URL}/nqoc/whitepaper/${report.slug}` }))
+        };
     }));
 
     app.get('/nqoc/whitepaper/:slug', pageHandler({
@@ -467,46 +555,56 @@ function initNqocFrontend(app) {
             view: {},
             item,
             itemType: 'report',
-            title: `${item.title} · 研究成果`,
+            title: detailTitle(item, NQOC_SECTIONS.whitepaper.detailLabel),
             description: item.summary
         };
     }));
 
     // 报告下载凭证失效 / 过期 / 超次后的落地页（noindex，不进 sitemap）
     app.get('/nqoc/report-expired', pageHandler({
-        block: 'report-expired', activeKey: '', title: '报告链接已失效',
+        block: 'report-expired', activeKey: '', title: '报告链接已失效 - 中国新质组织研究中心',
         description: '报告下载链接仅在领取成功后 24 小时内有效，超时后请重新领取。'
     }, async () => ({ data: {}, noindex: true })));
 
     app.get('/nqoc/insights', pageHandler({
-        block: 'insights', activeKey: 'insights', title: '新质观点',
+        block: 'insights', activeKey: 'insights', title: '新质观点 - AI时代组织重构洞察 - 中国新质组织研究中心',
         description: '汇聚管理学者与企业实战专家对 AI 时代组织重构、人机协同与人力资本价值经营的观点与洞察。'
     }, async (_req, c) => {
         const items = decorateList(c.insights, 'insight');
-        return { data: {}, view: { insightFeatured: items.slice(0, 1), insightRest: items.slice(1) } };
+        return {
+            data: {},
+            view: { insightFeatured: items.slice(0, 1), insightRest: items.slice(1) },
+            listItems: items.map(insight => ({ title: insight.title, url: `${SITE_URL}/nqoc/insights/${insight.slug}` }))
+        };
     }));
 
     app.get('/nqoc/insights/:slug', pageHandler({
         block: 'insight-detail', activeKey: 'insights', title: '新质观点'
     }, async (req, c) => {
         const item = detailData(c.insights, req.params.slug, 'insight');
-        return item ? { data: item, item, itemType: 'insight', title: `${item.title} · 新质观点`, description: item.summary } : null;
+        return item ? { data: item, item, itemType: 'insight', title: detailTitle(item, NQOC_SECTIONS.insights.detailLabel), description: item.summary } : null;
     }));
 
     app.get('/nqoc/cases', pageHandler({
-        block: 'cases', activeKey: 'cases', title: '案例研究',
+        block: 'cases', activeKey: 'cases', title: '新质组织案例研究 - 标杆企业实践 - 中国新质组织研究中心',
         description: '深度剖析各行业标杆企业在核心价值观、商业模式、生产方式、管理范式与生态协同五个维度上的新质组织实践。'
-    }, async (_req, c) => ({ data: { cases: decorateList(c.cases, 'case') } })));
+    }, async (_req, c) => {
+        const cases = decorateList(c.cases, 'case');
+        return {
+            data: { cases },
+            listItems: cases.map(item => ({ title: item.title, url: `${SITE_URL}/nqoc/cases/${item.slug}` }))
+        };
+    }));
 
     app.get('/nqoc/cases/:slug', pageHandler({
         block: 'case-detail', activeKey: 'cases', title: '案例研究'
     }, async (req, c) => {
         const item = detailData(c.cases, req.params.slug, 'case');
-        return item ? { data: item, item, itemType: 'case', title: `${item.title} · 案例研究`, description: item.summary } : null;
+        return item ? { data: item, item, itemType: 'case', title: detailTitle(item, NQOC_SECTIONS.cases.detailLabel), description: item.summary } : null;
     }));
 
     app.get('/nqoc/worth-seeing', pageHandler({
-        block: 'videos', activeKey: 'worth-seeing', title: '值得看见',
+        block: 'videos', activeKey: 'worth-seeing', title: '值得看见 - 新质组织系列对谈视频 - 中国新质组织研究中心',
         description: '「中国新质组织研究」系列对谈栏目《值得看见》：对话学者与企业实践者，讨论 AI 时代的组织进化。'
     }, async (_req, c) => {
         const items = decorateList(c.videos, 'video');
@@ -516,7 +614,8 @@ function initNqocFrontend(app) {
                 videoFeatured: items.slice(0, 1),
                 videoRest: items.slice(1),
                 videoMoreClass: `is-d${3 - (Math.max(items.length - 1, 0) % 3)} is-t${2 - (Math.max(items.length - 1, 0) % 2)}`
-            }
+            },
+            listItems: items.map(video => ({ title: video.title, url: `${SITE_URL}/nqoc/worth-seeing/${video.slug}` }))
         };
     }));
 
@@ -524,7 +623,7 @@ function initNqocFrontend(app) {
         block: 'video-detail', activeKey: 'worth-seeing', title: '值得看见'
     }, async (req, c) => {
         const item = detailData(c.videos, req.params.slug, 'video');
-        return item ? { data: item, item, itemType: 'video', title: `${item.title} · 值得看见`, description: item.summary } : null;
+        return item ? { data: item, item, itemType: 'video', title: detailTitle(item, NQOC_SECTIONS['worth-seeing'].detailLabel), description: item.summary } : null;
     }));
 
     const legacy = {

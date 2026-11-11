@@ -99,7 +99,6 @@ function isSearchBot(userAgent) {
     '360spider',
     'bytespider',
     'facebookexternalhit',
-    'twitterbot',
     'linkedinbot',
     'slackbot'
   ];

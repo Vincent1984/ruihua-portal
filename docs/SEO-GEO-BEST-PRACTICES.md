@@ -161,18 +161,7 @@
 <meta property="article:tag" content="AI转型">
 ```
 
-### 2.3 Twitter Card
-
-```html
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:site" content="@ruihuaai">
-<meta name="twitter:creator" content="@ruihuaai">
-<meta name="twitter:title" content="AI 转型咨询服务 - 瑞华智策">
-<meta name="twitter:description" content="专业的 AI 转型咨询服务">
-<meta name="twitter:image" content="https://www.ruihua.com/images/twitter-card.jpg">
-```
-
-### 2.4 移动端优化元数据
+### 2.3 移动端优化元数据
 
 ```html
 <!-- 移动端浏览器颜色 -->
@@ -630,8 +619,7 @@ window.addEventListener('load', function() {
   },
   "sameAs": [
     "https://www.linkedin.com/company/ruihua",
-    "https://weibo.com/ruihua",
-    "https://twitter.com/ruihuaai"
+    "https://weibo.com/ruihua"
   ]
 }
 </script>
@@ -961,7 +949,6 @@ https://www.ruihua.com/SeRvIcEs/AI_Consulting  （大小写混合）
 - [ ] Core Web Vitals 达标
 - [ ] 结构化数据（Schema.org）
 - [ ] Open Graph 标签
-- [ ] Twitter Card 标签
 - [ ] 面包屑导航
 - [ ] 404 页面优化
 - [ ] 301 重定向正确配置

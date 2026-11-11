@@ -28,12 +28,6 @@
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="AI 转型咨询服务 - 瑞华智策">
-    <meta name="twitter:description" content="专业的 AI 转型咨询服务">
-    <meta name="twitter:image" content="https://www.ruihua.com/images/twitter/ai-consulting.jpg">
-    
     <!-- Favicon -->
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     
@@ -310,7 +304,6 @@
 | 用途 | 尺寸 (px) | 比例 | 格式 |
 |-----|----------|------|------|
 | OG 图片 | 1200 × 630 | 1.91:1 | JPEG/WebP |
-| Twitter 卡片 | 1200 × 628 | 1.91:1 | JPEG/WebP |
 | 文章封面 | 1200 × 675 | 16:9 | JPEG/WebP |
 | Logo | 600 × 60 | 10:1 | PNG/SVG |
 | Favicon | 32 × 32 | 1:1 | ICO/PNG |
