@@ -360,7 +360,7 @@
             { k: 'title', label: '标题', req: 1, max: 60, count: 1 },
             { k: 'summary', label: '节目简介', hint: '显示在播放器下方和列表卡片上', type: 'textarea', rows: 3, max: 300, count: 1 },
             { tip: '视频与封面' },
-            { k: 'videoUrl', label: '视频文件', req: 1, type: 'video', hint: 'MP4 / MOV / WebM，≤ 3GB；上传后自动写入对象存储 nqoc/zdkj/' },
+            { k: 'videoUrl', label: '视频文件', req: 1, type: 'video', hint: 'MP4 / MOV / WebM，≤ 3GB；浏览器直传对象存储 nqoc/zdkj/' },
             { k: 'duration', label: '时长', hint: '格式 mm:ss 或 h:mm:ss，可留空', ph: 'mm:ss', max: 8 },
             { k: 'cover', label: '封面图', req: 1, type: 'image', hint: '横版 16:9，建议 1280×720；' + NQ_IMG_HINT },
             { tip: '对谈嘉宾（至少 1 位，最多 2 位；显示在播放器右侧）' },
@@ -485,36 +485,53 @@
         const box = document.querySelector(`#editorForm [data-video-box="${key}"]`);
         const setBox = html => { if (box) box.innerHTML = html; };
         const mb = (file.size / 1024 / 1024).toFixed(1);
-        setBox(`<div class="sub">正在上传 ${esc(file.name)}（${mb}MB）…</div>`);
-        inp.disabled = true;
-        const fd = new FormData();
-        fd.append('file', file);
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/api/upload/nqoc-video');
-        // 上传走 XHR 才能拿到进度；token 仍走 Authorization 头
+        const tip = pct => `<div class="sub">正在上传 ${esc(file.name)}（${mb}MB）…${pct == null ? '' : ' ' + pct + '%'}</div>`;
+        const fail = msg => { inp.disabled = false; setBox(nqVideoBox('')); inp.value = ''; toast(msg); };
+        const ok = url => { inp.disabled = false; setBox(nqVideoBox(url)); done(url); };
         const tk = sessionStorage.getItem('token');
-        if (tk) xhr.setRequestHeader('Authorization', 'Bearer ' + tk);
-        xhr.upload.onprogress = e => {
-            if (!e.lengthComputable) return;
-            const pct = Math.min(100, Math.round(e.loaded / e.total * 100));
-            setBox(`<div class="sub">正在上传 ${esc(file.name)}（${mb}MB）… ${pct}%</div>`);
-        };
-        xhr.onload = () => {
-            inp.disabled = false;
-            let d = {};
-            try { d = JSON.parse(xhr.responseText || '{}'); } catch (e) { d = {}; }
-            if (xhr.status >= 200 && xhr.status < 300 && d.url) { setBox(nqVideoBox(d.url)); done(d.url); return; }
-            setBox(nqVideoBox(''));
-            toast(d.error || ('上传失败 (HTTP ' + xhr.status + ')'));
-            inp.value = '';
-        };
-        xhr.onerror = () => {
-            inp.disabled = false;
-            setBox(nqVideoBox(''));
-            toast('网络中断，视频上传失败，请重试');
-            inp.value = '';
-        };
-        xhr.send(fd);
+        inp.disabled = true;
+        setBox(`<div class="sub">正在获取上传地址…</div>`);
+
+        // 回退：直传被浏览器拦截（多为 TOS 未配置 CORS）时，退回 Node 中转上传
+        function legacyUpload() {
+            setBox(tip(null));
+            const fd = new FormData();
+            fd.append('file', file);
+            const x = new XMLHttpRequest();
+            x.open('POST', '/api/upload/nqoc-video');
+            if (tk) x.setRequestHeader('Authorization', 'Bearer ' + tk);
+            x.upload.onprogress = e => { if (e.lengthComputable) setBox(tip(Math.min(100, Math.round(e.loaded / e.total * 100)))); };
+            x.onload = () => {
+                let d = {};
+                try { d = JSON.parse(x.responseText || '{}'); } catch (e) { d = {}; }
+                if (x.status >= 200 && x.status < 300 && d.url) return ok(d.url);
+                fail(d.error || ('上传失败 (HTTP ' + x.status + ')'));
+            };
+            x.onerror = () => fail('网络中断，视频上传失败，请重试');
+            x.send(fd);
+        }
+
+        // 直传：先向服务端要预签名 PUT 地址，再由浏览器直接传到 TOS，视频流不经过 Node
+        fetch('/api/upload/nqoc-video/presign', {
+            method: 'POST',
+            headers: Object.assign({ 'Content-Type': 'application/json' }, tk ? { Authorization: 'Bearer ' + tk } : {}),
+            body: JSON.stringify({ filename: file.name, contentType: file.type })
+        }).then(async r => {
+            const d = await r.json().catch(() => ({}));
+            if (!r.ok || !d.uploadUrl) throw Error(d.error || ('获取上传地址失败 (HTTP ' + r.status + ')'));
+            const xhr = new XMLHttpRequest();
+            xhr.open('PUT', d.uploadUrl);
+            // Content-Type 已写入签名，必须与签名一致
+            xhr.setRequestHeader('Content-Type', d.contentType || file.type || 'video/mp4');
+            xhr.upload.onprogress = e => { if (e.lengthComputable) setBox(tip(Math.min(100, Math.round(e.loaded / e.total * 100)))); };
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) return ok(d.url);
+                fail('上传失败 (HTTP ' + xhr.status + ')');
+            };
+            xhr.onerror = () => { setBox(nqVideoBox('')); legacyUpload(); };
+            setBox(tip(0));
+            xhr.send(file);
+        }).catch(e => fail(e.message || '获取上传地址失败，请稍后重试'));
     }
     async function saveModalEditor() {
         if (!nqEd) return;

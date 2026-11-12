@@ -19,6 +19,7 @@ const axios = require('axios');
 const crypto = require('crypto');
 const dns = require('dns');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const mongoSanitize = require('express-mongo-sanitize');
 const helmet = require('helmet');
 
@@ -4052,6 +4053,36 @@ app.post('/api/upload/nqoc-video', authRequired, requirePerm('upload:write'), up
             return res.status(502).json({ success: false, error: '视频上传失败，请稍后重试' });
         }
     });
+});
+
+// 浏览器直传：签发 TOS 预签名 PUT 地址，视频流不再经过 Node
+const NQOC_VIDEO_EXTS = ['.mp4', '.m4v', '.mov', '.webm'];
+app.post('/api/upload/nqoc-video/presign', authRequired, requirePerm('upload:write'), uploadLimiter, async (req, res) => {
+    try {
+        if (!useTosUpload || !tosClient) {
+            return res.status(503).json({ success: false, error: '对象存储服务未配置，请联系管理员' });
+        }
+        const { filename, contentType } = req.body || {};
+        const ext = (path.extname(String(filename || '')) || '.mp4').toLowerCase();
+        if (!NQOC_VIDEO_EXTS.includes(ext)) {
+            return res.status(400).json({ success: false, error: '仅支持 MP4 / MOV / WebM 视频' });
+        }
+        const ct = /^video\//i.test(String(contentType || '')) ? String(contentType) : 'video/mp4';
+        const objectKey = `nqoc/zdkj/${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`;
+        const uploadUrl = await getSignedUrl(
+            tosClient,
+            new PutObjectCommand({
+                Bucket: process.env.TOS_BUCKET_NAME,
+                Key: objectKey,
+                ContentType: ct
+            }),
+            { expiresIn: 900 }
+        );
+        return res.json({ success: true, uploadUrl, url: toTosPublicUrl(objectKey), contentType: ct });
+    } catch (e) {
+        console.error('Nqoc video presign error:', e.message || e);
+        return res.status(500).json({ success: false, error: '获取上传地址失败，请稍后重试' });
+    }
 });
 
 app.post('/api/upload/fetch-url', authRequired, requirePerm('upload:write'), async (req, res) => {
