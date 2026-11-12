@@ -360,7 +360,7 @@
             { k: 'title', label: '标题', req: 1, max: 60, count: 1 },
             { k: 'summary', label: '节目简介', hint: '显示在播放器下方和列表卡片上', type: 'textarea', rows: 3, max: 300, count: 1 },
             { tip: '视频与封面' },
-            { k: 'videoUrl', label: '视频文件', req: 1, type: 'video', hint: 'MP4 / MOV / WebM，≤ 500MB；上传后自动写入对象存储 nqoc/zdkj/' },
+            { k: 'videoUrl', label: '视频文件', req: 1, type: 'video', hint: 'MP4 / MOV / WebM，≤ 3GB；上传后自动写入对象存储 nqoc/zdkj/' },
             { k: 'duration', label: '时长', hint: '格式 mm:ss 或 h:mm:ss，可留空', ph: 'mm:ss', max: 8 },
             { k: 'cover', label: '封面图', req: 1, type: 'image', hint: '横版 16:9，建议 1280×720；' + NQ_IMG_HINT },
             { tip: '对谈嘉宾（至少 1 位，最多 2 位；显示在播放器右侧）' },
@@ -479,8 +479,8 @@
         const file = inp.files && inp.files[0];
         if (!file) return;
         if (!/\.(mp4|m4v|mov|webm)$/i.test(file.name || '')) { toast('只支持 MP4 / MOV / WebM 视频'); inp.value = ''; return; }
-        const MAX = 500 * 1024 * 1024;
-        if (file.size > MAX) { toast('视频超过 500MB，请先压缩后再上传'); inp.value = ''; return; }
+        const MAX = 3 * 1024 * 1024 * 1024;
+        if (file.size > MAX) { toast('视频超过 3GB，请先压缩后再上传'); inp.value = ''; return; }
         const key = inp.name;
         const box = document.querySelector(`#editorForm [data-video-box="${key}"]`);
         const setBox = html => { if (box) box.innerHTML = html; };

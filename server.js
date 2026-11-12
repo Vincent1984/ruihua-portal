@@ -4004,7 +4004,7 @@ app.post('/api/upload', authRequired, requirePerm('upload:write'), uploadLimiter
 });
 
 // 新质组织「值得看见」节目视频：临时盘接收后流式写入 TOS 的 nqoc/zdkj/ 目录
-const NQOC_VIDEO_MAX = 500 * 1024 * 1024;
+const NQOC_VIDEO_MAX = 3 * 1024 * 1024 * 1024;
 const nqocVideoTmpDir = path.join(os.tmpdir(), 'nqoc-video-uploads');
 try { fs.mkdirSync(nqocVideoTmpDir, { recursive: true }); } catch (e) { console.error('nqoc video tmp dir error:', e.message); }
 const nqocVideoUpload = multer({
@@ -4027,7 +4027,7 @@ app.post('/api/upload/nqoc-video', authRequired, requirePerm('upload:write'), up
         const cleanup = () => { if (req.file && req.file.path) fs.unlink(req.file.path, () => {}); };
         if (uploadErr) {
             const status = uploadErr.code === 'LIMIT_FILE_SIZE' ? 400 : 400;
-            const error = uploadErr.code === 'LIMIT_FILE_SIZE' ? '视频大小超限：请控制在 500MB 以内' : (uploadErr.message || '视频上传失败，请稍后重试');
+            const error = uploadErr.code === 'LIMIT_FILE_SIZE' ? '视频大小超限：请控制在 3GB 以内' : (uploadErr.message || '视频上传失败，请稍后重试');
             console.error('Nqoc video upload middleware error:', uploadErr);
             cleanup();
             return res.status(status).json({ success: false, error });
@@ -5903,6 +5903,8 @@ function startServer() {
     httpServer = app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
+    // Node 默认 requestTimeout 为 5 分钟，大体积视频上传（最大 3GB）会被中途掐断
+    httpServer.requestTimeout = 30 * 60 * 1000;
     httpServer.on('error', (err) => {
         console.error('HTTP Server Error:', err);
     });
