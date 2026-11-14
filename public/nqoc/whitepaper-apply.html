@@ -25,60 +25,282 @@
     <link rel="stylesheet" href="/nqoc/css/tailwind-compiled.css">
 
     <style>
-        /* 报告封面：仅 ≥1024px 显示于表单左侧；移动端由卡片顶部缩略图承担 */
-        .apply-shell { max-width: 32rem; }
-        /* 移动端只有一个表单卡片，单列排布 */
-        .apply-layout { display: flex; flex-direction: column; }
-        .apply-cover { display: none; }
-        /* 封面下方错位的底片，做出「一叠报告」的实物感 */
-        .apply-cover::after {
+        /* ===== 报告领取页 ===== */
+        /* 卡片在首屏内垂直居中，避免下方大片空白 */
+        .apply-main { position: relative; display: flex; align-items: center; }
+
+        /* 背景：顶部极光 + 细网格（带径向遮罩），只用来托住卡片 */
+        .apply-bg {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(720px 360px at 50% -10%, rgba(124, 77, 255, 0.28), transparent 66%),
+                radial-gradient(560px 300px at 90% 106%, rgba(0, 240, 255, 0.06), transparent 72%);
+        }
+        .apply-bg::after {
             content: '';
             position: absolute;
             inset: 0;
-            transform: translateY(10px) scale(0.97);
-            border-radius: 0.75rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.032) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.032) 1px, transparent 1px);
+            background-size: 64px 64px;
+            -webkit-mask-image: radial-gradient(62% 56% at 50% 28%, #000 0%, transparent 100%);
+            mask-image: radial-gradient(62% 56% at 50% 28%, #000 0%, transparent 100%);
         }
-        .apply-cover img { position: relative; z-index: 1; display: block; width: 100%; border-radius: 0.75rem; border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 28px 60px -24px rgba(0, 0, 0, 0.9), 0 0 50px rgba(124, 77, 255, 0.2); }
-        /* 输入框：拉开与卡片底色的明度差，避免看起来像「空条」 */
+        .apply-wrap { position: relative; z-index: 1; width: 100%; max-width: 61rem; margin: 0 auto; padding: 0 1rem; }
+
+        /* 一体化面板：左信息 / 右表单 */
+        .apply-panel {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr;
+            overflow: hidden;
+            border-radius: 1.5rem;
+            background: linear-gradient(168deg, #1b1f33 0%, #141727 46%, #0f121c 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 50px 110px -64px rgba(0, 0, 0, 0.95),
+                0 34px 90px -64px rgba(124, 77, 255, 0.6);
+        }
+        /* 顶部一道渐隐高光，把卡片从背景里提起来 */
+        .apply-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 12%;
+            right: 12%;
+            height: 1px;
+            pointer-events: none;
+            background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.6), transparent);
+        }
+        /* 覆盖 tailwind 的 .hidden，保证切换生效 */
+        .apply-panel.hidden, .apply-success.hidden { display: none; }
+
+        /* 左侧：报告信息 */
+        .apply-intro {
+            position: relative;
+            padding: 1.75rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: linear-gradient(180deg, rgba(124, 77, 255, 0.13) 0%, rgba(124, 77, 255, 0.03) 48%, rgba(124, 77, 255, 0) 100%);
+        }
+        .apply-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            letter-spacing: 0.16em;
+            color: #b4acec;
+        }
+        .apply-eyebrow::before {
+            content: '';
+            width: 5px;
+            height: 5px;
+            border-radius: 9999px;
+            background: var(--nqoc-accent-cyan);
+            box-shadow: 0 0 8px var(--nqoc-accent-cyan);
+        }
+        .apply-intro-head { display: flex; align-items: flex-start; gap: 1rem; margin-top: 0.75rem; }
+        .apply-intro-text { flex: 1; min-width: 0; }
+        .apply-title {
+            font-size: clamp(1.0625rem, 4.8vw, 1.1875rem);
+            line-height: 1.5;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            color: #fff;
+        }
+        .apply-title span { display: block; }
+        .apply-sub { margin-top: 0.5rem; font-size: 0.8125rem; line-height: 1.65; color: #9aa3b8; }
+        .apply-sub span { display: inline; }
+        /* 移动端两段并排时补回逗号 */
+        .apply-sub span + span::before { content: '，'; }
+        /* 移动端只留头部缩略图，避免首屏被封面占满 */
+        .apply-thumb {
+            flex: none;
+            width: 4rem;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 14px 28px -16px rgba(0, 0, 0, 0.95);
+        }
+        .apply-thumb img { display: block; width: 100%; }
+        .apply-cover, .apply-stats { display: none; }
+        .apply-issuer { margin-top: 1rem; font-size: 0.6875rem; line-height: 1.7; color: #7b849b; }
+
+        /* 右侧：表单 */
+        .apply-form { display: flex; flex-direction: column; justify-content: center; padding: 1.75rem 1.5rem 2rem; }
+        .apply-form-head h2 { font-size: 1.0625rem; font-weight: 700; color: #fff; }
+        .apply-form-head p { margin-top: 0.4375rem; font-size: 0.8125rem; line-height: 1.6; color: #8f97ab; }
+        .apply-fields { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-top: 1.375rem; }
+        .wp-label { display: block; margin-bottom: 0.4375rem; font-size: 0.75rem; font-weight: 500; color: #b4bccd; }
+        .wp-control { position: relative; }
+        .wp-control > i {
+            position: absolute;
+            left: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8125rem;
+            color: #5f6981;
+            transition: color 0.2s ease;
+        }
+        .wp-control:focus-within > i { color: var(--nqoc-brand-light); }
         #whitepaperForm input {
-            background-color: rgba(0, 0, 0, 0.4);
-            border-color: rgba(255, 255, 255, 0.14);
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            height: 2.875rem;
+            padding: 0 0.875rem 0 2.375rem;
+            border-radius: 0.625rem;
+            background-color: rgba(255, 255, 255, 0.045);
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            color: #fff;
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
         }
+        #whitepaperForm input::placeholder { color: #667089; }
         #whitepaperForm input:focus {
-            background-color: rgba(0, 0, 0, 0.55);
-            border-color: var(--nqoc-brand);
+            outline: none;
+            border-color: rgba(139, 92, 246, 0.85);
+            background-color: rgba(124, 77, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.15);
         }
+        #whitepaperForm input:-webkit-autofill { -webkit-text-fill-color: #fff; -webkit-box-shadow: 0 0 0 1000px #191d2e inset; }
         /* 校验失败：红边 + 行内提示 */
-        #whitepaperForm input.is-invalid {
-            border-color: rgba(244, 63, 94, 0.7);
-            background-color: rgba(244, 63, 94, 0.08);
-        }
-        #whitepaperForm input.is-invalid:focus { border-color: rgb(244, 63, 94); }
-        .wp-error {
+        #whitepaperForm input.is-invalid { border-color: rgba(244, 63, 94, 0.7); background-color: rgba(244, 63, 94, 0.07); }
+        #whitepaperForm input.is-invalid:focus { border-color: rgb(244, 63, 94); box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.15); }
+        .wp-error { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.375rem; font-size: 0.75rem; line-height: 1rem; color: #fb7185; }
+        .wp-email { grid-column: 1 / -1; }
+
+        /* 主按钮：竖向品牌渐变，收窄圆角，弱化外发光 */
+        .wp-submit {
             display: flex;
             align-items: center;
-            gap: 0.25rem;
-            margin-top: 0.375rem;
-            font-size: 0.75rem;
-            line-height: 1rem;
-            color: #fb7185;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            height: 3rem;
+            margin-top: 1.375rem;
+            border: 0;
+            border-radius: 0.625rem;
+            cursor: pointer;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            color: #fff;
+            background-image: linear-gradient(180deg, #8f62ff 0%, #7c4dff 52%, #6d3df0 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 12px 26px -16px rgba(124, 77, 255, 0.95);
+            transition: filter 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
         }
-        /* 卡片顶部的报告封面缩略图，首屏即可看到实物 */
-        .apply-thumb { width: 4rem; margin: 0 auto 1.25rem; }
-        .apply-thumb img { display: block; width: 100%; border-radius: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.9), 0 0 24px rgba(124, 77, 255, 0.35); }
-        /* 报告要点标签 */
-        .wp-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.375rem; margin: 0.75rem 0 1.5rem; }
-        .wp-chip { padding: 0.1875rem 0.5rem; border-radius: 999px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.6875rem; line-height: 1.25rem; color: #94a3b8; white-space: nowrap; }
+        .wp-submit i { transition: transform 0.2s ease; }
+        .wp-submit:hover { filter: brightness(1.06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26), 0 16px 32px -16px rgba(124, 77, 255, 1); }
+        .wp-submit:hover i { transform: translateX(3px); }
+        .wp-submit:active { transform: translateY(1px); }
+        .wp-submit:disabled { cursor: not-allowed; opacity: 0.72; transform: none; }
+        .wp-privacy { display: flex; align-items: center; justify-content: center; gap: 0.375rem; margin-top: 0.875rem; font-size: 0.6875rem; color: #7b849b; }
+        .wp-privacy i { color: #34d399; }
+
+        /* 成功态 */
+        .apply-success {
+            border-radius: 1.5rem;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            background: linear-gradient(168deg, #16241f 0%, #121826 50%, #0f121c 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 50px 110px -64px rgba(0, 0, 0, 0.95);
+        }
+        .apply-success:not(.hidden) { display: flex; align-items: center; justify-content: center; min-height: 24rem; }
+        .apply-success-inner { width: 100%; max-width: 30rem; padding: 3rem 1.5rem; text-align: center; }
+        .apply-success-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 4rem;
+            height: 4rem;
+            margin: 0 auto 1.375rem;
+            border-radius: 9999px;
+            color: #fff;
+            font-size: 1.625rem;
+            background: linear-gradient(140deg, #34d399, #059669);
+            box-shadow: 0 0 32px rgba(16, 185, 129, 0.35);
+        }
+        .apply-success-icon::after { content: ''; position: absolute; inset: -6px; border-radius: 9999px; border: 1px solid rgba(52, 211, 153, 0.25); }
+        .apply-success h2 { font-size: 1.375rem; font-weight: 700; color: #fff; }
+        .apply-success p { margin-top: 0.75rem; font-size: 0.875rem; line-height: 1.7; color: #94a3b8; }
+        .apply-success p span { color: #fff; font-weight: 500; }
+        .apply-success-link {
+            display: block;
+            width: 100%;
+            max-width: 20rem;
+            margin: 2rem auto 0;
+            padding: 0.875rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.06);
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            text-align: center;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+        .apply-success-link:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); }
+
+        @media (min-width: 640px) {
+            .apply-intro { padding: 2rem 2.25rem; }
+            .apply-form { padding: 2rem 2.25rem 2.25rem; }
+            .apply-fields { grid-template-columns: 1fr 1fr; }
+        }
+
         @media (min-width: 1024px) {
-            .apply-shell { max-width: 64rem; }
-            .apply-layout { display: grid; grid-template-columns: 28rem minmax(0, 1fr); gap: 2.5rem; align-items: center; }
-            .apply-main { order: 0; }
-            .apply-cover { display: block; position: relative; max-width: none; margin: 0; }
-            /* 桌面端左侧已有大封面，卡片内缩略图不再重复 */
+            .apply-panel { grid-template-columns: 21.5rem minmax(0, 1fr); }
+            .apply-intro {
+                display: flex;
+                flex-direction: column;
+                padding: 2.5rem 2rem;
+                border-bottom: 0;
+                border-right: 1px solid rgba(255, 255, 255, 0.08);
+            }
+            .apply-intro-head { display: block; margin-top: 0; }
             .apply-thumb { display: none; }
+            .apply-title { margin-top: 0.875rem; font-size: 1.375rem; line-height: 1.5; }
+            .apply-sub { font-size: 0.875rem; }
+            /* 副标题固定两行，避免中文在词中断行 */
+            .apply-sub span { display: block; }
+            .apply-sub span + span::before { content: none; }
+            /* 封面：底部紫色光晕托住，做出实物感 */
+            .apply-cover { display: block; position: relative; width: 12rem; margin: 1.75rem auto 0; }
+            .apply-cover::before {
+                content: '';
+                position: absolute;
+                inset: -22% -26%;
+                border-radius: 9999px;
+                background: radial-gradient(closest-side, rgba(124, 77, 255, 0.42), transparent 76%);
+            }
+            .apply-cover img {
+                position: relative;
+                z-index: 1;
+                display: block;
+                width: 100%;
+                border-radius: 0.5rem;
+                border: 1px solid rgba(255, 255, 255, 0.16);
+                box-shadow: 0 24px 48px -20px rgba(0, 0, 0, 0.95);
+            }
+            /* 数据背书：数字为主，标签为辅 */
+            .apply-stats {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.5rem;
+                margin-top: 1.625rem;
+                padding-top: 1.125rem;
+                border-top: 1px solid rgba(255, 255, 255, 0.08);
+            }
+            .apply-stats > div { text-align: center; }
+            .apply-stats b { display: block; font-size: 1.125rem; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+            .apply-stats span { display: block; margin-top: 0.25rem; font-size: 0.6875rem; line-height: 1.4; color: #8a92a7; }
+            .apply-issuer { margin-top: auto; padding-top: 1.25rem; text-align: center; }
+            .apply-form { padding: 2.75rem 3rem; }
+            .apply-form-head h2 { font-size: 1.25rem; }
+            .apply-fields { gap: 1.25rem; margin-top: 1.75rem; }
+            .wp-submit { margin-top: 1.75rem; }
         }
     </style>
 
@@ -104,10 +326,10 @@
                     <a href="/nqoc/whitepaper" class="top-nav-link text-[#7c4dff] font-bold border-b-2 border-[#00f0ff] pb-1 active">研究成果</a>
                     <a href="/nqoc/about" class="top-nav-link text-slate-300 hover:text-[#7c4dff] transition">关于我们</a>
                 </div>
-                <a href="/nqoc/survey" class="btn-primary ml-6 !py-2 !px-4 !text-sm whitespace-nowrap">参与调研</a>
+                <a href="/nqoc/whitepaper-apply" class="btn-primary ml-6 !py-2 !px-4 !text-sm whitespace-nowrap">报告下载</a>
             </div>
             <div class="md:hidden flex items-center">
-                <a href="/nqoc/survey" class="btn-primary mr-4 !py-1.5 !px-3 !text-xs whitespace-nowrap">参与调研</a>
+                <a href="/nqoc/whitepaper-apply" class="btn-primary mr-4 !py-1.5 !px-3 !text-xs whitespace-nowrap">报告下载</a>
                 <button class="text-white" id="mobile-menu-btn" onclick="toggleNqocMobileMenu()"><i class="fas fa-bars text-xl"></i></button>
             </div>
         </div>
@@ -139,110 +361,96 @@
     </script>
 
     <!-- Main Content -->
-    <main class="flex-grow relative overflow-hidden pt-28 pb-16 md:pt-32">
-        <!-- Abstract Decoration -->
-        <div class="absolute left-0 top-0 w-96 h-96 bg-[var(--nqoc-accent-purple)] rounded-full blur-[150px] opacity-10 pointer-events-none"></div>
-        <div class="absolute right-0 bottom-0 w-96 h-96 bg-[var(--nqoc-brand)] rounded-full blur-[150px] opacity-5 pointer-events-none"></div>
+    <main class="apply-main flex-grow relative overflow-hidden pt-28 pb-16 md:pt-32">
+        <div class="apply-bg"></div>
 
-        <div class="relative z-10 apply-shell mx-auto px-4">
-            <div class="apply-layout">
-
-            <!-- 报告封面 -->
-            <div class="apply-cover">
-                <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/nqoc-report01.png" alt="中国企业新质组织成熟度调研报告（2026）封面" loading="lazy">
-            </div>
-
-            <div class="apply-main">
-
-            <!-- 表单卡片 -->
-            <div id="applyCard" class="relative overflow-hidden rounded-2xl bg-gradient-to-b from-[#1a1c2e] to-[#111424] border border-white/10" style="box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 50px rgba(124, 77, 255, 0.15);">
-                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-32 bg-[var(--nqoc-brand)]/20 blur-[60px] rounded-full pointer-events-none"></div>
-
-                <div class="px-6 pb-8 pt-10 sm:px-10 relative z-10">
-                    <div class="text-center mb-7">
+        <div class="apply-wrap">
+            <!-- 领取表单：左信息 / 右表单 -->
+            <div id="applyCard" class="apply-panel">
+                <div class="apply-intro">
+                    <span class="apply-eyebrow">2026 年度研究报告</span>
+                    <div class="apply-intro-head">
+                        <div class="apply-intro-text">
+                            <h1 class="apply-title"><span>中国企业新质组织</span><span>成熟度研究报告（2026）</span></h1>
+                            <p class="apply-sub"><span>五个维度 · 32 个子维度</span><span>测量中国企业的组织成熟度</span></p>
+                        </div>
                         <div class="apply-thumb">
                             <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/nqoc-report01.png" alt="报告封面" loading="lazy">
                         </div>
-                        <h1 class="text-[15px] sm:text-xl font-bold text-white mb-2 tracking-wide">中国企业新质组织成熟度调研报告（2026）</h1>
-                        <p class="text-sm sm:text-base text-slate-300 font-medium">向碳硅共智时代的组织进化</p>
-                        <div class="wp-chips">
-                            <span class="wp-chip">2026 年度调研</span>
-                            <span class="wp-chip">五维能力模型</span>
-                            <span class="wp-chip">行业标杆实践</span>
-                        </div>
                     </div>
+                    <div class="apply-cover">
+                        <img src="https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/nqoc-report01.png" alt="中国企业新质组织成熟度研究报告（2026）封面" loading="lazy">
+                    </div>
+                    <div class="apply-stats">
+                        <div><b>193</b><span>份问卷样本</span></div>
+                        <div><b>10</b><span>家标杆企业</span></div>
+                        <div><b>5</b><span>项核心发现</span></div>
+                    </div>
+                    <p class="apply-issuer">人瑞人才 × 瑞华智策 出品<br>中国经营报社联合发布</p>
+                </div>
 
-                    <form id="whitepaperForm" class="space-y-4" novalidate>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="relative group">
-                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <i class="fas fa-user text-slate-500 group-focus-within:text-[var(--nqoc-brand-light)] transition-colors"></i>
+                <div class="apply-form">
+                    <div class="apply-form-head">
+                        <h2>免费领取完整版报告</h2>
+                        <p>填写信息，报告发布后第一时间发送至您的邮箱。</p>
+                    </div>
+                    <form id="whitepaperForm" novalidate>
+                        <div class="apply-fields">
+                            <div class="wp-field group">
+                                <label class="wp-label" for="wpName">姓名</label>
+                                <div class="wp-control">
+                                    <i class="fas fa-user"></i>
+                                    <input type="text" id="wpName" required autocomplete="name" placeholder="您的姓名">
                                 </div>
-                                <input type="text" id="wpName" required autocomplete="name" class="w-full bg-[#0a0c16]/50 border border-white/10 rounded-xl pl-10 pr-4 py-3.5 text-white text-sm focus:outline-none focus:border-[var(--nqoc-brand)] focus:bg-[#0a0c16]/80 transition-all placeholder-slate-500 shadow-inner" placeholder="您的姓名">
                             </div>
-                            <div class="relative group">
-                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <i class="fas fa-envelope text-slate-500 group-focus-within:text-[var(--nqoc-brand-light)] transition-colors"></i>
+                            <div class="wp-field group">
+                                <label class="wp-label" for="wpPhone">手机号</label>
+                                <div class="wp-control">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    <input type="tel" id="wpPhone" required autocomplete="tel" inputmode="numeric" maxlength="11" placeholder="用于接收通知">
                                 </div>
-                                <input type="email" id="wpEmail" required autocomplete="email" class="w-full bg-[#0a0c16]/50 border border-white/10 rounded-xl pl-10 pr-4 py-3.5 text-white text-sm focus:outline-none focus:border-[var(--nqoc-brand)] focus:bg-[#0a0c16]/80 transition-all placeholder-slate-500 shadow-inner" placeholder="接收报告邮箱">
+                            </div>
+                            <div class="wp-field group">
+                                <label class="wp-label" for="wpCompany">公司名称</label>
+                                <div class="wp-control">
+                                    <i class="fas fa-building"></i>
+                                    <input type="text" id="wpCompany" required autocomplete="organization" placeholder="您所在的公司">
+                                </div>
+                            </div>
+                            <div class="wp-field group">
+                                <label class="wp-label" for="wpPosition">职位</label>
+                                <div class="wp-control">
+                                    <i class="fas fa-id-badge"></i>
+                                    <input type="text" id="wpPosition" required autocomplete="organization-title" placeholder="您的职位">
+                                </div>
+                            </div>
+                            <div class="wp-field group wp-email">
+                                <label class="wp-label" for="wpEmail">邮箱</label>
+                                <div class="wp-control">
+                                    <i class="fas fa-envelope"></i>
+                                    <input type="email" id="wpEmail" required autocomplete="email" placeholder="接收报告的邮箱">
+                                </div>
                             </div>
                         </div>
-
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <i class="fas fa-building text-slate-500 group-focus-within:text-[var(--nqoc-brand-light)] transition-colors"></i>
-                            </div>
-                            <input type="text" id="wpCompany" required autocomplete="organization" class="w-full bg-[#0a0c16]/50 border border-white/10 rounded-xl pl-10 pr-4 py-3.5 text-white text-sm focus:outline-none focus:border-[var(--nqoc-brand)] focus:bg-[#0a0c16]/80 transition-all placeholder-slate-500 shadow-inner" placeholder="公司名称">
-                        </div>
-
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <i class="fas fa-id-badge text-slate-500 group-focus-within:text-[var(--nqoc-brand-light)] transition-colors"></i>
-                            </div>
-                            <input type="text" id="wpPosition" required autocomplete="organization-title" class="w-full bg-[#0a0c16]/50 border border-white/10 rounded-xl pl-10 pr-4 py-3.5 text-white text-sm focus:outline-none focus:border-[var(--nqoc-brand)] focus:bg-[#0a0c16]/80 transition-all placeholder-slate-500 shadow-inner" placeholder="您的职位">
-                        </div>
-
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <i class="fas fa-mobile-alt text-slate-500 group-focus-within:text-[var(--nqoc-brand-light)] transition-colors"></i>
-                            </div>
-                            <input type="tel" id="wpPhone" required autocomplete="tel" inputmode="tel" maxlength="11" class="w-full bg-[#0a0c16]/50 border border-white/10 rounded-xl pl-10 pr-4 py-3.5 text-white text-sm focus:outline-none focus:border-[var(--nqoc-brand)] focus:bg-[#0a0c16]/80 transition-all placeholder-slate-500 shadow-inner" placeholder="手机号码">
-                        </div>
-
-                        <div class="pt-6">
-                            <button type="submit" id="wpSubmitBtn" class="w-full bg-white text-[#111424] hover:bg-slate-100 font-bold py-4 rounded-xl flex justify-center items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-all duration-300">
-                                <span>抢鲜领取报告</span>
-                                <i class="fas fa-arrow-right text-sm"></i>
-                            </button>
-                            <p class="mt-4 text-center text-xs text-slate-400">
-                                <i class="fas fa-shield-alt mr-1"></i>报告发布后发送至您预留邮箱，不做营销推广
-                            </p>
-                        </div>
+                        <button type="submit" id="wpSubmitBtn" class="wp-submit">
+                            <span>立即免费领取</span>
+                            <i class="fas fa-arrow-right text-sm"></i>
+                        </button>
+                        <p class="wp-privacy">
+                            <i class="fas fa-shield-alt"></i>仅用于发送报告 · 不电话回访 · 不营销推送
+                        </p>
                     </form>
                 </div>
             </div>
 
             <!-- 提交成功 -->
-            <div id="applySuccess" class="hidden relative overflow-hidden rounded-2xl bg-[#111424] border border-emerald-500/20 shadow-[0_0_50px_rgba(16,185,129,0.15)]">
-                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-32 bg-emerald-500/10 blur-[50px] rounded-full pointer-events-none"></div>
-                <div class="px-6 pb-8 pt-10 sm:px-8 relative z-10">
-                    <div class="flex flex-col items-center">
-                        <div class="relative w-20 h-20 mb-6">
-                            <div class="absolute inset-0 bg-emerald-500/20 rounded-full animate-ping"></div>
-                            <div class="relative w-full h-full flex items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-[0_0_30px_rgba(16,185,129,0.4)]">
-                                <i class="fas fa-check text-white text-3xl"></i>
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <h2 class="text-2xl font-bold tracking-wide text-white mb-3">预约提交成功</h2>
-                            <p class="text-[13px] text-slate-400 mb-8 leading-relaxed">感谢您的关注！《中国企业新质组织成熟度调研报告（2026）》发布后，我们将第一时间发送至您预留的邮箱 <span id="successEmailDisplay" class="text-white font-medium"></span>。</p>
-                            <a href="/nqoc/whitepaper" class="block w-full bg-white/10 hover:bg-white/20 border border-white/10 text-white font-bold py-3.5 rounded-xl transition-colors text-center">返回研究成果</a>
-                        </div>
-                    </div>
+            <div id="applySuccess" class="hidden apply-success">
+                <div class="apply-success-inner">
+                    <div class="apply-success-icon"><i class="fas fa-check"></i></div>
+                    <h2>预约成功</h2>
+                    <p>报告发布后，我们会第一时间发送至 <span id="successEmailDisplay"></span>，请留意查收（含垃圾邮件箱）。</p>
+                    <a href="/nqoc/whitepaper" class="apply-success-link">返回研究成果</a>
                 </div>
-            </div>
-
-            </div>
             </div>
         </div>
     </main>
@@ -295,10 +503,10 @@
     // --- 内联校验 ---
     const wpRules = {
         wpName:     { empty: '请填写您的姓名', valid: v => v.length > 0 },
-        wpEmail:    { empty: '请填写接收报告的邮箱', invalid: '邮箱格式不正确', valid: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) },
+        wpPhone:    { empty: '请填写手机号码', invalid: '请输入有效的11位手机号', valid: v => /^1[3-9]\d{9}$/.test(v) },
         wpCompany:  { empty: '请填写公司名称', valid: v => v.length > 0 },
         wpPosition: { empty: '请填写您的职位', valid: v => v.length > 0 },
-        wpPhone:    { empty: '请填写手机号码', invalid: '请输入有效的11位手机号', valid: v => /^1[3-9]\d{9}$/.test(v) }
+        wpEmail:    { empty: '请填写接收报告的邮箱', invalid: '邮箱格式不正确', valid: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) }
     };
 
     function setFieldError(input, message) {
@@ -381,7 +589,7 @@
             showToast('网络错误，请稍后重试', 'error');
         } finally {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<span>抢鲜领取报告</span><i class="fas fa-arrow-right text-sm"></i>';
+            submitBtn.innerHTML = '<span>立即免费领取</span><i class="fas fa-arrow-right text-sm"></i>';
         }
     });
     </script>

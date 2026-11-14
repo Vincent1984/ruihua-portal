@@ -672,11 +672,6 @@ rootHtmlFiles.forEach(file => {
 app.get('/survey', (req, res) => res.redirect(301, '/survey/'));
 app.get('/survey.html', (req, res) => res.redirect(301, '/survey/'));
 
-// NQOC 白皮书独立申请页（保留上游页面）
-app.get('/nqoc/whitepaper-apply', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/nqoc/whitepaper-apply.html'));
-});
-
 // NQOC：新栏目使用服务端渲染；旧业务页面保留正文并共享新版导航。
 require('./routes/nqocFrontend')(app);
 

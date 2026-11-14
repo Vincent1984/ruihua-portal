@@ -149,6 +149,14 @@
       var sub = dlg.querySelector('[data-report-subtitle]'), subText = btn.dataset.reportSlug ? (btn.dataset.reportSubtitle || '') : (dlg.dataset.defaultSubtitle || '');
       sub.textContent = subText; sub.hidden = !subText;
       dlg.querySelector('[data-report-slug]').value = btn.dataset.reportSlug || dlg.dataset.defaultSlug || '';
+      // 左侧封面：优先用触发按钮所属报告的封面，回落到最新报告封面；都没有则收起左栏
+      var coverImg = dlg.querySelector('[data-report-cover-img]');
+      var coverSrc = btn.dataset.reportCover || dlg.dataset.defaultCover || '';
+      if (coverImg && coverSrc) {
+        coverImg.src = coverSrc;
+        coverImg.alt = btn.dataset.reportCoverAlt || dlg.dataset.defaultCoverAlt || '';
+      }
+      dlg.classList.toggle('has-cover', !!coverSrc);
       var st = dlg.querySelector('[data-form-status]'); if (st) { st.hidden = true; st.classList.remove('is-error'); }
       dlg.showModal();
       dlg.addEventListener('close', function back() { dlg.removeEventListener('close', back); btn.focus(); });

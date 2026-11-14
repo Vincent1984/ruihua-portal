@@ -12,7 +12,7 @@
         {{else}}<p class="hero-slide__title font-extrabold text-white mb-6 text-center md:text-left">{{titlePrefix}}{{#if highlightOnNewLine}}<br/>{{/if}}<span class="text-gradient">{{titleHighlight}}</span>{{#if titleLine2}}<br/>{{titleLine2}}{{/if}}</p>{{/if}}
         <p class="hero-slide__summary mb-8 text-center md:text-left">{{desc}}</p>
         <div class="flex flex-wrap justify-center md:justify-start gap-4 mb-8">
-          <a class="btn-shiny" href="{{rel.primaryHref}}"{{#if rel.primaryIsReport}} data-report-open{{/if}}><span>{{primaryText}}</span> <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+          <a class="btn-shiny" href="{{rel.primaryHref}}"><span>{{primaryText}}</span> <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
           {{#if secondaryText}}<a class="btn-outline" href="{{secondaryUrl}}">{{secondaryText}}</a>{{/if}}
         </div>
         {{#if stats}}
@@ -836,8 +836,8 @@
 <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">《2026 中国企业新质组织成熟度研究报告》</h3>
 <p class="text-slate-400 mb-8 leading-relaxed">全面解析 AI 时代中国企业的组织进化路径与实战指南。基于10万+数据样本，深度刻画“新质组织”五维能力建设地图。</p>
 <div class="flex flex-wrap gap-4 mt-auto">
-<button class="btn-primary" type="button" data-report-open>领取报告 <i class="fas fa-download ml-2"></i></button>
-<button class="btn-outline" type="button" data-report-open>获取完整版报告</button>
+<a class="btn-primary" href="/nqoc/whitepaper-apply">领取报告 <i class="fas fa-download ml-2"></i></a>
+<a class="btn-outline" href="/nqoc/whitepaper-apply">获取完整版报告</a>
 </div>
 </div>
 <!-- Other Modules Grid -->
@@ -873,7 +873,7 @@
 <div class="glass-panel p-8 max-w-md w-full text-left">
 <h4 class="text-xl font-bold text-white mb-2">领取报告</h4>
 <p class="text-sm text-slate-400 mb-6">留下联系方式，获取最新发布的研究报告。</p>
-<a class="btn-primary w-full justify-center" href="{{view.latestReportUrl}}" data-report-open>领取报告</a>
+<a class="btn-primary w-full justify-center" href="/nqoc/whitepaper-apply">领取报告</a>
 </div>
 <!-- 「评选申报」卡片（链接 /nqoc/awards）暂时隐藏，页面保留；需要时把这张卡片加回来 -->
 <div class="glass-panel p-8 max-w-md w-full text-left">

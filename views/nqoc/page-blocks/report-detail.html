@@ -12,7 +12,7 @@
           <p class="report-hero__publisher">{{publisher}}</p>
           <div class="report-hero__actions">
             {{#if rel.isForm}}
-            <button class="btn-primary" type="button" data-report-open data-report-name="{{title}}" data-report-subtitle="{{subtitle}}" data-report-slug="{{slug}}">领取报告</button>
+            <a class="btn-primary" href="/nqoc/whitepaper-apply">领取报告</a>
             {{/if}}
             {{#if rel.isDirect}}
               {{#if fileUrl}}<a class="btn-primary" href="{{fileUrl}}" download>下载报告</a>

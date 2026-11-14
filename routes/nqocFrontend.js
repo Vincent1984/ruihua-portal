@@ -365,7 +365,9 @@ function renderShell({ pathName, activeKey, title, description, content, latestR
     const drawer = readView('partials/drawer.html')
         .replaceAll('<!--CONFIG_REPORT_NAME-->', esc(latestReport.title || '领取报告'))
         .replaceAll('<!--CONFIG_REPORT_SUBTITLE-->', esc(latestReport.subtitle || ''))
-        .replaceAll('<!--CONFIG_REPORT_SLUG-->', esc(latestReport.slug || ''));
+        .replaceAll('<!--CONFIG_REPORT_SLUG-->', esc(latestReport.slug || ''))
+        .replaceAll('<!--CONFIG_REPORT_COVER-->', esc(latestReport.cover || ''))
+        .replaceAll('<!--CONFIG_REPORT_COVER_ALT-->', esc(latestReport.coverAlt || ''));
     const seoImage = item && item.cover ? item.cover : '/nqoc/img/share.jpg';
     const meta = buildSeoMeta({ pathName, title, description, image: seoImage, noindex, pageType });
     const jsonLd = JSON.stringify(structuredData({ type: itemType, item, pathName, title, description, listItems })).replace(/</g, '\\u003c');
@@ -381,8 +383,8 @@ function renderShell({ pathName, activeKey, title, description, content, latestR
         .replace('<!--FOOTER-->', footer)
         .replace('<!--DRAWER-->', drawer)
         .replace('<!--PRESCRIPT-->', prescript || '')
-        .replace('/css/app.build.css?v=20261110-2', '/nqoc/css/app.build.css?v=20261111b')
-        .replace('/js/app.js?v=20261110-2', '/nqoc/js/app-20261110.js?v=20261111b');
+        .replace('/css/app.build.css?v=20261110-2', '/nqoc/css/app.build.css?v=20261114a')
+        .replace('/js/app.js?v=20261110-2', '/nqoc/js/app-20261110.js?v=20261114a');
     return pathAssets(shell);
 }
 
@@ -482,13 +484,15 @@ function renderLegacyPage(page, latestReport, activeKey) {
     html = html.replace(/<nav class="nqoc-nav\b[\s\S]*?<\/nav>/i, nav.nav)
         .replace(/<nav id="nqocMobileMenu"[\s\S]*?<\/nav>/i, nav.mobile)
         .replace(/<footer\b[\s\S]*?<\/footer>/i, readView('partials/footer.html').replace('<!--CONFIG_ICP-->', '沪ICP备12042344号-24'));
-    html = html.replace(/<head>/i, '<head><link rel="stylesheet" href="/nqoc/css/app.build.css?v=20261111b">');
+    html = html.replace(/<head>/i, '<head><link rel="stylesheet" href="/nqoc/css/app.build.css?v=20261114a">');
     html = html.replace('</body>', `${readView('partials/drawer.html')
         .replaceAll('<!--CONFIG_REPORT_NAME-->', esc(latestReport.title || '领取报告'))
         .replaceAll('<!--CONFIG_REPORT_SUBTITLE-->', esc(latestReport.subtitle || ''))
-        .replaceAll('<!--CONFIG_REPORT_SLUG-->', esc(latestReport.slug || ''))}
+        .replaceAll('<!--CONFIG_REPORT_SLUG-->', esc(latestReport.slug || ''))
+        .replaceAll('<!--CONFIG_REPORT_COVER-->', esc(latestReport.cover || ''))
+        .replaceAll('<!--CONFIG_REPORT_COVER_ALT-->', esc(latestReport.coverAlt || ''))}
 <div class="toast" role="status" data-toast hidden></div>
-<script src="/nqoc/js/app-20261110.js?v=20261111b" defer></script></body>`);
+<script src="/nqoc/js/app-20261110.js?v=20261114a" defer></script></body>`);
     if (page === 'expert-apply') html = html.replace('<head>', '<head><meta name="robots" content="noindex, nofollow">');
     return html;
 }
@@ -503,9 +507,8 @@ function initNqocFrontend(app) {
             rel: {
                 label: `第 ${index + 1} 张，共 ${c.banners.length} 张`,
                 current: String(index === 0),
-                primaryIsReport: banner.primaryAction === 'report',
                 primaryHref: banner.primaryAction === 'report'
-                    ? `/nqoc/whitepaper/${c.reports[0] ? c.reports[0].slug : ''}`
+                    ? '/nqoc/whitepaper-apply'
                     : banner.primaryUrl
             }
         }));
@@ -518,7 +521,6 @@ function initNqocFrontend(app) {
             view: {
                 banners,
                 bannerMulti: banners.length > 1,
-                latestReportUrl: c.reports[0] ? `/nqoc/whitepaper/${c.reports[0].slug}` : '/nqoc/whitepaper',
                 insightFeatured: insights.slice(0, 1),
                 insightRest: insights.slice(1),
                 reportFeatured: reports.slice(0, 1),
@@ -631,7 +633,8 @@ function initNqocFrontend(app) {
         awards: 'awards',
         events: 'events',
         about: 'about',
-        'expert-apply': 'expert-apply'
+        'expert-apply': 'expert-apply',
+        'whitepaper-apply': 'whitepaper'
     };
     Object.entries(legacy).forEach(([page, key]) => {
         app.get(`/nqoc/${page}`, async (_req, res) => {
