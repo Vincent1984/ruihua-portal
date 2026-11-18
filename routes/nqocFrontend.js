@@ -393,6 +393,7 @@ function initNqocFrontend(app) {
         block: 'home', activeKey: 'home', title: '中国新质组织研究项目',
         description: '中国新质组织研究项目由人瑞人才与瑞华智策联合发起，中国经营报联合主办，洞察 AI 时代组织发展趋势，赋能中国企业组织进化。'
     }, async (_req, c) => {
+        const latestVideo = c.videos[0] || null;
         const banners = c.banners.map((banner, index) => ({
             ...banner,
             rel: {
@@ -401,7 +402,9 @@ function initNqocFrontend(app) {
                 primaryIsReport: banner.primaryAction === 'report',
                 primaryHref: banner.primaryAction === 'report'
                     ? `/nqoc/whitepaper/${c.reports[0] ? c.reports[0].slug : ''}`
-                    : banner.primaryUrl
+                    : banner.primaryAction === 'latest-video'
+                        ? (latestVideo ? `/nqoc/worth-seeing/${latestVideo.slug}` : '/nqoc/worth-seeing')
+                        : banner.primaryUrl
             }
         }));
         const insights = decorateList(c.insights, 'insight');

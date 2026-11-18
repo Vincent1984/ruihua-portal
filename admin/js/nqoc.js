@@ -150,7 +150,7 @@
               <span class="copy">
                 <b>${nqBanTitle(b)}</b>
                 <span class="sub">${esc(b.desc)}</span>
-                <span class="intent-tag">主按钮：${esc(b.primaryText)} → ${b.primaryAction === 'report' ? '领取最新报告' : esc(b.primaryUrl)}</span>
+                <span class="intent-tag">主按钮：${esc(b.primaryText)} → ${b.primaryAction === 'report' ? '领取最新报告' : b.primaryAction === 'latest-video' ? '「值得看见」最新一期（自动跟随）' : esc(b.primaryUrl)}</span>
                 ${b.secondaryText ? `<span class="intent-tag">次按钮：${esc(b.secondaryText)} → ${esc(b.secondaryUrl)}</span>` : ''}
                 ${(b.stats || []).length ? `<span class="intent-tag">数据锚点 ${b.stats.length} 组</span>` : ''}
                 ${b.isOnline ? '' : '<span class="chip archived">未展示</span>'}
@@ -338,7 +338,7 @@
             { k: 'desc', label: '描述', type: 'textarea', rows: 2, max: 70, count: 1 },
             { tip: '按钮' },
             { k: 'primaryText', label: '主按钮文字', req: 1, max: 8, ph: '领取报告', half: 1 },
-            { k: 'primaryAction', label: '主按钮点击后', type: 'select', options: [['link', '跳转到链接'], ['report', '弹出领取表单（领取最新报告）']], half: 1 },
+            { k: 'primaryAction', label: '主按钮点击后', type: 'select', options: [['link', '跳转到链接'], ['latest-video', '跳转到「值得看见」最新一期（自动跟随）'], ['report', '弹出领取表单（领取最新报告）']], half: 1 },
             { k: 'primaryUrl', label: '主按钮链接', req: 1, hint: '站内以 /nqoc 开头；站外需 https://', ph: '/nqoc/whitepaper', showIf: o => o.primaryAction === 'link' },
             { k: 'secondaryText', label: '次按钮文字', hint: '留空则不显示次按钮', max: 8, half: 1 },
             { k: 'secondaryUrl', label: '次按钮链接', ph: '/nqoc/…', half: 1 },

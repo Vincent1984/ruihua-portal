@@ -193,7 +193,7 @@ function buildBanner(body, existing) {
     if (has(body, 'titleLine2')) b.titleLine2 = trimStr(body.titleLine2, 14);
     if (has(body, 'desc')) b.desc = trimStr(body.desc, 70);
     if (has(body, 'primaryText')) b.primaryText = trimStr(body.primaryText, 8);
-    if (has(body, 'primaryAction')) b.primaryAction = body.primaryAction === 'report' ? 'report' : 'link';
+    if (has(body, 'primaryAction')) b.primaryAction = ['report', 'latest-video'].includes(body.primaryAction) ? body.primaryAction : 'link';
     if (has(body, 'primaryUrl')) b.primaryUrl = cleanLink(body.primaryUrl);
     if (has(body, 'secondaryText')) b.secondaryText = trimStr(body.secondaryText, 8);
     if (has(body, 'secondaryUrl')) b.secondaryUrl = cleanLink(body.secondaryUrl);
@@ -203,7 +203,8 @@ function buildBanner(body, existing) {
     if (has(body, 'isOnline')) b.isOnline = !!body.isOnline;
     if (has(body, 'sort')) b.sort = Number.isFinite(Number(body.sort)) ? Number(body.sort) : b.sort;
 
-    if (b.primaryAction === 'report') b.primaryUrl = '';
+    // 仅 link 需要手填链接；report / latest-video 的跳转地址由前台动态解析
+    if (b.primaryAction !== 'link') b.primaryUrl = '';
     return b;
 }
 

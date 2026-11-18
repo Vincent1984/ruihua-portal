@@ -8,8 +8,8 @@ const nqocBannerSchema = new mongoose.Schema({
     titleLine2: { type: String, default: '' },         // 标题第二行 ≤14
     desc: { type: String, default: '' },               // ≤70
     primaryText: { type: String, required: true },     // 主按钮文字 ≤8
-    primaryAction: { type: String, enum: ['link', 'report'], default: 'link' },
-    primaryUrl: { type: String, default: '' },         // link 时必填，report 时存空串
+    primaryAction: { type: String, enum: ['link', 'report', 'latest-video'], default: 'link' },
+    primaryUrl: { type: String, default: '' },         // 仅 link 时必填，report / latest-video 存空串
     secondaryText: { type: String, default: '' },      // ≤8
     secondaryUrl: { type: String, default: '' },
     image: { type: String, default: '' },              // 右侧配图（必填，服务端校验）
