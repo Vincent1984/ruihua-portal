@@ -65,6 +65,11 @@
         if (!src) return `<span class="thumb none ${cls || ''}">无图</span>`;
         return `<span class="thumb ${cls || ''}"><img src="${esc(src)}" alt="${esc(label || '')}"></span>`;
     }
+    function nqVideoBox(url) {
+        return url
+            ? `<div class="sub" style="word-break:break-all"><a href="${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a></div>`
+            : '<div class="sub">尚未上传视频</div>';
+    }
     function nqChip(st) { return `<span class="chip ${esc(st)}">${NQ_STATUS[st] || st}</span>`; }
     function nqOps(t, o, view) {
         return `<button type="button" data-action="edit" data-type="${t}" data-id="${esc(o.id)}" data-permission="${view}:update">编辑</button>` +
@@ -355,7 +360,7 @@
             { k: 'title', label: '标题', req: 1, max: 60, count: 1 },
             { k: 'summary', label: '节目简介', hint: '显示在播放器下方和列表卡片上', type: 'textarea', rows: 3, max: 300, count: 1 },
             { tip: '视频与封面' },
-            { k: 'videoUrl', label: '视频文件地址', req: 1, hint: '自有对象存储的 MP4 直链（https://…）。后台上传通道尚未开放，请先粘贴地址', ph: 'https://…/ep01.mp4' },
+            { k: 'videoUrl', label: '视频文件', req: 1, type: 'video', hint: 'MP4 / MOV / WebM，≤ 3GB；浏览器直传对象存储 nqoc/zdkj/' },
             { k: 'duration', label: '时长', hint: '格式 mm:ss 或 h:mm:ss，可留空', ph: 'mm:ss', max: 8 },
             { k: 'cover', label: '封面图', req: 1, type: 'image', hint: '横版 16:9，建议 1280×720；' + NQ_IMG_HINT },
             { tip: '对谈嘉宾（至少 1 位，最多 2 位；显示在播放器右侧）' },
@@ -391,6 +396,7 @@
         else if (f.type === 'select') c = `<select name="${f.k}">${f.options.map(p => `<option value="${p[0]}"${String(v) === p[0] ? ' selected' : ''}>${esc(p[1])}</option>`).join('')}</select>`;
         else if (f.type === 'date') c = `<input type="date" name="${f.k}" value="${esc(v)}">`;
         else if (f.type === 'image') c = `<div class="upload-row"><span data-thumb="${f.k}">${nqThumb(v, 'lg', '已上传')}</span><input type="file" name="${f.k}" data-upload="image" accept="image/png,image/jpeg,image/webp"></div>`;
+        else if (f.type === 'video') c = `<div class="upload-row"><input type="file" name="${f.k}" data-upload="video" accept="video/mp4,video/quicktime,video/webm,video/x-m4v"></div><div data-video-box="${f.k}">${nqVideoBox(v)}</div>`;
         else if (f.type === 'rows') {
             const list = f.single ? [v || {}] : (v || []);
             c = `<div class="${f.cols.length === 2 ? 'grid2' : 'row3'}">${Array.from({ length: f.n }, (_, i) => f.cols.map(col =>
@@ -431,7 +437,7 @@
         const o = {};
         NQ_FIELDS[nqEd.type].forEach(f => {
             if (f.tip) return;
-            if (f.type === 'image') o[f.k] = nqPend[f.k] || nqEd.o[f.k] || '';
+            if (f.type === 'image' || f.type === 'video') o[f.k] = nqPend[f.k] || nqEd.o[f.k] || '';
             else if (f.type === 'rows') {
                 const rows = Array.from({ length: f.n }, (_, i) => { const r = {}; f.cols.forEach(c => { r[c[0]] = val(`${f.k}.${i}.${c[0]}`); }); return r; });
                 o[f.k] = f.single ? rows[0] : rows.filter(r => r[f.cols[0][0]] || r[f.cols[1][0]]);
@@ -468,6 +474,64 @@
                 done(d.url || '');
             })
             .catch(e => { toast(e.message); inp.value = ''; });
+    }
+    function nqPickVideo(inp, done) {
+        const file = inp.files && inp.files[0];
+        if (!file) return;
+        if (!/\.(mp4|m4v|mov|webm)$/i.test(file.name || '')) { toast('只支持 MP4 / MOV / WebM 视频'); inp.value = ''; return; }
+        const MAX = 3 * 1024 * 1024 * 1024;
+        if (file.size > MAX) { toast('视频超过 3GB，请先压缩后再上传'); inp.value = ''; return; }
+        const key = inp.name;
+        const box = document.querySelector(`#editorForm [data-video-box="${key}"]`);
+        const setBox = html => { if (box) box.innerHTML = html; };
+        const mb = (file.size / 1024 / 1024).toFixed(1);
+        const tip = pct => `<div class="sub">正在上传 ${esc(file.name)}（${mb}MB）…${pct == null ? '' : ' ' + pct + '%'}</div>`;
+        const fail = msg => { inp.disabled = false; setBox(nqVideoBox('')); inp.value = ''; toast(msg); };
+        const ok = url => { inp.disabled = false; setBox(nqVideoBox(url)); done(url); };
+        const tk = sessionStorage.getItem('token');
+        inp.disabled = true;
+        setBox(`<div class="sub">正在获取上传地址…</div>`);
+
+        // 回退：直传被浏览器拦截（多为 TOS 未配置 CORS）时，退回 Node 中转上传
+        function legacyUpload() {
+            setBox(tip(null));
+            const fd = new FormData();
+            fd.append('file', file);
+            const x = new XMLHttpRequest();
+            x.open('POST', '/api/upload/nqoc-video');
+            if (tk) x.setRequestHeader('Authorization', 'Bearer ' + tk);
+            x.upload.onprogress = e => { if (e.lengthComputable) setBox(tip(Math.min(100, Math.round(e.loaded / e.total * 100)))); };
+            x.onload = () => {
+                let d = {};
+                try { d = JSON.parse(x.responseText || '{}'); } catch (e) { d = {}; }
+                if (x.status >= 200 && x.status < 300 && d.url) return ok(d.url);
+                fail(d.error || ('上传失败 (HTTP ' + x.status + ')'));
+            };
+            x.onerror = () => fail('网络中断，视频上传失败，请重试');
+            x.send(fd);
+        }
+
+        // 直传：先向服务端要预签名 PUT 地址，再由浏览器直接传到 TOS，视频流不经过 Node
+        fetch('/api/upload/nqoc-video/presign', {
+            method: 'POST',
+            headers: Object.assign({ 'Content-Type': 'application/json' }, tk ? { Authorization: 'Bearer ' + tk } : {}),
+            body: JSON.stringify({ filename: file.name, contentType: file.type })
+        }).then(async r => {
+            const d = await r.json().catch(() => ({}));
+            if (!r.ok || !d.uploadUrl) throw Error(d.error || ('获取上传地址失败 (HTTP ' + r.status + ')'));
+            const xhr = new XMLHttpRequest();
+            xhr.open('PUT', d.uploadUrl);
+            // Content-Type 已写入签名，必须与签名一致
+            xhr.setRequestHeader('Content-Type', d.contentType || file.type || 'video/mp4');
+            xhr.upload.onprogress = e => { if (e.lengthComputable) setBox(tip(Math.min(100, Math.round(e.loaded / e.total * 100)))); };
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) return ok(d.url);
+                fail('上传失败 (HTTP ' + xhr.status + ')');
+            };
+            xhr.onerror = () => { setBox(nqVideoBox('')); legacyUpload(); };
+            setBox(tip(0));
+            xhr.send(file);
+        }).catch(e => fail(e.message || '获取上传地址失败，请稍后重试'));
     }
     async function saveModalEditor() {
         if (!nqEd) return;
@@ -613,6 +677,10 @@
                     const box = document.querySelector(`#editorForm [data-thumb="${key}"]`);
                     if (box) box.innerHTML = nqThumb(url, 'lg', '已上传');
                 });
+                return;
+            }
+            if (t.dataset.upload === 'video') {
+                nqPickVideo(t, url => { nqPend[t.name] = url; });
                 return;
             }
             nqEditorSync();

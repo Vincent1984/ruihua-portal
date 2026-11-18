@@ -31,6 +31,8 @@ spec:
         fsGroup: 1001
       containers:
       - name: ruihuawebsite-app
+        # 线上 image 由 scripts/release.sh 按 digest 设定（@sha256:...），本文件的 :latest 仅作初始模板。
+        # 不要用 kubectl apply -f 本文件覆盖线上 —— 会把可变 tag 解析问题带回来。见 AGENTS.md 第一节第 6 条。
         image: ruihua-imagerepo-cn-shanghai.cr.volces.com/ruihua/ruihuawebsite:latest
         imagePullPolicy: Always
         ports:

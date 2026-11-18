@@ -22,8 +22,11 @@ const NqocInsight = require('../../models/NqocInsight');
 const NqocCase = require('../../models/NqocCase');
 const NqocVideo = require('../../models/NqocVideo');
 const NqocReportLead = require('../../models/NqocReportLead');
+// 历史「白皮书预约」独立表单数据，已并入报告领取记录统一展示
+const NqocWhitepaperRequest = require('../../models/NqocWhitepaperRequest');
 const { sendInternalError } = require('../../utils/responseHelpers');
 const { escapeRegex } = require('../../utils/articleHelpers');
+const { pushPage } = require('../../utils/baiduPush');
 const logOp = require('../../middleware/operationLog');
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -130,6 +133,27 @@ function serializeLead(doc) {
     delete o.__v;
     o.createdAt = o.createdAt ? new Date(o.createdAt).toISOString() : null;
     return o;
+}
+
+// 历史白皮书预约记录标准化为报告领取记录的同构结构
+function serializeLegacyWhitepaperLead(doc) {
+    const o = doc.toObject ? doc.toObject() : doc;
+    return {
+        id: 'whitepaper-' + String(o._id),
+        name: o.name || '',
+        phone: o.phone || '',
+        company: o.company || '',
+        position: o.position || '',
+        email: o.email || '',
+        reportSlug: '',
+        reportTitle: '白皮书预约',
+        sourcePage: '/nqoc/whitepaper-apply',
+        createdAt: o.createdAt ? new Date(o.createdAt).toISOString() : null
+    };
+}
+
+function sortLeadsByCreatedAtDesc(a, b) {
+    return String(b.createdAt || '').localeCompare(String(a.createdAt || ''));
 }
 
 function pad2(n) { return String(n).padStart(2, '0'); }
@@ -581,6 +605,9 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
                 }
 
                 const doc = await cfg.Model.create(payload);
+                if (doc.status === 'published' && doc.slug) {
+                    pushPage(`nqoc/${segment}/${encodeURIComponent(doc.slug)}`);
+                }
                 await logOp('create', `新质组织-${cfg.name}`, `新增：${doc.title}`, req.user && req.user.username);
                 res.json(serializePost(doc));
             } catch (e) {
@@ -615,6 +642,10 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
 
                 Object.assign(existing, payload);
                 await existing.save();
+
+                if (publishing && existing.slug) {
+                    pushPage(`nqoc/${segment}/${encodeURIComponent(existing.slug)}`);
+                }
 
                 await logOp('update', `新质组织-${cfg.name}`, `${publishing ? '发布' : '保存'}：${existing.title}`, req.user && req.user.username);
                 res.json(serializePost(existing));
@@ -678,6 +709,9 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             }
 
             const doc = await NqocVideo.create(payload);
+            if (doc.status === 'published' && doc.slug) {
+                pushPage(`nqoc/worth-seeing/${encodeURIComponent(doc.slug)}`);
+            }
             await logOp('create', '新质组织-值得看见', `新增：${doc.episode} ${doc.title}`, req.user && req.user.username);
             res.json(serializePost(doc));
         } catch (e) {
@@ -714,6 +748,9 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
 
             Object.assign(existing, payload);
             await existing.save();
+            if (publishing && existing.slug) {
+                pushPage(`nqoc/worth-seeing/${encodeURIComponent(existing.slug)}`);
+            }
             await logOp('update', '新质组织-值得看见', `${publishing ? '发布' : '保存'}：${existing.episode} ${existing.title}`, req.user && req.user.username);
             res.json(serializePost(existing));
         } catch (e) {
@@ -741,18 +778,32 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             const startOfDay = new Date();
             startOfDay.setHours(0, 0, 0, 0);
 
-            const [leads, today, week7, all, companies] = await Promise.all([
+            const [leads, legacyLeads, today, todayWp, week7, week7Wp, all, allWp, companies, wpCompanies] = await Promise.all([
                 NqocReportLead.find(query).sort({ createdAt: -1 }).limit(5000),
+                NqocWhitepaperRequest.find(query).sort({ createdAt: -1 }).limit(5000),
                 NqocReportLead.countDocuments({ createdAt: { $gte: startOfDay } }),
+                NqocWhitepaperRequest.countDocuments({ createdAt: { $gte: startOfDay } }),
                 NqocReportLead.countDocuments({ createdAt: { $gte: new Date(Date.now() - 7 * 24 * 3600 * 1000) } }),
+                NqocWhitepaperRequest.countDocuments({ createdAt: { $gte: new Date(Date.now() - 7 * 24 * 3600 * 1000) } }),
                 NqocReportLead.countDocuments({}),
-                NqocReportLead.distinct('company')
+                NqocWhitepaperRequest.countDocuments({}),
+                NqocReportLead.distinct('company'),
+                NqocWhitepaperRequest.distinct('company')
             ]);
 
+            const merged = leads.map(serializeLead)
+                .concat(legacyLeads.map(serializeLegacyWhitepaperLead))
+                .sort(sortLeadsByCreatedAtDesc);
+
             res.json({
-                leads: leads.map(serializeLead),
-                total: leads.length,
-                stats: { today, week7, all, companies: companies.filter(Boolean).length }
+                leads: merged,
+                total: merged.length,
+                stats: {
+                    today: today + todayWp,
+                    week7: week7 + week7Wp,
+                    all: all + allWp,
+                    companies: new Set(companies.concat(wpCompanies).filter(Boolean)).size
+                }
             });
         } catch (e) {
             return sendInternalError(res, 'List nqoc report leads error:', e);
@@ -763,7 +814,12 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
     router.get('/admin/nqoc/report-leads/export', authRequired, requirePerm('nqoc-report-leads:export'), async (req, res) => {
         try {
             const { query, range, keyword } = buildLeadQuery(req);
-            const leads = await NqocReportLead.find(query).sort({ createdAt: -1 }).limit(5000);
+            const [leads, legacyLeads] = await Promise.all([
+                NqocReportLead.find(query).sort({ createdAt: -1 }).limit(5000),
+                NqocWhitepaperRequest.find(query).sort({ createdAt: -1 }).limit(5000)
+            ]);
+            leads.push(...legacyLeads.map(serializeLegacyWhitepaperLead));
+            leads.sort(sortLeadsByCreatedAtDesc);
 
             const now = new Date();
             const stamp = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;

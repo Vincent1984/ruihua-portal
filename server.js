@@ -9,6 +9,7 @@ const path = require('path');
 const multer = require('multer');
 const sharp = require('sharp');
 const fs = require('fs');
+const os = require('os');
 const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -18,6 +19,7 @@ const axios = require('axios');
 const crypto = require('crypto');
 const dns = require('dns');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const mongoSanitize = require('express-mongo-sanitize');
 const helmet = require('helmet');
 
@@ -560,7 +562,6 @@ const ADMIN_STATIC_PAGE_PERMS = {
     '/admin/nqoc-debate.html': ['nqoc:list', 'nqoc:manage'],
     '/admin/nqoc-experts.html': ['nqoc:list', 'nqoc:manage'],
     '/admin/nqoc-survey.html': ['nqoc:list', 'nqoc:manage'],
-    '/admin/nqoc-whitepaper.html': ['nqoc:list', 'nqoc:manage'],
     '/admin/survey.html': 'appointment:list',
     '/admin/template-management.html': 'appointment:list',
     '/admin/training-applications.html': 'appointment:list',
@@ -670,11 +671,6 @@ rootHtmlFiles.forEach(file => {
 // 5. survey redirects
 app.get('/survey', (req, res) => res.redirect(301, '/survey/'));
 app.get('/survey.html', (req, res) => res.redirect(301, '/survey/'));
-
-// NQOC 白皮书独立申请页（保留上游页面）
-app.get('/nqoc/whitepaper-apply', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/nqoc/whitepaper-apply.html'));
-});
 
 // NQOC：新栏目使用服务端渲染；旧业务页面保留正文并共享新版导航。
 require('./routes/nqocFrontend')(app);
@@ -1555,7 +1551,7 @@ app.get('/', async (req, res) => {
         const DEFAULT_OG_IMG = 'https://ruihua-portal.tos-cn-shanghai.volces.com/page/weixinshare.png';
         res.send(render2026({
             title: '瑞华智策 · 碳硅混合生产力专家',
-            description: '瑞华智策（上海瑞华智策企业管理咨询有限公司）是人瑞人才（6919.HK）全资旗下 AI 原生咨询机构，碳硅混合生产力解决方案供应商，面向企业提供 AI 落地转型的全案服务，帮助企业打造碳硅共智的新质组织。',
+            description: '瑞华智策是人瑞人才（6919.HK）全资旗下 AI 原生咨询机构、碳硅混合生产力解决方案供应商，提供 AI 落地转型全案服务，帮助企业打造碳硅共智的新质组织。',
             canonical: `${SITE}/`,
             image: DEFAULT_OG_IMG,
             content: await buildHome(),
@@ -1593,7 +1589,11 @@ app.get('/sitemap.xml', async (req, res) => {
             { url: 'productivity/', file: 'productivity.html', priority: 0.8, changefreq: 'weekly' },
             { url: 'diagnostic/', file: 'diagnostic.html', priority: 0.8, changefreq: 'weekly' },
             // nqoc 不带尾斜杠：带斜杠会被服务器 301 到 /nqoc，sitemap 应直接给规范 URL
-            { url: 'nqoc', file: 'public/nqoc/index.html', priority: 0.7, changefreq: 'weekly' },
+            { url: 'nqoc', file: 'views/nqoc/page-blocks/home.html', priority: 0.7, changefreq: 'weekly' },
+            { url: 'nqoc/whitepaper', file: 'views/nqoc/page-blocks/reports.html', priority: 0.7, changefreq: 'weekly' },
+            { url: 'nqoc/insights', file: 'views/nqoc/page-blocks/insights.html', priority: 0.7, changefreq: 'weekly' },
+            { url: 'nqoc/cases', file: 'views/nqoc/page-blocks/cases.html', priority: 0.7, changefreq: 'weekly' },
+            { url: 'nqoc/worth-seeing', file: 'views/nqoc/page-blocks/videos.html', priority: 0.7, changefreq: 'weekly' },
             // privacy 不带尾斜杠：/privacy/ 会 301 到 /privacy，sitemap 应给规范 URL
             { url: 'privacy', file: 'privacy.html', priority: 0.3, changefreq: 'yearly' }
         ];
@@ -1661,6 +1661,36 @@ app.get('/sitemap.xml', async (req, res) => {
         <lastmod>${lastmod}</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.5</priority>
+    </url>`;
+        });
+
+        // Add NQOC detail pages（报告 / 新质观点 / 案例 / 值得看见）
+        const NqocInsight = require('./models/NqocInsight');
+        const NqocCase = require('./models/NqocCase');
+        const NqocVideo = require('./models/NqocVideo');
+        const nqocReports = require('./config/nqocReports.json');
+        const nqocSlugFilter = { status: 'published', slug: { $exists: true, $nin: [null, ''] } };
+        const [nqocInsights, nqocCases, nqocVideos] = await Promise.all([
+            NqocInsight.find(nqocSlugFilter, 'slug updatedAt publishDate').lean(),
+            NqocCase.find(nqocSlugFilter, 'slug updatedAt publishDate').lean(),
+            NqocVideo.find(nqocSlugFilter, 'slug updatedAt publishDate').lean()
+        ]);
+        const nqocEntries = [
+            ...nqocReports
+                .filter(report => (report.status || 'published') === 'published' && report.slug)
+                .map(report => ({ url: `nqoc/whitepaper/${report.slug}`, date: report.updatedAt || report.publishDate })),
+            ...nqocInsights.map(doc => ({ url: `nqoc/insights/${doc.slug}`, date: doc.updatedAt || doc.publishDate })),
+            ...nqocCases.map(doc => ({ url: `nqoc/cases/${doc.slug}`, date: doc.updatedAt || doc.publishDate })),
+            ...nqocVideos.map(doc => ({ url: `nqoc/worth-seeing/${doc.slug}`, date: doc.updatedAt || doc.publishDate }))
+        ];
+        nqocEntries.forEach(entry => {
+            const lastmod = new Date(entry.date || Date.now()).toISOString().split('T')[0];
+            xml += `
+    <url>
+        <loc>${SITE_URL}/${entry.url}</loc>
+        <lastmod>${lastmod}</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
     </url>`;
         });
 
@@ -1759,6 +1789,22 @@ async function uploadBufferToTos(fileBuffer, objectKey, contentType) {
             Key: objectKey,
             Body: fileBuffer,
             ContentLength: fileBuffer.length,
+            ContentType: contentType || 'application/octet-stream',
+            ContentDisposition: 'inline'
+        })
+    );
+    return toTosPublicUrl(objectKey);
+}
+
+// 大文件（节目视频）走流式上传，避免整个文件读进内存
+async function uploadFileToTos(filePath, objectKey, contentType, contentLength) {
+    if (!useTosUpload || !tosClient) return null;
+    await tosClient.send(
+        new PutObjectCommand({
+            Bucket: process.env.TOS_BUCKET_NAME,
+            Key: objectKey,
+            Body: fs.createReadStream(filePath),
+            ContentLength: contentLength,
             ContentType: contentType || 'application/octet-stream',
             ContentDisposition: 'inline'
         })
@@ -2488,77 +2534,7 @@ app.post('/api/nqoc/whitepaper/apply', async (req, res) => {
     }
 });
 
-// Admin API for NQOC Whitepaper Requests
-app.get('/api/admin/nqoc/whitepaper', authRequired, requireAnyPerm(['nqoc:list', 'nqoc:manage']), async (req, res) => {
-    try {
-        const { page = 1, limit = 20, keyword } = req.query;
-        let query = {};
-
-        if (keyword && keyword.length <= 200) {
-            query.$or = [
-                { name: new RegExp(escapeRegex(keyword), 'i') },
-                { phone: new RegExp(escapeRegex(keyword), 'i') },
-                { company: new RegExp(escapeRegex(keyword), 'i') }
-            ];
-        }
-
-        const skip = (parseInt(page) - 1) * parseInt(limit);
-        const [total, list] = await Promise.all([
-            NqocWhitepaperRequest.countDocuments(query),
-            NqocWhitepaperRequest.find(query).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit))
-        ]);
-
-        res.json({
-            success: true,
-            data: { list, total, page: parseInt(page), totalPages: Math.ceil(total / parseInt(limit)) }
-        });
-    } catch (e) {
-        console.error('Fetch whitepaper requests error:', e);
-        res.status(500).json({ success: false, error: '服务器内部错误' });
-    }
-});
-
-app.delete('/api/admin/nqoc/whitepaper/:id', authRequired, requireAnyPerm(['nqoc:delete', 'nqoc:manage']), async (req, res) => {
-    try {
-        const deleted = await NqocWhitepaperRequest.findByIdAndDelete(req.params.id);
-        if (!deleted) return res.status(404).json({ success: false, error: '记录不存在' });
-        res.json({ success: true });
-    } catch (e) {
-        console.error('Delete whitepaper request error:', e);
-        res.status(500).json({ success: false, error: '服务器内部错误' });
-    }
-});
-
-app.get('/api/admin/nqoc/whitepaper/export', authRequired, requireAnyPerm(['nqoc:export', 'nqoc:manage']), async (req, res) => {
-    try {
-        const { keyword } = req.query;
-        let query = {};
-        if (keyword && keyword.length <= 200) {
-            query.$or = [
-                { name: new RegExp(escapeRegex(keyword), 'i') },
-                { phone: new RegExp(escapeRegex(keyword), 'i') },
-                { company: new RegExp(escapeRegex(keyword), 'i') }
-            ];
-        }
-
-        const list = await NqocWhitepaperRequest.find(query).sort({ createdAt: -1 });
-
-        let csvContent = '\uFEFF'; // BOM
-        csvContent += '姓名,手机号,邮箱,公司名称,职位,提交时间\n';
-
-        list.forEach(item => {
-            const dateStr = item.createdAt ? new Date(item.createdAt).toLocaleString('zh-CN') : '';
-            csvContent += `"${item.name}","${item.phone}","${item.email}","${item.company}","${item.position}","${dateStr}"\n`;
-        });
-
-        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-        res.setHeader('Content-Disposition', 'attachment; filename="nqoc_whitepaper_requests.csv"');
-        res.send(csvContent);
-    } catch (e) {
-        console.error('Export NQOC Whitepaper Requests Error:', e);
-        res.status(500).send('导出失败');
-    }
-});
+// 白皮书预约记录统一在「报告领取记录」中查看（routes/api/nqoc.js 合并历史数据）。
 
 // CSV Export for NQOC Awards
 // Use JWT authentication via query string since it's accessed via window.open
@@ -4021,6 +3997,87 @@ app.post('/api/upload', authRequired, requirePerm('upload:write'), uploadLimiter
             return res.status(500).json({ success: false, error: '上传处理失败，请稍后重试' });
         }
     });
+});
+
+// 新质组织「值得看见」节目视频：临时盘接收后流式写入 TOS 的 nqoc/zdkj/ 目录
+const NQOC_VIDEO_MAX = 3 * 1024 * 1024 * 1024;
+const nqocVideoTmpDir = path.join(os.tmpdir(), 'nqoc-video-uploads');
+try { fs.mkdirSync(nqocVideoTmpDir, { recursive: true }); } catch (e) { console.error('nqoc video tmp dir error:', e.message); }
+const nqocVideoUpload = multer({
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => cb(null, nqocVideoTmpDir),
+        filename: (req, file, cb) => cb(null, `${Date.now()}-${crypto.randomBytes(5).toString('hex')}${(path.extname(file.originalname) || '.mp4').toLowerCase()}`)
+    }),
+    limits: { fileSize: NQOC_VIDEO_MAX },
+    fileFilter: (req, file, cb) => {
+        const ext = path.extname(file.originalname || '').toLowerCase();
+        const extOk = ['.mp4', '.m4v', '.mov', '.webm'].includes(ext);
+        const mimeOk = /^video\/(mp4|quicktime|webm|x-m4v)$/i.test(file.mimetype || '') || file.mimetype === 'application/octet-stream';
+        if (extOk && mimeOk) return cb(null, true);
+        cb(new Error('仅支持 MP4 / MOV / WebM 视频'));
+    }
+});
+
+app.post('/api/upload/nqoc-video', authRequired, requirePerm('upload:write'), uploadLimiter, (req, res) => {
+    nqocVideoUpload.single('file')(req, res, async (uploadErr) => {
+        const cleanup = () => { if (req.file && req.file.path) fs.unlink(req.file.path, () => {}); };
+        if (uploadErr) {
+            const status = uploadErr.code === 'LIMIT_FILE_SIZE' ? 400 : 400;
+            const error = uploadErr.code === 'LIMIT_FILE_SIZE' ? '视频大小超限：请控制在 3GB 以内' : (uploadErr.message || '视频上传失败，请稍后重试');
+            console.error('Nqoc video upload middleware error:', uploadErr);
+            cleanup();
+            return res.status(status).json({ success: false, error });
+        }
+        if (!req.file) return res.status(400).json({ success: false, error: '未检测到上传文件' });
+        if (!useTosUpload) {
+            cleanup();
+            return res.status(503).json({ success: false, error: '对象存储服务未配置，请联系管理员' });
+        }
+        const ext = (path.extname(req.file.originalname) || '.mp4').toLowerCase();
+        const objectKey = `nqoc/zdkj/${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`;
+        try {
+            const url = await uploadFileToTos(req.file.path, objectKey, req.file.mimetype || 'video/mp4', req.file.size);
+            if (!url) throw new Error('TOS 未返回视频地址');
+            await logOp('upload', 'NqocVideo', `Nqoc video uploaded: ${objectKey}`, req.user?.username);
+            cleanup();
+            return res.json({ success: true, url });
+        } catch (e) {
+            console.error('Nqoc video upload error:', e.message || e);
+            await logOp('upload_failed', 'NqocVideo', `Nqoc video upload failed: ${e.message}`, req.user?.username);
+            cleanup();
+            return res.status(502).json({ success: false, error: '视频上传失败，请稍后重试' });
+        }
+    });
+});
+
+// 浏览器直传：签发 TOS 预签名 PUT 地址，视频流不再经过 Node
+const NQOC_VIDEO_EXTS = ['.mp4', '.m4v', '.mov', '.webm'];
+app.post('/api/upload/nqoc-video/presign', authRequired, requirePerm('upload:write'), uploadLimiter, async (req, res) => {
+    try {
+        if (!useTosUpload || !tosClient) {
+            return res.status(503).json({ success: false, error: '对象存储服务未配置，请联系管理员' });
+        }
+        const { filename, contentType } = req.body || {};
+        const ext = (path.extname(String(filename || '')) || '.mp4').toLowerCase();
+        if (!NQOC_VIDEO_EXTS.includes(ext)) {
+            return res.status(400).json({ success: false, error: '仅支持 MP4 / MOV / WebM 视频' });
+        }
+        const ct = /^video\//i.test(String(contentType || '')) ? String(contentType) : 'video/mp4';
+        const objectKey = `nqoc/zdkj/${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`;
+        const uploadUrl = await getSignedUrl(
+            tosClient,
+            new PutObjectCommand({
+                Bucket: process.env.TOS_BUCKET_NAME,
+                Key: objectKey,
+                ContentType: ct
+            }),
+            { expiresIn: 900 }
+        );
+        return res.json({ success: true, uploadUrl, url: toTosPublicUrl(objectKey), contentType: ct });
+    } catch (e) {
+        console.error('Nqoc video presign error:', e.message || e);
+        return res.status(500).json({ success: false, error: '获取上传地址失败，请稍后重试' });
+    }
 });
 
 app.post('/api/upload/fetch-url', authRequired, requirePerm('upload:write'), async (req, res) => {
@@ -5872,6 +5929,8 @@ function startServer() {
     httpServer = app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
+    // Node 默认 requestTimeout 为 5 分钟，大体积视频上传（最大 3GB）会被中途掐断
+    httpServer.requestTimeout = 30 * 60 * 1000;
     httpServer.on('error', (err) => {
         console.error('HTTP Server Error:', err);
     });

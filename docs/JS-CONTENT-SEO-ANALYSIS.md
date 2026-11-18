@@ -326,8 +326,7 @@ function isBot(userAgent) {
     'yandexbot',
     'sogou',
     '360spider',
-    'facebookexternalhit',
-    'twitterbot'
+    'facebookexternalhit'
   ];
   
   const ua = (userAgent || '').toLowerCase();

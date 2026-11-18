@@ -20,7 +20,7 @@ const seoConfig = {
   pages: {
     '/': {
       title: 'AI 时代组织进化全生命周期服务商',
-      description: 'AI 赋能培训、AI 转型咨询、AI 落地陪跑三位一体，陪企业走完 AI 转型全程。',
+      description: '瑞华智策是人瑞人才（6919.HK）全资旗下 AI 原生咨询机构、碳硅混合生产力解决方案供应商，提供 AI 落地转型全案服务，帮助企业打造碳硅共智的新质组织。',
       keywords: 'AI 转型, 企业培训, 管理咨询, 数字化转型'
     },
     '/solutions': {
@@ -151,6 +151,8 @@ function seoInjector(req, res, next) {
     try {
       const $ = cheerio.load(data);
       const path = req.path === '/' ? '/' : req.path.replace(/\/$/, '');
+      // 新质组织子站自带完整 SEO（标题/描述/OG/JSON-LD），此处只做兜底，不覆盖
+      const isNqoc = path === '/nqoc' || path.startsWith('/nqoc/');
 
       // 获取页面配置
       const pageConfig = seoConfig.pages[path] || seoConfig.pages[path + '.html'] || {};
@@ -158,7 +160,7 @@ function seoInjector(req, res, next) {
       // 检查是否是文章详情页
       let article = null;
       const articleId = req.query.id || req.params.id || req.params.slug;
-      if ((path.includes('/article') || path.includes('/insight')) && articleId) {
+      if (!isNqoc && (path.includes('/article') || path.includes('/insight')) && articleId) {
         try {
           article = await Article.findOne({
             $or: [
@@ -190,11 +192,11 @@ function seoInjector(req, res, next) {
         $('title').text(fullTitle);
       }
 
-      // 2. Meta description
-      const description = pageConfig.description || seoConfig.defaultDescription;
+      // 2. Meta description（nqoc 子站保留页面自带的描述）
+      const description = pageConfig.description || $('meta[name="description"]').attr('content') || seoConfig.defaultDescription;
       if ($('meta[name="description"]').length === 0) {
         $('head').append(`<meta name="description" content="${description}">`);
-      } else {
+      } else if (!isNqoc) {
         $('meta[name="description"]').attr('content', description);
       }
 
@@ -212,7 +214,7 @@ function seoInjector(req, res, next) {
 
       // 5. Open Graph 标签
       const ogTitle = pageConfig.title || $('title').text();
-      const ogImage = pageConfig.ogImage || seoConfig.ogImage;
+      const ogImage = pageConfig.ogImage || (isNqoc ? '/nqoc/img/share.jpg' : seoConfig.ogImage);
 
       const ogTags = [
         { property: 'og:type', content: 'website' },
@@ -220,7 +222,7 @@ function seoInjector(req, res, next) {
         { property: 'og:title', content: ogTitle },
         { property: 'og:description', content: description },
         { property: 'og:image', content: absoluteUrl(ogImage) },
-        { property: 'og:site_name', content: seoConfig.brandName },
+        { property: 'og:site_name', content: isNqoc ? '中国新质组织研究中心' : seoConfig.brandName },
         { property: 'og:locale', content: 'zh_CN' }
       ];
 
@@ -230,8 +232,8 @@ function seoInjector(req, res, next) {
         }
       });
 
-      // 6. 添加结构化数据
-      if ($('script[type="application/ld+json"]:contains("Organization")').length === 0) {
+      // 6. 添加结构化数据（新质组织子站自带 Organization / WebSite JSON-LD，不再注入）
+      if (!isNqoc && $('script[type="application/ld+json"]:contains("Organization")').length === 0) {
         const orgSchemaScript = `<script type="application/ld+json">${JSON.stringify(generateOrgSchema(), null, 2)}</script>`;
         $('head').append(orgSchemaScript);
       }

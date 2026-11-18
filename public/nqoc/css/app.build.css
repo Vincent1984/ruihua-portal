@@ -4133,6 +4133,108 @@ html {
   background: rgba(5, 5, 17, 0.8);
   backdrop-filter: blur(12px);
 }
+/* 领取报告弹窗：左栏展示报告封面与领取理由，右栏为表单；窄屏封面收成一条缩略条 */
+.report-dialog--media.has-cover {
+  width: min(100% - 24px, 56rem);
+}
+.report-dialog__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+.report-dialog__media {
+  display: none;
+}
+.report-dialog__cover {
+  position: relative;
+}
+.report-dialog__cover img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+.report-dialog__badge {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0a0c16;
+  background: #fff;
+}
+.report-dialog__points {
+  display: none;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.report-dialog__points li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #cbd5e1;
+}
+.report-dialog__points li + li {
+  margin-top: 10px;
+}
+.report-dialog__points i {
+  width: 16px;
+  color: var(--nqoc-brand-light, #9d7bff);
+}
+.report-dialog__hint {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: #94a3b8;
+}
+.report-dialog__privacy {
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #94a3b8;
+}
+@media (max-width: 767px) {
+  .report-dialog--media.has-cover .report-dialog__media {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px 0;
+  }
+  .report-dialog--media.has-cover .report-dialog__cover {
+    flex: 0 0 auto;
+    width: 52px;
+  }
+  .report-dialog--media.has-cover .report-dialog__cover img {
+    border-radius: 6px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  }
+  .report-dialog--media.has-cover .report-dialog__badge {
+    display: none;
+  }
+  .report-dialog--media.has-cover .report-dialog__body {
+    padding-top: 20px;
+  }
+}
+@media (min-width: 768px) {
+  .report-dialog--media.has-cover .report-dialog__grid {
+    grid-template-columns: 272px 1fr;
+  }
+  .report-dialog--media.has-cover .report-dialog__media {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px 0 40px 32px;
+  }
+  .report-dialog--media.has-cover .report-dialog__points {
+    display: block;
+  }
+}
 .report-form__input {
   font-size: 16px;
 }

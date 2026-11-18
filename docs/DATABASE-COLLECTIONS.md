@@ -84,7 +84,7 @@
 | `nqocexpertapplications` (`NqocExpertApplication`) | 专家申请 | 姓名、参与活动、所在地、职位、公司、邮箱、简介、研究领域、著作、课题需求、推荐人、照片、授权、状态 | 包含个人信息；无显式索引 |
 | `nqocsurveychannels` (`NqocSurveyChannel`) | NQOC 调研渠道 | `name`, `code`, `description`, `createdAt` | `code` 唯一 |
 | `nqocsurveysubmissions` (`NqocSurveySubmission`) | 新质组织成熟度调研结果 | 企业信息、填答人信息、五个维度评分、开放题、客观数据、总体评价、渠道、创建时间 | 约百个展开字段；`channel` 是字符串软关联；无显式查询索引 |
-| `nqocwhitepaperrequests` (`NqocWhitepaperRequest`) | NQOC 白皮书申请 | 姓名、手机、邮箱、公司、职位、创建时间 | 包含个人信息；无显式索引 |
+| `nqocwhitepaperrequests` (`NqocWhitepaperRequest`) | NQOC 白皮书申请（历史表单，已并入后台「报告领取记录」合并展示） | 姓名、手机、邮箱、公司、职位、创建时间 | 包含个人信息；无显式索引 |
 
 ## 8. 视频中心（4）
 

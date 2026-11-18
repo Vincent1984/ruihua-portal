@@ -149,6 +149,14 @@
       var sub = dlg.querySelector('[data-report-subtitle]'), subText = btn.dataset.reportSlug ? (btn.dataset.reportSubtitle || '') : (dlg.dataset.defaultSubtitle || '');
       sub.textContent = subText; sub.hidden = !subText;
       dlg.querySelector('[data-report-slug]').value = btn.dataset.reportSlug || dlg.dataset.defaultSlug || '';
+      // 左侧封面：优先用触发按钮所属报告的封面，回落到最新报告封面；都没有则收起左栏
+      var coverImg = dlg.querySelector('[data-report-cover-img]');
+      var coverSrc = btn.dataset.reportCover || dlg.dataset.defaultCover || '';
+      if (coverImg && coverSrc) {
+        coverImg.src = coverSrc;
+        coverImg.alt = btn.dataset.reportCoverAlt || dlg.dataset.defaultCoverAlt || '';
+      }
+      dlg.classList.toggle('has-cover', !!coverSrc);
       var st = dlg.querySelector('[data-form-status]'); if (st) { st.hidden = true; st.classList.remove('is-error'); }
       dlg.showModal();
       dlg.addEventListener('close', function back() { dlg.removeEventListener('close', back); btn.focus(); });
@@ -200,9 +208,20 @@
             location.href = url;
             return;
           }
-          // 信息已提交，但报告文件还没准备好
+          // 信息已提交，但报告文件还没准备好：关闭表单，用弹窗告知
           if (res.ok && (url === null || url === undefined || url === '')) {
-            show('信息已提交。报告文件还在准备中。', false);
+            btn.classList.remove('is-loading'); btn.disabled = false;
+            form.reset();
+            var formDlg = form.closest('dialog');
+            if (formDlg && formDlg.open) formDlg.close();
+            var doneDlg = document.getElementById('report-result-dialog');
+            if (doneDlg && doneDlg.showModal) {
+              var doneMsg = doneDlg.querySelector('[data-result-message]');
+              if (doneMsg) doneMsg.textContent = '信息已提交，报告文件还在准备中。完成后我们会第一时间发送到您填写的邮箱。';
+              doneDlg.showModal();
+            } else {
+              show('信息已提交。报告文件还在准备中。', false);   // 极旧浏览器兜底
+            }
             return;
           }
           // 其它任何情况都按失败处理：保留已填内容，不打开任何东西
