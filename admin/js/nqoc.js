@@ -287,7 +287,8 @@
               <td>${esc(l.reportTitle)}</td>
               <td><div class="sub" style="word-break:break-all">${esc(l.sourcePage)}</div></td>
               <td><div>${ago(l.createdAt)}</div><div class="sub">${shortDateTime(l.createdAt)}</div></td>
-            </tr>`).join('') : '<tr><td colspan="7" class="empty-cell"><b>没有符合条件的记录</b>换个筛选条件试试</td></tr>';
+              <td><button type="button" data-action="delete-lead" data-id="${esc(l.id)}" data-permission="nqoc-report-leads:delete">删除</button></td>
+            </tr>`).join('') : '<tr><td colspan="8" class="empty-cell"><b>没有符合条件的记录</b>换个筛选条件试试</td></tr>';
         $('nqLeadCount').textContent = `共 ${rows.length} 条记录${rows.length !== total ? `（总计 ${total} 条）` : ''}`;
         nqSyncFilterUi('nqoc-report-leads');
         nqApplyPerms($('nqLeadRows').closest('table'));
@@ -299,7 +300,7 @@
             nqLeadStats = Object.assign({ today: 0, week7: 0, all: 0, companies: 0 }, data.stats || {});
             renderNqLeads();
         } catch (e) {
-            $('nqLeadRows').innerHTML = `<tr><td colspan="7" class="empty-cell">${esc(e.message)}</td></tr>`;
+            $('nqLeadRows').innerHTML = `<tr><td colspan="8" class="empty-cell">${esc(e.message)}</td></tr>`;
         }
     }
     async function nqExportLeads() {
@@ -621,7 +622,17 @@
             nqRenderView(view);
             nqSyncUrl(view);
         },
-        export: () => nqExportLeads()
+        export: () => nqExportLeads(),
+        'delete-lead': async (t, id) => {
+            const lead = (nqLeads || []).find(l => String(l.id) === String(id));
+            if (!lead) return;
+            if (!confirm(`确认删除「${lead.name}」的这条报告领取记录？删除后不可恢复。`)) return;
+            try {
+                await json(`${API}/report-leads/${encodeURIComponent(id)}`, { method: 'DELETE', headers: authHeaders() });
+                await loadLeads();
+                toast('记录已删除');
+            } catch (e) { toast(e.message); }
+        }
     };
 
     // 捕获阶段：先于 admin-2026.js 的冒泡委托执行

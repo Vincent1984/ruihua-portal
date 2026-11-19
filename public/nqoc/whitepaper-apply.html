@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>在线领取新质组织研究报告（2026）- 填写即读完整版 - 中国新质组织研究中心</title>
-    <meta name="keywords" content="新质组织白皮书, 组织成熟度研究报告, 在线领取报告">
-    <meta name="description" content="填写信息即可在线解锁《2026中国企业新质组织成熟度研究报告》完整版：五个维度、32 个子维度，193 份问卷样本与 10 家标杆企业实践，提交后即刻阅读并支持下载留存。">
+    <title>预约获取新质组织研究报告 - 免费下载 - 中国新质组织研究中心</title>
+    <meta name="keywords" content="新质组织白皮书, 组织成熟度研究报告, 预约获取报告">
+    <meta name="description" content="填写信息即可预约获取《2026中国企业新质组织成熟度研究报告》，报告发布后将第一时间发送至您预留的邮箱。">
     <meta name="robots" content="index, follow, max-image-preview:large">
     <link rel="canonical" href="https://www.ruihuaconsulting.com/nqoc/whitepaper-apply">
     <meta property="og:site_name" content="中国新质组织研究中心">
     <meta property="og:locale" content="zh_CN">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="在线领取新质组织研究报告（2026）- 填写即读完整版 - 中国新质组织研究中心">
-    <meta property="og:description" content="填写信息即可在线解锁《2026中国企业新质组织成熟度研究报告》完整版：五个维度、32 个子维度，193 份问卷样本与 10 家标杆企业实践，提交后即刻阅读并支持下载留存。">
+    <meta property="og:title" content="预约获取新质组织研究报告 - 免费下载 - 中国新质组织研究中心">
+    <meta property="og:description" content="填写信息即可预约获取《2026中国企业新质组织成熟度研究报告》，报告发布后将第一时间发送至您预留的邮箱。">
     <meta property="og:url" content="https://www.ruihuaconsulting.com/nqoc/whitepaper-apply">
     <meta property="og:image" content="https://www.ruihuaconsulting.com/nqoc/img/share.jpg">
     <!-- Main Styles -->
@@ -77,7 +77,7 @@
             background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.6), transparent);
         }
         /* 覆盖 tailwind 的 .hidden，保证切换生效 */
-        .apply-panel.hidden { display: none; }
+        .apply-panel.hidden, .apply-success.hidden { display: none; }
 
         /* 左侧：报告信息 */
         .apply-intro {
@@ -199,6 +199,50 @@
         .wp-submit:disabled { cursor: not-allowed; opacity: 0.72; transform: none; }
         .wp-privacy { display: flex; align-items: center; justify-content: center; gap: 0.375rem; margin-top: 0.875rem; font-size: 0.6875rem; color: #7b849b; }
         .wp-privacy i { color: #34d399; }
+
+        /* 成功态 */
+        .apply-success {
+            border-radius: 1.5rem;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            background: linear-gradient(168deg, #16241f 0%, #121826 50%, #0f121c 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 50px 110px -64px rgba(0, 0, 0, 0.95);
+        }
+        .apply-success:not(.hidden) { display: flex; align-items: center; justify-content: center; min-height: 24rem; }
+        .apply-success-inner { width: 100%; max-width: 30rem; padding: 3rem 1.5rem; text-align: center; }
+        .apply-success-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 4rem;
+            height: 4rem;
+            margin: 0 auto 1.375rem;
+            border-radius: 9999px;
+            color: #fff;
+            font-size: 1.625rem;
+            background: linear-gradient(140deg, #34d399, #059669);
+            box-shadow: 0 0 32px rgba(16, 185, 129, 0.35);
+        }
+        .apply-success-icon::after { content: ''; position: absolute; inset: -6px; border-radius: 9999px; border: 1px solid rgba(52, 211, 153, 0.25); }
+        .apply-success h2 { font-size: 1.375rem; font-weight: 700; color: #fff; }
+        .apply-success p { margin-top: 0.75rem; font-size: 0.875rem; line-height: 1.7; color: #94a3b8; }
+        .apply-success p span { color: #fff; font-weight: 500; }
+        .apply-success-link {
+            display: block;
+            width: 100%;
+            max-width: 20rem;
+            margin: 2rem auto 0;
+            padding: 0.875rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.06);
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            text-align: center;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+        .apply-success-link:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); }
 
         @media (min-width: 640px) {
             .apply-intro { padding: 2rem 2.25rem; }
@@ -348,7 +392,7 @@
                 <div class="apply-form">
                     <div class="apply-form-head">
                         <h2>免费领取完整版报告</h2>
-                        <p>30 秒填写，提交后即刻在线阅读完整版，并可下载留存。</p>
+                        <p>填写信息，报告发布后第一时间发送至您的邮箱。</p>
                     </div>
                     <form id="whitepaperForm" novalidate>
                         <div class="apply-fields">
@@ -384,7 +428,7 @@
                                 <label class="wp-label" for="wpEmail">邮箱</label>
                                 <div class="wp-control">
                                     <i class="fas fa-envelope"></i>
-                                    <input type="email" id="wpEmail" required autocomplete="email" placeholder="用于接收报告资料">
+                                    <input type="email" id="wpEmail" required autocomplete="email" placeholder="接收报告的邮箱">
                                 </div>
                             </div>
                         </div>
@@ -393,9 +437,19 @@
                             <i class="fas fa-arrow-right text-sm"></i>
                         </button>
                         <p class="wp-privacy">
-                            <i class="fas fa-shield-alt"></i>仅用于报告领取 · 不电话回访 · 不营销推送
+                            <i class="fas fa-shield-alt"></i>仅用于发送报告 · 不电话回访 · 不营销推送
                         </p>
                     </form>
+                </div>
+            </div>
+
+            <!-- 提交成功 -->
+            <div id="applySuccess" class="hidden apply-success">
+                <div class="apply-success-inner">
+                    <div class="apply-success-icon"><i class="fas fa-check"></i></div>
+                    <h2>预约成功</h2>
+                    <p>报告发布后，我们会第一时间发送至 <span id="successEmailDisplay"></span>，请留意查收（含垃圾邮件箱）。</p>
+                    <a href="/nqoc/whitepaper" class="apply-success-link">返回研究成果</a>
                 </div>
             </div>
         </div>
@@ -523,8 +577,10 @@
             const result = await res.json();
 
             if (res.ok && result.success) {
-                // 后端签发 30 分钟有效的签名链接，未提交表单直接访问会被跳回本页
-                window.location.href = result.pdfUrl || '/nqoc/whitepaper-apply';
+                document.getElementById('successEmailDisplay').textContent = data.email;
+                document.getElementById('applyCard').classList.add('hidden');
+                document.getElementById('applySuccess').classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
                 showToast(result.error || '提交失败', 'error');
             }

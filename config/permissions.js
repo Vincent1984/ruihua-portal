@@ -76,7 +76,8 @@ const PERMISSION_GROUPS = [
             { code: 'nqoc-videos:update', name: '编辑值得看见' },
             { code: 'nqoc-videos:delete', name: '删除值得看见', dangerous: true },
             { code: 'nqoc-report-leads:list', name: '查看报告领取记录' },
-            { code: 'nqoc-report-leads:export', name: '导出报告领取记录', dangerous: true }
+            { code: 'nqoc-report-leads:export', name: '导出报告领取记录', dangerous: true },
+            { code: 'nqoc-report-leads:delete', name: '删除报告领取记录', dangerous: true }
         ]
     },
     {

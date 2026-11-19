@@ -910,6 +910,23 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
         }
     });
 
+    router.delete('/admin/nqoc/report-leads/:id', authRequired, csrfGuard, requirePerm('nqoc-report-leads:delete'), async (req, res) => {
+        try {
+            const id = String(req.params.id || '');
+            // 历史白皮书预约记录 id 带 whitepaper- 前缀，存于另一张表
+            const legacy = id.startsWith('whitepaper-');
+            const doc = legacy
+                ? await NqocWhitepaperRequest.findById(id.slice('whitepaper-'.length)).catch(() => null)
+                : await NqocReportLead.findById(id).catch(() => null);
+            if (!doc) return res.status(404).json({ error: '记录不存在' });
+            await doc.deleteOne();
+            await logOp('delete', '新质组织-报告领取记录', `删除：${doc.name || ''} ${doc.company || ''}（${doc.phone || ''}）`, req.user && req.user.username);
+            res.json({ success: true });
+        } catch (e) {
+            return sendInternalError(res, 'Delete nqoc report lead error:', e);
+        }
+    });
+
     /* ---- 前台：报告领取 ---- */
 
     router.post('/nqoc/reports/apply', applyLimiter, async (req, res) => {
