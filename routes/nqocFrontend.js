@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
+const crypto = require('crypto');
 const xss = require('xss');
 
 const NqocBanner = require('../models/NqocBanner');
@@ -497,7 +499,8 @@ function renderLegacyPage(page, latestReport, activeKey) {
     return html;
 }
 
-function initNqocFrontend(app) {
+function initNqocFrontend(app, options = {}) {
+    const reportPdfSecret = options.secret || '';
     app.get('/nqoc', pageHandler({
         block: 'home', activeKey: 'home', title: '新质组织研究 - AI时代组织进化 - 中国新质组织研究中心',
         description: '中国新质组织研究项目由人瑞人才与瑞华智策联合发起，中国经营报联合主办，洞察 AI 时代组织发展趋势，赋能中国企业组织进化。'
@@ -630,6 +633,42 @@ function initNqocFrontend(app) {
         const item = detailData(c.videos, req.params.slug, 'video');
         return item ? { data: item, item, itemType: 'video', title: detailTitle(item, NQOC_SECTIONS['worth-seeing'].detailLabel), description: item.summary } : null;
     }));
+
+    // 报告 PDF 在线预览：TOS 返回 Content-Disposition: attachment（直接引用会下载），
+    // 且 image.ruihuaconsulting.com 无匹配 HTTPS 证书（主站 HSTS includeSubDomains 会强制升级），
+    // 因此同源代理并改写为 inline，透传 Range 支持翻页/断点。
+    // 只有提交表单后签发的短期签名链接可读，直接访问无签名 / 过期 / 签名错误一律跳回表单页。
+    const REPORT_PDF_URL = 'https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/nqoc-report-2026.pdf';
+    const reportPdfSignature = exp => crypto.createHmac('sha256', reportPdfSecret)
+        .update(`nqoc-report:${exp}`).digest('hex').slice(0, 32);
+    app.get('/nqoc/report-2026.pdf', (req, res) => {
+        const exp = Number(req.query.exp);
+        const sig = String(req.query.sig || '');
+        const expected = reportPdfSecret && Number.isFinite(exp) ? reportPdfSignature(exp) : '';
+        const allowed = Boolean(expected) && exp > Date.now() && sig.length === expected.length
+            && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
+        if (!allowed) return res.redirect(302, '/nqoc/whitepaper-apply');
+        const headers = { 'Content-Disposition': 'inline; filename="nqoc-report-2026.pdf"' };
+        if (req.headers.range) headers.Range = req.headers.range;
+        https.get(REPORT_PDF_URL, { headers }, upstream => {
+            if (upstream.statusCode !== 200 && upstream.statusCode !== 206) {
+                upstream.resume();
+                return res.redirect(302, REPORT_PDF_URL);
+            }
+            res.status(upstream.statusCode);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'inline; filename="nqoc-report-2026.pdf"');
+            res.setHeader('Accept-Ranges', 'bytes');
+            res.setHeader('Cache-Control', 'private, max-age=600');
+            ['content-length', 'content-range'].forEach(name => {
+                if (upstream.headers[name]) res.setHeader(name, upstream.headers[name]);
+            });
+            upstream.pipe(res);
+        }).on('error', () => {
+            if (!res.headersSent) res.redirect(302, REPORT_PDF_URL);
+            else res.end();
+        });
+    });
 
     const legacy = {
         survey: 'survey',

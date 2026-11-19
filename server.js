@@ -673,7 +673,7 @@ app.get('/survey', (req, res) => res.redirect(301, '/survey/'));
 app.get('/survey.html', (req, res) => res.redirect(301, '/survey/'));
 
 // NQOC：新栏目使用服务端渲染；旧业务页面保留正文并共享新版导航。
-require('./routes/nqocFrontend')(app);
+require('./routes/nqocFrontend')(app, { secret: RUNTIME_SECRET_KEY });
 
 // Helper for SEO SSR on Article Page
 const { JSDOM } = require('jsdom');
@@ -2527,7 +2527,11 @@ app.post('/api/nqoc/whitepaper/apply', async (req, res) => {
         });
 
         await newRequest.save();
-        res.json({ success: true, message: '提交成功' });
+        // 报告 PDF 仅允许通过提交成功后签发的短期链接访问（30 分钟有效）
+        const exp = Date.now() + 30 * 60 * 1000;
+        const sig = crypto.createHmac('sha256', RUNTIME_SECRET_KEY)
+            .update(`nqoc-report:${exp}`).digest('hex').slice(0, 32);
+        res.json({ success: true, message: '提交成功', pdfUrl: `/nqoc/report-2026.pdf?exp=${exp}&sig=${sig}` });
     } catch (e) {
         console.error('Whitepaper request error:', e);
         res.status(500).json({ success: false, error: '服务器内部错误' });
