@@ -135,9 +135,12 @@ function serializeLead(doc) {
     return o;
 }
 
-// 历史白皮书下载记录标准化为报告领取记录的同构结构
+// 历史白皮书预约/下载记录标准化为报告领取记录的同构结构。
+// 2026-11-20 起提交的记录展示为「白皮书下载」，此前提交的历史记录仍为「白皮书预约」。
+const WHITEPAPER_DOWNLOAD_FROM = new Date('2026-11-20T00:00:00+08:00').getTime();
 function serializeLegacyWhitepaperLead(doc) {
     const o = doc.toObject ? doc.toObject() : doc;
+    const createdAt = o.createdAt ? new Date(o.createdAt) : null;
     return {
         id: 'whitepaper-' + String(o._id),
         name: o.name || '',
@@ -146,9 +149,9 @@ function serializeLegacyWhitepaperLead(doc) {
         position: o.position || '',
         email: o.email || '',
         reportSlug: '',
-        reportTitle: '白皮书下载',
+        reportTitle: createdAt && createdAt.getTime() >= WHITEPAPER_DOWNLOAD_FROM ? '白皮书下载' : '白皮书预约',
         sourcePage: '/nqoc/whitepaper-apply',
-        createdAt: o.createdAt ? new Date(o.createdAt).toISOString() : null
+        createdAt: createdAt ? createdAt.toISOString() : null
     };
 }
 
