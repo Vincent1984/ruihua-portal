@@ -135,7 +135,7 @@ function serializeLead(doc) {
     return o;
 }
 
-// 历史白皮书预约记录标准化为报告领取记录的同构结构
+// 历史白皮书下载记录标准化为报告领取记录的同构结构
 function serializeLegacyWhitepaperLead(doc) {
     const o = doc.toObject ? doc.toObject() : doc;
     return {
@@ -146,7 +146,7 @@ function serializeLegacyWhitepaperLead(doc) {
         position: o.position || '',
         email: o.email || '',
         reportSlug: '',
-        reportTitle: '白皮书预约',
+        reportTitle: '白皮书下载',
         sourcePage: '/nqoc/whitepaper-apply',
         createdAt: o.createdAt ? new Date(o.createdAt).toISOString() : null
     };
