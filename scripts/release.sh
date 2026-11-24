@@ -26,6 +26,8 @@ PROBE_METHOD=${PROBE_METHOD:-POST}
 PROBE_PATH=${PROBE_PATH:-/api/upload/nqoc-video/presign}
 PROBE_EXPECT=${PROBE_EXPECT:-401}
 DIFF_FILE=${DIFF_FILE:-admin/js/nqoc.js}
+# DIFF_FILE 是仓库路径（git show 用）；线上 URL 要把 public/ 前缀去掉
+DIFF_URL=${DIFF_FILE#public/}
 
 digest_of() { crane digest "$1"; }
 
@@ -40,7 +42,7 @@ verify_online() {
   local code diff
   code=$(curl -s -o /dev/null -w '%{http_code}' -X "$PROBE_METHOD" "$BASE$PROBE_PATH")
   git show "${SHA}:${DIFF_FILE}" > /tmp/_rel_git.js 2>/dev/null || : > /tmp/_rel_git.js
-  curl -s "$BASE/$DIFF_FILE" > /tmp/_rel_online.js
+  curl -s "$BASE/$DIFF_URL" > /tmp/_rel_online.js
   if cmp -s /tmp/_rel_git.js /tmp/_rel_online.js; then diff=MATCH; else diff=DIFF; fi
   echo "  $PROBE_METHOD $PROBE_PATH -> $code (期望 $PROBE_EXPECT)   $DIFF_FILE -> $diff"
   if [ "$code" = "$PROBE_EXPECT" ] && [ "$diff" = MATCH ]; then
@@ -64,9 +66,9 @@ if [ -n "$WANT" ]; then
   read -r -p "   复用现有镜像、只重做 :latest？[y/N] " ans || ans=n
   [ "$ans" = y ] || exit 1
 else
-  echo "==> [1/3] 构建 amd64 镜像 $TAG"
+  echo "==> [1/5] 构建 amd64 镜像 $TAG"
   docker build --platform linux/amd64 --provenance=false --sbom=false -t "$SRC" .
-  echo "==> [2/3] 推送日期 tag"
+  echo "==> [2/5] 推送日期 tag"
   docker save "$SRC" -o /tmp/img.tar
   crane push /tmp/img.tar "$SRC"
   WANT=$(digest_of "$SRC")
@@ -85,7 +87,7 @@ converged() {
   return 1
 }
 
-echo "==> [3/3] 覆盖 :latest 并等待收敛"
+echo "==> [3/5] 覆盖 :latest 并等待收敛"
 LATEST_OK=1
 for attempt in 1 2 3 4 5; do
   crane copy "$SRC" "$REG:latest" >/dev/null 2>&1 || true
@@ -109,7 +111,7 @@ if [ "$MODE" = "--deploy" ] || kubectl config current-context >/dev/null 2>&1; t
     exit 1
   fi
   # 按 digest 钉死：:latest 与日期 tag 都可能被 registry 解析成旧 manifest，digest 不会
-  echo "==> [4/4] kubectl 切换镜像到 $REG@${WANT:0:19}…"
+  echo "==> [4/5] kubectl 切换镜像到 $REG@${WANT:0:19}…"
   kubectl -n "$NS" set image "deploy/$DEPLOY" "$CONTAINER=$REG@$WANT"
   kubectl -n "$NS" rollout status "deploy/$DEPLOY" --timeout=600s
   echo "==> [5/5] 校验线上"

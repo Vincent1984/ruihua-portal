@@ -58,6 +58,12 @@ const { PERMISSION_GROUPS, PERMISSION_CODES, validatePermissions, normalizePermi
 
 const app = express();
 app.disable('x-powered-by');
+// 健康检查：注册在 compression 之前，不压缩、不读库、不注入 SEO。
+// 探针此前打 `/`（走完整渲染 + brotli），压缩挂死时仍返回 200，K8s 无法发现退化。
+app.get('/healthz', (req, res) => {
+    res.set('Cache-Control', 'no-store, no-transform');
+    res.type('text/plain').send('ok');
+});
 app.use(compression());
 app.set('trust proxy', 1); // Trust the first proxy (Kubernetes ingress/load balancer)
 const PORT = process.env.PORT || 3000;
@@ -119,6 +125,14 @@ const tosClient = useTosUpload
     ? new S3Client({
         region: process.env.TOS_REGION || 'cn-beijing',
         endpoint: tosEndpoint,
+        // SDK 默认已启用 keepAlive / maxSockets=50；显式收紧连接池并限制无进展的请求。
+        // socketTimeout 是空闲超时，持续传输的大视频不受总时长限制。
+        requestHandler: {
+            connectionTimeout: 10000,
+            socketTimeout: 60000,
+            httpAgent: { keepAlive: true, maxSockets: 32, maxFreeSockets: 4, timeout: 60000 },
+            httpsAgent: { keepAlive: true, maxSockets: 32, maxFreeSockets: 4, timeout: 60000 }
+        },
         credentials: {
             accessKeyId: process.env.TOS_ACCESS_KEY,
             secretAccessKey: tosSecretAccessKey
@@ -1799,16 +1813,22 @@ async function uploadBufferToTos(fileBuffer, objectKey, contentType) {
 // 大文件（节目视频）走流式上传，避免整个文件读进内存
 async function uploadFileToTos(filePath, objectKey, contentType, contentLength) {
     if (!useTosUpload || !tosClient) return null;
-    await tosClient.send(
-        new PutObjectCommand({
-            Bucket: process.env.TOS_BUCKET_NAME,
-            Key: objectKey,
-            Body: fs.createReadStream(filePath),
-            ContentLength: contentLength,
-            ContentType: contentType || 'application/octet-stream',
-            ContentDisposition: 'inline'
-        })
-    );
+    const body = fs.createReadStream(filePath);
+    try {
+        await tosClient.send(
+            new PutObjectCommand({
+                Bucket: process.env.TOS_BUCKET_NAME,
+                Key: objectKey,
+                Body: body,
+                ContentLength: contentLength,
+                ContentType: contentType || 'application/octet-stream',
+                ContentDisposition: 'inline'
+            })
+        );
+    } finally {
+        // SDK 在连接/签名前失败时可能尚未消费流，仍须释放本地文件句柄。
+        body.destroy();
+    }
     return toTosPublicUrl(objectKey);
 }
 
@@ -5955,6 +5975,7 @@ function gracefulShutdown(signal) {
     forceExitTimer.unref();
 
     const closeDbAndExit = async () => {
+        if (tosClient) tosClient.destroy();
         try {
             await mongoose.connection.close();
             console.log('MongoDB connection closed');
