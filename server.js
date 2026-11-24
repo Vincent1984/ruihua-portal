@@ -581,7 +581,7 @@ function clearAdminAuthCookie(res) {
 
 function setAdminHtmlNoCache(res) {
     res.set({
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Cache-Control': 'no-cache, no-store, must-revalidate, no-transform',
         'Pragma': 'no-cache',
         'Expires': '0'
     });
