@@ -59,7 +59,7 @@ const { PERMISSION_GROUPS, PERMISSION_CODES, validatePermissions, normalizePermi
 const app = express();
 app.disable('x-powered-by');
 // 健康检查：注册在 compression 之前，不压缩、不读库、不注入 SEO。
-// 探针此前打 `/`（走完整渲染 + brotli），压缩挂死时仍返回 200，K8s 无法发现退化。
+// 存活/启动探针检查此路径；就绪探针另行覆盖实际后台 HTML 响应。
 app.get('/healthz', (req, res) => {
     res.set('Cache-Control', 'no-store, no-transform');
     res.type('text/plain').send('ok');
@@ -3408,6 +3408,7 @@ async function generateDeepseekSlug(title) {
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
+            signal: AbortSignal.timeout(60000),
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${API_KEY}`
@@ -3498,6 +3499,7 @@ async function generateDeepseekText(systemPrompt, userPrompt) {
     const API_URL = 'https://api.deepseek.com/chat/completions';
     const response = await fetch(API_URL, {
         method: 'POST',
+        signal: AbortSignal.timeout(60000),
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${API_KEY}`
@@ -3601,6 +3603,7 @@ async function deepseekChatStream(messages, opts = {}) {
     if (!API_KEY) throw new Error('DEEPSEEK_API_KEY 未配置');
     const response = await fetch('https://api.deepseek.com/chat/completions', {
         method: 'POST',
+        signal: opts.signal,
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${API_KEY}`
@@ -3638,7 +3641,12 @@ app.post('/api/ai/chat', aiChatLimiter, async (req, res) => {
     aiInflight.add(ip);
     let closed = false;
     const finish = () => { if (closed) return; closed = true; aiInflight.delete(ip); };
-    res.on('close', finish);
+    const controller = new AbortController();
+    const deadline = setTimeout(() => controller.abort(new Error('AI response timed out')), 90000);
+    deadline.unref();
+    const onClose = () => { controller.abort(); finish(); };
+    res.on('close', onClose);
+    let reader = null;
 
     let hb = null;   /* 上游首个 token 到达前的 SSE 心跳定时器 */
     try {
@@ -3656,14 +3664,14 @@ app.post('/api/ai/chat', aiChatLimiter, async (req, res) => {
         /* 首个正文 token 到达前每 4 秒一次心跳，避免连接被中间层判死 */
         hb = setInterval(() => { if (!closed) { try { res.write(': ping\n\n'); } catch (e) {} } }, 4000);
 
-        const reader = await deepseekChatStream(messages, { maxTokens: 600, temperature: 0.3 });
-        if (closed) { try { reader.cancel(); } catch (e) {} return; }
+        reader = await deepseekChatStream(messages, { maxTokens: 600, temperature: 0.3, signal: controller.signal });
+        if (closed) return;
 
         const decoder = new TextDecoder();
         let buf = '';
         while (!closed) {
             const { value, done } = await reader.read();
-            if (done) break;
+            if (done || closed) break;
             buf += decoder.decode(value, { stream: true });
             const lines = buf.split('\n');
             buf = lines.pop();
@@ -3683,6 +3691,7 @@ app.post('/api/ai/chat', aiChatLimiter, async (req, res) => {
         if (!closed) { aiSseSend(res, { type: 'done' }); res.end(); }
         finish();
     } catch (error) {
+        if (closed) return;
         console.error('AI chat error:', error);
         finish();
         try {
@@ -3690,6 +3699,14 @@ app.post('/api/ai/chat', aiChatLimiter, async (req, res) => {
             else res.status(503).json({ error: 'AI 服务暂时不可用', fallback: true });
         } catch (e) { try { res.end(); } catch (e2) {} }
     } finally {
+        clearTimeout(deadline);
+        res.removeListener('close', onClose);
+        controller.abort();
+        if (reader) {
+            try { await reader.cancel(); } catch (_) {}
+            try { reader.releaseLock(); } catch (_) {}
+        }
+        finish();
         if (hb) { clearInterval(hb); hb = null; }
     }
 });
@@ -4105,6 +4122,9 @@ app.post('/api/upload/nqoc-video/presign', authRequired, requirePerm('upload:wri
 });
 
 app.post('/api/upload/fetch-url', authRequired, requirePerm('upload:write'), async (req, res) => {
+    const controller = new AbortController();
+    const onClose = () => { if (!res.writableFinished) controller.abort(); };
+    res.on('close', onClose);
     try {
         const { url } = req.body;
         if (!url) {
@@ -4150,25 +4170,8 @@ app.post('/api/upload/fetch-url', authRequired, requirePerm('upload:write'), asy
             return res.status(400).json({ error: 'DNS resolution failed for the given URL' });
         }
 
-        const fetch = (await import('node-fetch')).default;
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5000);
-        const response = await fetch(url, { signal: controller.signal, redirect: 'error' });
-        clearTimeout(timeout);
-        if (!response.ok) {
-            return res.status(400).json({ error: 'Failed to fetch image from URL' });
-        }
-
-        // Limit response size: max 10MB
-        const contentLength = parseInt(response.headers.get('content-length'), 10);
-        if (contentLength && contentLength > 10 * 1024 * 1024) {
-            return res.status(400).json({ error: 'Image file exceeds maximum size of 10MB' });
-        }
-
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.startsWith('image/')) {
-            return res.status(400).json({ error: 'URL does not point to a valid image' });
-        }
+        const { readRemoteImage } = require('./utils/readRemoteImage');
+        const { buffer: imageBuffer, contentType } = await readRemoteImage(url, { signal: controller.signal });
 
         let ext = '';
         if (contentType === 'image/jpeg') ext = '.jpg';
@@ -4184,31 +4187,6 @@ app.post('/api/upload/fetch-url', authRequired, requirePerm('upload:write'), asy
              return res.status(503).json({ error: '对象存储服务未配置，请联系管理员' });
          }
 
-         // Accumulate response into memory with a 10MB hard cap (accounts for missing Content-Length)
-         const MAX_BYTES = 10 * 1024 * 1024;
-         const chunks = [];
-         let received = 0;
-         let tooLarge = false;
-         await new Promise((resolve, reject) => {
-             response.body.on('data', (chunk) => {
-                 received += chunk.length;
-                 if (received > MAX_BYTES) {
-                     tooLarge = true;
-                     response.body.destroy();
-                     resolve();
-                     return;
-                 }
-                 chunks.push(chunk);
-             });
-             response.body.on('end', resolve);
-             response.body.on('error', reject);
-         });
-
-         if (tooLarge) {
-             return res.status(400).json({ error: 'Image file exceeds maximum size of 10MB' });
-         }
-
-         const imageBuffer = Buffer.concat(chunks);
          const objectKey = `uploads/${filename}`;
          try {
              const tosUrl = await uploadBufferToTos(imageBuffer, objectKey, contentType);
@@ -4220,7 +4198,10 @@ app.post('/api/upload/fetch-url', authRequired, requirePerm('upload:write'), asy
          }
      } catch (e) {
         console.error('Fetch URL error:', e);
-        res.status(500).json({ error: e.message });
+        if (!res.destroyed) res.status(e.status || 500).json({ error: e.message });
+    } finally {
+        res.removeListener('close', onClose);
+        controller.abort();
     }
 });
 

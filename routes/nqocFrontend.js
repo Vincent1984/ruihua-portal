@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const { pipeline } = require('stream');
 const crypto = require('crypto');
 const xss = require('xss');
 
@@ -641,7 +642,7 @@ function initNqocFrontend(app, options = {}) {
     const REPORT_PDF_URL = 'https://ruihua-portal.tos-cn-shanghai.volces.com/nqoc/nqoc-report-2026.pdf';
     // PDF 阅读器会连续发起 Range 请求并在翻页/关闭时直接中断，必须给上游连接设上限与超时，
     // 否则 TOS 连接只增不减（2026-11 线上 Pod 4 天累积 466 条出站 ESTABLISHED，CPU 打满）。
-    const REPORT_PDF_AGENT = new https.Agent({ keepAlive: true, maxSockets: 32, keepAliveMsecs: 30000 });
+    const REPORT_PDF_AGENT = new https.Agent({ keepAlive: true, maxSockets: 32, maxFreeSockets: 4, timeout: 15000 });
     const reportPdfSignature = exp => crypto.createHmac('sha256', reportPdfSecret)
         .update(`nqoc-report:${exp}`).digest('hex').slice(0, 32);
     app.get('/nqoc/report-2026.pdf', (req, res) => {
@@ -655,7 +656,7 @@ function initNqocFrontend(app, options = {}) {
         if (req.headers.range) headers.Range = req.headers.range;
         const upstreamReq = https.get(REPORT_PDF_URL, { headers, agent: REPORT_PDF_AGENT, timeout: 15000 }, upstream => {
             if (upstream.statusCode !== 200 && upstream.statusCode !== 206) {
-                upstream.resume();
+                upstream.destroy();
                 return res.redirect(302, REPORT_PDF_URL);
             }
             res.status(upstream.statusCode);
@@ -666,14 +667,17 @@ function initNqocFrontend(app, options = {}) {
             ['content-length', 'content-range'].forEach(name => {
                 if (upstream.headers[name]) res.setHeader(name, upstream.headers[name]);
             });
-            upstream.on('error', () => upstreamReq.destroy());
-            upstream.pipe(res);
+            // pipeline 会在上游截断或下游断开时销毁两端，避免悬空响应。
+            pipeline(upstream, res, err => {
+                if (err) upstreamReq.destroy();
+            });
         });
         // 上游超时/出错都必须主动销毁，否则 socket 会一直挂在 agent 里
         upstreamReq.on('timeout', () => upstreamReq.destroy(new Error('TOS PDF 请求超时')));
         upstreamReq.on('error', () => {
+            if (res.destroyed || res.writableEnded) return;
             if (!res.headersSent) res.redirect(302, REPORT_PDF_URL);
-            else res.end();
+            else res.destroy();
         });
         // 客户端提前断开（翻页/关标签）时立刻释放上游连接
         res.on('close', () => {
