@@ -162,12 +162,10 @@ function seoInjector(req, res, next) {
       const articleId = req.query.id || req.params.id || req.params.slug;
       if (!isNqoc && (path.includes('/article') || path.includes('/insight')) && articleId) {
         try {
-          article = await Article.findOne({
-            $or: [
-              { _id: articleId },
-              { slug: articleId }
-            ]
-          }).lean();
+          // 只有 24 位 hex 才可能是 ObjectId，否则 mongoose 会为 slug 抛 CastError（线上 4 天 153 次）
+          const lookup = [{ slug: articleId }];
+          if (/^[0-9a-fA-F]{24}$/.test(String(articleId))) lookup.unshift({ _id: articleId });
+          article = await Article.findOne({ $or: lookup }).lean();
         } catch (err) {
           console.error('Failed to load article for SEO:', err);
         }
