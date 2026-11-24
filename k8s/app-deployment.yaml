@@ -64,12 +64,9 @@ spec:
           successThreshold: 1
         readinessProbe:
           httpGet:
-            path: /admin
+            path: /healthz
             port: 3000
             scheme: HTTP
-            httpHeaders:
-            - name: Accept-Encoding
-              value: br
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
