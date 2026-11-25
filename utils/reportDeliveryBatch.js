@@ -1,26 +1,36 @@
 const crypto = require('crypto');
 const Batch = require('../models/ReportDeliveryBatch');
 const Lead = require('../models/NqocReportLead');
+const Contact = require('../models/ReportMailContact');
+const Template = require('../models/ReportMailTemplate');
 const Legacy = require('../models/NqocWhitepaperRequest');
 const { Delivery, reportFor, queueManual } = require('./reportDelivery');
 const { runtimeSecret } = require('./reportMail');
 const error = (message, status = 400) => Object.assign(new Error(message), { status });
 async function resolve(id) {
-    if (typeof id !== 'string' || !/^(whitepaper-)?[a-f0-9]{24}$/i.test(id)) throw error('记录编号无效');
-    const Model = id.startsWith('whitepaper-') ? Legacy : Lead;
-    const lead = await Model.findById(id.replace(/^whitepaper-/, ''));
+    if (typeof id !== 'string' || !/^(whitepaper-|contact-)?[a-f0-9]{24}$/i.test(id)) throw error('记录编号无效');
+    const Model = id.startsWith('whitepaper-') ? Legacy : id.startsWith('contact-') ? Contact : Lead;
+    const lead = await Model.findById(id.replace(/^(whitepaper-|contact-)/, ''));
     if (!lead) throw error('记录不存在', 404);
     return { Model, lead };
 }
+async function previousDelivery(lead, report, excludeId, includeActive = false) {
+    const normalized = String(lead.email).trim().toLowerCase();
+    const filter = { recipient: normalized, reportSlug: report.slug,
+        $or: [{ reportVersion: report.updatedAt || report.publishDate }, { reportVersion: { $in: ['', null] } }],
+        status: { $in: includeActive ? ['accepted', 'uncertain', 'pending', 'sending'] : ['accepted', 'uncertain'] } };
+    if (excludeId) filter._id = { $ne: excludeId };
+    return Delivery.exists(filter).collation({ locale: 'en', strength: 2 });
+}
 async function eligible(Model, lead) {
     if (lead.deletedAt) throw error('记录在回收站中');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.email || '')) throw error('邮箱格式不正确');
+    if (!require('./reportMailTemplate').isEmail(lead.email)) throw error('邮箱格式不正确');
     if (['pending', 'sending'].includes(lead.mail?.status)) throw error('已有待发或发送中任务');
     if (lead.mail?.status === 'accepted') throw error('邮件服务已接收，批量默认不重复发送');
     if (lead.mail?.status === 'uncertain') throw error('发送结果待核实，请使用单条操作');
     const report = reportFor(Model, lead);
     const previous = await Delivery.exists({ source: Model.modelName, leadId: String(lead._id), status: { $in: ['accepted', 'uncertain'] } });
-    if (previous) throw error('有已接收或待核实的历史发送，请使用单条操作');
+    if (previous || await previousDelivery(lead, report, null, true)) throw error('有已接收或待核实的历史发送，请使用单条操作');
     return report;
 }
 function sign(payload) {
@@ -31,13 +41,20 @@ function verify(token, actor, actorId = '') {
     if (typeof token !== 'string' || token.length > 50000) throw error('请重新预览批量名单');
     const [encoded, sig] = token.split('.');
     const expected = crypto.createHmac('sha256', runtimeSecret()).update(encoded || '').digest('hex');
-    if (!sig || sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) throw error('批量预览凭证无效');
+    if (!sig || !/^[a-f0-9]{64}$/.test(sig) || sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) throw error('批量预览凭证无效');
     let payload; try { payload = JSON.parse(Buffer.from(encoded, 'base64url').toString()); } catch (_) { throw error('批量预览凭证无效'); }
     if (payload.actor !== actor || (payload.actorId || '') !== actorId || !Number.isFinite(payload.expires) || payload.expires < Date.now() || !Array.isArray(payload.items) || payload.items.length > 50) throw error('预览已过期或操作人变化，请重新预览');
     return payload;
 }
-async function previewBatch(ids, actor, actorId = '') {
+async function previewBatch(ids, actor, actorId = '', templateId = '') {
     if (!Array.isArray(ids) || !ids.length || ids.length > 50) throw error('每批请选择 1–50 条记录');
+    let template;
+    if (templateId) {
+        if (typeof templateId !== 'string' || !/^[a-f0-9]{24}$/i.test(templateId)) throw error('模板编号无效');
+        const selected = await Template.findOne({ _id: templateId, status: 'published' }).lean();
+        if (!selected) throw error('请选择已发布的模板');
+        template = { ...require('./reportMailTemplate').templateFields(selected), version: String(selected._id) };
+    }
     const rows = [], items = [], emails = new Set();
     for (const id of [...new Set(ids)]) {
         let row = { id, eligible: false };
@@ -52,8 +69,9 @@ async function previewBatch(ids, actor, actorId = '') {
         } catch (e) { if (!e.status) throw e; row.message = e.message; }
         rows.push(row);
     }
-    return { rows, eligibleCount: items.length, excludedCount: rows.length - items.length,
-        previewToken: sign({ actor, actorId, expires: Date.now() + 10 * 60 * 1000, items }) };
+    const nonce = template || ids.some(id => typeof id === 'string' && id.startsWith('contact-')) ? crypto.randomUUID() : undefined;
+    return { requestKey: nonce, rows, eligibleCount: items.length, excludedCount: rows.length - items.length,
+        template, previewToken: sign({ actor, actorId, template, nonce, expires: Date.now() + 10 * 60 * 1000, items }) };
 }
 async function batchResult(id) {
     const batch = await Batch.findById(id).lean();
@@ -72,7 +90,8 @@ async function submitBatch({ requestKey, previewToken, reason, acknowledged }, a
         if (!String(reason || '').trim() || String(reason).length > 300) throw error('请填写 1–300 字的批量发送原因');
         const preview = verify(previewToken, actor, actorId);
         if (!preview.items.length) throw error('本批没有可发送的记录');
-        await Batch.updateOne({ _id: requestKey }, { $setOnInsert: { requestedBy: actor, requestedById: actorId, reason: String(reason).trim(), items: preview.items, status: 'pending', results: [] } }, { upsert: true });
+        if (preview.nonce && preview.nonce !== requestKey) throw error('请求编号与预览不匹配，请重新预览');
+        await Batch.updateOne({ _id: requestKey }, { $setOnInsert: { requestedBy: actor, requestedById: actorId, reason: String(reason).trim(), items: preview.items, template: preview.template, status: 'pending', results: [] } }, { upsert: true });
     }
     batch = await Batch.findOneAndUpdate({ _id: requestKey, requestedBy: actor, requestedById: actorId, status: { $ne: 'completed' },
         $or: [{ lockedUntil: null }, { lockedUntil: { $lt: new Date() } }] },
@@ -89,7 +108,7 @@ async function submitBatch({ requestKey, previewToken, reason, acknowledged }, a
                 let job = await Delivery.findOne({ source: Model.modelName, leadId: String(lead._id), requestKey: perRecordKey });
                 if (!job) {
                     if (lead.mail?.requestKey !== perRecordKey) await eligible(Model, lead);
-                    job = await queueManual(Model, lead, { ...item, requestKey: perRecordKey, reason: batch.reason, requestedBy: actor, requestedById: actorId, origin: 'batch', batchId: requestKey });
+                    job = await queueManual(Model, lead, { ...item, requestKey: perRecordKey, reason: batch.reason, requestedBy: actor, requestedById: actorId, origin: 'batch', batchId: requestKey, template: batch.template });
                 }
                 result = { id: item.id, status: 'queued', jobId: String(job._id), message: '已加入队列' };
             } catch (e) {
@@ -104,4 +123,4 @@ async function submitBatch({ requestKey, previewToken, reason, acknowledged }, a
     }
     return batchResult(requestKey);
 }
-module.exports = { Batch, previewBatch, submitBatch, batchResult };
+module.exports = { Batch, previewBatch, submitBatch, batchResult, previousDelivery };

@@ -21,6 +21,7 @@ const NqocBanner = require('../../models/NqocBanner');
 const NqocInsight = require('../../models/NqocInsight');
 const NqocCase = require('../../models/NqocCase');
 const NqocVideo = require('../../models/NqocVideo');
+const Contact = require('../../models/ReportMailContact');
 const NqocReportLead = require('../../models/NqocReportLead');
 // 历史「白皮书预约」独立表单数据，已并入报告领取记录统一展示
 const NqocWhitepaperRequest = require('../../models/NqocWhitepaperRequest');
@@ -990,8 +991,10 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
         }
     });
 
+    router.use('/admin/nqoc', require('./reportMailCampaign')(authRequired, requirePerm, requireAnyPerm, csrfGuard));
+
     router.post('/admin/nqoc/report-leads/email-batch-preview', authRequired, csrfGuard, requirePerm('nqoc-report-leads:batch-send'), async (req, res) => {
-        try { return res.json(await require('../../utils/reportDeliveryBatch').previewBatch(req.body.ids, req.user?.username || String(req.user?.id || '未知操作人'), String(req.user?.id || ''))); }
+        try { return res.json(await require('../../utils/reportDeliveryBatch').previewBatch(req.body.ids, req.user?.username || String(req.user?.id || '未知操作人'), String(req.user?.id || ''), req.body.templateId)); }
         catch (e) { return deliveryError(res, e); }
     });
     router.post('/admin/nqoc/report-leads/email-batches', authRequired, csrfGuard, requirePerm('nqoc-report-leads:batch-send'), async (req, res) => {
@@ -1007,9 +1010,10 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
 
     async function deliveryLead(rawId, allowDeleted = false) {
         const legacy = String(rawId).startsWith('whitepaper-');
-        const id = legacy ? rawId.slice(11) : rawId;
+        const imported = String(rawId).startsWith('contact-');
+        const id = imported ? rawId.slice(8) : legacy ? rawId.slice(11) : rawId;
         if (!/^[a-f0-9]{24}$/i.test(id)) throw Object.assign(new Error('记录编号无效'), { status: 400 });
-        const Model = legacy ? NqocWhitepaperRequest : NqocReportLead;
+        const Model = imported ? Contact : legacy ? NqocWhitepaperRequest : NqocReportLead;
         const lead = await Model.findById(id);
         if (!lead) throw Object.assign(new Error('记录不存在'), { status: 404 });
         if (!allowDeleted && lead.deletedAt) throw Object.assign(new Error('该记录在回收站中，请先恢复后再发送'), { status: 400 });
@@ -1072,7 +1076,8 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return res.redirect(302, REPORT_EXPIRED_PATH);
             const job = await Delivery.findById(id);
             if (!job || !['accepted', 'sending', 'uncertain'].includes(job.status) || new Date(job.linkExpiresAt).getTime() !== exp) return res.redirect(302, REPORT_EXPIRED_PATH);
-            const Model = job.source === 'NqocWhitepaperRequest' ? NqocWhitepaperRequest : NqocReportLead;
+            const Model = { NqocWhitepaperRequest, NqocReportLead, ReportMailContact: Contact }[job.source];
+            if (!Model) return res.redirect(302, REPORT_EXPIRED_PATH);
             const lead = await Model.findOne({ _id: job.leadId, deletedAt: null });
             if (!lead) return res.redirect(302, REPORT_EXPIRED_PATH);
             // 新报告领取记录与历史白皮书预约记录同口径记一次「报告页面打开」

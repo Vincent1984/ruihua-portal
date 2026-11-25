@@ -5,7 +5,7 @@ const DEFAULT_SLUG = 'china-new-quality-organization-report-2026';
 const active = ['pending', 'sending'];
 function deliveryModel(Model) { return Model.db.models.ReportDelivery || Model.db.model('ReportDelivery', Delivery.schema); }
 function reportFor(Model, lead) {
-    const slug = Model.modelName === 'NqocWhitepaperRequest' ? DEFAULT_SLUG : lead.reportSlug;
+    const slug = ['NqocWhitepaperRequest', 'ReportMailContact'].includes(Model.modelName) ? DEFAULT_SLUG : lead.reportSlug;
     const report = reports.find(r => r.slug === slug && r.status === 'published' && r.fileUrl);
     if (!report || slug !== DEFAULT_SLUG) throw Object.assign(new Error('该报告尚未配置邮件发送'), { status: 400 });
     return report;
@@ -22,7 +22,7 @@ async function ensureDelivery(Model, lead) {
         source: Model.modelName, leadId: String(lead._id), requestKey: mail.requestKey,
         recipient: mail.recipient || lead.email, reportSlug: report.slug, reportTitle: report.title,
         reportVersion: mail.reportVersion || '',
-        templateVersion: mail.templateVersion || '', origin: mail.origin || 'legacy',
+        templateVersion: mail.templateVersion || '', templateName: mail.template?.name, origin: mail.origin || 'legacy',
         batchId: mail.batchId, requestedBy: mail.requestedBy || '', requestedById: mail.requestedById || '', requestedAt: mail.requestedAt || null, reason: mail.reason || '',
         purgeAt: lead.purgeAt || null, imported: !mail.origin, status: mail.status, attemptCount: mail.attempts || 0,
         acceptedAt: mail.acceptedAt, linkExpiresAt: mail.linkExpiresAt, messageId: mail.messageId, lastError: mail.lastError
@@ -49,7 +49,7 @@ async function migrateHistory(models) {
         for await (const lead of cursor) { try { await ensureDelivery(Model, lead); } catch (e) { if (e.status !== 400) throw e; } }
     }
 }
-async function queueManual(Model, lead, { requestKey, expectedEmail, reportSlug, reportVersion, reason, requestedBy, requestedById, origin = 'manual', batchId }) {
+async function queueManual(Model, lead, { requestKey, expectedEmail, reportSlug, reportVersion, reason, requestedBy, requestedById, origin = 'manual', batchId, template }) {
     const Delivery = deliveryModel(Model);
     if (typeof requestKey !== 'string' || !/^[a-zA-Z0-9_-]{16,80}$/.test(requestKey)) throw Object.assign(new Error('发送请求编号无效，请重新打开确认窗口'), { status: 400 });
     const existing = await Delivery.findOne({ source: Model.modelName, leadId: String(lead._id), requestKey });
@@ -68,7 +68,7 @@ async function queueManual(Model, lead, { requestKey, expectedEmail, reportSlug,
     if (String(reason || '').length > 300) throw Object.assign(new Error('发送原因最多 300 字'), { status: 400 });
     const last = lead.mail?.requestedAt || lead.mail?.acceptedAt;
     if (last && Date.now() - new Date(last).getTime() < 60000) throw Object.assign(new Error('发送操作过于频繁，请一分钟后再试'), { status: 429 });
-    const mail = require('./reportMail').pendingReportMail(report.slug, { recipient, origin, batchId, requestedBy, requestedById,
+    const mail = require('./reportMail').pendingReportMail(report.slug, { recipient, origin, batchId, requestedBy, requestedById, template,
         reason: String(reason || '').trim(), requestKey, reportVersion: report.updatedAt || report.publishDate });
     const filter = { _id: lead._id, deletedAt: null, email: lead.email, 'mail.status': { $nin: active } };
     if (lead.mail) filter['mail.jobId'] = previous._id.toString();

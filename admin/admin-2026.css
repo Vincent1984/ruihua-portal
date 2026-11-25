@@ -105,6 +105,15 @@ td button.btn-sm+button.btn-sm{margin-left:6px}
 .leads-table .empty-cell p{margin:6px 0 12px;font-size:12px}
 .mail-actions{margin-top:8px}.report-mail-selection{width:auto!important;margin-right:8px;flex:0 0 auto}.report-mail-body table{min-width:0;width:100%;font-size:12px}.report-mail-body td{overflow-wrap:anywhere;white-space:normal}.report-mail-body th{white-space:normal}
 
+.report-campaign{margin:0 0 18px;padding:16px;border:1px solid var(--hair);border-radius:12px;background:#fff}
+.report-campaign summary{cursor:pointer;font-weight:700}.report-campaign-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.report-campaign-grid>section{min-width:0;border:1px solid var(--hair);border-radius:10px;padding:14px}
+.report-campaign h3{font-size:15px;margin:14px 0}.report-campaign label{display:block;margin:8px 0;font-size:13px}
+.report-campaign label input:not([type=checkbox]),.report-campaign select,.report-campaign textarea,.report-campaign input[type=search]{display:block;width:100%;margin-top:4px;padding:7px;border:1px solid var(--hair);border-radius:7px}
+.report-campaign .report-campaign-check{display:flex;align-items:center;gap:7px}.report-campaign-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.report-campaign button,.report-mail-actions button{padding:6px 10px;border:1px solid var(--hair);border-radius:8px;background:#fff;cursor:pointer}
+.report-campaign-scroll{max-height:250px;overflow:auto;margin:8px 0}.report-campaign-scroll table{min-width:0;width:100%}
+@media(max-width:850px){.report-campaign-grid{grid-template-columns:1fr}}
 /* 报告领取记录：独立详情页 */
 .lead-name{color:var(--purple);font-weight:800;text-decoration:none}
 .lead-name:hover{color:var(--p600);text-decoration:underline}

@@ -1766,9 +1766,11 @@ mongoose.connect(mongoUrl)
         console.log('MongoDB Connected to:', mongoUrl);
         try { await rebuildLLMsTxt(); } catch {}
         // 数据库就绪后再监听端口，避免连接未就绪时请求堆积超时
-        await require('./utils/reportDelivery').migrateHistory([NqocReportLead, NqocWhitepaperRequest]);
+        const reportMailModels = [NqocReportLead, NqocWhitepaperRequest, require('./models/ReportMailContact')];
+        await require('./utils/reportDelivery').migrateHistory(reportMailModels);
         if (process.env.REPORT_MAIL_ENABLED === 'true' && process.env.SMTP_USER && process.env.SMTP_PASS) {
-            reportMailer = createReportMailer({ models: [NqocReportLead, NqocWhitepaperRequest], secret: RUNTIME_SECRET_KEY });
+            reportMailer = createReportMailer({ models: reportMailModels, secret: RUNTIME_SECRET_KEY,
+                quota: require('./utils/reportMailQuota').createQuota(mongoose.connection, process.env.SMTP_USER) });
             reportMailer.start();
             console.log('[ReportMail] Automatic report emails enabled');
         }

@@ -830,6 +830,8 @@
         } catch (e) { if (reportMailDialog === state) $('reportMailBody').textContent = e.message; }
     }
     async function submitReportMail() {
+        if (reportMailDialog?.mode === 'campaign-import') return confirmCampaignImport(reportMailDialog);
+        if (reportMailDialog?.mode === 'campaign-test') return confirmCampaignTest(reportMailDialog);
         if (reportMailDialog?.mode === 'batch-preview') return submitReportBatch();
         const state = reportMailDialog, p = state?.preview;
         if (!p || state.busy) return;
@@ -927,14 +929,17 @@
         if ($('reportBatchCount')) $('reportBatchCount').textContent = `已选 ${reportMailSelected.size} 条`;
         if ($('reportLastBatch')) $('reportLastBatch').hidden = !sessionStorage.getItem('reportLastBatch');
     }
-    async function openReportBatch() {
-        if (!reportMailSelected.size) return toast('请先勾选需要补发的申请记录');
+    async function openReportBatch(ids = [...reportMailSelected], templateId = '') {
+        ids = [...new Set(ids)];
+        if (ids.length > 50) return toast('每批最多选择 50 条记录');
+        if (!ids.length) return toast('请先勾选需要补发的申请记录');
         const state = showReportMail('确认批量补发报告', { mode: 'batch-preview', requestKey: crypto.randomUUID(), busy: false });
         try {
-            const preview = await json(`${API}/report-leads/email-batch-preview`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ ids: [...reportMailSelected] }) });
+            const preview = await json(`${API}/report-leads/email-batch-preview`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ ids, templateId }) });
             if (reportMailDialog !== state) return;
             state.batchPreview = preview;
-            $('reportMailBody').innerHTML = `<p><b>本次将向 ${preview.eligibleCount} 个邮箱补发报告，排除 ${preview.excludedCount} 条。</b></p><p class="report-mail-note">同一邮箱和报告在本批只发送一次；已接收、待发、发送中、待核实及回收站记录默认排除。链接有效期为 7 天。</p><table><thead><tr><th>申请人</th><th>收件邮箱</th><th>确认结果</th></tr></thead><tbody>${preview.rows.map(r => `<tr><td>${esc(r.name || '—')}</td><td>${esc(r.email || '—')}</td><td>${r.eligible ? `将发送 · ${esc(r.reportTitle)} · ${esc(r.reportVersion)}` : `已排除：${esc(r.message)}`}</td></tr>`).join('')}</tbody></table><label>批量补发原因（必填）<textarea id="reportMailReason" maxlength="300" placeholder="例如：向历史申请但尚未发送的用户补发正式报告"></textarea></label><label class="report-mail-check"><input type="checkbox" id="reportMailAcknowledged">我已核对上述名单，同意向标记“将发送”的 ${preview.eligibleCount} 个邮箱发送报告</label>`;
+            if (preview.requestKey) state.requestKey = preview.requestKey;
+            $('reportMailBody').innerHTML = `<p><b>模板 ${esc(preview.template?.name || '系统报告模板')}</b></p><p><b>本次将向 ${preview.eligibleCount} 个邮箱补发报告，排除 ${preview.excludedCount} 条。</b></p><p class="report-mail-note">同一邮箱和报告在本批只发送一次；已接收、待发、发送中、待核实及回收站记录默认排除。链接有效期为 7 天。</p><table><thead><tr><th>申请人</th><th>收件邮箱</th><th>确认结果</th></tr></thead><tbody>${preview.rows.map(r => `<tr><td>${esc(r.name || '—')}</td><td>${esc(r.email || '—')}</td><td>${r.eligible ? `将发送 · ${esc(r.reportTitle)} · ${esc(r.reportVersion)}` : `已排除：${esc(r.message)}`}</td></tr>`).join('')}</tbody></table><label>批量补发原因（必填）<textarea id="reportMailReason" maxlength="300" placeholder="例如：向历史申请但尚未发送的用户补发正式报告"></textarea></label><label class="report-mail-check"><input type="checkbox" id="reportMailAcknowledged">我已核对上述名单，同意向标记“将发送”的 ${preview.eligibleCount} 个邮箱发送报告</label>`;
             $('reportMailConfirm').hidden = false; $('reportMailConfirm').disabled = preview.eligibleCount === 0;
             $('reportMailConfirm').textContent = `确认补发 ${preview.eligibleCount} 封`;
         } catch (e) { if (reportMailDialog === state) $('reportMailBody').textContent = e.message; }
@@ -974,6 +979,240 @@
         try { await json(`${API}/report-leads/email-batches`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ requestKey: state.batchId, acknowledged: true }) }); await renderBatchResult(state); await loadLeads(); }
         catch (e) { if (reportMailDialog === state) $('reportMailFeedback').textContent = e.message; }
         finally { state.busy = false; }
+    }
+
+    const campaign = { templates: [], sourcePage: 1, contactPage: 1, sourceMore: false, contactMore: false };
+    const campaignApi = `${API}/report-mail`;
+    function campaignRequest(path, options = {}) {
+        const headers = new Headers(authHeaders());
+        if (options.body instanceof FormData) headers.delete('Content-Type');
+        return json(campaignApi + path, { ...options, headers });
+    }
+    function campaignPost(path, body, method = 'POST') {
+        return campaignRequest(path, { method, body: JSON.stringify(body) });
+    }
+    setInterval(() => {
+        if (!$('reportCampaign')?.open || document.hidden) return;
+        loadCampaignQuota().catch(() => {});
+        if (!selectedCampaignRows('contact').length && document.querySelector('#campaignContactsRows [data-pending]')) {
+            loadCampaignContacts(campaign.contactPage).catch(() => {});
+        }
+    }, 15000);
+    function campaignNotice(message) { $('reportCampaignNotice').textContent = message; }
+    function campaignTemplateFields() {
+        return Object.fromEntries(new FormData($('campaignTemplateForm')));
+    }
+    function useCampaignTemplate(id = '') {
+        const template = campaign.templates.find(item => item._id === id);
+        $('campaignEditTemplate').value = id;
+        const defaults = {
+            subject: '您申请的《{{报告名称}}》已准备好',
+            body: '您好！感谢关注瑞华智策。请点击下方按钮下载《{{报告名称}}》。\n\n{{下载链接}}\n\n链接有效期为 {{有效期}}。',
+            button: '下载报告', signature: '瑞华智策·新质组织研究中心'
+        };
+        const form = $('campaignTemplateForm');
+        for (const key of ['name', 'subject', 'preheader', 'body', 'button', 'signature', 'replyTo']) {
+            form.elements.namedItem(key).value = (template || defaults)[key] || '';
+        }
+    }
+    async function loadCampaignTemplates() {
+        const data = await campaignRequest('/templates');
+        campaign.templates = data.templates;
+        const send = $('campaignTemplate'), edit = $('campaignEditTemplate'), source = $('campaignSource');
+        const selected = send.value, editing = edit.value, sourceKey = source.value;
+        const options = items => items.map(item => `<option value="${esc(item._id)}">${esc(item.name)} · ${({ draft: '草稿', published: '已发布', archived: '已停用' })[item.status]}</option>`).join('');
+        send.innerHTML = '<option value="">系统报告模板</option>' + options(data.templates.filter(item => item.status === 'published'));
+        edit.innerHTML = '<option value="">新模板</option>' + options(data.templates);
+        source.innerHTML = data.sources.map(item => `<option value="${esc(item.key)}">${esc(item.label)}</option>`).join('');
+        send.value = [...send.options].some(option => option.value === selected) ? selected : '';
+        edit.value = editing;
+        if (sourceKey) source.value = sourceKey;
+    }
+    async function loadCampaignQuota() {
+        const q = await campaignRequest('/quota');
+        const paused = q.pausedUntil && new Date(q.pausedUntil) > new Date();
+        const reserveNote = q.remainingToday <= q.autoReserve && q.resetsAt ? ` · 补发额度次日恢复（${mailDate(q.resetsAt)}）` : '';
+        $('reportCampaignQuota').textContent = q.enabled
+            ? `账号限速每分钟 ${q.perMinute} 封、每日 ${q.perDay} 封 · 今日余量 ${q.remainingToday} 封（预留 ${q.autoReserve} 封给新申请）${paused ? ` · 暂停至 ${mailDate(q.pausedUntil)}` : ''}${reserveNote}`
+            : '报告邮件服务尚未启用';
+    }
+    function renderCampaignRows(container, rows, kind) {
+        $(container).innerHTML = rows.length ? `<table><thead><tr><th>选择</th><th>姓名 / 邮箱</th><th>来源 / 状态</th></tr></thead><tbody>${rows.map(row => `<tr>
+            <td ${kind === 'contact' && ['pending', 'sending'].includes(row.status) ? 'data-pending' : ''}><input type="checkbox" data-campaign-kind="${kind}" value="${esc(row.id)}" aria-label="选择 ${esc(row.email)}"></td>
+            <td>${esc(row.name || '—')}<div class="sub">${esc(row.email)}</div></td>
+            <td>${esc(row.source || (row.submittedAt ? mailDate(row.submittedAt) : '—'))}
+            ${kind === 'contact' ? `<div class="sub">${esc(MAIL_LABELS[row.status] || '未安排发送')}${row.status === 'pending' && row.nextAttemptAt ? ' · 最早 ' + esc(mailDate(row.nextAttemptAt)) : ''}</div><button type="button" data-campaign="contact-history" data-id="${esc(row.id)}">发送记录</button>` : ''}</td></tr>`).join('')}</tbody></table>` : '<p class="sub">暂无记录</p>';
+    }
+    async function loadCampaignContacts(page = 1, chooseBatch) {
+        const batch = $('campaignBatch');
+        const key = chooseBatch ?? batch.value;
+        const params = new URLSearchParams({ page });
+        if (key) params.set('batch', key);
+        const data = await campaignRequest('/contacts?' + params);
+        if (key && !data.batches.some(item => item._id === key)) return loadCampaignContacts(1, '');
+        if (key) {
+            const item = data.batches.find(row => row._id === key);
+            if (![...batch.options].some(option => option.value === key)) batch.add(new Option(`${item.source} · ${item.count} 条`, key));
+        } else {
+            batch.innerHTML = '<option value="">全部名单批次</option>' + data.batches.map(item => `<option value="${esc(item._id)}">${esc(item.source)} · ${item.count} 条</option>`).join('');
+        }
+        batch.value = key;
+        campaign.contactPage = data.page;
+        campaign.contactMore = data.more;
+        renderCampaignRows('campaignContactsRows', data.rows, 'contact');
+    }
+    async function loadCampaignSource(page = 1) {
+        const key = $('campaignSource').value;
+        const params = new URLSearchParams({ page, q: $('campaignSearch').value });
+        const data = await campaignRequest('/source/' + encodeURIComponent(key) + '?' + params);
+        campaign.loadedSource = key;
+        campaign.sourcePage = data.page;
+        campaign.sourceMore = data.more;
+        renderCampaignRows('campaignSourceRows', data.rows, 'source');
+    }
+    function selectedCampaignRows(kind) {
+        return [...document.querySelectorAll(`[data-campaign-kind="${kind}"]:checked`)].map(el => el.value);
+    }
+    function campaignBasis() {
+        const basis = $('campaignBasis').value.trim();
+        const confirmed = $('campaignBasisConfirmed').checked;
+        if (!confirmed || !basis) throw new Error('请填写并确认报告发放依据');
+        return { basis, confirmed };
+    }
+    async function previewCampaignImport() {
+        campaignBasis();
+        if (!$('campaignImportLabel').value.trim()) throw new Error('请先填写活动或批次名称');
+        const file = $('campaignFile').files[0];
+        if (!file) throw new Error('请先选择 Excel 文件');
+        const form = new FormData();
+        form.set('file', file);
+        const data = await campaignRequest('/import-preview', { method: 'POST', body: form });
+        const valid = data.rows.filter(row => !row.error).length;
+        const state = showReportMail('核对 Excel 名单', { mode: 'campaign-import', file, requestKey: crypto.randomUUID() });
+        $('reportMailBody').innerHTML = `<p>有效 ${valid} 条，排除 ${data.rows.length - valid} 条。</p>
+            <table><thead><tr><th>记录</th><th>姓名</th><th>邮箱</th><th>结果</th></tr></thead><tbody>${data.rows.map(row => `<tr><td>${row.row}</td><td>${esc(row.name)}</td><td>${esc(row.email)}</td><td>${esc(row.error || '可导入')}</td></tr>`).join('')}</tbody></table>`;
+        if (valid && reportMailDialog === state) {
+            const action = $('reportMailConfirm');
+            action.hidden = false; action.disabled = false; action.textContent = '确认导入名单';
+        }
+    }
+    async function confirmCampaignImport(state) {
+        if (state.busy) return;
+        try {
+            const label = $('campaignImportLabel').value.trim();
+            if (!label) throw new Error('请先在名单区填写活动或批次名称');
+            const basis = campaignBasis();
+            const form = new FormData();
+            for (const [key, value] of Object.entries({ file: state.file, label, ...basis, requestKey: state.requestKey })) form.set(key, value);
+            state.busy = true;
+            $('reportMailConfirm').disabled = true;
+            const data = await campaignRequest('/import', { method: 'POST', body: form });
+            closeReportMail();
+            await loadCampaignContacts(1, data.rows[0]?.importKey);
+            campaignNotice(`已导入 ${data.rows.length} 条，等待选择并确认发送。`);
+        } catch (error) {
+            $('reportMailFeedback').textContent = error.message;
+            $('reportMailConfirm').disabled = false;
+        } finally { state.busy = false; }
+    }
+    const campaignActions = {
+        'template-preview': async () => {
+            const data = await campaignPost('/template-preview', campaignTemplateFields());
+            showReportMail('模板预览', { mode: 'template-preview' });
+            $('reportMailBody').innerHTML = `<h3>${esc(data.subject)}</h3><pre>${esc(data.text)}</pre>`;
+        },
+        'template-copy': () => {
+            $('campaignEditTemplate').value = '';
+            campaignNotice('已复制内容，修改名称后保存为新草稿。');
+        },
+        'template-save': async () => {
+            const id = $('campaignEditTemplate').value;
+            const data = await campaignPost(id ? '/templates/' + encodeURIComponent(id) : '/templates', campaignTemplateFields(), id ? 'PUT' : 'POST');
+            await loadCampaignTemplates();
+            useCampaignTemplate(data._id);
+            campaignNotice('草稿已保存。');
+        },
+        'template-publish': async () => {
+            const id = $('campaignEditTemplate').value;
+            if (!id) throw new Error('请先保存草稿');
+            await campaignPost('/templates/' + encodeURIComponent(id) + '/publish', {});
+            await loadCampaignTemplates();
+            useCampaignTemplate(id);
+            $('campaignTemplate').value = id;
+            campaignNotice('模板已发布，可用于确认发送。');
+        },
+        'template-archive': async () => {
+            const id = $('campaignEditTemplate').value;
+            if (!id) throw new Error('请选择要停用的模板');
+            await campaignPost('/templates/' + encodeURIComponent(id) + '/archive', {});
+            await loadCampaignTemplates();
+            campaignNotice('模板已停用。');
+        },
+        'template-test': async () => {
+            const email = $('campaignTestEmail').value.trim();
+            if (!email || !$('campaignTestEmail').checkValidity()) throw new Error('请输入有效的试发邮箱');
+            const template = campaignTemplateFields();
+            const preview = await campaignPost('/template-preview', template);
+            showReportMail('确认试发报告邮件', { mode: 'campaign-test', email, template, requestKey: crypto.randomUUID() });
+            $('reportMailBody').innerHTML = `<p>试发收件邮箱 ${esc(email)}</p><h3>${esc(preview.subject)}</h3><pre>${esc(preview.text)}</pre>`;
+            const confirm = $('reportMailConfirm');
+            confirm.hidden = false; confirm.disabled = false; confirm.textContent = '确认试发一封';
+        },
+        'import-preview': previewCampaignImport,
+        'source-load': () => loadCampaignSource(),
+        'source-prev': () => loadCampaignSource(Math.max(1, campaign.sourcePage - 1)),
+        'source-next': () => campaign.sourceMore && loadCampaignSource(campaign.sourcePage + 1),
+        'source-stage': async () => {
+            const ids = selectedCampaignRows('source'), source = $('campaignSource').value;
+            if (!ids.length || campaign.loadedSource !== source) throw new Error('请查询当前表单并勾选记录');
+            const result = await campaignPost('/stage', { ids, source, ...campaignBasis(), requestKey: crypto.randomUUID() });
+            await loadCampaignContacts(1, result.rows[0]?.importKey);
+            campaignNotice(`已加入 ${result.rows.length} 条，跳过 ${result.skipped} 条。`);
+        },
+        'contacts-load': () => loadCampaignContacts(),
+        'contacts-prev': () => loadCampaignContacts(Math.max(1, campaign.contactPage - 1)),
+        'contacts-next': () => campaign.contactMore && loadCampaignContacts(campaign.contactPage + 1),
+        'contacts-preview': () => openReportBatch([...selectedCampaignRows('contact'), ...reportMailSelected], $('campaignTemplate').value),
+        'contact-history': el => openReportHistory(el.dataset.id),
+        'last-batch': () => openBatchResult(sessionStorage.getItem('reportLastBatch') || '')
+    };
+    async function confirmCampaignTest(state) {
+        if (state.busy) return;
+        state.busy = true;
+        $('reportMailConfirm').disabled = true;
+        try {
+            const data = await campaignPost('/test', { email: state.email, template: state.template, requestKey: state.requestKey, confirmed: true });
+            if (reportMailDialog === state) await openReportHistory(data.id);
+            await loadCampaignQuota();
+        } catch (error) {
+            $('reportMailFeedback').textContent = error.message;
+            $('reportMailConfirm').disabled = false;
+        } finally { state.busy = false; }
+    }
+    const campaignPanel = $('reportCampaign');
+    if (campaignPanel) {
+        campaignPanel.addEventListener('toggle', async () => {
+            if (!campaignPanel.open) return;
+            try {
+                await Promise.all([loadCampaignTemplates(), loadCampaignQuota(), loadCampaignContacts()]);
+                if (!$('campaignTemplateForm').elements.namedItem('body').value) useCampaignTemplate();
+            } catch (error) { campaignNotice(error.message); }
+        });
+        campaignPanel.addEventListener('submit', event => event.preventDefault());
+        campaignPanel.addEventListener('change', event => {
+            if (event.target.id === 'campaignEditTemplate') useCampaignTemplate(event.target.value);
+            if (event.target.id === 'campaignSource') $('campaignSourceRows').textContent = '';
+            if (event.target.id === 'campaignBatch') loadCampaignContacts().catch(error => campaignNotice(error.message));
+        });
+        campaignPanel.addEventListener('click', async event => {
+            const button = event.target.closest('[data-campaign]');
+            const action = button && campaignActions[button.dataset.campaign];
+            if (!action || button.disabled) return;
+            button.disabled = true;
+            try { await action(button); }
+            catch (error) { campaignNotice(error.message); }
+            finally { button.disabled = false; }
+        });
     }
 
     const NQ_ACTIONS = {

@@ -184,7 +184,7 @@ const uri = process.env.REPORT_MAIL_TEST_MONGO;
         const start = source.indexOf("app.get('/nqoc/reports/open'");
         let handler, location;
         vm.runInNewContext(source.slice(start, source.indexOf("    app.get('/nqoc/report-2026.pdf'", start)), {
-            app: { get: (p, limiter, fn) => { handler = fn; } }, reportOpenLimiter: () => {},
+            app: { get: (p, limiter, fn) => { handler = fn; } }, reportOpenLimiter: () => {}, recordReportOpen: async () => {},
             verifyOpenToken: () => ({ i: '64f000000000000000000001' }), reportPdfSecret: 'test-key', reportPdfSignature: () => 'test-signature',
             NqocReportLead: { findById: () => ({ lean: async () => null }) },
             NqocWhitepaperRequest: { findById: () => ({ lean: async () => ({ deletedAt: null }) }) }, console

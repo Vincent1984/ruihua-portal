@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const { Types } = require('mongoose');
 const { deliveryModel, ensureDelivery } = require('./reportDelivery');
 const nodemailer = require('nodemailer');
+const { renderTemplate, isEmail } = require('./reportMailTemplate');
 const REPORT_SLUG = 'china-new-quality-organization-report-2026';
 const REPORT_TITLE = '2026 中国企业新质组织成熟度研究报告';
 const SITE = 'https://www.ruihuaconsulting.com';
@@ -10,7 +11,7 @@ const LINK_TTL = 7 * 24 * 60 * 60 * 1000;
 function pendingReportMail(slug = REPORT_SLUG, options = {}) {
     if (slug !== REPORT_SLUG) return undefined;
     const jobId = new Types.ObjectId().toString();
-    return { status: 'pending', reportSlug: slug, attempts: 0, nextAttemptAt: new Date(), jobId, requestKey: options.requestKey || `auto_${jobId}`, origin: options.origin || 'auto', requestedBy: options.requestedBy || 'system', requestedById: options.requestedById || '', requestedAt: new Date(), recipient: options.recipient, reason: options.reason || '', reportVersion: options.reportVersion || '2026-11-20', templateVersion: 'report-v1', batchId: options.batchId };
+    return { status: 'pending', reportSlug: slug, attempts: 0, nextAttemptAt: new Date(), jobId, requestKey: options.requestKey || `auto_${jobId}`, origin: options.origin || 'auto', requestedBy: options.requestedBy || 'system', requestedById: options.requestedById || '', requestedAt: new Date(), recipient: options.recipient, reason: options.reason || '', reportVersion: options.reportVersion || '2026-11-20', template: options.template, templateVersion: options.template?.version || 'report-v1', batchId: options.batchId };
 }
 async function reportMailAllowed(email, models) {
     const counts = await Promise.all(models.map(Model => Model.countDocuments({ email, deletedAt: null,
@@ -68,19 +69,20 @@ function createTransport() {
         auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
         pool: false, connectionTimeout: 15000, greetingTimeout: 10000, socketTimeout: 45000,
         dnsTimeout: 10000, tls: { rejectUnauthorized: true },
-        disableFileAccess: true, disableUrlAccess: true, logger: false, debug: false
+        disableFileAccess: true, disableUrlAccess: true, maxRecipients: 1, logger: false, debug: false
     });
 }
 function messageFor(lead, secret, preview = false) {
     const expires = lead.mail?.linkExpiresAt ? new Date(lead.mail.linkExpiresAt).getTime() : Date.now() + LINK_TTL;
     const link = preview ? '（发送时生成的专属报告链接，7天有效）' : lead.mail?.jobId ? deliveryLink(secret, lead.mail.jobId, expires) : reportOpenLink(secret, lead._id, expires);
-    return {
+    const message = {
         from: { name: process.env.SMTP_FROM_NAME || '瑞华智策·新质组织研究中心', address: process.env.SMTP_USER },
         to: lead.mail?.recipient || lead.email,
         subject: `您申请的《${REPORT_TITLE}》已准备好`,
         text: `您好！\n\n感谢关注瑞华智策·新质组织研究中心。\n您申请的《${REPORT_TITLE}》已准备好，请通过以下链接查看或下载：\n\n${link}\n\n链接有效期为 7 天，请妥善保存报告文件。\n如有问题，可直接回复本邮件。\n\n瑞华智策·新质组织研究中心\n${SITE}`,
         html: `<div style="font-family:Arial,sans-serif;line-height:1.8;color:#222"><p>您好！</p><p>感谢关注瑞华智策·新质组织研究中心。</p><p>您申请的《${REPORT_TITLE}》已准备好。</p><p><a href="${link}" style="display:inline-block;padding:12px 24px;background:#18274a;color:#fff;text-decoration:none">查看 / 下载报告</a></p><p>链接有效期为 7 天，请妥善保存报告文件。如有问题，可直接回复本邮件。</p><p>瑞华智策·新质组织研究中心<br><a href="${SITE}">${SITE}</a></p></div>`
     };
+    return lead.mail?.template ? { ...message, ...renderTemplate(lead.mail.template, lead, REPORT_TITLE, link) } : message;
 }
 function failureState(error, attempts) {
     const code = Number(error.responseCode);
@@ -90,7 +92,7 @@ function failureState(error, attempts) {
     // 无明确 SMTP 拒绝时，断线可能发生在服务端接受后；保守暂停，避免重复投递。
     return 'uncertain';
 }
-function createReportMailer({ models, secret, transport = createTransport() }) {
+function createReportMailer({ models, secret, transport = createTransport(), quota }) {
     const Delivery = deliveryModel(models[0]);
     let busy = false, stopped = false, timer;
     async function tick() {
@@ -103,43 +105,65 @@ function createReportMailer({ models, secret, transport = createTransport() }) {
                     { $set: { 'mail.status': 'uncertain', 'mail.lastError': '发送进程中断，请核实后手动重发' } });
                 const terminal = await Model.find({ 'mail.status': { $in: ['uncertain', 'accepted', 'cancelled', 'failed'] }, 'mail.jobId': { $exists: true }, 'mail.historySynced': { $ne: true } }).limit(50);
                 for (const item of terminal) { await ensureDelivery(Model, item); await Model.updateOne({ _id: item._id, 'mail.jobId': item.mail.jobId, 'mail.status': item.mail.status }, { $set: { 'mail.historySynced': true } }); }
-                // 回收站内的记录不再发信
-                const lead = await Model.findOneAndUpdate({ 'mail.status': 'pending', 'mail.reportSlug': REPORT_SLUG,
-                    'mail.attempts': { $lt: 3 }, 'mail.nextAttemptAt': { $lte: new Date() }, deletedAt: null },
-                    { $set: { 'mail.status': 'sending', 'mail.lockedAt': new Date(), 'mail.linkExpiresAt': new Date(Date.now() + LINK_TTL) }, $inc: { 'mail.attempts': 1 } },
-                    { new: true, sort: { 'mail.nextAttemptAt': 1 } });
-                if (!lead) continue;
-                const job = await ensureDelivery(Model, lead);
-                if (!['pending', 'sending'].includes(job.status)) continue;
-                const current = await Model.findOne({ _id: lead._id, deletedAt: null, 'mail.status': 'sending', 'mail.jobId': job._id.toString() });
-                if (!current) {
-                    const removed = await Model.findById(lead._id);
-                    await Delivery.updateOne({ _id: job._id }, { $set: { status: 'cancelled', lastError: '记录已删除或任务已取消', purgeAt: removed?.purgeAt || new Date() } });
-                    await Model.updateOne({ _id: lead._id, 'mail.jobId': job._id.toString(), 'mail.status': 'sending' }, { $set: { 'mail.status': 'cancelled' } });
-                    continue;
-                }
-                const startedAt = new Date();
-                await Delivery.updateOne({ _id: job._id }, { $set: { status: 'sending', attemptCount: lead.mail.attempts, linkExpiresAt: lead.mail.linkExpiresAt }, $push: { attempts: { number: lead.mail.attempts, startedAt, status: 'sending' } } });
-                let state;
+                const ready = { 'mail.status': 'pending', 'mail.reportSlug': REPORT_SLUG,
+                    'mail.attempts': { $lt: 3 }, 'mail.nextAttemptAt': { $lte: new Date() }, deletedAt: null };
+                const automatic = { ...ready, 'mail.origin': { $in: ['auto', null] } };
+                const order = { sort: { 'mail.nextAttemptAt': 1 } };
+                if (quota && !await Model.exists(ready)) continue;
+                const autoHere = quota && await Model.exists(automatic);
+                if (quota && !autoHere && (await Promise.all(models.map(Source => Source.exists(automatic)))).some(Boolean)) continue;
+                const permit = quota ? await quota.acquire(Date.now(), autoHere) : null;
+                if (quota && !permit.lease) continue;
+                let pauseMs = 0;
                 try {
-                    const report = require('./reportDelivery').reportFor(Model, lead);
-                    if (lead.mail.reportVersion && lead.mail.reportVersion !== (report.updatedAt || report.publishDate)) {
-                        throw Object.assign(new Error('报告版本已变化，请重新确认'), { code: 'REPORT_CHANGED', responseCode: 550 });
+                    const lead = await Model.findOneAndUpdate(autoHere ? automatic : ready,
+                        { $set: { 'mail.status': 'sending', 'mail.lockedAt': new Date(), 'mail.linkExpiresAt': new Date(Date.now() + LINK_TTL) }, $inc: { 'mail.attempts': 1 } },
+                        { new: true, ...order });
+                    if (!lead) continue;
+                    const job = await ensureDelivery(Model, lead);
+                    if (!['pending', 'sending'].includes(job.status)) continue;
+                    const current = await Model.findOne({ _id: lead._id, deletedAt: null, 'mail.status': 'sending', 'mail.jobId': job._id.toString() });
+                    if (!current) {
+                        const removed = await Model.findById(lead._id);
+                        await Delivery.updateOne({ _id: job._id }, { $set: { status: 'cancelled', lastError: '记录已删除或任务已取消', purgeAt: removed?.purgeAt || new Date() } });
+                        await Model.updateOne({ _id: lead._id, 'mail.jobId': job._id.toString(), 'mail.status': 'sending' }, { $set: { 'mail.status': 'cancelled' } });
+                        continue;
                     }
-                    const info = await transport.sendMail(messageFor(lead, secret));
-                    if (!info.accepted?.length) throw Object.assign(new Error('Recipient not accepted'), { responseCode: 550 });
-                    state = { 'mail.status': 'accepted', 'mail.acceptedAt': new Date(), 'mail.messageId': info.messageId, 'mail.lastError': '' };
-                } catch (error) {
-                    state = { 'mail.status': failureState(error, lead.mail.attempts),
-                        'mail.lastError': `${error.code || 'SMTP_ERROR'} ${error.responseCode || ''}`.trim(),
-                        'mail.nextAttemptAt': new Date(Date.now() + 60000 * 2 ** (lead.mail.attempts - 1)) };
+                    const startedAt = new Date();
+                    await Delivery.updateOne({ _id: job._id }, { $set: { status: 'sending', attemptCount: lead.mail.attempts, linkExpiresAt: lead.mail.linkExpiresAt }, $push: { attempts: { number: lead.mail.attempts, startedAt, status: 'sending' } } });
+                    let state;
+                    try {
+                        const report = require('./reportDelivery').reportFor(Model, lead);
+                        if (lead.mail.reportVersion && lead.mail.reportVersion !== (report.updatedAt || report.publishDate)) {
+                            throw Object.assign(new Error('报告版本已变化，请重新确认'), { code: 'REPORT_CHANGED', responseCode: 550 });
+                        }
+                        if (!isEmail(lead.mail.recipient || lead.email)) {
+                            throw Object.assign(new Error('收件邮箱格式无效'), { code: 'INVALID_RECIPIENT', responseCode: 550 });
+                        }
+                        if (quota && ['batch', 'auto'].includes(lead.mail.origin)) {
+                            const duplicate = await require('./reportDeliveryBatch').previousDelivery(lead, report, job._id);
+                            if (duplicate) throw Object.assign(new Error('同一邮箱已收到或结果待核实'), { code: 'DUPLICATE_REPORT', responseCode: 550 });
+                        }
+                        const info = await transport.sendMail(messageFor(lead, secret));
+                        if (!info.accepted?.length) throw Object.assign(new Error('Recipient not accepted'), { responseCode: 550 });
+                        state = { 'mail.status': 'accepted', 'mail.acceptedAt': new Date(), 'mail.messageId': info.messageId, 'mail.lastError': '' };
+                    } catch (error) {
+                        const code = Number(error.responseCode);
+                        if (error.code === 'EAUTH' || code === 535) pauseMs = 60 * 60000;
+                        else if (code === 421 || (code >= 400 && /rate|frequency|too many|quota|limit|频率|频繁|额度/i.test(error.response || ''))) pauseMs = 15 * 60000;
+                        state = { 'mail.status': error.code === 'DUPLICATE_REPORT' ? 'cancelled' : failureState(error, lead.mail.attempts),
+                            'mail.lastError': `${error.code || 'SMTP_ERROR'} ${error.responseCode || ''}`.trim(),
+                            'mail.nextAttemptAt': new Date(Date.now() + Math.max(pauseMs, 60000 * 2 ** (lead.mail.attempts - 1))) };
+                    }
+                    await Delivery.updateOne({ _id: job._id, 'attempts.number': lead.mail.attempts }, { $set: {
+                        status: state['mail.status'], acceptedAt: state['mail.acceptedAt'], messageId: state['mail.messageId'], lastError: state['mail.lastError'],
+                        'attempts.$.endedAt': new Date(), 'attempts.$.status': state['mail.status'], 'attempts.$.error': state['mail.lastError'], 'attempts.$.messageId': state['mail.messageId']
+                    } });
+                    await Model.updateOne({ _id: lead._id, 'mail.status': 'sending', 'mail.lockedAt': lead.mail.lockedAt },
+                        { $set: state, $unset: { 'mail.lockedAt': 1 } });
+                } finally {
+                    if (permit?.lease) await quota.release(permit.lease, pauseMs);
                 }
-                await Delivery.updateOne({ _id: job._id, 'attempts.number': lead.mail.attempts }, { $set: {
-                    status: state['mail.status'], acceptedAt: state['mail.acceptedAt'], messageId: state['mail.messageId'], lastError: state['mail.lastError'],
-                    'attempts.$.endedAt': new Date(), 'attempts.$.status': state['mail.status'], 'attempts.$.error': state['mail.lastError'], 'attempts.$.messageId': state['mail.messageId']
-                } });
-                await Model.updateOne({ _id: lead._id, 'mail.status': 'sending', 'mail.lockedAt': lead.mail.lockedAt },
-                    { $set: state, $unset: { 'mail.lockedAt': 1 } });
             }
         } finally { busy = false; }
     }

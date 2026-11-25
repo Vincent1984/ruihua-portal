@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const schema = new mongoose.Schema({
     source: { type: String, required: true }, leadId: { type: String, required: true },
     requestKey: String, recipient: { type: String, required: true },
-    reportSlug: String, reportTitle: String, reportVersion: String, templateVersion: String,
+    reportSlug: String, reportTitle: String, reportVersion: String, templateVersion: String, templateName: String,
     origin: { type: String, enum: ['auto', 'manual', 'batch', 'legacy'], required: true },
     batchId: String, requestedBy: String, requestedById: String, requestedAt: Date, reason: String, imported: Boolean,
     status: { type: String, enum: ['pending', 'sending', 'accepted', 'failed', 'uncertain', 'cancelled'], required: true },
@@ -11,6 +11,7 @@ const schema = new mongoose.Schema({
     attempts: [{ _id: false, number: Number, startedAt: Date, endedAt: Date, status: String, error: String, messageId: String }]
 }, { timestamps: true });
 schema.index({ source: 1, leadId: 1, createdAt: -1 });
+schema.index({ recipient: 1, reportSlug: 1, reportVersion: 1, status: 1 }, { collation: { locale: 'en', strength: 2 } });
 schema.index({ purgeAt: 1 }, { expireAfterSeconds: 0 });
 schema.index({ source: 1, leadId: 1, requestKey: 1 }, { unique: true, partialFilterExpression: { requestKey: { $type: 'string' } } });
 module.exports = mongoose.model('ReportDelivery', schema);
