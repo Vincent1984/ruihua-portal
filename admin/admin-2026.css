@@ -70,4 +70,14 @@ body.col-rz *{cursor:col-resize!important}
 
 .report-mail-body .report-mail-check{display:flex;align-items:flex-start;gap:8px}.report-mail-body input[type=checkbox]{width:auto;display:inline-block;margin:4px 0 0;padding:0;flex:0 0 auto}
 
-.report-batch-controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:12px 0}.report-batch-controls[hidden]{display:none}.report-batch-controls button{padding:7px 12px;border:1px solid var(--hair);border-radius:8px;background:#fff;cursor:pointer}.report-batch-controls .primary{background:var(--purple);color:#fff}.report-mail-selection{width:auto!important;margin-right:8px;flex:0 0 auto}.report-mail-body table{min-width:0;width:100%;font-size:12px}.report-mail-body td{overflow-wrap:anywhere;white-space:normal}.report-mail-body th{white-space:normal}
+.report-batch-controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:12px 0}.report-batch-controls[hidden]{display:none}.report-batch-controls button{padding:7px 12px;border:1px solid var(--hair);border-radius:8px;background:#fff;cursor:pointer}.report-batch-controls .primary{background:var(--purple);color:#fff}
+/* 报告领取记录：回收站切换独立成一栏，不与筛选条混排 */
+.leads-views{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.leads-views>span{color:var(--muted);font-size:12px;font-weight:700}
+/* 报告领取记录：行内操作按钮（发送报告 / 发送记录 / 删除 / 恢复） */
+td button.btn-sm{border:1px solid var(--hair);border-radius:8px;background:#fff;color:var(--ink);padding:5px 10px;font-weight:700;line-height:1.2;white-space:nowrap}
+td button.btn-sm:hover{border-color:var(--purple);color:var(--purple)}
+td button.btn-sm.danger{color:#b3261e;border-color:#e7c4bf}
+td button.btn-sm.danger:hover{border-color:#b3261e;color:#b3261e}
+td button.btn-sm+button.btn-sm{margin-left:6px}
+.mail-actions{margin-top:8px}.report-mail-selection{width:auto!important;margin-right:8px;flex:0 0 auto}.report-mail-body table{min-width:0;width:100%;font-size:12px}.report-mail-body td{overflow-wrap:anywhere;white-space:normal}.report-mail-body th{white-space:normal}

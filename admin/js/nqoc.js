@@ -108,8 +108,7 @@
             const key = seg.dataset.filter;
             seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', (b.dataset.value || '') === (f[key] || '')));
         });
-        const s = box.querySelector('select[data-filter]');
-        if (s) s.value = f[s.dataset.filter] || '';
+        box.querySelectorAll('select[data-filter]').forEach(s => { s.value = f[s.dataset.filter] || ''; });
     }
     function nqSyncUrl(view) {
         const f = NQ_FILTERS[view];
@@ -287,7 +286,8 @@
         const openLine = Number.isFinite(lead.reportOpenCount)
             ? `<div class="sub">${opens ? `报告已打开 ${opens} 次${lead.lastReportOpenAt ? ` · 最近 ${shortDateTime(lead.lastReportOpenAt)}` : ''}` : '报告未打开'}</div>`
             : '';
-        return `<div>${esc(labels[mail.status] || '未安排发送')}</div>${mail.acceptedAt ? `<div class="sub">${shortDateTime(mail.acceptedAt)}</div>` : ''}${mail.lastError ? `<div class="sub">${esc(mailFailure(mail.lastError))}</div>` : ''}${openLine}<div class="sub">累计服务接收 ${lead.mailSummary?.acceptedCount || 0} 次${lead.mailSummary?.lastAcceptedAt && mail.status !== 'accepted' ? ` · 最近 ${shortDateTime(lead.mailSummary.lastAcceptedAt)}` : ''}</div>`;
+        const sendBtn = ['pending', 'sending'].includes(mail.status) ? '' : `<button type="button" class="btn-sm" data-action="send-lead-email" data-id="${esc(lead.id)}" data-permission="${lead.mail ? 'nqoc-report-leads:resend' : 'nqoc-report-leads:send'}">${lead.mail?.status ? '再次发送' : '发送报告'}</button>`;
+        return `<div>${esc(labels[mail.status] || '未安排发送')}</div>${mail.acceptedAt ? `<div class="sub">${shortDateTime(mail.acceptedAt)}</div>` : ''}${mail.lastError ? `<div class="sub">${esc(mailFailure(mail.lastError))}</div>` : ''}${openLine}<div class="sub">累计服务接收 ${lead.mailSummary?.acceptedCount || 0} 次${lead.mailSummary?.lastAcceptedAt && mail.status !== 'accepted' ? ` · 最近 ${shortDateTime(lead.mailSummary.lastAcceptedAt)}` : ''}</div><div class="mail-actions">${sendBtn}<button type="button" class="btn-sm" data-action="mail-history" data-id="${esc(lead.id)}">发送记录</button></div>`;
     }
     // 回收站剩余天数：purgeAt 到期后由 MongoDB TTL 线程物理清除
     function nqLeadBinDays(lead) {
@@ -334,7 +334,7 @@
               <td>${esc(l.deletedBy || '—')}</td>
               <td><div>${l.deletedAt ? ago(l.deletedAt) : '—'}</div><div class="sub">${l.deletedAt ? shortDateTime(l.deletedAt) : ''}</div></td>
               <td>${nqLeadBinDays(l)} 天</td>
-              <td><button type="button" data-action="restore-lead" data-id="${esc(l.id)}" data-permission="nqoc-report-leads:restore">恢复</button><button type="button" data-action="purge-lead" data-id="${esc(l.id)}" data-permission="nqoc-report-leads:purge">彻底删除</button></td>
+              <td><button type="button" class="btn-sm" data-action="restore-lead" data-id="${esc(l.id)}" data-permission="nqoc-report-leads:restore">恢复</button><button type="button" class="btn-sm danger" data-action="purge-lead" data-id="${esc(l.id)}" data-permission="nqoc-report-leads:purge">彻底删除</button></td>
             </tr>` : `
             <tr>
               <td><div class="person">${hasPermission('nqoc-report-leads:batch-send') ? `<input class="report-mail-selection" type="checkbox" data-mail-select="${esc(l.id)}" aria-label="选择 ${esc(l.name)} 的报告申请" ${reportMailSelected.has(l.id) ? 'checked' : ''}>` : ''}<b>${esc(l.name)}</b>${nqLeadDupChip(l)}</div></td>
@@ -345,7 +345,7 @@
               <td>${nqMailStatus(l)}</td>
               <td><div class="sub" style="word-break:break-all">${esc(l.sourcePage)}</div></td>
               <td><div>${ago(l.createdAt)}</div><div class="sub">${shortDateTime(l.createdAt)}</div></td>
-              <td>${!['pending', 'sending'].includes(l.mail?.status) ? `<button type="button" data-action="send-lead-email" data-id="${esc(l.id)}" data-permission="${l.mail ? 'nqoc-report-leads:resend' : 'nqoc-report-leads:send'}">${l.mail?.status ? '再次发送' : '发送报告'}</button>` : ''}<button type="button" data-action="mail-history" data-id="${esc(l.id)}">发送记录</button><button type="button" data-action="delete-lead" data-id="${esc(l.id)}" data-permission="nqoc-report-leads:delete">删除</button></td>
+              <td><button type="button" class="btn-sm danger" data-action="delete-lead" data-id="${esc(l.id)}" data-permission="nqoc-report-leads:delete">删除</button></td>
             </tr>`).join('') : `<tr><td colspan="9" class="empty-cell"><b>${inBin ? '回收站是空的' : '没有符合条件的记录'}</b>${inBin ? '删除的记录会在这里保留 30 天' : '换个筛选条件试试'}</td></tr>`;
         $('nqLeadCount').textContent = inBin
             ? `回收站共 ${rows.length} 条记录，到期后自动彻底删除`
