@@ -275,6 +275,12 @@
         $('nqL30').textContent = between(0, 30 * DAY);
         $('nqLAll').textContent = nqLeadStats.all;
         $('nqLCo').textContent = nqLeadStats.companies;
+        const up = nqLeadStats.uniquePhones || {};
+        $('nqLPhone').textContent = up.all || 0;
+        $('nqLPhoneTd').textContent = up.today || 0;
+        $('nqLPhone7').textContent = up.week7 || 0;
+        $('nqLPhone30').textContent = up.month30 || 0;
+        $('nqLPhoneAvg').textContent = up.avg || 0;
         const badge = $('nqLeadBadge');
         if (badge) badge.textContent = nqLeadStats.today;
 
@@ -297,7 +303,7 @@
         try {
             const data = await json(`${API}/report-leads`, { headers: authHeaders() });
             nqLeads = Array.isArray(data.leads) ? data.leads : [];
-            nqLeadStats = Object.assign({ today: 0, week7: 0, all: 0, companies: 0 }, data.stats || {});
+            nqLeadStats = Object.assign({ today: 0, week7: 0, all: 0, companies: 0, uniquePhones: {} }, data.stats || {});
             renderNqLeads();
         } catch (e) {
             $('nqLeadRows').innerHTML = `<tr><td colspan="8" class="empty-cell">${esc(e.message)}</td></tr>`;

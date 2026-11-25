@@ -780,8 +780,16 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             const { query } = buildLeadQuery(req);
             const startOfDay = new Date();
             startOfDay.setHours(0, 0, 0, 0);
+            const day7 = new Date(Date.now() - 7 * 24 * 3600 * 1000);
+            const day30 = new Date(Date.now() - 30 * 24 * 3600 * 1000);
 
-            const [leads, legacyLeads, today, todayWp, week7, week7Wp, all, allWp, companies, wpCompanies] = await Promise.all([
+            // 手机号去重看板：按手机号聚合出「最后一次提交时间」，两个来源合并后在内存去重。
+            const phoneGroups = model => model.aggregate([
+                { $match: { phone: { $exists: true, $nin: [null, ''] } } },
+                { $group: { _id: '$phone', last: { $max: '$createdAt' } } }
+            ]);
+
+            const [leads, legacyLeads, today, todayWp, week7, week7Wp, all, allWp, companies, wpCompanies, leadPhones, wpPhones] = await Promise.all([
                 NqocReportLead.find(query).sort({ createdAt: -1 }).limit(5000),
                 NqocWhitepaperRequest.find(query).sort({ createdAt: -1 }).limit(5000),
                 NqocReportLead.countDocuments({ createdAt: { $gte: startOfDay } }),
@@ -791,8 +799,28 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
                 NqocReportLead.countDocuments({}),
                 NqocWhitepaperRequest.countDocuments({}),
                 NqocReportLead.distinct('company'),
-                NqocWhitepaperRequest.distinct('company')
+                NqocWhitepaperRequest.distinct('company'),
+                phoneGroups(NqocReportLead),
+                phoneGroups(NqocWhitepaperRequest)
             ]);
+
+            // 统一成纯数字再比，避免历史数据里的空格 / 横线造成同号不同键。
+            const phoneLast = new Map();
+            const mergePhone = row => {
+                const key = String(row._id || '').replace(/\D/g, '') || String(row._id || '').trim();
+                if (!key) return;
+                const t = row.last ? new Date(row.last).getTime() : 0;
+                if (!phoneLast.has(key) || t > phoneLast.get(key)) phoneLast.set(key, t);
+            };
+            leadPhones.forEach(mergePhone);
+            wpPhones.forEach(mergePhone);
+            const uniqueTotal = phoneLast.size;
+            const uniqueSince = cutoff => {
+                let n = 0;
+                phoneLast.forEach(t => { if (t >= cutoff) n += 1; });
+                return n;
+            };
+            const recordsTotal = all + allWp;
 
             const merged = leads.map(serializeLead)
                 .concat(legacyLeads.map(serializeLegacyWhitepaperLead))
@@ -805,7 +833,15 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
                     today: today + todayWp,
                     week7: week7 + week7Wp,
                     all: all + allWp,
-                    companies: new Set(companies.concat(wpCompanies).filter(Boolean)).size
+                    companies: new Set(companies.concat(wpCompanies).filter(Boolean)).size,
+                    uniquePhones: {
+                        all: uniqueTotal,
+                        today: uniqueSince(startOfDay),
+                        week7: uniqueSince(day7),
+                        month30: uniqueSince(day30),
+                        // 人均领取次数：总记录数 ÷ 去重手机号数，越大说明重复提交越多
+                        avg: uniqueTotal ? Number((recordsTotal / uniqueTotal).toFixed(2)) : 0
+                    }
                 }
             });
         } catch (e) {
