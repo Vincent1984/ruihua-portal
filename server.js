@@ -627,11 +627,15 @@ async function requireAdminStaticHtmlPage(req, res, next) {
         if (req.path === '/' || req.path === '/index.html') return next();
 
         const fullPath = `/admin${req.path}`;
-        if (!req.path.endsWith('.html') && !ADMIN_CONSOLE_ROUTES.includes(fullPath)) return next();
-        if (!Object.prototype.hasOwnProperty.call(ADMIN_STATIC_PAGE_PERMS, fullPath)) {
+        // 报告领取记录的独立详情页 /admin/nqoc-report-leads/<id>，权限与列表页一致
+        const consolePath = fullPath.startsWith('/admin/nqoc-report-leads/')
+            ? '/admin/nqoc-report-leads'
+            : fullPath;
+        if (!req.path.endsWith('.html') && !ADMIN_CONSOLE_ROUTES.includes(consolePath)) return next();
+        if (!Object.prototype.hasOwnProperty.call(ADMIN_STATIC_PAGE_PERMS, consolePath)) {
             return res.status(404).sendFile(path.join(__dirname, '404.html'));
         }
-        const requiredPerm = ADMIN_STATIC_PAGE_PERMS[fullPath];
+        const requiredPerm = ADMIN_STATIC_PAGE_PERMS[consolePath];
 
         const auth = req.headers.authorization || '';
         const headerToken = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
@@ -664,6 +668,10 @@ async function requireAdminStaticHtmlPage(req, res, next) {
 
 app.use('/admin', requireAdminStaticHtmlPage);
 app.get(ADMIN_CONSOLE_ROUTES, (req, res) => {
+    setAdminHtmlNoCache(res);
+    res.sendFile(path.join(__dirname, 'admin/console.html'));
+});
+app.get('/admin/nqoc-report-leads/:id', (req, res) => {
     setAdminHtmlNoCache(res);
     res.sendFile(path.join(__dirname, 'admin/console.html'));
 });

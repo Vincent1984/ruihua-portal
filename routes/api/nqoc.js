@@ -973,6 +973,23 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
         }
     });
 
+    // 单条详情：回收站记录也可查看（详情页需要展示删除人 / 删除时间 / 剩余天数）
+    router.get('/admin/nqoc/report-leads/:id', authRequired, requirePerm('nqoc-report-leads:list'), async (req, res) => {
+        try {
+            const rawId = String(req.params.id || '');
+            const legacy = rawId.startsWith('whitepaper-');
+            const id = legacy ? rawId.slice(11) : rawId;
+            if (!/^[a-f0-9]{24}$/i.test(id)) return res.status(400).json({ error: '记录编号无效' });
+            const doc = await (legacy ? NqocWhitepaperRequest : NqocReportLead).findById(id);
+            if (!doc) return res.status(404).json({ error: '记录不存在' });
+            const lead = legacy ? serializeLegacyWhitepaperLead(doc) : serializeLead(doc);
+            await summariesFor([lead]);
+            res.json({ lead });
+        } catch (e) {
+            return sendInternalError(res, 'Get nqoc report lead error:', e);
+        }
+    });
+
     router.post('/admin/nqoc/report-leads/email-batch-preview', authRequired, csrfGuard, requirePerm('nqoc-report-leads:batch-send'), async (req, res) => {
         try { return res.json(await require('../../utils/reportDeliveryBatch').previewBatch(req.body.ids, req.user?.username || String(req.user?.id || '未知操作人'), String(req.user?.id || ''))); }
         catch (e) { return deliveryError(res, e); }

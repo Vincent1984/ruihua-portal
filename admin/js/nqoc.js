@@ -55,6 +55,7 @@
     const reportMailSelected = new Set();
     let nqLeadDup = {};   // 归一化手机号 -> 提交次数（仅 ≥2 次的手机号）
     let nqLeadStats = { today: 0, week7: 0, all: 0, companies: 0 };
+    let nqLeadDetailState = null;   // 报告领取记录详情：{ id, from, lead }
     let nqEd = null;   // 弹窗（banner / video）上下文
     let nqPend = {};   // 弹窗里刚选好、尚未保存的图片
 
@@ -112,15 +113,15 @@
     }
     function nqSyncUrl(view) {
         const f = NQ_FILTERS[view];
-        if (!f) return;
+        if (!f || nqLeadDetailState) return;   // 详情页保留 /admin/nqoc-report-leads/<id>
         const qs = Object.keys(f).filter(k => f[k]).map(k => k + '=' + encodeURIComponent(f[k])).join('&');
         try { history.replaceState(null, '', `/admin/${view}${qs ? '?' + qs : ''}`); } catch (e) { /* 忽略 */ }
     }
-    function nqRestoreFilters(view) {
+    function nqRestoreFilters(view, search) {
         const f = NQ_FILTERS[view];
         if (!f) return;
         Object.keys(f).forEach(k => { f[k] = ''; });
-        new URLSearchParams(location.search).forEach((v, k) => {
+        new URLSearchParams(search == null ? location.search : search).forEach((v, k) => {
             if (!(k in f)) return;
             if (NQ_FILTER_OK[k] && NQ_FILTER_OK[k].indexOf(v) < 0) return;
             f[k] = v.slice(0, 60);
@@ -279,15 +280,21 @@
         const raw = String(value || ''), code = raw.split(' ')[0];
         return labels[code] ? `${labels[code]}（${raw}）` : raw;
     }
+    function nqPhoneDisplay(value) {
+        const digits = String(value || '').replace(/\D/g, '');
+        return digits.length === 11 ? `${digits.slice(0, 3)} ${digits.slice(3, 7)} ${digits.slice(7)}` : String(value || '');
+    }
+    function nqMailTone(status) {
+        return status === 'accepted' ? 'ok' : status === 'failed' ? 'err' : status === 'uncertain' ? 'warn' : ['pending', 'sending'].includes(status) ? 'info' : 'idle';
+    }
+    // 列表只展示状态与打开情况；发送、发送记录、删除都收进详情页
     function nqMailStatus(lead) {
         const mail = lead.mail || {};
-        const labels = { pending: '待发送', sending: '发送中', accepted: '邮件服务已接收', failed: '发送失败', uncertain: '结果待核实', cancelled: '已取消' };
         const opens = Number(lead.reportOpenCount) || 0;
         const openLine = Number.isFinite(lead.reportOpenCount)
             ? `<div class="sub">${opens ? `报告已打开 ${opens} 次${lead.lastReportOpenAt ? ` · 最近 ${shortDateTime(lead.lastReportOpenAt)}` : ''}` : '报告未打开'}</div>`
             : '';
-        const sendBtn = ['pending', 'sending'].includes(mail.status) ? '' : `<button type="button" class="btn-sm" data-action="send-lead-email" data-id="${esc(lead.id)}" data-permission="${lead.mail ? 'nqoc-report-leads:resend' : 'nqoc-report-leads:send'}">${lead.mail?.status ? '再次发送' : '发送报告'}</button>`;
-        return `<div>${esc(labels[mail.status] || '未安排发送')}</div>${mail.acceptedAt ? `<div class="sub">${shortDateTime(mail.acceptedAt)}</div>` : ''}${mail.lastError ? `<div class="sub">${esc(mailFailure(mail.lastError))}</div>` : ''}${openLine}<div class="sub">累计服务接收 ${lead.mailSummary?.acceptedCount || 0} 次${lead.mailSummary?.lastAcceptedAt && mail.status !== 'accepted' ? ` · 最近 ${shortDateTime(lead.mailSummary.lastAcceptedAt)}` : ''}</div><div class="mail-actions">${sendBtn}<button type="button" class="btn-sm" data-action="mail-history" data-id="${esc(lead.id)}">发送记录</button></div>`;
+        return `<div class="mail-head"><span class="chip ${nqMailTone(mail.status)}">${esc(MAIL_LABELS[mail.status] || '未安排发送')}</span>${mail.acceptedAt ? `<span class="mail-time">${shortDateTime(mail.acceptedAt)}</span>` : ''}</div>${openLine}`;
     }
     // 回收站剩余天数：purgeAt 到期后由 MongoDB TTL 线程物理清除
     function nqLeadBinDays(lead) {
@@ -297,6 +304,158 @@
     function nqLeadDupChip(lead) {
         const dup = nqLeadDup[nqPhoneKey(lead.phone)];
         return dup ? ` <span class="chip featured">重复 ${dup} 次</span>` : '';
+    }
+    // 详情页链接：把列表当前的筛选条件带进 ?from=，返回时原样恢复
+    function nqLeadDetailHref(id) {
+        const inDetail = /\/admin\/nqoc-report-leads\//.test(location.pathname);
+        const from = inDetail ? (nqLeadDetailState?.from || '') : (location.search || '');
+        return `/admin/nqoc-report-leads/${encodeURIComponent(id)}${from ? '?from=' + encodeURIComponent(from) : ''}`;
+    }
+    function leadDetailFromParam() {
+        return (new URLSearchParams(location.search).get('from') || '').slice(0, 300);
+    }
+    function leadListViewUrl() {
+        const f = NQ_FILTERS['nqoc-report-leads'];
+        const qs = Object.keys(f).filter(k => f[k]).map(k => k + '=' + encodeURIComponent(f[k])).join('&');
+        return `/admin/nqoc-report-leads${qs ? '?' + qs : ''}`;
+    }
+    // 列表可能已被筛选或切换回收站，动作需回退到详情页缓存的记录
+    function nqLeadById(id) {
+        return (nqLeads || []).find(l => String(l.id) === String(id))
+            || (nqLeadDetailState && String(nqLeadDetailState.lead?.id) === String(id) ? nqLeadDetailState.lead : null);
+    }
+    async function openLeadDetail(id, options = {}) {
+        const from = options.from != null ? options.from : (location.search || '');
+        nqLeadDetailState = { id: String(id), from, lead: null };
+        const section = document.querySelector('[data-view="nqoc-report-leads"]');
+        if (section) section.classList.add('lead-detail-open');
+        const box = $('nqLeadDetail');
+        if (box) { box.hidden = false; box.innerHTML = '<p class="sub">正在加载记录…</p>'; }
+        try {
+            const url = `/admin/nqoc-report-leads/${encodeURIComponent(id)}${from ? '?from=' + encodeURIComponent(from) : ''}`;
+            if (options.replace) history.replaceState(null, '', url);
+            else if (options.push !== false) history.pushState(null, '', url);
+        } catch (e) { /* 忽略 */ }
+        await loadLeadDetail();
+        if (box) box.scrollIntoView({ block: 'start' });
+    }
+    async function loadLeadDetail() {
+        const state = nqLeadDetailState;
+        if (!state) return;
+        try {
+            const data = await json(`${API}/report-leads/${encodeURIComponent(state.id)}`, { headers: authHeaders() });
+            if (nqLeadDetailState !== state) return;
+            state.lead = data.lead;
+            await renderLeadDetail();
+        } catch (e) {
+            if (nqLeadDetailState !== state) return;
+            const box = $('nqLeadDetail');
+            if (box) box.innerHTML = `<p class="empty-cell">${esc(e.message)}</p><p><button type="button" class="btn-sm" data-action="lead-detail-back">返回列表</button></p>`;
+        }
+    }
+    async function renderLeadDetail() {
+        const state = nqLeadDetailState, lead = state?.lead, box = $('nqLeadDetail');
+        if (!state || !lead || !box) return;
+        const mail = lead.mail || {}, inBin = !!lead.deletedAt;
+        const dup = nqLeadDup[nqPhoneKey(lead.phone)];
+        const summary = lead.mailSummary || {};
+        const opens = Number(lead.reportOpenCount) || 0;
+        const canResend = ['accepted', 'failed'].includes(mail.status);
+        const openText = Number.isFinite(lead.reportOpenCount)
+            ? (opens ? `${opens} 次${lead.firstReportOpenAt ? ` · 首次 ${mailDate(lead.firstReportOpenAt)}` : ''}${lead.lastReportOpenAt ? ` · 最近 ${mailDate(lead.lastReportOpenAt)}` : ''}` : '尚未打开')
+            : '无统计数据';
+        box.innerHTML = `
+            <div class="lead-detail-head">
+              <button type="button" class="btn-sm" data-action="lead-detail-back">← 返回列表</button>
+              <div class="lead-detail-title">
+                <h2>${esc(lead.name)}${dup ? ` <span class="chip featured">重复 ${dup} 次</span>` : ''}${inBin ? ' <span class="chip err">回收站</span>' : ''}</h2>
+                <p class="sub mono">${esc(lead.email)}</p>
+              </div>
+              ${inBin ? '' : `<button type="button" class="primary" data-action="send-lead-email" data-id="${esc(lead.id)}" data-permission="${canResend ? 'nqoc-report-leads:resend' : 'nqoc-report-leads:send'}">${mail.status ? '再次发送报告' : '发送报告'}</button>`}
+            </div>
+            <section class="lead-detail-card">
+              <h3>领取信息</h3>
+              <dl class="lead-detail-meta">
+                <dt>姓名</dt><dd>${esc(lead.name)}</dd>
+                <dt>手机号码</dt><dd class="mono">${esc(nqPhoneDisplay(lead.phone))}</dd>
+                <dt>公司 / 职位</dt><dd>${esc(lead.company)} · ${esc(lead.position)}</dd>
+                <dt>邮箱</dt><dd>${esc(lead.email)}</dd>
+                <dt>领取的报告</dt><dd>${esc(lead.reportTitle || '—')}</dd>
+                <dt>提交页面</dt><dd>${esc(lead.sourcePage || '—')}</dd>
+                <dt>领取次数</dt><dd>${Number(lead.downloadCount) || 0} 次</dd>
+                <dt>最近领取</dt><dd>${lead.lastDownloadedAt ? mailDate(lead.lastDownloadedAt) : '—'}</dd>
+                <dt>提交时间</dt><dd>${mailDate(lead.createdAt)}</dd>
+              </dl>
+            </section>
+            <section class="lead-detail-card">
+              <h3>邮件投递</h3>
+              <dl class="lead-detail-meta">
+                <dt>邮件状态</dt><dd><span class="chip ${nqMailTone(mail.status)}">${esc(MAIL_LABELS[mail.status] || '未安排发送')}</span></dd>
+                <dt>最近接收</dt><dd>${mail.acceptedAt ? mailDate(mail.acceptedAt) : '—'}</dd>
+                <dt>累计接收</dt><dd>${Number(summary.acceptedCount) || 0} 次${summary.lastAcceptedAt ? ` · 最近 ${mailDate(summary.lastAcceptedAt)}` : ''}</dd>
+                <dt>报告打开</dt><dd>${openText}</dd>
+                ${mail.status === 'pending' && mail.nextAttemptAt ? `<dt>预计发送</dt><dd>${mailDate(mail.nextAttemptAt)}</dd>` : ''}
+                ${mail.attempts ? `<dt>发送尝试</dt><dd>${Number(mail.attempts)} 次</dd>` : ''}
+                ${mail.linkExpiresAt ? `<dt>链接到期</dt><dd>${mailDate(mail.linkExpiresAt)}</dd>` : ''}
+                ${mail.lastError ? `<dt>失败原因</dt><dd class="lead-detail-error">${esc(mailFailure(mail.lastError))}</dd>` : ''}
+                ${mail.messageId ? `<dt>邮件编号</dt><dd class="mono">${esc(mail.messageId)}</dd>` : ''}
+              </dl>
+            </section>
+            <section class="lead-detail-card">
+              <h3>发送记录</h3>
+              <div id="leadDetailHistory" class="lead-detail-history"><p class="sub">正在加载…</p></div>
+              <p class="lead-detail-card-foot"><button type="button" class="btn-sm" data-action="mail-history" data-id="${esc(lead.id)}">查看全部发送记录</button></p>
+            </section>
+            ${inBin ? `<section class="lead-detail-card">
+              <h3>回收站信息</h3>
+              <dl class="lead-detail-meta">
+                <dt>删除时间</dt><dd>${lead.deletedAt ? mailDate(lead.deletedAt) : '—'}</dd>
+                <dt>删除人</dt><dd>${esc(lead.deletedBy || '—')}</dd>
+                <dt>剩余天数</dt><dd><span class="chip ${nqLeadBinDays(lead) <= 7 ? 'err' : 'idle'}">${nqLeadBinDays(lead)} 天</span></dd>
+                <dt>到期时间</dt><dd>${lead.purgeAt ? mailDate(lead.purgeAt) : '—'}</dd>
+              </dl>
+            </section>` : ''}
+            <section class="lead-detail-danger">
+              <div>
+                <h3>${inBin ? '彻底删除' : '移入回收站'}</h3>
+                <p class="sub">${inBin ? '彻底删除后无法恢复，会立即从回收站移除。' : '移入回收站后 30 天内可恢复，到期自动彻底删除；统计与导出不再计入。'}</p>
+              </div>
+              <div class="lead-detail-danger-actions">${inBin
+                ? `<button type="button" class="btn-sm" data-action="restore-lead" data-id="${esc(lead.id)}" data-permission="nqoc-report-leads:restore">恢复记录</button><button type="button" class="btn-sm danger" data-action="purge-lead" data-id="${esc(lead.id)}" data-permission="nqoc-report-leads:purge">彻底删除</button>`
+                : `<button type="button" class="btn-sm danger" data-action="delete-lead" data-id="${esc(lead.id)}" data-permission="nqoc-report-leads:delete">移入回收站</button>`}</div>
+            </section>`;
+        nqApplyPerms(box);
+        loadLeadDetailHistory(state);
+    }
+    async function loadLeadDetailHistory(state) {
+        const box = $('leadDetailHistory');
+        if (!box) return;
+        try {
+            const data = await json(`${API}/report-leads/${encodeURIComponent(state.id)}/email-history?page=1`, { headers: authHeaders() });
+            if (nqLeadDetailState !== state) return;
+            box.innerHTML = reportHistoryHtml(data, { detail: true });
+        } catch (e) {
+            if (nqLeadDetailState !== state) return;
+            box.textContent = e.message;
+        }
+    }
+    function closeLeadDetail() {
+        const state = nqLeadDetailState;
+        nqLeadDetailState = null;
+        const section = document.querySelector('[data-view="nqoc-report-leads"]');
+        if (section) section.classList.remove('lead-detail-open');
+        const box = $('nqLeadDetail');
+        if (box) { box.hidden = true; box.innerHTML = ''; }
+        if (state?.from) nqRestoreFilters('nqoc-report-leads', state.from);
+        return state?.from || '';
+    }
+    // 关详情回列表：同时把 URL 换回列表地址，避免刷新详情页时记录已不存在
+    async function leaveLeadDetail() {
+        closeLeadDetail();
+        try { history.replaceState(null, '', leadListViewUrl()); } catch (e) { /* 忽略 */ }
+        nqSyncFilterUi('nqoc-report-leads');
+        await loadLeads();
+        window.scrollTo({ top: 0 });
     }
     function renderNqLeads() {
         const f = NQ_FILTERS['nqoc-report-leads'], inBin = f.bin === '1';
@@ -326,27 +485,21 @@
 
         $('nqLeadRows').innerHTML = rows.length ? rows.map(l => inBin ? `
             <tr>
-              <td><div class="person"><b>${esc(l.name)}</b>${nqLeadDupChip(l)}</div></td>
-              <td>${esc(l.phone)}</td>
+              <td><div class="person"><a class="lead-name" href="${nqLeadDetailHref(l.id)}">${esc(l.name)}</a>${nqLeadDupChip(l)}</div></td>
+              <td class="mono">${esc(nqPhoneDisplay(l.phone))}</td>
               <td><div>${esc(l.company)}</div><div class="sub">${esc(l.position)}</div></td>
-              <td style="word-break:break-all">${esc(l.email)}</td>
-              <td>${esc(l.reportTitle)}</td>
-              <td>${esc(l.deletedBy || '—')}</td>
+              <td><div class="ellip" title="${esc(l.email)}">${esc(l.email)}</div></td>
               <td><div>${l.deletedAt ? ago(l.deletedAt) : '—'}</div><div class="sub">${l.deletedAt ? shortDateTime(l.deletedAt) : ''}</div></td>
-              <td>${nqLeadBinDays(l)} 天</td>
-              <td><button type="button" class="btn-sm" data-action="restore-lead" data-id="${esc(l.id)}" data-permission="nqoc-report-leads:restore">恢复</button><button type="button" class="btn-sm danger" data-action="purge-lead" data-id="${esc(l.id)}" data-permission="nqoc-report-leads:purge">彻底删除</button></td>
+              <td><span class="chip ${nqLeadBinDays(l) <= 7 ? 'err' : 'idle'}">${nqLeadBinDays(l)} 天</span></td>
             </tr>` : `
             <tr>
-              <td><div class="person">${hasPermission('nqoc-report-leads:batch-send') ? `<input class="report-mail-selection" type="checkbox" data-mail-select="${esc(l.id)}" aria-label="选择 ${esc(l.name)} 的报告申请" ${reportMailSelected.has(l.id) ? 'checked' : ''}>` : ''}<b>${esc(l.name)}</b>${nqLeadDupChip(l)}</div></td>
-              <td>${esc(l.phone)}</td>
+              <td><div class="person">${hasPermission('nqoc-report-leads:batch-send') ? `<input class="report-mail-selection" type="checkbox" data-mail-select="${esc(l.id)}" aria-label="选择 ${esc(l.name)} 的报告申请" ${reportMailSelected.has(l.id) ? 'checked' : ''}>` : ''}<a class="lead-name" href="${nqLeadDetailHref(l.id)}">${esc(l.name)}</a>${nqLeadDupChip(l)}</div></td>
+              <td class="mono">${esc(nqPhoneDisplay(l.phone))}</td>
               <td><div>${esc(l.company)}</div><div class="sub">${esc(l.position)}</div></td>
-              <td style="word-break:break-all">${esc(l.email)}</td>
-              <td>${esc(l.reportTitle)}</td>
+              <td><div class="ellip" title="${esc(l.email)}">${esc(l.email)}</div></td>
               <td>${nqMailStatus(l)}</td>
-              <td><div class="sub" style="word-break:break-all">${esc(l.sourcePage)}</div></td>
               <td><div>${ago(l.createdAt)}</div><div class="sub">${shortDateTime(l.createdAt)}</div></td>
-              <td><button type="button" class="btn-sm danger" data-action="delete-lead" data-id="${esc(l.id)}" data-permission="nqoc-report-leads:delete">删除</button></td>
-            </tr>`).join('') : `<tr><td colspan="9" class="empty-cell"><b>${inBin ? '回收站是空的' : '没有符合条件的记录'}</b>${inBin ? '删除的记录会在这里保留 30 天' : '换个筛选条件试试'}</td></tr>`;
+            </tr>`).join('') : `<tr><td colspan="6" class="empty-cell"><b>${inBin ? '回收站是空的' : '没有符合条件的记录'}</b><p>${inBin ? '删除的记录会在这里保留 30 天' : '换个筛选条件，或清空当前筛选'}</p>${inBin ? '' : '<button type="button" class="btn-sm" data-action="reset-lead-filters">清空筛选</button>'}</td></tr>`;
         $('nqLeadCount').textContent = inBin
             ? `回收站共 ${rows.length} 条记录，到期后自动彻底删除`
             : `共 ${rows.length} 条记录${rows.length !== total ? `（总计 ${total} 条）` : ''}`;
@@ -363,7 +516,7 @@
             nqLeadDup = (data.stats && data.stats.duplicatePhones) || {};
             renderNqLeads();
         } catch (e) {
-            $('nqLeadRows').innerHTML = `<tr><td colspan="9" class="empty-cell">${esc(e.message)}</td></tr>`;
+            $('nqLeadRows').innerHTML = `<tr><td colspan="6" class="empty-cell">${esc(e.message)}</td></tr>`;
         }
     }
     async function nqExportLeads() {
@@ -687,17 +840,26 @@
         try {
             await json(`${API}/report-leads/${encodeURIComponent(state.id)}/${p.hasPrevious ? 'resend-email' : 'send-email'}`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ requestKey: state.requestKey, expectedEmail: p.email, reportSlug: p.reportSlug, reportVersion: p.reportVersion, reason }) });
             await loadLeads();
+            if (nqLeadDetailState && String(nqLeadDetailState.id) === String(state.id)) await loadLeadDetail();
             if (reportMailDialog === state) await openReportHistory(state.id);
             toast('已加入发送队列，状态会自动更新');
         } catch (e) {
             if (reportMailDialog === state) { $('reportMailFeedback').textContent = e.message; $('reportMailConfirm').disabled = false; }
         } finally { state.busy = false; }
     }
+    // 发送记录 HTML：弹窗与详情页共用。详情页只读，翻页与取消待发仍在弹窗里操作
+    function reportHistoryHtml(data, opts = {}) {
+        const detail = opts.detail === true;
+        const head = `<p>共 ${data.total} 条发送记录 · 邮件服务接收 ${data.acceptedCount} 次 · 最近接收：${mailDate(data.lastAcceptedAt)}</p><p class="report-mail-note">每次人工发送单独留痕，自动重试归于同一条记录。历史导入只保留当时已有快照，未知信息不作推断。</p>`;
+        const events = data.jobs.map(j => `<article class="report-mail-event"><h3>${esc(MAIL_LABELS[j.status] || j.status)} ${j.imported ? '· 历史导入' : ''}</h3><dl class="report-mail-meta"><dt>收件邮箱</dt><dd>${esc(j.recipient)}</dd><dt>报告</dt><dd>${esc(j.reportTitle)} · ${esc(j.reportVersion || '未知')}</dd><dt>触发方式</dt><dd>${({ auto: '自动发送', manual: '人工发送', batch: '批量补发', legacy: '旧状态快照' })[j.origin] || '未知'}</dd><dt>操作人</dt><dd>${esc(j.origin === 'auto' ? '系统' : j.requestedBy || '未知')}</dd><dt>请求时间</dt><dd>${mailDate(j.requestedAt)}</dd><dt>发送原因</dt><dd>${esc(j.reason || '—')}</dd>${j.batchId ? `<dt>所属批次</dt><dd>${!detail && hasPermission('nqoc-report-leads:batch-send') ? `<button type="button" data-mail-action="batch" data-batch-id="${esc(j.batchId)}">查看此批次</button>` : esc(j.batchId)}</dd>` : ''}<dt>服务接收</dt><dd>${j.acceptedAt ? mailDate(j.acceptedAt) : '—'}</dd><dt>链接到期</dt><dd>${j.linkExpiresAt ? mailDate(j.linkExpiresAt) : '—'}</dd></dl>${j.lastError ? `<p>${esc(mailFailure(j.lastError))}</p>` : ''}${j.messageId ? `<p class="report-mail-note">邮件编号：${esc(j.messageId)}</p>` : ''}<ol>${(j.attempts || []).map(a => `<li>第 ${a.number} 次尝试 · ${mailDate(a.startedAt)} → ${a.endedAt ? mailDate(a.endedAt) : '处理中'} · ${esc(MAIL_LABELS[a.status] || a.status)} ${esc(mailFailure(a.error))}</li>`).join('')}</ol>${j.imported ? '<p class="report-mail-note">此记录导入自旧发送状态，无法还原更早的发送过程。</p>' : ''}${!detail && j.status === 'pending' && (hasPermission('nqoc-report-leads:send') || hasPermission('nqoc-report-leads:resend')) ? `<button type="button" data-mail-action="cancel" data-job-id="${esc(j._id)}">取消待发</button>` : ''}${j.status === 'sending' ? '<p class="report-mail-note">任务已开始处理，不能保证取消或撤回。</p>' : ''}</article>`).join('') || '<p>尚无发送记录。</p>';
+        if (detail) return head + events + (data.hasMore ? '<p class="report-mail-note">此处只显示最近 30 条，完整记录请点「查看全部发送记录」。</p>' : '');
+        return head + events + `<div class="report-mail-pages"><button type="button" data-mail-action="page" data-page="${data.page - 1}" ${data.page <= 1 ? 'disabled' : ''}>上一页</button><span>第 ${data.page} 页</span><button type="button" data-mail-action="page" data-page="${data.page + 1}" ${!data.hasMore ? 'disabled' : ''}>下一页</button></div>`;
+    }
     async function renderReportHistory(state) {
         const data = await json(`${API}/report-leads/${encodeURIComponent(state.id)}/email-history?page=${state.page}`, { headers: authHeaders() });
         if (reportMailDialog !== state) return;
         state.hasActive = data.jobs.some(j => ['pending', 'sending'].includes(j.status));
-        $('reportMailBody').innerHTML = `<p>共 ${data.total} 条发送记录 · 邮件服务接收 ${data.acceptedCount} 次 · 最近接收：${mailDate(data.lastAcceptedAt)}</p><p class="report-mail-note">每次人工发送单独留痕，自动重试归于同一条记录。历史导入只保留当时已有快照，未知信息不作推断。</p>${data.jobs.map(j => `<article class="report-mail-event"><h3>${esc(MAIL_LABELS[j.status] || j.status)} ${j.imported ? '· 历史导入' : ''}</h3><dl class="report-mail-meta"><dt>收件邮箱</dt><dd>${esc(j.recipient)}</dd><dt>报告</dt><dd>${esc(j.reportTitle)} · ${esc(j.reportVersion || '未知')}</dd><dt>触发方式</dt><dd>${({ auto: '自动发送', manual: '人工发送', batch: '批量补发', legacy: '旧状态快照' })[j.origin] || '未知'}</dd><dt>操作人</dt><dd>${esc(j.origin === 'auto' ? '系统' : j.requestedBy || '未知')}</dd><dt>请求时间</dt><dd>${mailDate(j.requestedAt)}</dd><dt>发送原因</dt><dd>${esc(j.reason || '—')}</dd>${j.batchId ? `<dt>所属批次</dt><dd>${hasPermission('nqoc-report-leads:batch-send') ? `<button type="button" data-mail-action="batch" data-batch-id="${esc(j.batchId)}">查看此批次</button>` : esc(j.batchId)}</dd>` : ''}<dt>服务接收</dt><dd>${j.acceptedAt ? mailDate(j.acceptedAt) : '—'}</dd><dt>链接到期</dt><dd>${j.linkExpiresAt ? mailDate(j.linkExpiresAt) : '—'}</dd></dl>${j.lastError ? `<p>${esc(mailFailure(j.lastError))}</p>` : ''}${j.messageId ? `<p class="report-mail-note">邮件编号：${esc(j.messageId)}</p>` : ''}<ol>${(j.attempts || []).map(a => `<li>第 ${a.number} 次尝试 · ${mailDate(a.startedAt)} → ${a.endedAt ? mailDate(a.endedAt) : '处理中'} · ${esc(MAIL_LABELS[a.status] || a.status)} ${esc(mailFailure(a.error))}</li>`).join('')}</ol>${j.imported ? '<p class="report-mail-note">此记录导入自旧发送状态，无法还原更早的发送过程。</p>' : ''}${j.status === 'pending' && (hasPermission('nqoc-report-leads:send') || hasPermission('nqoc-report-leads:resend')) ? `<button type="button" data-mail-action="cancel" data-job-id="${esc(j._id)}">取消待发</button>` : ''}${j.status === 'sending' ? '<p class="report-mail-note">任务已开始处理，不能保证取消或撤回。</p>' : ''}</article>`).join('') || '<p>尚无发送记录。</p>'}<div class="report-mail-pages"><button type="button" data-mail-action="page" data-page="${data.page - 1}" ${data.page <= 1 ? 'disabled' : ''}>上一页</button><span>第 ${data.page} 页</span><button type="button" data-mail-action="page" data-page="${data.page + 1}" ${!data.hasMore ? 'disabled' : ''}>下一页</button></div>`;
+        $('reportMailBody').innerHTML = reportHistoryHtml(data);
     }
     async function openReportHistory(id) {
         const state = showReportMail('报告发送记录', { id, mode: 'history', page: 1 });
@@ -747,11 +909,17 @@
     setInterval(async () => {
         if (document.hidden || reportMailPolling) return;
         const visible = document.querySelector('[data-view="nqoc-report-leads"].active');
-        if (!visible && !reportMailDialog) return;
-        const pending = nqLeads.some(l => ['pending', 'sending'].includes(l.mail?.status));
+        if (!visible && !reportMailDialog && !nqLeadDetailState) return;
+        const pending = nqLeads.some(l => ['pending', 'sending'].includes(l.mail?.status))
+            || (nqLeadDetailState?.lead && ['pending', 'sending'].includes(nqLeadDetailState.lead.mail?.status));
         if (!pending && !reportMailDialog?.hasActive) return;
         reportMailPolling = true;
-        try { await loadLeads(); if (reportMailDialog?.mode === 'history') await renderReportHistory(reportMailDialog); else if (reportMailDialog?.mode === 'batch-result') await renderBatchResult(reportMailDialog); } catch (_) {}
+        try {
+            await loadLeads();
+            if (nqLeadDetailState) await loadLeadDetail();
+            if (reportMailDialog?.mode === 'history') await renderReportHistory(reportMailDialog);
+            else if (reportMailDialog?.mode === 'batch-result') await renderBatchResult(reportMailDialog);
+        } catch (_) {}
         finally { reportMailPolling = false; }
     }, 5000);
 
@@ -864,39 +1032,50 @@
             nqSyncUrl(view);
         },
         export: () => nqExportLeads(),
+        'reset-lead-filters': () => {
+            const view = 'nqoc-report-leads';
+            Object.keys(NQ_FILTERS[view]).forEach(k => { NQ_FILTERS[view][k] = ''; });
+            nqSyncFilterUi(view);
+            nqSyncUrl(view);
+            loadLeads();
+        },
         'select-mail-rows': () => { for (const lead of nqLeadRows().slice(0, 50)) { if (reportMailSelected.size >= 50) break; reportMailSelected.add(lead.id); } renderNqLeads(); },
         'clear-mail-rows': () => { reportMailSelected.clear(); renderNqLeads(); },
         'batch-mail': () => openReportBatch(),
         'last-mail-batch': () => openBatchResult(sessionStorage.getItem('reportLastBatch') || ''),
         'send-lead-email': (t, id) => openReportMail(id),
         'mail-history': (t, id) => openReportHistory(id),
+        'lead-detail-back': () => leaveLeadDetail(),
         'delete-lead': async (t, id) => {
-            const lead = (nqLeads || []).find(l => String(l.id) === String(id));
+            const lead = nqLeadById(id);
             if (!lead) return;
             if (!confirm(`确认将「${lead.name}」的这条报告领取记录移入回收站？30 天内可在回收站恢复。`)) return;
             try {
+                const inDetail = nqLeadDetailState && String(nqLeadDetailState.id) === String(id);
                 await json(`${API}/report-leads/${encodeURIComponent(id)}`, { method: 'DELETE', headers: authHeaders() });
-                await loadLeads();
+                if (inDetail) await leaveLeadDetail(); else await loadLeads();
                 toast('记录已移入回收站');
             } catch (e) { toast(e.message); }
         },
         'restore-lead': async (t, id) => {
-            const lead = (nqLeads || []).find(l => String(l.id) === String(id));
+            const lead = nqLeadById(id);
             if (!lead) return;
             if (!confirm(`确认将「${lead.name}」的这条记录恢复到正常列表？`)) return;
             try {
+                const inDetail = nqLeadDetailState && String(nqLeadDetailState.id) === String(id);
                 await json(`${API}/report-leads/${encodeURIComponent(id)}/restore`, { method: 'POST', headers: authHeaders() });
-                await loadLeads();
+                if (inDetail) await loadLeadDetail(); else await loadLeads();
                 toast('记录已恢复');
             } catch (e) { toast(e.message); }
         },
         'purge-lead': async (t, id) => {
-            const lead = (nqLeads || []).find(l => String(l.id) === String(id));
+            const lead = nqLeadById(id);
             if (!lead) return;
             if (!confirm(`确认彻底删除「${lead.name}」的这条记录？此操作不可撤销，也无法再恢复。`)) return;
             try {
+                const inDetail = nqLeadDetailState && String(nqLeadDetailState.id) === String(id);
                 await json(`${API}/report-leads/${encodeURIComponent(id)}/purge`, { method: 'DELETE', headers: authHeaders() });
-                await loadLeads();
+                if (inDetail) await leaveLeadDetail(); else await loadLeads();
                 toast('记录已彻底删除');
             } catch (e) { toast(e.message); }
         }
@@ -1036,6 +1215,19 @@
     initColResize();
     // admin-2026.js 在自己脚本末尾就调用了 restoreRoute()，那时本文件还没加载，
     // 所以这里补一次「当前视图」的数据加载。
-    const activeView = document.querySelector('.view.active');
-    if (activeView && /^nqoc-/.test(activeView.dataset.view || '')) window.nqocLoad(activeView.dataset.view);
+    // 详情页 /admin/nqoc-report-leads/<id>：先按列表视图加载，再渲染详情
+    const nqDetailPath = /^\/admin\/nqoc-report-leads\/([^/]+)\/?$/.exec(location.pathname);
+    if (nqDetailPath) {
+        window.nqocLoad('nqoc-report-leads');
+        openLeadDetail(decodeURIComponent(nqDetailPath[1]), { from: leadDetailFromParam(), push: false });
+    } else {
+        const activeView = document.querySelector('.view.active');
+        if (activeView && /^nqoc-/.test(activeView.dataset.view || '')) window.nqocLoad(activeView.dataset.view);
+    }
+    // 浏览器前进 / 后退：详情页与列表页互相切换
+    window.addEventListener('popstate', () => {
+        const m = /^\/admin\/nqoc-report-leads\/([^/]+)\/?$/.exec(location.pathname);
+        if (m) openLeadDetail(decodeURIComponent(m[1]), { from: leadDetailFromParam(), push: false });
+        else if (nqLeadDetailState) leaveLeadDetail();
+    });
 })();

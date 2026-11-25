@@ -70,13 +70,24 @@ describe('报告领取记录回收站（软删 / 恢复 / 彻底删除 / TTL）'
 
     it('后台提供正常记录 / 回收站切换、回收站列与恢复动作', function () {
         assert.match(consoleHtml, /class="segments" data-filter="bin"[\s\S]{0,200}data-value="1">回收站</);
-        assert.match(consoleHtml, /data-bin-head="1"[\s\S]{0,400}删除人[\s\S]{0,200}删除时间[\s\S]{0,200}剩余天数/);
+        // 列表只留 6 列，删除人收进详情页
+        assert.match(consoleHtml, /data-bin-head="1"[\s\S]{0,400}删除时间[\s\S]{0,200}剩余天数/);
+        assert.doesNotMatch(consoleHtml, /data-bin-head="1"[\s\S]{0,400}删除人/);
         assert.match(adminJs, /'nqoc-report-leads':\s*\{[^}]*\bbin:\s*''/);
         assert.match(adminJs, /bin:\s*\['',\s*'1'\]/);
         assert.match(adminJs, /if \(NQ_FILTERS\['nqoc-report-leads'\]\.bin\) qs\.set\('bin'/);
         assert.match(adminJs, /'restore-lead':/);
         assert.match(adminJs, /'purge-lead':/);
         assert.match(adminJs, /移入回收站？30 天内可在回收站恢复/);
+    });
+
+    it('报告领取记录支持独立详情页，发送记录与删除人也收进详情', function () {
+        assert.match(consoleHtml, /id="nqLeadDetail" class="lead-detail"/);
+        assert.match(adminJs, /'lead-detail-back':/);
+        assert.match(adminJs, /function renderLeadDetail\(/);
+        assert.match(adminJs, /function reportHistoryHtml\(/);
+        assert.match(routes, /router\.get\('\/admin\/nqoc\/report-leads\/:id', authRequired/);
+        assert.match(read('server.js'), /app\.get\('\/admin\/nqoc-report-leads\/:id'/);
     });
 
     it('规格文档已记录结论、测试用例与运维规则', function () {
