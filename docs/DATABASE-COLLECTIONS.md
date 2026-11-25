@@ -136,6 +136,7 @@ videoembedconfigs ──< videoembedhistories.configId
 
 - `verificationcodes.createdAt`：180 秒 TTL。
 - `surveytrackinglogs.createdAt`：90 天 TTL。
+- `nqocreportleads.purgeAt` / `nqocwhitepaperrequests.purgeAt`：TTL，`expireAfterSeconds: 0`。后台「删除」为软删（写入 `deletedAt`、`deletedBy`、`purgeAt = now + 保留天数`），到期由 MongoDB TTL 线程物理清除；两表均为 `deletedAt: null` 表示正常记录，历史缺字段的文档同样视为正常。保留天数默认 30 天，可用环境变量 `NQOC_LEAD_TRASH_RETENTION_DAYS` 调整（1~180）。
 
 ### 长期保存且包含个人/企业信息
 
@@ -157,6 +158,7 @@ videoembedconfigs ──< videoembedhistories.configId
 4. 评估 `videoembedconfigs(videoId, env)` 是否应设为唯一，防止同一环境出现多条生效配置。
 5. 文章 Schema 当前没有强制 `title`、`content` 等核心字段必填，建议由业务规则决定是否在 Schema 层补强。
 6. `articles.category` 与 `categories.code`、分类文章计数都依赖应用代码同步，需要定期校验漂移。
+7. 新增涉及个人信息的集合时，删除一律走软删（`deletedAt` / `purgeAt` + TTL），不要直接 `deleteOne()`；回收站的恢复与彻底删除分别受 `nqoc-report-leads:restore`、`nqoc-report-leads:purge` 权限控制（见 `config/permissions.js`）。
 
 ## 13. 源代码入口
 
