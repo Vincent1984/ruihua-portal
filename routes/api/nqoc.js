@@ -141,6 +141,8 @@ const WHITEPAPER_DOWNLOAD_FROM = new Date('2026-11-20T00:00:00+08:00').getTime()
 function serializeLegacyWhitepaperLead(doc) {
     const o = doc.toObject ? doc.toObject() : doc;
     const createdAt = o.createdAt ? new Date(o.createdAt) : null;
+    // 只有确实发出过邮件的记录才下发打开统计，避免大量从未发信的旧记录在后台显示「报告未打开」
+    const mailSent = o.mail && o.mail.status === 'accepted';
     return {
         id: 'whitepaper-' + String(o._id),
         name: o.name || '',
@@ -149,6 +151,11 @@ function serializeLegacyWhitepaperLead(doc) {
         position: o.position || '',
         email: o.email || '',
         mail: o.mail || null,
+        ...(mailSent ? {
+            reportOpenCount: Number(o.reportOpenCount) || 0,
+            firstReportOpenAt: o.firstReportOpenAt ? new Date(o.firstReportOpenAt).toISOString() : null,
+            lastReportOpenAt: o.lastReportOpenAt ? new Date(o.lastReportOpenAt).toISOString() : null
+        } : {}),
         reportSlug: '',
         reportTitle: createdAt && createdAt.getTime() >= WHITEPAPER_DOWNLOAD_FROM ? '白皮书下载' : '白皮书预约',
         sourcePage: '/nqoc/whitepaper-apply',
@@ -1051,11 +1058,10 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             const Model = job.source === 'NqocWhitepaperRequest' ? NqocWhitepaperRequest : NqocReportLead;
             const lead = await Model.findOne({ _id: job.leadId, deletedAt: null });
             if (!lead) return res.redirect(302, REPORT_EXPIRED_PATH);
-            if (Model === NqocReportLead) {
-                const now = new Date();
-                await Model.updateOne({ _id: lead._id, firstReportOpenAt: null }, { $set: { firstReportOpenAt: now } });
-                await Model.updateOne({ _id: lead._id }, { $inc: { reportOpenCount: 1 }, $set: { lastReportOpenAt: now } });
-            }
+            // 新报告领取记录与历史白皮书预约记录同口径记一次「报告页面打开」
+            const now = new Date();
+            await Model.updateOne({ _id: lead._id, firstReportOpenAt: null }, { $set: { firstReportOpenAt: now } });
+            await Model.updateOne({ _id: lead._id }, { $inc: { reportOpenCount: 1 }, $set: { lastReportOpenAt: now } });
             return res.redirect(302, reportLink(runtimeSecret(), Math.min(exp, Date.now() + 30 * 60 * 1000)));
         } catch (e) { return res.redirect(302, REPORT_EXPIRED_PATH); }
     });

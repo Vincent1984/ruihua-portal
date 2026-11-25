@@ -657,23 +657,30 @@ function initNqocFrontend(app, options = {}) {
         legacyHeaders: false,
         handler: (req, res) => res.redirect(302, '/nqoc/report-expired')
     });
+    // 记一次「报告页面打开」：首次打开只写一次 firstReportOpenAt，随后累加次数。
+    // 新报告领取记录与历史白皮书预约记录共用同一口径。
+    async function recordReportOpen(Model, leadId) {
+        const now = new Date();
+        await Model.updateOne({ _id: leadId, firstReportOpenAt: null }, { $set: { firstReportOpenAt: now } });
+        await Model.updateOne({ _id: leadId },
+            { $inc: { reportOpenCount: 1 }, $set: { lastReportOpenAt: now } });
+    }
     // 追踪链接上线前发出的邮件只有 PDF 直链，其 exp 就是该记录的 mail.linkExpiresAt，
-    // 因此可在直链命中时按 exp 反查归属补记一次打开。30 分钟内只记一次，
+    // 因此可在直链命中时按 exp 反查归属补记一次打开（两张表都要查）。30 分钟内只记一次，
     // 避免 PDF 阅读器连续发起的多次 Range 请求把打开次数刷高。
     async function trackLegacyReportOpen(exp) {
         try {
-            const now = new Date();
             const cutoff = new Date(Date.now() - 30 * 60 * 1000);
-            const lead = await NqocReportLead.findOne({
+            const query = {
                 'mail.linkExpiresAt': new Date(exp), deletedAt: null,
                 $or: [{ lastReportOpenAt: null }, { lastReportOpenAt: { $lt: cutoff } }]
-            }, '_id firstReportOpenAt').lean();
-            if (!lead) return;
-            if (!lead.firstReportOpenAt) {
-                await NqocReportLead.updateOne({ _id: lead._id, firstReportOpenAt: null }, { $set: { firstReportOpenAt: now } });
-            }
-            await NqocReportLead.updateOne({ _id: lead._id },
-                { $inc: { reportOpenCount: 1 }, $set: { lastReportOpenAt: now } });
+            };
+            const [lead, legacy] = await Promise.all([
+                NqocReportLead.findOne(query, '_id').lean(),
+                NqocWhitepaperRequest.findOne(query, '_id').lean()
+            ]);
+            if (lead) await recordReportOpen(NqocReportLead, lead._id);
+            if (legacy) await recordReportOpen(NqocWhitepaperRequest, legacy._id);
         } catch (e) {
             console.error('Nqoc legacy report open tracking error:', e.message || e);
         }
@@ -687,16 +694,15 @@ function initNqocFrontend(app, options = {}) {
             if (!data) return expired();
             const lead = await NqocReportLead.findById(data.i).lean().catch(() => null);
             if (!lead) {
+                // 历史白皮书预约记录存于另一张表，同样要记一次打开，否则后台永远只显示「邮件服务已接收」
                 const legacy = await NqocWhitepaperRequest.findById(data.i).lean().catch(() => null);
                 if (!legacy || legacy.deletedAt) return expired();
+                await recordReportOpen(NqocWhitepaperRequest, legacy._id);
                 const exp = Date.now() + 30 * 60 * 1000;
                 return res.redirect(302, `/nqoc/report-2026.pdf?exp=${exp}&sig=${reportPdfSignature(exp)}`);
             }
-            if (!lead || lead.deletedAt) return expired();
-            const now = new Date();
-            await NqocReportLead.updateOne({ _id: lead._id, firstReportOpenAt: null }, { $set: { firstReportOpenAt: now } });
-            await NqocReportLead.updateOne({ _id: lead._id },
-                { $inc: { reportOpenCount: 1 }, $set: { lastReportOpenAt: now } });
+            if (lead.deletedAt) return expired();
+            await recordReportOpen(NqocReportLead, lead._id);
             const exp = Date.now() + 30 * 60 * 1000;
             return res.redirect(302, `/nqoc/report-2026.pdf?exp=${exp}&sig=${reportPdfSignature(exp)}`);
         } catch (e) {

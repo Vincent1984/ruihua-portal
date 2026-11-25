@@ -85,7 +85,7 @@
 | `nqocreportleads` (`NqocReportLead`) | 报告领取记录（前台表单写入，后台只读 + 导出 + 回收站） | 姓名、手机、邮箱、公司、职位、领取报告、来源页、`mail`（发送状态/尝试次数/链接有效期）、`downloadCount`/`lastDownloadedAt`、`reportOpenCount`/`firstReportOpenAt`/`lastReportOpenAt`、创建时间、回收站三字段 | 包含个人信息；4 个索引：`createdAt` 倒序、`mail.status + mail.nextAttemptAt`、`deletedAt + createdAt`、`purgeAt`（TTL） |
 | `nqocsurveychannels` (`NqocSurveyChannel`) | NQOC 调研渠道 | `name`, `code`, `description`, `createdAt` | `code` 唯一 |
 | `nqocsurveysubmissions` (`NqocSurveySubmission`) | 新质组织成熟度调研结果 | 企业信息、填答人信息、五个维度评分、开放题、客观数据、总体评价、渠道、创建时间 | 约百个展开字段；`channel` 是字符串软关联；无显式查询索引 |
-| `nqocwhitepaperrequests` (`NqocWhitepaperRequest`) | NQOC 白皮书申请（历史表单，已并入后台「报告领取记录」合并展示） | 姓名、手机、邮箱、公司、职位、创建时间 | 包含个人信息；无显式索引 |
+| `nqocwhitepaperrequests` (`NqocWhitepaperRequest`) | NQOC 白皮书申请（历史表单，已并入后台「报告领取记录」合并展示） | 姓名、手机、邮箱、公司、职位、`mail`（发送状态/链接有效期）、`reportOpenCount`/`firstReportOpenAt`/`lastReportOpenAt`、创建时间、回收站三字段 | 包含个人信息；打开统计与 `nqocreportleads` 同口径（邮件追踪链接、PDF 直链、发送历史下载各记一次）；4 个索引：`mail.status`、`createdAt`、`deletedAt + createdAt`、`purgeAt`（TTL） |
 
 ## 8. 视频中心（4）
 

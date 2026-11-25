@@ -9,6 +9,7 @@ const reportMail = read('utils/reportMail.js');
 const frontend = read('routes/nqocFrontend.js');
 const routes = read('routes/api/nqoc.js');
 const leadModel = read('models/NqocReportLead.js');
+const legacyModel = read('models/NqocWhitepaperRequest.js');
 const adminJs = read('admin/js/nqoc.js');
 const docs = read('docs/DATABASE-COLLECTIONS.md');
 
@@ -48,9 +49,13 @@ describe('报告页面打开追踪（邮件追踪链接 + 后台展示）', func
     it('新增 /nqoc/reports/open 路由：校验令牌 → 记打开 → 302 签名 PDF', function () {
         const route = frontend.match(/app\.get\('\/nqoc\/reports\/open'[\s\S]*?\n    \}\);/)[0];
         assert.match(route, /verifyOpenToken\(reportPdfSecret,\s*req\.query\.t\)/);
-        assert.match(route, /if \(!lead \|\| lead\.deletedAt\) return expired\(\);/);
-        assert.match(route, /\{ _id: lead\._id, firstReportOpenAt: null \},\s*\{ \$set: \{ firstReportOpenAt: now \} \}/);
-        assert.match(route, /\$inc: \{ reportOpenCount: 1 \},\s*\$set: \{ lastReportOpenAt: now \}/);
+        assert.match(route, /if \(lead\.deletedAt\) return expired\(\);/);
+        assert.match(route, /await recordReportOpen\(NqocReportLead, lead\._id\)/);
+        // 历史白皮书预约记录同样要计数，否则后台永远只显示「邮件服务已接收」
+        assert.match(route, /await recordReportOpen\(NqocWhitepaperRequest, legacy\._id\)/);
+        const helper = frontend.match(/async function recordReportOpen\(Model, leadId\)[\s\S]*?\n    \}/)[0];
+        assert.match(helper, /\{ _id: leadId, firstReportOpenAt: null \},\s*\{ \$set: \{ firstReportOpenAt: now \} \}/);
+        assert.match(helper, /\$inc: \{ reportOpenCount: 1 \},\s*\$set: \{ lastReportOpenAt: now \}/);
         assert.match(route, /\/nqoc\/report-2026\.pdf\?exp=\$\{exp\}&sig=\$\{reportPdfSignature\(exp\)\}/);
         // 原有签名 PDF 直链保持可用，旧邮件不受影响
         assert.match(frontend, /app\.get\('\/nqoc\/report-2026\.pdf'/);
@@ -70,8 +75,11 @@ describe('报告页面打开追踪（邮件追踪链接 + 后台展示）', func
         assert.match(fn, /'mail\.linkExpiresAt': new Date\(exp\), deletedAt: null/);
         assert.match(fn, /\$or: \[\{ lastReportOpenAt: null \}, \{ lastReportOpenAt: \{ \$lt: cutoff \} \}\]/);
         assert.match(fn, /Date\.now\(\) - 30 \* 60 \* 1000/);
-        assert.match(fn, /\{ _id: lead\._id, firstReportOpenAt: null \}, \{ \$set: \{ firstReportOpenAt: now \} \}/);
-        assert.match(fn, /\$inc: \{ reportOpenCount: 1 \}, \$set: \{ lastReportOpenAt: now \}/);
+        // 新报告领取记录与历史白皮书预约记录都要查、都要记
+        assert.match(fn, /NqocReportLead\.findOne\(query, '_id'\)\.lean\(\)/);
+        assert.match(fn, /NqocWhitepaperRequest\.findOne\(query, '_id'\)\.lean\(\)/);
+        assert.match(fn, /recordReportOpen\(NqocReportLead, lead\._id\)/);
+        assert.match(fn, /recordReportOpen\(NqocWhitepaperRequest, legacy\._id\)/);
         // 直链校验通过后调用，且不阻塞 PDF 流式输出
         const pdf = frontend.match(/app\.get\('\/nqoc\/report-2026\.pdf'[\s\S]*?const headers =/)[0];
         assert.match(pdf, /if \(!allowed\) return res\.redirect\(302, '\/nqoc\/whitepaper-apply'\);\s*\n\s*\/\/[^\n]*\n\s*trackLegacyReportOpen\(exp\);/);
@@ -85,12 +93,25 @@ describe('报告页面打开追踪（邮件追踪链接 + 后台展示）', func
         assert.match(download, /\$set: \{ lastDownloadedAt: now, lastReportOpenAt: now \}/);
     });
 
-    it('模型新增三个打开追踪字段，历史白皮书序列化不下发', function () {
-        assert.match(leadModel, /reportOpenCount:\s*\{\s*type:\s*Number,\s*default:\s*0\s*\}/);
-        assert.match(leadModel, /firstReportOpenAt:\s*\{\s*type:\s*Date,\s*default:\s*null\s*\}/);
-        assert.match(leadModel, /lastReportOpenAt:\s*\{\s*type:\s*Date,\s*default:\s*null\s*\}/);
+    it('两张记录表都新增三个打开追踪字段', function () {
+        [leadModel, legacyModel].forEach(model => {
+            assert.match(model, /reportOpenCount:\s*\{\s*type:\s*Number,\s*default:\s*0\s*\}/);
+            assert.match(model, /firstReportOpenAt:\s*\{\s*type:\s*Date,\s*default:\s*null\s*\}/);
+            assert.match(model, /lastReportOpenAt:\s*\{\s*type:\s*Date,\s*default:\s*null\s*\}/);
+        });
+    });
+
+    it('历史白皮书仅在邮件已发出时下发打开统计', function () {
         const legacy = routes.match(/function serializeLegacyWhitepaperLead\(doc\)[\s\S]*?\n\}/)[0];
-        assert.doesNotMatch(legacy, /reportOpenCount|ReportOpenAt/);
+        assert.match(legacy, /const mailSent = o\.mail && o\.mail\.status === 'accepted'/);
+        assert.match(legacy, /\.\.\.\(mailSent \? \{/);
+        assert.match(legacy, /reportOpenCount: Number\(o\.reportOpenCount\) \|\| 0/);
+    });
+
+    it('发送历史下载链接对两张表都累计打开次数', function () {
+        const download = routes.match(/router\.get\('\/nqoc\/report-deliveries\/:id\/download'[\s\S]*?\n    \}\);/)[0];
+        assert.doesNotMatch(download, /if \(Model === NqocReportLead\)/);
+        assert.match(download, /\$inc: \{ reportOpenCount: 1 \}, \$set: \{ lastReportOpenAt: now \}/);
     });
 
     it('后台邮件状态列展示打开次数与最近打开时间', function () {
