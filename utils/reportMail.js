@@ -10,7 +10,7 @@ function pendingReportMail(slug = REPORT_SLUG) {
     return { status: 'pending', reportSlug: slug, attempts: 0, nextAttemptAt: new Date() };
 }
 async function reportMailAllowed(email, models) {
-    const counts = await Promise.all(models.map(Model => Model.countDocuments({ email,
+    const counts = await Promise.all(models.map(Model => Model.countDocuments({ email, deletedAt: null,
         createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }, 'mail.status': { $exists: true } })));
     return counts.reduce((a, b) => a + b, 0) < 3;
 }
@@ -57,8 +57,9 @@ function createReportMailer({ models, secret, transport = createTransport() }) {
                 // 进程在 SMTP 接受后崩溃时无法确认投递结果，不自动重复发送。
                 await Model.updateMany({ 'mail.status': 'sending', 'mail.lockedAt': { $lt: new Date(Date.now() - 180000) } },
                     { $set: { 'mail.status': 'uncertain', 'mail.lastError': '发送进程中断，请核实后手动重发' } });
+                // 回收站内的记录不再发信
                 const lead = await Model.findOneAndUpdate({ 'mail.status': 'pending', 'mail.reportSlug': REPORT_SLUG,
-                    'mail.attempts': { $lt: 3 }, 'mail.nextAttemptAt': { $lte: new Date() } },
+                    'mail.attempts': { $lt: 3 }, 'mail.nextAttemptAt': { $lte: new Date() }, deletedAt: null },
                     { $set: { 'mail.status': 'sending', 'mail.lockedAt': new Date(), 'mail.linkExpiresAt': new Date(Date.now() + LINK_TTL) }, $inc: { 'mail.attempts': 1 } },
                     { new: true, sort: { 'mail.nextAttemptAt': 1 } });
                 if (!lead) continue;

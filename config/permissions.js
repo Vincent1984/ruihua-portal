@@ -78,7 +78,9 @@ const PERMISSION_GROUPS = [
             { code: 'nqoc-report-leads:list', name: '查看报告领取记录' },
             { code: 'nqoc-report-leads:send', name: '发送报告邮件', dangerous: true },
             { code: 'nqoc-report-leads:export', name: '导出报告领取记录', dangerous: true },
-            { code: 'nqoc-report-leads:delete', name: '删除报告领取记录', dangerous: true }
+            { code: 'nqoc-report-leads:delete', name: '删除报告领取记录（移入回收站）', dangerous: true },
+            { code: 'nqoc-report-leads:restore', name: '恢复回收站记录' },
+            { code: 'nqoc-report-leads:purge', name: '彻底删除回收站记录', dangerous: true }
         ]
     },
     {

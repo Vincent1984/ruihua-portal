@@ -44,9 +44,9 @@
         'nqoc-insights': { q: '', status: '' },
         'nqoc-cases': { q: '', status: '' },
         'nqoc-videos': { q: '', status: '' },
-        'nqoc-report-leads': { q: '', range: '', dup: '' }
+        'nqoc-report-leads': { q: '', range: '', dup: '', bin: '' }
     };
-    const NQ_FILTER_OK = { status: ['', 'draft', 'published', 'archived'], range: ['', '1', '7', '30'], dup: ['', '1'] };
+    const NQ_FILTER_OK = { status: ['', 'draft', 'published', 'archived'], range: ['', '1', '7', '30'], dup: ['', '1'], bin: ['', '1'] };
 
     let nqBanners = [];
     let nqPosts = { insight: [], case: [] };
@@ -279,7 +279,17 @@
         const labels = { pending: '待发送', sending: '发送中', accepted: '邮件服务已接收', failed: '发送失败', uncertain: '结果待核实' };
         return `<div>${esc(labels[mail.status] || '未安排发送')}</div>${mail.acceptedAt ? `<div class="sub">${shortDateTime(mail.acceptedAt)}</div>` : ''}${mail.lastError ? `<div class="sub">${esc(mail.lastError)}</div>` : ''}`;
     }
+    // 回收站剩余天数：purgeAt 到期后由 MongoDB TTL 线程物理清除
+    function nqLeadBinDays(lead) {
+        if (!lead.purgeAt) return 0;
+        return Math.max(0, Math.ceil((new Date(lead.purgeAt).getTime() - Date.now()) / DAY));
+    }
+    function nqLeadDupChip(lead) {
+        const dup = nqLeadDup[nqPhoneKey(lead.phone)];
+        return dup ? ` <span class="chip featured">重复 ${dup} 次</span>` : '';
+    }
     function renderNqLeads() {
+        const f = NQ_FILTERS['nqoc-report-leads'], inBin = f.bin === '1';
         const rows = nqLeadRows(), total = nqLeads.length, now = Date.now();
         const between = (from, to) => nqLeads.filter(l => { const t = now - new Date(l.createdAt).getTime(); return t >= from && t < to; }).length;
         $('nqLTd').textContent = nqLeadStats.today;
@@ -293,11 +303,28 @@
         const badge = $('nqLeadBadge');
         if (badge) badge.textContent = nqLeadStats.today;
 
-        $('nqLeadRows').innerHTML = rows.length ? rows.map(l => {
-            const dup = nqLeadDup[nqPhoneKey(l.phone)];
-            return `
+        const table = $('nqLeadRows').closest('table');
+        if (table) {
+            table.querySelectorAll('[data-bin-head]').forEach(tr => { tr.hidden = (tr.dataset.binHead === '1') !== inBin; });
+            const exp = table.closest('.view')?.querySelector('[data-action="export"]');
+            // 回收站不支持导出（导出接口只输出正常记录），且沿用导出权限
+            if (exp) exp.hidden = inBin || !hasPermission('nqoc-report-leads:export');
+        }
+
+        $('nqLeadRows').innerHTML = rows.length ? rows.map(l => inBin ? `
             <tr>
-              <td><div class="person"><b>${esc(l.name)}</b>${dup ? ` <span class="chip featured">重复 ${dup} 次</span>` : ''}</div></td>
+              <td><div class="person"><b>${esc(l.name)}</b>${nqLeadDupChip(l)}</div></td>
+              <td>${esc(l.phone)}</td>
+              <td><div>${esc(l.company)}</div><div class="sub">${esc(l.position)}</div></td>
+              <td style="word-break:break-all">${esc(l.email)}</td>
+              <td>${esc(l.reportTitle)}</td>
+              <td>${esc(l.deletedBy || '—')}</td>
+              <td><div>${l.deletedAt ? ago(l.deletedAt) : '—'}</div><div class="sub">${l.deletedAt ? shortDateTime(l.deletedAt) : ''}</div></td>
+              <td>${nqLeadBinDays(l)} 天</td>
+              <td><button type="button" data-action="restore-lead" data-id="${esc(l.id)}" data-permission="nqoc-report-leads:restore">恢复</button><button type="button" data-action="purge-lead" data-id="${esc(l.id)}" data-permission="nqoc-report-leads:purge">彻底删除</button></td>
+            </tr>` : `
+            <tr>
+              <td><div class="person"><b>${esc(l.name)}</b>${nqLeadDupChip(l)}</div></td>
               <td>${esc(l.phone)}</td>
               <td><div>${esc(l.company)}</div><div class="sub">${esc(l.position)}</div></td>
               <td style="word-break:break-all">${esc(l.email)}</td>
@@ -306,15 +333,18 @@
               <td><div class="sub" style="word-break:break-all">${esc(l.sourcePage)}</div></td>
               <td><div>${ago(l.createdAt)}</div><div class="sub">${shortDateTime(l.createdAt)}</div></td>
               <td>${!['pending', 'sending'].includes(l.mail?.status) ? `<button type="button" data-action="send-lead-email" data-id="${esc(l.id)}" data-permission="nqoc-report-leads:send">${l.mail?.status ? '重发邮件' : '发送邮件'}</button>` : ''}<button type="button" data-action="delete-lead" data-id="${esc(l.id)}" data-permission="nqoc-report-leads:delete">删除</button></td>
-            </tr>`;
-        }).join('') : '<tr><td colspan="9" class="empty-cell"><b>没有符合条件的记录</b>换个筛选条件试试</td></tr>';
-        $('nqLeadCount').textContent = `共 ${rows.length} 条记录${rows.length !== total ? `（总计 ${total} 条）` : ''}`;
+            </tr>`).join('') : `<tr><td colspan="9" class="empty-cell"><b>${inBin ? '回收站是空的' : '没有符合条件的记录'}</b>${inBin ? '删除的记录会在这里保留 30 天' : '换个筛选条件试试'}</td></tr>`;
+        $('nqLeadCount').textContent = inBin
+            ? `回收站共 ${rows.length} 条记录，到期后自动彻底删除`
+            : `共 ${rows.length} 条记录${rows.length !== total ? `（总计 ${total} 条）` : ''}`;
         nqSyncFilterUi('nqoc-report-leads');
         nqApplyPerms($('nqLeadRows').closest('table'));
     }
     async function loadLeads() {
         try {
-            const data = await json(`${API}/report-leads`, { headers: authHeaders() });
+            const qs = new URLSearchParams();
+            if (NQ_FILTERS['nqoc-report-leads'].bin) qs.set('bin', NQ_FILTERS['nqoc-report-leads'].bin);
+            const data = await json(`${API}/report-leads${qs.toString() ? '?' + qs : ''}`, { headers: authHeaders() });
             nqLeads = Array.isArray(data.leads) ? data.leads : [];
             nqLeadStats = Object.assign({ today: 0, week7: 0, all: 0, companies: 0, uniquePhones: {} }, data.stats || {});
             nqLeadDup = (data.stats && data.stats.duplicatePhones) || {};
@@ -642,6 +672,11 @@
                 box.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === el));
                 NQ_FILTERS[view][box.dataset.filter] = el.dataset.value || '';
             }
+            // 正常记录 / 回收站属于服务端数据源切换，需要重新拉取
+            if (view === 'nqoc-report-leads' && box && box.dataset.filter === 'bin') {
+                nqSyncUrl(view);
+                return loadLeads();
+            }
             nqRenderView(view);
             nqSyncUrl(view);
         },
@@ -658,11 +693,31 @@
         'delete-lead': async (t, id) => {
             const lead = (nqLeads || []).find(l => String(l.id) === String(id));
             if (!lead) return;
-            if (!confirm(`确认删除「${lead.name}」的这条报告领取记录？删除后不可恢复。`)) return;
+            if (!confirm(`确认将「${lead.name}」的这条报告领取记录移入回收站？30 天内可在回收站恢复。`)) return;
             try {
                 await json(`${API}/report-leads/${encodeURIComponent(id)}`, { method: 'DELETE', headers: authHeaders() });
                 await loadLeads();
-                toast('记录已删除');
+                toast('记录已移入回收站');
+            } catch (e) { toast(e.message); }
+        },
+        'restore-lead': async (t, id) => {
+            const lead = (nqLeads || []).find(l => String(l.id) === String(id));
+            if (!lead) return;
+            if (!confirm(`确认将「${lead.name}」的这条记录恢复到正常列表？`)) return;
+            try {
+                await json(`${API}/report-leads/${encodeURIComponent(id)}/restore`, { method: 'POST', headers: authHeaders() });
+                await loadLeads();
+                toast('记录已恢复');
+            } catch (e) { toast(e.message); }
+        },
+        'purge-lead': async (t, id) => {
+            const lead = (nqLeads || []).find(l => String(l.id) === String(id));
+            if (!lead) return;
+            if (!confirm(`确认彻底删除「${lead.name}」的这条记录？此操作不可撤销，也无法再恢复。`)) return;
+            try {
+                await json(`${API}/report-leads/${encodeURIComponent(id)}/purge`, { method: 'DELETE', headers: authHeaders() });
+                await loadLeads();
+                toast('记录已彻底删除');
             } catch (e) { toast(e.message); }
         }
     };

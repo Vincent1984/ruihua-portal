@@ -150,7 +150,10 @@ function serializeLegacyWhitepaperLead(doc) {
         reportSlug: '',
         reportTitle: createdAt && createdAt.getTime() >= WHITEPAPER_DOWNLOAD_FROM ? '白皮书下载' : '白皮书预约',
         sourcePage: '/nqoc/whitepaper-apply',
-        createdAt: createdAt ? createdAt.toISOString() : null
+        createdAt: createdAt ? createdAt.toISOString() : null,
+        deletedAt: o.deletedAt ? new Date(o.deletedAt).toISOString() : null,
+        deletedBy: o.deletedBy || '',
+        purgeAt: o.purgeAt ? new Date(o.purgeAt).toISOString() : null
     };
 }
 
@@ -371,8 +374,18 @@ function videoPublishMissing(d) {
 
 /* ---------------------------- 报告领取记录（只读） ---------------------------- */
 
+// 回收站保留天数：默认 30 天，可通过环境变量限制在 1~180 天
+function leadTrashRetentionDays() {
+    const n = Number(process.env.NQOC_LEAD_TRASH_RETENTION_DAYS);
+    if (!Number.isFinite(n) || n <= 0) return 30;
+    return Math.min(180, Math.max(1, Math.floor(n)));
+}
+
 function buildLeadQuery(req) {
     const query = {};
+    // 默认只看正常记录；bin=1 时只看回收站（deletedAt 为 null 或字段缺失都算正常）
+    const inBin = String(req.query.bin || '') === '1';
+    query.deletedAt = inBin ? { $ne: null } : null;
     const range = ['1', '7', '30'].includes(String(req.query.range)) ? Number(req.query.range) : 0;
     if (range) query.createdAt = { $gte: new Date(Date.now() - range * 24 * 3600 * 1000) };
     const q = trimStr(req.query.q, 100);
@@ -380,7 +393,7 @@ function buildLeadQuery(req) {
         const rx = { $regex: escapeRegex(q), $options: 'i' };
         query.$or = [{ name: rx }, { company: rx }, { phone: rx }, { email: rx }, { position: rx }];
     }
-    return { query, range, keyword: q };
+    return { query, range, keyword: q, inBin };
 }
 
 // 手机号归一化：去掉空格 / 横线等非数字，避免历史数据「同号不同键」
@@ -388,22 +401,25 @@ function normalizeLeadPhone(v) {
     return String(v || '').replace(/\D/g, '') || String(v || '').trim();
 }
 
-// 按手机号统计提交次数（两个来源合并），用于「累计领取人次」与「重复提交」
+// 按手机号统计提交次数（两个来源合并），用于「累计领取人次」与「重复提交」。
+// all 含回收站记录，active 只含正常记录；看板口径用 active。
 async function collectLeadPhoneStats() {
     const groups = model => model.aggregate([
         { $match: { phone: { $exists: true, $nin: [null, ''] } } },
-        { $group: { _id: '$phone', count: { $sum: 1 } } }
+        { $group: { _id: '$phone', total: { $sum: 1 }, active: { $sum: { $cond: [{ $ifNull: ['$deletedAt', false] }, 0, 1] } } } }
     ]);
     const [leadRows, wpRows] = await Promise.all([groups(NqocReportLead), groups(NqocWhitepaperRequest)]);
-    const stats = new Map();
+    const all = new Map();
+    const active = new Map();
     const merge = row => {
         const key = normalizeLeadPhone(row._id);
         if (!key) return;
-        stats.set(key, (stats.get(key) || 0) + (row.count || 0));
+        all.set(key, (all.get(key) || 0) + (row.total || 0));
+        if (row.active) active.set(key, (active.get(key) || 0) + row.active);
     };
     leadRows.forEach(merge);
     wpRows.forEach(merge);
-    return stats;
+    return { all, active };
 }
 
 /* ------------------------------- 前台限流 ------------------------------- */
@@ -785,29 +801,32 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
 
     router.get('/admin/nqoc/report-leads', authRequired, requirePerm('nqoc-report-leads:list'), async (req, res) => {
         try {
-            const { query } = buildLeadQuery(req);
+            const { query, inBin } = buildLeadQuery(req);
             const startOfDay = new Date();
             startOfDay.setHours(0, 0, 0, 0);
 
             // 领取人次看板：按手机号聚合出提交次数，两个来源合并后在内存去重。
+            // 看板始终只统计正常记录（deletedAt: null），回收站记录不计入。
             const [leads, legacyLeads, today, todayWp, week7, week7Wp, all, allWp, companies, wpCompanies, phoneStats] = await Promise.all([
                 NqocReportLead.find(query).sort({ createdAt: -1 }).limit(5000),
                 NqocWhitepaperRequest.find(query).sort({ createdAt: -1 }).limit(5000),
-                NqocReportLead.countDocuments({ createdAt: { $gte: startOfDay } }),
-                NqocWhitepaperRequest.countDocuments({ createdAt: { $gte: startOfDay } }),
-                NqocReportLead.countDocuments({ createdAt: { $gte: new Date(Date.now() - 7 * 24 * 3600 * 1000) } }),
-                NqocWhitepaperRequest.countDocuments({ createdAt: { $gte: new Date(Date.now() - 7 * 24 * 3600 * 1000) } }),
-                NqocReportLead.countDocuments({}),
-                NqocWhitepaperRequest.countDocuments({}),
-                NqocReportLead.distinct('company'),
-                NqocWhitepaperRequest.distinct('company'),
+                NqocReportLead.countDocuments({ deletedAt: null, createdAt: { $gte: startOfDay } }),
+                NqocWhitepaperRequest.countDocuments({ deletedAt: null, createdAt: { $gte: startOfDay } }),
+                NqocReportLead.countDocuments({ deletedAt: null, createdAt: { $gte: new Date(Date.now() - 7 * 24 * 3600 * 1000) } }),
+                NqocWhitepaperRequest.countDocuments({ deletedAt: null, createdAt: { $gte: new Date(Date.now() - 7 * 24 * 3600 * 1000) } }),
+                NqocReportLead.countDocuments({ deletedAt: null }),
+                NqocWhitepaperRequest.countDocuments({ deletedAt: null }),
+                NqocReportLead.distinct('company', { deletedAt: null }),
+                NqocWhitepaperRequest.distinct('company', { deletedAt: null }),
                 collectLeadPhoneStats()
             ]);
 
-            const uniqueTotal = phoneStats.size;
-            // 同一手机号提交 ≥2 次即视为重复提交；返回次数供后台标重
+            const uniqueTotal = phoneStats.active.size;
+            // 同一手机号提交 ≥2 次即视为重复提交；返回次数供后台标重。
+            // 回收站视图里按「含回收站」口径判断重复，避免删除其中一条后标重消失。
+            const dupSource = inBin ? phoneStats.all : phoneStats.active;
             const duplicatePhones = {};
-            phoneStats.forEach((count, phone) => { if (count > 1) duplicatePhones[phone] = count; });
+            dupSource.forEach((count, phone) => { if (count > 1) duplicatePhones[phone] = count; });
 
             const merged = leads.map(serializeLead)
                 .concat(legacyLeads.map(serializeLegacyWhitepaperLead))
@@ -834,6 +853,8 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
     router.get('/admin/nqoc/report-leads/export', authRequired, requirePerm('nqoc-report-leads:export'), async (req, res) => {
         try {
             const { query, range, keyword } = buildLeadQuery(req);
+            // 导出只含正常记录，不接受 bin 参数导出回收站内容
+            query.deletedAt = null;
             const dupOnly = String(req.query.dup || '') === '1';
             const [leads, legacyLeads] = await Promise.all([
                 NqocReportLead.find(query).sort({ createdAt: -1 }).limit(5000),
@@ -846,7 +867,7 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             let rows = leads;
             if (dupOnly) {
                 const phoneStats = await collectLeadPhoneStats();
-                rows = rows.filter(l => (phoneStats.get(normalizeLeadPhone(l.phone)) || 0) > 1);
+                rows = rows.filter(l => (phoneStats.active.get(normalizeLeadPhone(l.phone)) || 0) > 1);
             }
 
             const now = new Date();
@@ -948,6 +969,7 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             const Model = legacy ? NqocWhitepaperRequest : NqocReportLead;
             const lead = await Model.findById(id);
             if (!lead) return res.status(404).json({ error: '记录不存在' });
+            if (lead.deletedAt) return res.status(400).json({ error: '该记录在回收站中，请先恢复后再发送' });
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.email)) return res.status(400).json({ error: '邮箱格式不正确' });
             const mail = pendingReportMail(legacy ? undefined : lead.reportSlug);
             if (!mail) return res.status(400).json({ error: '该报告尚未配置邮件发送' });
@@ -958,20 +980,69 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
         } catch (e) { return sendInternalError(res, 'Queue report email error:', e); }
     });
 
+    // 删除 = 移入回收站（软删）：保留 NQOC_LEAD_TRASH_RETENTION_DAYS（默认 30）天，到期由 MongoDB TTL 物理清除
     router.delete('/admin/nqoc/report-leads/:id', authRequired, csrfGuard, requirePerm('nqoc-report-leads:delete'), async (req, res) => {
         try {
             const id = String(req.params.id || '');
             // 历史白皮书预约记录 id 带 whitepaper- 前缀，存于另一张表
             const legacy = id.startsWith('whitepaper-');
-            const doc = legacy
-                ? await NqocWhitepaperRequest.findById(id.slice('whitepaper-'.length)).catch(() => null)
-                : await NqocReportLead.findById(id).catch(() => null);
-            if (!doc) return res.status(404).json({ error: '记录不存在' });
-            await doc.deleteOne();
-            await logOp('delete', '新质组织-报告领取记录', `删除：${doc.name || ''} ${doc.company || ''}（${doc.phone || ''}）`, req.user && req.user.username);
+            const rawId = legacy ? id.slice('whitepaper-'.length) : id;
+            if (!/^[a-f0-9]{24}$/i.test(rawId)) return res.status(400).json({ error: '记录编号无效' });
+            const Model = legacy ? NqocWhitepaperRequest : NqocReportLead;
+            const days = leadTrashRetentionDays();
+            const now = new Date();
+            const doc = await Model.findOneAndUpdate(
+                { _id: rawId, deletedAt: null },
+                { $set: { deletedAt: now, deletedBy: (req.user && req.user.username) || '', purgeAt: new Date(now.getTime() + days * 24 * 3600 * 1000) } },
+                { new: true }
+            ).catch(() => null);
+            if (!doc) {
+                // 幂等：已在回收站里直接返回成功
+                const existing = await Model.findById(rawId).catch(() => null);
+                if (existing && existing.deletedAt) return res.json({ success: true, alreadyInBin: true });
+                return res.status(404).json({ error: '记录不存在' });
+            }
+            await logOp('delete', '新质组织-报告领取记录', `移入回收站：${doc.name || ''} ${doc.company || ''}（${doc.phone || ''}），保留 ${days} 天`, req.user && req.user.username);
             res.json({ success: true });
         } catch (e) {
             return sendInternalError(res, 'Delete nqoc report lead error:', e);
+        }
+    });
+
+    // 回收站恢复：保留期内可还原，保留期已过（TTL 尚未清除的窗口）返回 410
+    router.post('/admin/nqoc/report-leads/:id/restore', authRequired, csrfGuard, requirePerm('nqoc-report-leads:restore'), async (req, res) => {
+        try {
+            const id = String(req.params.id || '');
+            const legacy = id.startsWith('whitepaper-');
+            const rawId = legacy ? id.slice('whitepaper-'.length) : id;
+            if (!/^[a-f0-9]{24}$/i.test(rawId)) return res.status(400).json({ error: '记录编号无效' });
+            const Model = legacy ? NqocWhitepaperRequest : NqocReportLead;
+            const doc = await Model.findById(rawId).catch(() => null);
+            if (!doc) return res.status(404).json({ error: '记录不存在或已彻底删除' });
+            if (!doc.deletedAt) return res.json({ success: true, alreadyActive: true });
+            if (doc.purgeAt && doc.purgeAt.getTime() <= Date.now()) return res.status(410).json({ error: '该记录已过保留期，无法恢复' });
+            await Model.updateOne({ _id: doc._id }, { $set: { deletedAt: null, deletedBy: '', purgeAt: null } });
+            await logOp('restore', '新质组织-报告领取记录', `从回收站恢复：${doc.name || ''} ${doc.company || ''}（${doc.phone || ''}）`, req.user && req.user.username);
+            res.json({ success: true });
+        } catch (e) {
+            return sendInternalError(res, 'Restore nqoc report lead error:', e);
+        }
+    });
+
+    // 彻底删除：只能对回收站内的记录操作，不可撤销
+    router.delete('/admin/nqoc/report-leads/:id/purge', authRequired, csrfGuard, requirePerm('nqoc-report-leads:purge'), async (req, res) => {
+        try {
+            const id = String(req.params.id || '');
+            const legacy = id.startsWith('whitepaper-');
+            const rawId = legacy ? id.slice('whitepaper-'.length) : id;
+            if (!/^[a-f0-9]{24}$/i.test(rawId)) return res.status(400).json({ error: '记录编号无效' });
+            const Model = legacy ? NqocWhitepaperRequest : NqocReportLead;
+            const doc = await Model.findOneAndDelete({ _id: rawId, deletedAt: { $ne: null } }).catch(() => null);
+            if (!doc) return res.status(404).json({ error: '回收站中没有该记录' });
+            await logOp('delete', '新质组织-报告领取记录', `彻底删除：${doc.name || ''} ${doc.company || ''}（${doc.phone || ''}）`, req.user && req.user.username);
+            res.json({ success: true });
+        } catch (e) {
+            return sendInternalError(res, 'Purge nqoc report lead error:', e);
         }
     });
 
@@ -1038,6 +1109,8 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
 
             const lead = await NqocReportLead.findById(data.i).catch(() => null);
             if (!lead) return res.redirect(302, REPORT_EXPIRED_PATH);
+            // 回收站内的记录立即失效：令牌本身仍有效，但不再下发文件
+            if (lead.deletedAt) return res.redirect(302, REPORT_EXPIRED_PATH);
             if ((lead.downloadCount || 0) >= REPORT_MAX_DOWNLOADS) return res.redirect(302, REPORT_EXPIRED_PATH);
 
             const report = findReportConfig(lead.reportSlug || data.s);
