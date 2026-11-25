@@ -277,7 +277,12 @@
     function nqMailStatus(lead) {
         const mail = lead.mail || {};
         const labels = { pending: '待发送', sending: '发送中', accepted: '邮件服务已接收', failed: '发送失败', uncertain: '结果待核实' };
-        return `<div>${esc(labels[mail.status] || '未安排发送')}</div>${mail.acceptedAt ? `<div class="sub">${shortDateTime(mail.acceptedAt)}</div>` : ''}${mail.lastError ? `<div class="sub">${esc(mail.lastError)}</div>` : ''}`;
+        const opens = Number(lead.reportOpenCount || 0);
+        // 只有新表的记录带打开追踪字段；历史白皮书预约记录不展示这一行，避免误标「未打开」
+        const openLine = Number.isFinite(lead.reportOpenCount)
+            ? `<div class="sub">${opens ? `报告已打开 ${opens} 次${lead.lastReportOpenAt ? ` · 最近 ${shortDateTime(lead.lastReportOpenAt)}` : ''}` : '报告未打开'}</div>`
+            : '';
+        return `<div>${esc(labels[mail.status] || '未安排发送')}</div>${mail.acceptedAt ? `<div class="sub">${shortDateTime(mail.acceptedAt)}</div>` : ''}${mail.lastError ? `<div class="sub">${esc(mail.lastError)}</div>` : ''}${openLine}`;
     }
     // 回收站剩余天数：purgeAt 到期后由 MongoDB TTL 线程物理清除
     function nqLeadBinDays(lead) {

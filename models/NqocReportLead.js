@@ -13,6 +13,10 @@ const nqocReportLeadSchema = new mongoose.Schema({
     sourcePage: { type: String, default: '' },    // 只保留 /nqoc 开头，≤200
     downloadCount: { type: Number, default: 0 },  // 报告下载次数（服务端维护，后台暂不展示）
     lastDownloadedAt: { type: Date, default: null }, // 最近一次下载时间
+    // 报告页面打开追踪：邮件追踪链接与站内下载入口各记一次
+    reportOpenCount: { type: Number, default: 0 },
+    firstReportOpenAt: { type: Date, default: null },
+    lastReportOpenAt: { type: Date, default: null },
     createdAt: { type: Date, default: Date.now },
     // 回收站：deletedAt 为 null 表示正常记录；purgeAt 到达后由 MongoDB TTL 线程物理清除
     deletedAt: { type: Date, default: null },

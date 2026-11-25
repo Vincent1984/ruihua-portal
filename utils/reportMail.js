@@ -19,6 +19,37 @@ function reportLink(secret, expires = Date.now() + LINK_TTL) {
     const sig = crypto.createHmac('sha256', secret).update(`nqoc-report:${expires}`).digest('hex').slice(0, 32);
     return `${SITE}/nqoc/report-2026.pdf?exp=${expires}&sig=${sig}`;
 }
+// 邮件里的报告链接改用带记录 id 的追踪地址：先记一次「报告页面打开」，再跳到签名 PDF。
+// 令牌与 PDF 签名共用同一密钥，有效期沿用邮件链接有效期。
+function signOpenToken(secret, leadId, expires) {
+    if (!secret) throw new Error('Report signing key missing');
+    const payload = Buffer.from(JSON.stringify({ i: String(leadId), e: Number(expires) })).toString('base64url');
+    const sig = crypto.createHmac('sha256', secret).update(`nqoc-report-open:${payload}`).digest('base64url');
+    return `${payload}.${sig}`;
+}
+function verifyOpenToken(secret, token) {
+    if (!secret) return null;
+    const raw = String(token || '');
+    const dot = raw.indexOf('.');
+    if (dot <= 0) return null;
+    const payload = raw.slice(0, dot);
+    const sig = raw.slice(dot + 1);
+    const expected = crypto.createHmac('sha256', secret).update(`nqoc-report-open:${payload}`).digest('base64url');
+    const a = Buffer.from(sig);
+    const b = Buffer.from(expected);
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+    let data;
+    try {
+        data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    } catch (e) {
+        return null;
+    }
+    if (!data || !data.i || !Number(data.e) || Number(data.e) <= Date.now()) return null;
+    return data;
+}
+function reportOpenLink(secret, leadId, expires = Date.now() + LINK_TTL) {
+    return `${SITE}/nqoc/reports/open?t=${encodeURIComponent(signOpenToken(secret, leadId, expires))}`;
+}
 function createTransport() {
     return nodemailer.createTransport({
         host: process.env.SMTP_HOST, port: Number(process.env.SMTP_PORT || 465),
@@ -30,7 +61,8 @@ function createTransport() {
     });
 }
 function messageFor(lead, secret) {
-    const link = reportLink(secret, lead.mail?.linkExpiresAt ? new Date(lead.mail.linkExpiresAt).getTime() : undefined);
+    const expires = lead.mail?.linkExpiresAt ? new Date(lead.mail.linkExpiresAt).getTime() : undefined;
+    const link = reportOpenLink(secret, lead._id, expires);
     return {
         from: { name: process.env.SMTP_FROM_NAME || '瑞华智策·新质组织研究中心', address: process.env.SMTP_USER },
         to: lead.email,
@@ -84,4 +116,4 @@ function createReportMailer({ models, secret, transport = createTransport() }) {
         stop() { stopped = true; clearInterval(timer); transport.close(); }
     };
 }
-module.exports = { REPORT_SLUG, REPORT_TITLE, pendingReportMail, reportMailAllowed, reportLink, createTransport, messageFor, failureState, createReportMailer };
+module.exports = { REPORT_SLUG, REPORT_TITLE, pendingReportMail, reportMailAllowed, reportLink, signOpenToken, verifyOpenToken, reportOpenLink, createTransport, messageFor, failureState, createReportMailer };

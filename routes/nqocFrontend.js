@@ -9,6 +9,8 @@ const NqocBanner = require('../models/NqocBanner');
 const NqocInsight = require('../models/NqocInsight');
 const NqocCase = require('../models/NqocCase');
 const NqocVideo = require('../models/NqocVideo');
+const NqocReportLead = require('../models/NqocReportLead');
+const { verifyOpenToken } = require('../utils/reportMail');
 
 const ROOT = path.join(__dirname, '..');
 const VIEW_ROOT = path.join(ROOT, 'views/nqoc');
@@ -645,6 +647,27 @@ function initNqocFrontend(app, options = {}) {
     const REPORT_PDF_AGENT = new https.Agent({ keepAlive: true, maxSockets: 32, maxFreeSockets: 4, timeout: 15000 });
     const reportPdfSignature = exp => crypto.createHmac('sha256', reportPdfSecret)
         .update(`nqoc-report:${exp}`).digest('hex').slice(0, 32);
+    // 邮件里的报告链接先落到这里：校验追踪令牌 → 记一次「报告页面打开」→ 再跳签名 PDF。
+    // 令牌无效 / 记录已进回收站一律落到失效页；旧邮件里的 PDF 直链不受影响。
+    app.get('/nqoc/reports/open', async (req, res) => {
+        const expired = () => res.redirect(302, '/nqoc/report-expired');
+        try {
+            const data = verifyOpenToken(reportPdfSecret, req.query.t);
+            if (!data) return expired();
+            const lead = await NqocReportLead.findById(data.i).lean().catch(() => null);
+            if (!lead || lead.deletedAt) return expired();
+            const now = new Date();
+            await NqocReportLead.updateOne({ _id: lead._id, firstReportOpenAt: null }, { $set: { firstReportOpenAt: now } });
+            await NqocReportLead.updateOne({ _id: lead._id },
+                { $inc: { reportOpenCount: 1 }, $set: { lastReportOpenAt: now } });
+            const exp = Date.now() + 30 * 60 * 1000;
+            return res.redirect(302, `/nqoc/report-2026.pdf?exp=${exp}&sig=${reportPdfSignature(exp)}`);
+        } catch (e) {
+            console.error('Nqoc report open tracking error:', e.message || e);
+            if (!res.headersSent) return expired();
+            res.end();
+        }
+    });
     app.get('/nqoc/report-2026.pdf', (req, res) => {
         const exp = Number(req.query.exp);
         const sig = String(req.query.sig || '');

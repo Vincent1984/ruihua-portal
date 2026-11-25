@@ -1,18 +1,23 @@
 const assert = require('assert');
-const crypto = require('crypto');
 const mongoose = require('mongoose');
-const { pendingReportMail, reportLink, messageFor, failureState, createReportMailer, reportMailAllowed, REPORT_SLUG } = require('../utils/reportMail');
+const { pendingReportMail, messageFor, failureState, createReportMailer, reportMailAllowed, verifyOpenToken, REPORT_SLUG } = require('../utils/reportMail');
 
 describe('Report email content and failures', function () {
-    it('builds a signed seven-day link without exposing SMTP credentials', function () {
+    it('builds a trackable seven-day link without exposing SMTP credentials', function () {
         const before = Date.now();
-        const mail = messageFor({ email: 'recipient@example.test' }, 'test-key');
-        const link = mail.text.match(/https:\/\/www\.ruihuaconsulting\.com\/nqoc\/report-2026\.pdf\?[^\s]+/)[0];
-        const url = new URL(link), exp = Number(url.searchParams.get('exp'));
+        const leadId = '64f000000000000000000001';
+        const mail = messageFor({ _id: leadId, email: 'recipient@example.test' }, 'test-key');
+        // 邮件链接先落到打开追踪页，再 302 到签名 PDF；令牌里带记录 id 与有效期
+        const link = mail.text.match(/https:\/\/www\.ruihuaconsulting\.com\/nqoc\/reports\/open\?t=[^\s]+/)[0];
+        const url = new URL(link);
+        const data = verifyOpenToken('test-key', url.searchParams.get('t'));
+        assert.ok(data, '追踪令牌应可用同一密钥校验');
+        assert.strictEqual(data.i, leadId);
+        const exp = Number(data.e);
         assert.ok(exp >= before + 7 * 86400000 && exp <= Date.now() + 7 * 86400000);
-        assert.strictEqual(url.searchParams.get('sig'), crypto.createHmac('sha256', 'test-key').update(`nqoc-report:${exp}`).digest('hex').slice(0, 32));
         assert.strictEqual(mail.to, 'recipient@example.test');
         assert.ok(mail.html.includes('查看 / 下载报告'));
+        assert.ok(!`${mail.text}${mail.html}`.includes('test-key'));
     });
     it('does not enqueue unsupported reports', function () { assert.strictEqual(pendingReportMail('other'), undefined); });
     it('retries transient failures but distinguishes permanent and ambiguous SMTP failures', function () {

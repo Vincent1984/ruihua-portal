@@ -1116,9 +1116,12 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             const report = findReportConfig(lead.reportSlug || data.s);
             if (!report || !report.fileUrl) return res.redirect(302, REPORT_EXPIRED_PATH);
 
+            // 站内下载同样算一次「报告页面打开」，与邮件追踪链接同口径统计
+            const now = new Date();
+            await NqocReportLead.updateOne({ _id: lead._id, firstReportOpenAt: null }, { $set: { firstReportOpenAt: now } });
             await NqocReportLead.updateOne(
                 { _id: lead._id },
-                { $inc: { downloadCount: 1 }, $set: { lastDownloadedAt: new Date() } }
+                { $inc: { downloadCount: 1, reportOpenCount: 1 }, $set: { lastDownloadedAt: now, lastReportOpenAt: now } }
             );
             const secret = process.env.JWT_SECRET || process.env.SECRET_KEY || crypto.createHash('sha256')
                 .update(`ruihua-jwt-fallback-v1:${process.env.MONGODB_URL || process.env.DB_HOST || 'ruihua-local'}`).digest('hex');
