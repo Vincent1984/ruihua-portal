@@ -46,7 +46,7 @@
         'nqoc-videos': { q: '', status: '' },
         'nqoc-report-leads': { q: '', range: '', dup: '', bin: '', mailStatus: '' }
     };
-    const NQ_FILTER_OK = { status: ['', 'draft', 'published', 'archived'], range: ['', '1', '7', '30'], dup: ['', '1'], bin: ['', '1'], mailStatus: ['', 'none', 'pending', 'sending', 'accepted', 'failed', 'uncertain', 'cancelled'] };
+    const NQ_FILTER_OK = { status: ['', 'draft', 'published', 'archived'], range: ['', '1', '7', '30'], dup: ['', '1'], bin: ['', '1'], mailStatus: ['', 'unsent', 'queued', 'unopened', 'opened', 'failed', 'uncertain'] };
 
     let nqBanners = [];
     let nqPosts = { insight: [], case: [] };
@@ -54,7 +54,7 @@
     let nqLeads = [];
     const reportMailSelected = new Set();
     let nqLeadDup = {};   // 归一化手机号 -> 提交次数（仅 ≥2 次的手机号）
-    let nqLeadStats = { today: 0, week7: 0, all: 0, companies: 0 };
+    let nqLeadStats = { today: 0, week7: 0, all: 0, companies: 0, delivered: 0, opened: 0 };
     let nqLeadDetailState = null;   // 报告领取记录详情：{ id, from, lead }
     let nqEd = null;   // 弹窗（banner / video）上下文
     let nqPend = {};   // 弹窗里刚选好、尚未保存的图片
@@ -267,10 +267,22 @@
     // 与后端一致的手机号归一化：去空格 / 横线等非数字
     const nqPhoneKey = v => String(v || '').replace(/\D/g, '') || String(v || '').trim();
 
+    // 记录级邮件状态 6 档：与后端 leadMailCategory 同口径（列表筛选 / 导出 / 看板统一）
+    // unsent 未发送 / queued 待发送 / unopened 已发送·未打开 / opened 已发送·已打开 / failed 发送失败 / uncertain 结果待核实
+    const LEAD_MAIL_LABELS = { unsent: '未发送', queued: '待发送', unopened: '已发送·未打开', opened: '已发送·已打开', failed: '发送失败', uncertain: '结果待核实' };
+    function nqLeadMailCategory(lead) {
+        const status = lead && lead.mail && lead.mail.status;
+        if (!status || status === 'cancelled') return 'unsent';
+        if (status === 'pending' || status === 'sending') return 'queued';
+        if (status === 'accepted') return Number(lead.reportOpenCount) >= 1 ? 'opened' : 'unopened';
+        if (status === 'failed' || status === 'uncertain') return status;
+        return 'unsent';
+    }
+
     function nqLeadRows() {
         const f = NQ_FILTERS['nqoc-report-leads'], q = f.q.trim().toLowerCase(), days = +f.range || 0, dupOnly = f.dup === '1';
         const cutoff = days ? Date.now() - days * DAY : 0;
-        return (nqLeads || []).filter(l => (!f.mailStatus || (f.mailStatus === 'none' ? !l.mail : l.mail?.status === f.mailStatus)) && (!cutoff || new Date(l.createdAt).getTime() >= cutoff) &&
+        return (nqLeads || []).filter(l => (!f.mailStatus || nqLeadMailCategory(l) === f.mailStatus) && (!cutoff || new Date(l.createdAt).getTime() >= cutoff) &&
             (!dupOnly || !!nqLeadDup[nqPhoneKey(l.phone)]) &&
             (!q || [l.name, l.company, l.phone, l.email, l.position].map(v => String(v || '')).join(' ').toLowerCase().includes(q)))
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -284,17 +296,18 @@
         const digits = String(value || '').replace(/\D/g, '');
         return digits.length === 11 ? `${digits.slice(0, 3)} ${digits.slice(3, 7)} ${digits.slice(7)}` : String(value || '');
     }
-    function nqMailTone(status) {
-        return status === 'accepted' ? 'ok' : status === 'failed' ? 'err' : status === 'uncertain' ? 'warn' : ['pending', 'sending'].includes(status) ? 'info' : 'idle';
+    function nqMailTone(cat) {
+        return cat === 'opened' ? 'ok' : cat === 'failed' ? 'err' : cat === 'uncertain' ? 'warn' : (cat === 'queued' || cat === 'unopened') ? 'info' : 'idle';
     }
-    // 列表只展示状态与打开情况；发送、发送记录、删除都收进详情页
+    // 列表只展示记录级邮件状态与打开情况；发送、发送记录、删除都收进详情页
     function nqMailStatus(lead) {
+        const cat = nqLeadMailCategory(lead);
         const mail = lead.mail || {};
         const opens = Number(lead.reportOpenCount) || 0;
-        const openLine = Number.isFinite(lead.reportOpenCount)
-            ? `<div class="sub">${opens ? `报告已打开 ${opens} 次${lead.lastReportOpenAt ? ` · 最近 ${shortDateTime(lead.lastReportOpenAt)}` : ''}` : '报告未打开'}</div>`
+        const openLine = cat === 'opened' && Number.isFinite(lead.reportOpenCount)
+            ? `<div class="sub">已打开 ${opens} 次${lead.lastReportOpenAt ? ` · 最近 ${shortDateTime(lead.lastReportOpenAt)}` : ''}</div>`
             : '';
-        return `<div class="mail-head"><span class="chip ${nqMailTone(mail.status)}">${esc(MAIL_LABELS[mail.status] || '未安排发送')}</span>${mail.acceptedAt ? `<span class="mail-time">${shortDateTime(mail.acceptedAt)}</span>` : ''}</div>${openLine}`;
+        return `<div class="mail-head"><span class="chip ${nqMailTone(cat)}">${esc(LEAD_MAIL_LABELS[cat])}</span>${mail.acceptedAt ? `<span class="mail-time">${shortDateTime(mail.acceptedAt)}</span>` : ''}</div>${openLine}`;
     }
     // 回收站剩余天数：purgeAt 到期后由 MongoDB TTL 线程物理清除
     function nqLeadBinDays(lead) {
@@ -357,6 +370,7 @@
         const state = nqLeadDetailState, lead = state?.lead, box = $('nqLeadDetail');
         if (!state || !lead || !box) return;
         const mail = lead.mail || {}, inBin = !!lead.deletedAt;
+        const mailCat = nqLeadMailCategory(lead);
         const dup = nqLeadDup[nqPhoneKey(lead.phone)];
         const summary = lead.mailSummary || {};
         const opens = Number(lead.reportOpenCount) || 0;
@@ -390,7 +404,7 @@
             <section class="lead-detail-card">
               <h3>邮件投递</h3>
               <dl class="lead-detail-meta">
-                <dt>邮件状态</dt><dd><span class="chip ${nqMailTone(mail.status)}">${esc(MAIL_LABELS[mail.status] || '未安排发送')}</span></dd>
+                <dt>邮件状态</dt><dd><span class="chip ${nqMailTone(mailCat)}">${esc(LEAD_MAIL_LABELS[mailCat])}</span></dd>
                 <dt>最近接收</dt><dd>${mail.acceptedAt ? mailDate(mail.acceptedAt) : '—'}</dd>
                 <dt>累计接收</dt><dd>${Number(summary.acceptedCount) || 0} 次${summary.lastAcceptedAt ? ` · 最近 ${mailDate(summary.lastAcceptedAt)}` : ''}</dd>
                 <dt>报告打开</dt><dd>${openText}</dd>
@@ -472,6 +486,10 @@
         $('nqLCo').textContent = nqLeadStats.companies;
         const up = nqLeadStats.uniquePhones || {};
         $('nqLUniq').textContent = up.all || 0;
+        // 报告打开率看板：已发送 = 邮件服务已接收；已打开 = 送达且打开过 ≥1 次
+        const delivered = Number(nqLeadStats.delivered) || 0, opened = Number(nqLeadStats.opened) || 0;
+        if ($('nqLOpen')) $('nqLOpen').textContent = delivered ? `${Math.round(opened / delivered * 100)}%` : '—';
+        if ($('nqLOpenSub')) $('nqLOpenSub').textContent = delivered ? `已发送 ${delivered} 条 · 打开 ${opened} 条` : '暂无已发送记录';
         const badge = $('nqLeadBadge');
         if (badge) badge.textContent = nqLeadStats.today;
 
@@ -512,7 +530,7 @@
             if (NQ_FILTERS['nqoc-report-leads'].bin) qs.set('bin', NQ_FILTERS['nqoc-report-leads'].bin);
             const data = await json(`${API}/report-leads${qs.toString() ? '?' + qs : ''}`, { headers: authHeaders() });
             nqLeads = Array.isArray(data.leads) ? data.leads : [];
-            nqLeadStats = Object.assign({ today: 0, week7: 0, all: 0, companies: 0, uniquePhones: {} }, data.stats || {});
+            nqLeadStats = Object.assign({ today: 0, week7: 0, all: 0, companies: 0, uniquePhones: {}, delivered: 0, opened: 0 }, data.stats || {});
             nqLeadDup = (data.stats && data.stats.duplicatePhones) || {};
             renderNqLeads();
         } catch (e) {

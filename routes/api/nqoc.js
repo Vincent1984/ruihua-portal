@@ -391,6 +391,21 @@ function leadTrashRetentionDays() {
     return Math.min(180, Math.max(1, Math.floor(n)));
 }
 
+// 记录级邮件状态 6 档分类：列表筛选 / 导出 / 看板统一口径，与单次任务状态（mail.status）区分。
+// unsent 未发送（没有 mail 或已取消） / queued 待发送（pending|sending）
+// unopened 已发送未打开 / opened 已发送已打开 / failed 发送失败 / uncertain 结果待核实
+const LEAD_MAIL_LABELS = { unsent: '未发送', queued: '待发送', unopened: '已发送·未打开', opened: '已发送·已打开', failed: '发送失败', uncertain: '结果待核实' };
+function leadMailCategory(lead) {
+    const status = lead && lead.mail && lead.mail.status;
+    if (!status || status === 'cancelled') return 'unsent';
+    if (status === 'pending' || status === 'sending') return 'queued';
+    if (status === 'accepted') return Number(lead.reportOpenCount) >= 1 ? 'opened' : 'unopened';
+    if (status === 'failed' || status === 'uncertain') return status;
+    return 'unsent';
+}
+// 旧筛选值兼容：none/cancelled→unsent，pending/sending→queued，accepted→sent（已发送合集）
+const LEAD_MAIL_ALIAS = { none: 'unsent', cancelled: 'unsent', pending: 'queued', sending: 'queued', accepted: 'sent' };
+
 function buildLeadQuery(req) {
     const query = {};
     // 默认只看正常记录；bin=1 时只看回收站（deletedAt 为 null 或字段缺失都算正常）
@@ -403,9 +418,21 @@ function buildLeadQuery(req) {
         const rx = { $regex: escapeRegex(q), $options: 'i' };
         query.$or = [{ name: rx }, { company: rx }, { phone: rx }, { email: rx }, { position: rx }];
     }
-    const mailStatus = String(req.query.mailStatus || '');
-    if (mailStatus === 'none') query['mail.status'] = { $exists: false };
-    else if (['pending', 'sending', 'accepted', 'failed', 'uncertain', 'cancelled'].includes(mailStatus)) query['mail.status'] = mailStatus;
+    const rawMailStatus = String(req.query.mailStatus || '');
+    const mailStatus = LEAD_MAIL_ALIAS[rawMailStatus] || rawMailStatus;
+    // 关键词搜索已占用 query.$or，邮件状态条件统一走 $and 避免互相覆盖
+    const mailCond = [];
+    if (mailStatus === 'unsent') mailCond.push({ 'mail.status': { $in: [null, 'cancelled'] } });
+    else if (mailStatus === 'queued') mailCond.push({ 'mail.status': { $in: ['pending', 'sending'] } });
+    else if (mailStatus === 'sent') mailCond.push({ 'mail.status': 'accepted' });
+    else if (mailStatus === 'opened') mailCond.push({ 'mail.status': 'accepted' }, { reportOpenCount: { $gte: 1 } });
+    else if (mailStatus === 'unopened') {
+        mailCond.push(
+            { 'mail.status': 'accepted' },
+            { $or: [{ reportOpenCount: { $exists: false } }, { reportOpenCount: null }, { reportOpenCount: { $lte: 0 } }] }
+        );
+    } else if (mailStatus === 'failed' || mailStatus === 'uncertain') mailCond.push({ 'mail.status': mailStatus });
+    if (mailCond.length) query.$and = mailCond;
     return { query, range, keyword: q, inBin };
 }
 
@@ -820,7 +847,7 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
 
             // 领取人次看板：按手机号聚合出提交次数，两个来源合并后在内存去重。
             // 看板始终只统计正常记录（deletedAt: null），回收站记录不计入。
-            const [leads, legacyLeads, today, todayWp, week7, week7Wp, all, allWp, companies, wpCompanies, phoneStats] = await Promise.all([
+            const [leads, legacyLeads, today, todayWp, week7, week7Wp, all, allWp, companies, wpCompanies, phoneStats, delivered, deliveredWp, openedCount, openedWp] = await Promise.all([
                 NqocReportLead.find(query).sort({ createdAt: -1 }).limit(5000),
                 NqocWhitepaperRequest.find(query).sort({ createdAt: -1 }).limit(5000),
                 NqocReportLead.countDocuments({ deletedAt: null, createdAt: { $gte: startOfDay } }),
@@ -831,7 +858,12 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
                 NqocWhitepaperRequest.countDocuments({ deletedAt: null }),
                 NqocReportLead.distinct('company', { deletedAt: null }),
                 NqocWhitepaperRequest.distinct('company', { deletedAt: null }),
-                collectLeadPhoneStats()
+                collectLeadPhoneStats(),
+                // 报告打开率看板：已送达 = 邮件服务已接收；已打开 = 送达且至少打开过 1 次
+                NqocReportLead.countDocuments({ deletedAt: null, 'mail.status': 'accepted' }),
+                NqocWhitepaperRequest.countDocuments({ deletedAt: null, 'mail.status': 'accepted' }),
+                NqocReportLead.countDocuments({ deletedAt: null, 'mail.status': 'accepted', reportOpenCount: { $gte: 1 } }),
+                NqocWhitepaperRequest.countDocuments({ deletedAt: null, 'mail.status': 'accepted', reportOpenCount: { $gte: 1 } })
             ]);
 
             const uniqueTotal = phoneStats.active.size;
@@ -855,6 +887,8 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
                     all: all + allWp,
                     companies: new Set(companies.concat(wpCompanies).filter(Boolean)).size,
                     uniquePhones: { all: uniqueTotal },
+                    delivered: delivered + deliveredWp,
+                    opened: openedCount + openedWp,
                     duplicatePhones
                 }
             });
@@ -886,9 +920,12 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
 
             const now = new Date();
             const stamp = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+            const rawMailStatus = String(req.query.mailStatus || '');
+            const mailStatus = LEAD_MAIL_ALIAS[rawMailStatus] || rawMailStatus;
             const cond = [
                 range ? ({ 1: '今天', 7: '近 7 天', 30: '近 30 天' })[range] : '全部时间',
                 dupOnly ? '仅重复提交' : '',
+                mailStatus ? `邮件状态：${LEAD_MAIL_LABELS[mailStatus] || mailStatus}` : '',
                 keyword ? `关键词「${keyword}」` : ''
             ].filter(Boolean).join('，');
 
@@ -897,7 +934,8 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             ws.columns = [
                 { key: 'idx', width: 7 }, { key: 'name', width: 13 }, { key: 'phone', width: 16 },
                 { key: 'company', width: 30 }, { key: 'position', width: 22 }, { key: 'email', width: 30 },
-                { key: 'report', width: 42 }, { key: 'page', width: 46 }, { key: 'time', width: 19 }
+                { key: 'report', width: 42 }, { key: 'page', width: 46 }, { key: 'time', width: 19 },
+                { key: 'mail', width: 18 }, { key: 'open', width: 26 }
             ];
 
             const thin = { style: 'thin', color: { argb: 'FFEAE9ED' } };
@@ -909,20 +947,20 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
                 cell.numFmt = '@';
             };
 
-            ws.mergeCells('A1:I1');
+            ws.mergeCells('A1:K1');
             ws.getCell('A1').value = '新质组织 · 报告领取记录';
             ws.getCell('A1').font = { name: '微软雅黑', size: 14, bold: true, color: { argb: 'FF211E28' } };
             ws.getCell('A1').alignment = { vertical: 'middle', horizontal: 'left' };
             ws.getRow(1).height = 28;
 
-            ws.mergeCells('A2:I2');
+            ws.mergeCells('A2:K2');
             ws.getCell('A2').value = `导出时间 ${now.toLocaleString('zh-CN')}　｜　共 ${rows.length} 条　｜　筛选范围：${cond}`;
             ws.getCell('A2').font = { name: '微软雅黑', size: 10, color: { argb: 'FF7A6F92' } };
             ws.getCell('A2').alignment = { vertical: 'middle', horizontal: 'left' };
             ws.getRow(2).height = 20;
 
             const headerRow = ws.getRow(3);
-            ['序号', '姓名', '手机号', '公司', '职位', '邮箱', '领取的报告', '提交页面', '提交时间'].forEach((h, i) => {
+            ['序号', '姓名', '手机号', '公司', '职位', '邮箱', '领取的报告', '提交页面', '提交时间', '邮件状态', '报告打开'].forEach((h, i) => {
                 const cell = headerRow.getCell(i + 1);
                 cell.value = h;
                 cell.font = { name: '微软雅黑', size: 10.5, bold: true, color: { argb: 'FFFFFFFF' } };
@@ -933,9 +971,20 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             headerRow.height = 22;
 
             const fmtTime = d => d ? new Date(d).toLocaleString('zh-CN') : '';
+            const fmtShort = d => {
+                if (!d) return '';
+                const t = new Date(d), p = n => String(n).padStart(2, '0');
+                return `${p(t.getMonth() + 1)}-${p(t.getDate())} ${p(t.getHours())}:${p(t.getMinutes())}`;
+            };
+            const openText = l => {
+                if (!Number.isFinite(l.reportOpenCount)) return '—';
+                const n = Number(l.reportOpenCount) || 0;
+                if (!n) return '0 次（未打开）';
+                return `${n} 次${l.lastReportOpenAt ? ` · 最近 ${fmtShort(l.lastReportOpenAt)}` : ''}`;
+            };
             rows.forEach((l, i) => {
                 const row = ws.addRow([]);
-                const values = [i + 1, l.name, l.phone, l.company, l.position, l.email, l.reportTitle, l.sourcePage, fmtTime(l.createdAt)];
+                const values = [i + 1, l.name, l.phone, l.company, l.position, l.email, l.reportTitle, l.sourcePage, fmtTime(l.createdAt), LEAD_MAIL_LABELS[leadMailCategory(l)] || '', openText(l)];
                 values.forEach((v, ci) => {
                     const cell = row.getCell(ci + 1);
                     setText(cell, v);
@@ -950,7 +999,7 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
 
             ws.views = [{ state: 'frozen', ySplit: 3 }];
             if (rows.length) {
-                ws.autoFilter = { from: { row: 3, column: 1 }, to: { row: 3 + rows.length, column: 9 } };
+                ws.autoFilter = { from: { row: 3, column: 1 }, to: { row: 3 + rows.length, column: 11 } };
             }
             ws.pageSetup = {
                 paperSize: 9,

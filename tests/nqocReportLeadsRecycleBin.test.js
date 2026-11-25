@@ -90,6 +90,28 @@ describe('报告领取记录回收站（软删 / 恢复 / 彻底删除 / TTL）'
         assert.match(read('server.js'), /app\.get\('\/admin\/nqoc-report-leads\/:id'/);
     });
 
+    it('邮件状态改为 6 档记录级分类（含是否打开），列表 / 看板 / 导出同口径', function () {
+        // 后端记录级分类：与单次投递任务状态（mail.status）区分
+        assert.ok(routes.includes("const LEAD_MAIL_LABELS = { unsent: '未发送', queued: '待发送', unopened: '已发送·未打开', opened: '已发送·已打开', failed: '发送失败', uncertain: '结果待核实' };"));
+        assert.ok(routes.includes("if (status === 'accepted') return Number(lead.reportOpenCount) >= 1 ? 'opened' : 'unopened';"));
+        // 关键词搜索已占用 $or，邮件状态条件必须走 $and
+        assert.ok(routes.includes('if (mailCond.length) query.$and = mailCond;'));
+        assert.ok(routes.includes("else if (mailStatus === 'opened') mailCond.push({ 'mail.status': 'accepted' }, { reportOpenCount: { $gte: 1 } });"));
+        // 看板：已送达 / 已打开
+        assert.ok(routes.includes('delivered: delivered + deliveredWp,'));
+        assert.ok(routes.includes('opened: openedCount + openedWp,'));
+        // 导出 11 列：新增「邮件状态」「报告打开」
+        assert.ok(routes.includes("'提交时间', '邮件状态', '报告打开'"));
+        assert.ok(routes.includes('column: 11'));
+        // 前端：白名单 / 本地过滤 / 看板 / 下拉
+        assert.ok(adminJs.includes("mailStatus: ['', 'unsent', 'queued', 'unopened', 'opened', 'failed', 'uncertain']"));
+        assert.ok(adminJs.includes('nqLeadMailCategory(l) === f.mailStatus'));
+        assert.ok(adminJs.includes("$('nqLOpen')"), '看板缺少打开率渲染');
+        assert.ok(consoleHtml.includes('id="nqLOpen"'), '看板缺少打开率卡片');
+        assert.ok(consoleHtml.includes('<option value="opened">已发送·已打开</option>'));
+        assert.ok(consoleHtml.includes('<option value="unopened">已发送·未打开</option>'));
+    });
+
     it('规格文档已记录结论、测试用例与运维规则', function () {
         assert.match(spec, /物理删除/);
         assert.match(spec, /NQOC_LEAD_TRASH_RETENTION_DAYS/);
