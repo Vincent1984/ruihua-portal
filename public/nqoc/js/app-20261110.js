@@ -139,16 +139,37 @@
     if (!once(dlg, 'bound')) return;
     dlg.addEventListener('click', function (e) { if (e.target === dlg || e.target.closest('[data-dialog-close]')) dlg.close(); });
   }
+  /* 24 小时内已提交过同一份报告：不再弹表单，直接进入报告页面（下载凭证本身就是 24 小时有效） */
+  var RESUME_KEY = 'nqoc_report_resume', RESUME_TTL = 24 * 3600 * 1000;
+  function resumeMap() {
+    try { return JSON.parse(localStorage.getItem(RESUME_KEY)) || {}; } catch (e) { return {}; }
+  }
+  function resumeRemember(slug, url) {
+    try {
+      var all = resumeMap();
+      all[slug || ''] = { url: url, ts: Date.now() };
+      localStorage.setItem(RESUME_KEY, JSON.stringify(all));
+    } catch (e) { /* 隐私模式写不进去，退回填表 */ }
+  }
+  function resumeHit(slug) {
+    var rec = resumeMap()[slug || ''];
+    if (!rec || typeof rec.url !== 'string' || rec.url.indexOf('/api/nqoc/') !== 0) return '';
+    if (!rec.ts || Date.now() - rec.ts > RESUME_TTL) return '';
+    return rec.url;
+  }
   function initReportOpen(btn) {
     if (!once(btn, 'bound')) return;
     btn.addEventListener('click', function (e) {
       var dlg = document.getElementById('report-dialog');
       if (!dlg || !dlg.showModal) return;        // 不支持时按链接进入报告详情页
       e.preventDefault();
+      var slug = btn.dataset.reportSlug || dlg.dataset.defaultSlug || '';
+      var cached = resumeHit(slug);
+      if (cached) { location.href = cached; return; }   // 24 小时内已提交过，直接进报告页
       dlg.querySelector('[data-report-name]').textContent = btn.dataset.reportName || dlg.dataset.defaultName || '领取报告';
       var sub = dlg.querySelector('[data-report-subtitle]'), subText = btn.dataset.reportSlug ? (btn.dataset.reportSubtitle || '') : (dlg.dataset.defaultSubtitle || '');
       sub.textContent = subText; sub.hidden = !subText;
-      dlg.querySelector('[data-report-slug]').value = btn.dataset.reportSlug || dlg.dataset.defaultSlug || '';
+      dlg.querySelector('[data-report-slug]').value = slug;
       // 左侧封面：优先用触发按钮所属报告的封面，回落到最新报告封面；都没有则收起左栏
       var coverImg = dlg.querySelector('[data-report-cover-img]');
       var coverSrc = btn.dataset.reportCover || dlg.dataset.defaultCover || '';
@@ -202,6 +223,7 @@
           var url = res.body.reportUrl;
           // 领取成功且拿到站内报告地址：关闭弹窗、清空表单，在当前标签页直接打开报告
           if (res.ok && typeof url === 'string' && url.indexOf('/api/nqoc/') === 0) {
+            resumeRemember(data.reportSlug, url);   // 记住 24 小时内可免表单直达
             form.reset();
             var dlg = form.closest('dialog');
             if (dlg && dlg.open) dlg.close();

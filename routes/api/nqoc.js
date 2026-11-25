@@ -384,6 +384,29 @@ function buildLeadQuery(req) {
     return { query, range, keyword: q };
 }
 
+// 手机号归一化：去掉空格 / 横线等非数字，避免历史数据「同号不同键」
+function normalizeLeadPhone(v) {
+    return String(v || '').replace(/\D/g, '') || String(v || '').trim();
+}
+
+// 按手机号统计提交次数（两个来源合并），用于「累计领取人次」与「重复提交」
+async function collectLeadPhoneStats() {
+    const groups = model => model.aggregate([
+        { $match: { phone: { $exists: true, $nin: [null, ''] } } },
+        { $group: { _id: '$phone', count: { $sum: 1 } } }
+    ]);
+    const [leadRows, wpRows] = await Promise.all([groups(NqocReportLead), groups(NqocWhitepaperRequest)]);
+    const stats = new Map();
+    const merge = row => {
+        const key = normalizeLeadPhone(row._id);
+        if (!key) return;
+        stats.set(key, (stats.get(key) || 0) + (row.count || 0));
+    };
+    leadRows.forEach(merge);
+    wpRows.forEach(merge);
+    return stats;
+}
+
 /* ------------------------------- 前台限流 ------------------------------- */
 
 const applyLimiter = rateLimit({
@@ -781,13 +804,8 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             const startOfDay = new Date();
             startOfDay.setHours(0, 0, 0, 0);
 
-            // 领取人次看板：按手机号聚合出「最后一次提交时间」，两个来源合并后在内存去重。
-            const phoneGroups = model => model.aggregate([
-                { $match: { phone: { $exists: true, $nin: [null, ''] } } },
-                { $group: { _id: '$phone', last: { $max: '$createdAt' } } }
-            ]);
-
-            const [leads, legacyLeads, today, todayWp, week7, week7Wp, all, allWp, companies, wpCompanies, leadPhones, wpPhones] = await Promise.all([
+            // 领取人次看板：按手机号聚合出提交次数，两个来源合并后在内存去重。
+            const [leads, legacyLeads, today, todayWp, week7, week7Wp, all, allWp, companies, wpCompanies, phoneStats] = await Promise.all([
                 NqocReportLead.find(query).sort({ createdAt: -1 }).limit(5000),
                 NqocWhitepaperRequest.find(query).sort({ createdAt: -1 }).limit(5000),
                 NqocReportLead.countDocuments({ createdAt: { $gte: startOfDay } }),
@@ -798,21 +816,13 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
                 NqocWhitepaperRequest.countDocuments({}),
                 NqocReportLead.distinct('company'),
                 NqocWhitepaperRequest.distinct('company'),
-                phoneGroups(NqocReportLead),
-                phoneGroups(NqocWhitepaperRequest)
+                collectLeadPhoneStats()
             ]);
 
-            // 统一成纯数字再比，避免历史数据里的空格 / 横线造成同号不同键。
-            const phoneLast = new Map();
-            const mergePhone = row => {
-                const key = String(row._id || '').replace(/\D/g, '') || String(row._id || '').trim();
-                if (!key) return;
-                const t = row.last ? new Date(row.last).getTime() : 0;
-                if (!phoneLast.has(key) || t > phoneLast.get(key)) phoneLast.set(key, t);
-            };
-            leadPhones.forEach(mergePhone);
-            wpPhones.forEach(mergePhone);
-            const uniqueTotal = phoneLast.size;
+            const uniqueTotal = phoneStats.size;
+            // 同一手机号提交 ≥2 次即视为重复提交；返回次数供后台标重
+            const duplicatePhones = {};
+            phoneStats.forEach((count, phone) => { if (count > 1) duplicatePhones[phone] = count; });
 
             const merged = leads.map(serializeLead)
                 .concat(legacyLeads.map(serializeLegacyWhitepaperLead))
@@ -826,7 +836,8 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
                     week7: week7 + week7Wp,
                     all: all + allWp,
                     companies: new Set(companies.concat(wpCompanies).filter(Boolean)).size,
-                    uniquePhones: { all: uniqueTotal }
+                    uniquePhones: { all: uniqueTotal },
+                    duplicatePhones
                 }
             });
         } catch (e) {
@@ -838,6 +849,7 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
     router.get('/admin/nqoc/report-leads/export', authRequired, requirePerm('nqoc-report-leads:export'), async (req, res) => {
         try {
             const { query, range, keyword } = buildLeadQuery(req);
+            const dupOnly = String(req.query.dup || '') === '1';
             const [leads, legacyLeads] = await Promise.all([
                 NqocReportLead.find(query).sort({ createdAt: -1 }).limit(5000),
                 NqocWhitepaperRequest.find(query).sort({ createdAt: -1 }).limit(5000)
@@ -845,10 +857,18 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             leads.push(...legacyLeads.map(serializeLegacyWhitepaperLead));
             leads.sort(sortLeadsByCreatedAtDesc);
 
+            // 「只看重复提交」与列表接口同口径：按手机号全局统计次数，筛出提交 ≥2 次的记录
+            let rows = leads;
+            if (dupOnly) {
+                const phoneStats = await collectLeadPhoneStats();
+                rows = rows.filter(l => (phoneStats.get(normalizeLeadPhone(l.phone)) || 0) > 1);
+            }
+
             const now = new Date();
             const stamp = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
             const cond = [
                 range ? ({ 1: '今天', 7: '近 7 天', 30: '近 30 天' })[range] : '全部时间',
+                dupOnly ? '仅重复提交' : '',
                 keyword ? `关键词「${keyword}」` : ''
             ].filter(Boolean).join('，');
 
@@ -876,7 +896,7 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             ws.getRow(1).height = 28;
 
             ws.mergeCells('A2:I2');
-            ws.getCell('A2').value = `导出时间 ${now.toLocaleString('zh-CN')}　｜　共 ${leads.length} 条　｜　筛选范围：${cond}`;
+            ws.getCell('A2').value = `导出时间 ${now.toLocaleString('zh-CN')}　｜　共 ${rows.length} 条　｜　筛选范围：${cond}`;
             ws.getCell('A2').font = { name: '微软雅黑', size: 10, color: { argb: 'FF7A6F92' } };
             ws.getCell('A2').alignment = { vertical: 'middle', horizontal: 'left' };
             ws.getRow(2).height = 20;
@@ -893,7 +913,7 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             headerRow.height = 22;
 
             const fmtTime = d => d ? new Date(d).toLocaleString('zh-CN') : '';
-            leads.forEach((l, i) => {
+            rows.forEach((l, i) => {
                 const row = ws.addRow([]);
                 const values = [i + 1, l.name, l.phone, l.company, l.position, l.email, l.reportTitle, l.sourcePage, fmtTime(l.createdAt)];
                 values.forEach((v, ci) => {
@@ -909,8 +929,8 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             });
 
             ws.views = [{ state: 'frozen', ySplit: 3 }];
-            if (leads.length) {
-                ws.autoFilter = { from: { row: 3, column: 1 }, to: { row: 3 + leads.length, column: 9 } };
+            if (rows.length) {
+                ws.autoFilter = { from: { row: 3, column: 1 }, to: { row: 3 + rows.length, column: 9 } };
             }
             ws.pageSetup = {
                 paperSize: 9,
@@ -927,7 +947,7 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             await workbook.xlsx.write(res);
             res.end();
 
-            await logOp('export', '新质组织-报告领取记录', `导出 ${leads.length} 条（${cond}）`, req.user && req.user.username);
+            await logOp('export', '新质组织-报告领取记录', `导出 ${rows.length} 条（${cond}）`, req.user && req.user.username);
         } catch (e) {
             console.error('Export nqoc report leads error:', e);
             if (!res.headersSent) res.status(500).send('导出失败');

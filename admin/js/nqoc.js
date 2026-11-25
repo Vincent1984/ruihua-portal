@@ -44,14 +44,15 @@
         'nqoc-insights': { q: '', status: '' },
         'nqoc-cases': { q: '', status: '' },
         'nqoc-videos': { q: '', status: '' },
-        'nqoc-report-leads': { q: '', range: '' }
+        'nqoc-report-leads': { q: '', range: '', dup: '' }
     };
-    const NQ_FILTER_OK = { status: ['', 'draft', 'published', 'archived'], range: ['', '1', '7', '30'] };
+    const NQ_FILTER_OK = { status: ['', 'draft', 'published', 'archived'], range: ['', '1', '7', '30'], dup: ['', '1'] };
 
     let nqBanners = [];
     let nqPosts = { insight: [], case: [] };
     let nqVideos = [];
     let nqLeads = [];
+    let nqLeadDup = {};   // 归一化手机号 -> 提交次数（仅 ≥2 次的手机号）
     let nqLeadStats = { today: 0, week7: 0, all: 0, companies: 0 };
     let nqEd = null;   // 弹窗（banner / video）上下文
     let nqPend = {};   // 弹窗里刚选好、尚未保存的图片
@@ -102,7 +103,10 @@
         if (!f || !box) return;
         const q = box.querySelector('input[data-filter="q"]');
         if (q && document.activeElement !== q) q.value = f.q;
-        box.querySelectorAll('.segments[data-filter="status"] button').forEach(b => b.classList.toggle('on', b.dataset.value === f.status));
+        box.querySelectorAll('.segments[data-filter]').forEach(seg => {
+            const key = seg.dataset.filter;
+            seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', (b.dataset.value || '') === (f[key] || '')));
+        });
         const s = box.querySelector('select[data-filter]');
         if (s) s.value = f[s.dataset.filter] || '';
     }
@@ -259,10 +263,14 @@
 
     /* --------------------------- 报告领取记录（只读） --------------------------- */
 
+    // 与后端一致的手机号归一化：去空格 / 横线等非数字
+    const nqPhoneKey = v => String(v || '').replace(/\D/g, '') || String(v || '').trim();
+
     function nqLeadRows() {
-        const f = NQ_FILTERS['nqoc-report-leads'], q = f.q.trim().toLowerCase(), days = +f.range || 0;
+        const f = NQ_FILTERS['nqoc-report-leads'], q = f.q.trim().toLowerCase(), days = +f.range || 0, dupOnly = f.dup === '1';
         const cutoff = days ? Date.now() - days * DAY : 0;
         return (nqLeads || []).filter(l => (!cutoff || new Date(l.createdAt).getTime() >= cutoff) &&
+            (!dupOnly || !!nqLeadDup[nqPhoneKey(l.phone)]) &&
             (!q || [l.name, l.company, l.phone, l.email, l.position].map(v => String(v || '')).join(' ').toLowerCase().includes(q)))
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
@@ -280,9 +288,11 @@
         const badge = $('nqLeadBadge');
         if (badge) badge.textContent = nqLeadStats.today;
 
-        $('nqLeadRows').innerHTML = rows.length ? rows.map(l => `
+        $('nqLeadRows').innerHTML = rows.length ? rows.map(l => {
+            const dup = nqLeadDup[nqPhoneKey(l.phone)];
+            return `
             <tr>
-              <td><div class="person"><b>${esc(l.name)}</b></div></td>
+              <td><div class="person"><b>${esc(l.name)}</b>${dup ? ` <span class="chip featured">重复 ${dup} 次</span>` : ''}</div></td>
               <td>${esc(l.phone)}</td>
               <td><div>${esc(l.company)}</div><div class="sub">${esc(l.position)}</div></td>
               <td style="word-break:break-all">${esc(l.email)}</td>
@@ -290,7 +300,8 @@
               <td><div class="sub" style="word-break:break-all">${esc(l.sourcePage)}</div></td>
               <td><div>${ago(l.createdAt)}</div><div class="sub">${shortDateTime(l.createdAt)}</div></td>
               <td><button type="button" data-action="delete-lead" data-id="${esc(l.id)}" data-permission="nqoc-report-leads:delete">删除</button></td>
-            </tr>`).join('') : '<tr><td colspan="8" class="empty-cell"><b>没有符合条件的记录</b>换个筛选条件试试</td></tr>';
+            </tr>`;
+        }).join('') : '<tr><td colspan="8" class="empty-cell"><b>没有符合条件的记录</b>换个筛选条件试试</td></tr>';
         $('nqLeadCount').textContent = `共 ${rows.length} 条记录${rows.length !== total ? `（总计 ${total} 条）` : ''}`;
         nqSyncFilterUi('nqoc-report-leads');
         nqApplyPerms($('nqLeadRows').closest('table'));
@@ -300,6 +311,7 @@
             const data = await json(`${API}/report-leads`, { headers: authHeaders() });
             nqLeads = Array.isArray(data.leads) ? data.leads : [];
             nqLeadStats = Object.assign({ today: 0, week7: 0, all: 0, companies: 0, uniquePhones: {} }, data.stats || {});
+            nqLeadDup = (data.stats && data.stats.duplicatePhones) || {};
             renderNqLeads();
         } catch (e) {
             $('nqLeadRows').innerHTML = `<tr><td colspan="8" class="empty-cell">${esc(e.message)}</td></tr>`;
@@ -311,6 +323,7 @@
         const qs = new URLSearchParams();
         if (f.q.trim()) qs.set('q', f.q.trim());
         if (f.range) qs.set('range', f.range);
+        if (f.dup) qs.set('dup', f.dup);
         try {
             const response = await fetch(`${API}/report-leads/export${qs.toString() ? '?' + qs : ''}`, { headers: authHeaders() });
             if (!response.ok) {
@@ -619,8 +632,10 @@
         filter: (t, id, el) => {
             const view = el.closest('[data-view]').dataset.view;
             const box = el.closest('.segments');
-            if (box) box.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === el));
-            NQ_FILTERS[view].status = el.dataset.value || '';
+            if (box) {
+                box.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === el));
+                NQ_FILTERS[view][box.dataset.filter] = el.dataset.value || '';
+            }
             nqRenderView(view);
             nqSyncUrl(view);
         },

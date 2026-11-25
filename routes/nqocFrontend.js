@@ -386,8 +386,8 @@ function renderShell({ pathName, activeKey, title, description, content, latestR
         .replace('<!--FOOTER-->', footer)
         .replace('<!--DRAWER-->', drawer)
         .replace('<!--PRESCRIPT-->', prescript || '')
-        .replace('/css/app.build.css?v=20261110-2', '/nqoc/css/app.build.css?v=20261114a')
-        .replace('/js/app.js?v=20261110-2', '/nqoc/js/app-20261110.js?v=20261114a');
+        .replace('/css/app.build.css?v=20261110-2', '/nqoc/css/app.build.css?v=20261126a')
+        .replace('/js/app.js?v=20261110-2', '/nqoc/js/app-20261110.js?v=20261126a');
     return pathAssets(shell);
 }
 
@@ -487,7 +487,7 @@ function renderLegacyPage(page, latestReport, activeKey) {
     html = html.replace(/<nav class="nqoc-nav\b[\s\S]*?<\/nav>/i, nav.nav)
         .replace(/<nav id="nqocMobileMenu"[\s\S]*?<\/nav>/i, nav.mobile)
         .replace(/<footer\b[\s\S]*?<\/footer>/i, readView('partials/footer.html').replace('<!--CONFIG_ICP-->', '沪ICP备12042344号-24'));
-    html = html.replace(/<head>/i, '<head><link rel="stylesheet" href="/nqoc/css/app.build.css?v=20261114a">');
+    html = html.replace(/<head>/i, '<head><link rel="stylesheet" href="/nqoc/css/app.build.css?v=20261126a">');
     html = html.replace('</body>', `${readView('partials/drawer.html')
         .replaceAll('<!--CONFIG_REPORT_NAME-->', esc(latestReport.title || '领取报告'))
         .replaceAll('<!--CONFIG_REPORT_SUBTITLE-->', esc(latestReport.subtitle || ''))
@@ -495,7 +495,7 @@ function renderLegacyPage(page, latestReport, activeKey) {
         .replaceAll('<!--CONFIG_REPORT_COVER-->', esc(latestReport.cover || ''))
         .replaceAll('<!--CONFIG_REPORT_COVER_ALT-->', esc(latestReport.coverAlt || ''))}
 <div class="toast" role="status" data-toast hidden></div>
-<script src="/nqoc/js/app-20261110.js?v=20261114a" defer></script></body>`);
+<script src="/nqoc/js/app-20261110.js?v=20261126a" defer></script></body>`);
     if (page === 'expert-apply') html = html.replace('<head>', '<head><meta name="robots" content="noindex, nofollow">');
     return html;
 }
