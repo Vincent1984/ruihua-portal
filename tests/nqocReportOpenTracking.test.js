@@ -56,6 +56,28 @@ describe('报告页面打开追踪（邮件追踪链接 + 后台展示）', func
         assert.match(frontend, /app\.get\('\/nqoc\/report-2026\.pdf'/);
     });
 
+    it('追踪路由按 IP 限流，超限直接落失效页', function () {
+        assert.match(frontend, /const rateLimit = require\('express-rate-limit'\)/);
+        const limiter = frontend.match(/const reportOpenLimiter = rateLimit\(\{[\s\S]*?\n    \}\);/)[0];
+        assert.match(limiter, /windowMs: 10 \* 60 \* 1000/);
+        assert.match(limiter, /max: 60/);
+        assert.match(limiter, /handler: \(req, res\) => res\.redirect\(302, '\/nqoc\/report-expired'\)/);
+        assert.match(frontend, /app\.get\('\/nqoc\/reports\/open', reportOpenLimiter,/);
+    });
+
+    it('旧邮件 PDF 直链按 linkExpiresAt 归属补记打开，30 分钟内只记一次', function () {
+        const fn = frontend.match(/async function trackLegacyReportOpen\(exp\)[\s\S]*?\n    \}/)[0];
+        assert.match(fn, /'mail\.linkExpiresAt': new Date\(exp\), deletedAt: null/);
+        assert.match(fn, /\$or: \[\{ lastReportOpenAt: null \}, \{ lastReportOpenAt: \{ \$lt: cutoff \} \}\]/);
+        assert.match(fn, /Date\.now\(\) - 30 \* 60 \* 1000/);
+        assert.match(fn, /\{ _id: lead\._id, firstReportOpenAt: null \}, \{ \$set: \{ firstReportOpenAt: now \} \}/);
+        assert.match(fn, /\$inc: \{ reportOpenCount: 1 \}, \$set: \{ lastReportOpenAt: now \}/);
+        // 直链校验通过后调用，且不阻塞 PDF 流式输出
+        const pdf = frontend.match(/app\.get\('\/nqoc\/report-2026\.pdf'[\s\S]*?const headers =/)[0];
+        assert.match(pdf, /if \(!allowed\) return res\.redirect\(302, '\/nqoc\/whitepaper-apply'\);\s*\n\s*\/\/[^\n]*\n\s*trackLegacyReportOpen\(exp\);/);
+        assert.doesNotMatch(pdf, /await trackLegacyReportOpen/);
+    });
+
     it('站内下载同样累计打开次数与最近打开时间', function () {
         const download = routes.match(/router\.get\('\/nqoc\/reports\/download'[\s\S]*?\n    \}\);/)[0];
         assert.match(download, /\{ _id: lead\._id, firstReportOpenAt: null \},\s*\{ \$set: \{ firstReportOpenAt: now \} \}/);

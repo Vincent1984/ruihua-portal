@@ -3,6 +3,7 @@ const path = require('path');
 const https = require('https');
 const { pipeline } = require('stream');
 const crypto = require('crypto');
+const rateLimit = require('express-rate-limit');
 const xss = require('xss');
 
 const NqocBanner = require('../models/NqocBanner');
@@ -647,9 +648,38 @@ function initNqocFrontend(app, options = {}) {
     const REPORT_PDF_AGENT = new https.Agent({ keepAlive: true, maxSockets: 32, maxFreeSockets: 4, timeout: 15000 });
     const reportPdfSignature = exp => crypto.createHmac('sha256', reportPdfSecret)
         .update(`nqoc-report:${exp}`).digest('hex').slice(0, 32);
+    // 追踪链接是公网 GET，可能被脚本批量刷计数：按 IP 限流，超限不再写库，直接落到失效页。
+    const reportOpenLimiter = rateLimit({
+        windowMs: 10 * 60 * 1000,
+        max: 60,
+        standardHeaders: true,
+        legacyHeaders: false,
+        handler: (req, res) => res.redirect(302, '/nqoc/report-expired')
+    });
+    // 追踪链接上线前发出的邮件只有 PDF 直链，其 exp 就是该记录的 mail.linkExpiresAt，
+    // 因此可在直链命中时按 exp 反查归属补记一次打开。30 分钟内只记一次，
+    // 避免 PDF 阅读器连续发起的多次 Range 请求把打开次数刷高。
+    async function trackLegacyReportOpen(exp) {
+        try {
+            const now = new Date();
+            const cutoff = new Date(Date.now() - 30 * 60 * 1000);
+            const lead = await NqocReportLead.findOne({
+                'mail.linkExpiresAt': new Date(exp), deletedAt: null,
+                $or: [{ lastReportOpenAt: null }, { lastReportOpenAt: { $lt: cutoff } }]
+            }, '_id firstReportOpenAt').lean();
+            if (!lead) return;
+            if (!lead.firstReportOpenAt) {
+                await NqocReportLead.updateOne({ _id: lead._id, firstReportOpenAt: null }, { $set: { firstReportOpenAt: now } });
+            }
+            await NqocReportLead.updateOne({ _id: lead._id },
+                { $inc: { reportOpenCount: 1 }, $set: { lastReportOpenAt: now } });
+        } catch (e) {
+            console.error('Nqoc legacy report open tracking error:', e.message || e);
+        }
+    }
     // 邮件里的报告链接先落到这里：校验追踪令牌 → 记一次「报告页面打开」→ 再跳签名 PDF。
     // 令牌无效 / 记录已进回收站一律落到失效页；旧邮件里的 PDF 直链不受影响。
-    app.get('/nqoc/reports/open', async (req, res) => {
+    app.get('/nqoc/reports/open', reportOpenLimiter, async (req, res) => {
         const expired = () => res.redirect(302, '/nqoc/report-expired');
         try {
             const data = verifyOpenToken(reportPdfSecret, req.query.t);
@@ -675,6 +705,8 @@ function initNqocFrontend(app, options = {}) {
         const allowed = Boolean(expected) && exp > Date.now() && sig.length === expected.length
             && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
         if (!allowed) return res.redirect(302, '/nqoc/whitepaper-apply');
+        // 旧邮件直链（追踪上线前发出）在此补记打开；不阻塞 PDF 流式输出。
+        trackLegacyReportOpen(exp);
         const headers = { 'Content-Disposition': 'inline; filename="nqoc-report-2026.pdf"' };
         if (req.headers.range) headers.Range = req.headers.range;
         const upstreamReq = https.get(REPORT_PDF_URL, { headers, agent: REPORT_PDF_AGENT, timeout: 15000 }, upstream => {

@@ -59,7 +59,7 @@ describe('Remote resource lifecycle', function () {
             app: { get: (p, fn) => { route = fn; } },
             https: { get: (url, opts, cb) => http.get(base, cb) }, pipeline,
             REPORT_PDF_URL: base, REPORT_PDF_AGENT: {}, reportPdfSecret: 'test',
-            reportPdfSignature: () => 'valid', crypto, Buffer
+            reportPdfSignature: () => 'valid', trackLegacyReportOpen: () => {}, crypto, Buffer
         });
         origin.on('request', (req, res) => {
             res.writeHead(200, { 'Content-Length': '10000' }); res.write('partial');
