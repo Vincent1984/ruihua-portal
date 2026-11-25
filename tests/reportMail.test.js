@@ -39,14 +39,14 @@ const uri = process.env.REPORT_MAIL_TEST_MONGO;
     before(async function () {
         assert.match(uri, /^mongodb:\/\/127\.0\.0\.1:37019\/ruihua_mail_test_[a-z0-9_]+$/);
         conn = await mongoose.createConnection(uri).asPromise();
-        Model = conn.model('MailTestLead', require('../models/NqocReportLead').schema.clone());
-        Other = conn.model('MailTestLegacy', require('../models/NqocWhitepaperRequest').schema.clone());
+        Model = conn.model('NqocReportLead', require('../models/NqocReportLead').schema.clone());
+        Other = conn.model('NqocWhitepaperRequest', require('../models/NqocWhitepaperRequest').schema.clone());
         await Promise.all([Model.init(), Other.init()]);
     });
     beforeEach(async function () { await Promise.all([Model.deleteMany({}), Other.deleteMany({})]); });
     afterEach(function () { for (const worker of workers.splice(0)) worker.stop(); });
     after(async function () { if (conn) { await conn.dropDatabase(); await conn.close(); } });
-    const input = () => ({ name: 'Test', phone: 'test-only', company: 'Test', position: 'Test', email: 'recipient@example.test', mail: pendingReportMail() });
+    const input = () => ({ name: 'Test', phone: 'test-only', company: 'Test', position: 'Test', reportSlug: REPORT_SLUG, email: 'recipient@example.test', mail: pendingReportMail() });
     function worker(transport) {
         const w = createReportMailer({ models: [Model, Other], secret: 'test-key', transport: { close() {}, ...transport } });
         workers.push(w); return w;

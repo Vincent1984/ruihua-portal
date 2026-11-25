@@ -1,5 +1,7 @@
 # 报告自动邮件
 
+最新的单条发送、完整历史与批量补发能力见 [报告发送与历史追踪](report-delivery-history.md)。以下保留初版邮件接入说明。
+
 ## 行为
 
 - `/api/nqoc/whitepaper/apply` 和 `/api/nqoc/reports/apply` 成功保存时，将待发送状态一并写入记录。

@@ -8,6 +8,8 @@
  */
 
 const { pendingReportMail, reportMailAllowed, reportLink } = require('../../utils/reportMail');
+const { Delivery, reportFor, queueManual, historyFor, summariesFor } = require('../../utils/reportDelivery');
+const { messageFor, deliveryLink, runtimeSecret } = require('../../utils/reportMail');
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
@@ -393,6 +395,9 @@ function buildLeadQuery(req) {
         const rx = { $regex: escapeRegex(q), $options: 'i' };
         query.$or = [{ name: rx }, { company: rx }, { phone: rx }, { email: rx }, { position: rx }];
     }
+    const mailStatus = String(req.query.mailStatus || '');
+    if (mailStatus === 'none') query['mail.status'] = { $exists: false };
+    else if (['pending', 'sending', 'accepted', 'failed', 'uncertain', 'cancelled'].includes(mailStatus)) query['mail.status'] = mailStatus;
     return { query, range, keyword: q, inBin };
 }
 
@@ -832,6 +837,7 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
                 .concat(legacyLeads.map(serializeLegacyWhitepaperLead))
                 .sort(sortLeadsByCreatedAtDesc);
 
+            await summariesFor(merged);
             res.json({
                 leads: merged,
                 total: merged.length,
@@ -960,24 +966,98 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
         }
     });
 
-    router.post('/admin/nqoc/report-leads/:id/send-email', authRequired, csrfGuard, requirePerm('nqoc-report-leads:send'), async (req, res) => {
+    router.post('/admin/nqoc/report-leads/email-batch-preview', authRequired, csrfGuard, requirePerm('nqoc-report-leads:batch-send'), async (req, res) => {
+        try { return res.json(await require('../../utils/reportDeliveryBatch').previewBatch(req.body.ids, req.user?.username || String(req.user?.id || '未知操作人'), String(req.user?.id || ''))); }
+        catch (e) { return deliveryError(res, e); }
+    });
+    router.post('/admin/nqoc/report-leads/email-batches', authRequired, csrfGuard, requirePerm('nqoc-report-leads:batch-send'), async (req, res) => {
         try {
             if (process.env.REPORT_MAIL_ENABLED !== 'true' || !process.env.SMTP_PASS) return res.status(503).json({ error: '邮件服务尚未启用' });
-            const legacy = req.params.id.startsWith('whitepaper-');
-            const id = legacy ? req.params.id.slice(11) : req.params.id;
-            if (!/^[a-f0-9]{24}$/i.test(id)) return res.status(400).json({ error: '记录编号无效' });
-            const Model = legacy ? NqocWhitepaperRequest : NqocReportLead;
-            const lead = await Model.findById(id);
-            if (!lead) return res.status(404).json({ error: '记录不存在' });
-            if (lead.deletedAt) return res.status(400).json({ error: '该记录在回收站中，请先恢复后再发送' });
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.email)) return res.status(400).json({ error: '邮箱格式不正确' });
-            const mail = pendingReportMail(legacy ? undefined : lead.reportSlug);
-            if (!mail) return res.status(400).json({ error: '该报告尚未配置邮件发送' });
-            const updated = await Model.findOneAndUpdate({ _id: id, 'mail.status': { $nin: ['pending', 'sending'] } }, { $set: { mail } }, { new: true });
-            if (!updated) return res.status(409).json({ error: '邮件已在发送队列中' });
-            await logOp('update', '报告邮件', `加入发送队列：${req.params.id}`, req.user && req.user.username);
+            return res.status(202).json(await require('../../utils/reportDeliveryBatch').submitBatch(req.body, req.user?.username || String(req.user?.id || '未知操作人'), String(req.user?.id || '')));
+        } catch (e) { return deliveryError(res, e); }
+    });
+    router.get('/admin/nqoc/report-leads/email-batches/:key', authRequired, requirePerm('nqoc-report-leads:batch-send'), async (req, res) => {
+        try { return res.json(await require('../../utils/reportDeliveryBatch').batchResult(req.params.key)); }
+        catch (e) { return deliveryError(res, e); }
+    });
+
+    async function deliveryLead(rawId, allowDeleted = false) {
+        const legacy = String(rawId).startsWith('whitepaper-');
+        const id = legacy ? rawId.slice(11) : rawId;
+        if (!/^[a-f0-9]{24}$/i.test(id)) throw Object.assign(new Error('记录编号无效'), { status: 400 });
+        const Model = legacy ? NqocWhitepaperRequest : NqocReportLead;
+        const lead = await Model.findById(id);
+        if (!lead) throw Object.assign(new Error('记录不存在'), { status: 404 });
+        if (!allowDeleted && lead.deletedAt) throw Object.assign(new Error('该记录在回收站中，请先恢复后再发送'), { status: 400 });
+        return { Model, lead };
+    }
+    function deliveryError(res, e) {
+        if (e.status) return res.status(e.status).json({ error: e.message });
+        return sendInternalError(res, 'Report delivery error:', e);
+    }
+    router.get('/admin/nqoc/report-leads/:id/email-preview', authRequired, requireAnyPerm(['nqoc-report-leads:send', 'nqoc-report-leads:resend']), async (req, res) => {
+        try {
+            const { Model, lead } = await deliveryLead(req.params.id);
+            const report = reportFor(Model, lead);
+            const history = await historyFor(Model, lead);
+            const message = messageFor({ email: lead.email }, '', true);
+            res.json({ name: lead.name, email: lead.email, reportSlug: report.slug, reportTitle: report.title,
+                reportVersion: report.updatedAt || report.publishDate, sender: process.env.SMTP_USER, subject: message.subject, text: message.text,
+                hasPrevious: history.total > 0, acceptedCount: history.acceptedCount, busy: ['pending', 'sending'].includes(lead.mail?.status),
+                enabled: process.env.REPORT_MAIL_ENABLED === 'true' && !!process.env.SMTP_PASS });
+        } catch (e) { return deliveryError(res, e); }
+    });
+    router.get('/admin/nqoc/report-leads/:id/email-history', authRequired, requirePerm('nqoc-report-leads:list'), async (req, res) => {
+        try {
+            const { Model, lead } = await deliveryLead(req.params.id, true);
+            const page = Math.min(10000, Math.max(1, parseInt(req.query.page, 10) || 1));
+            return res.json(await historyFor(Model, lead, page));
+        } catch (e) { return deliveryError(res, e); }
+    });
+    const requestDelivery = isResend => async (req, res) => {
+        try {
+            if (process.env.REPORT_MAIL_ENABLED !== 'true' || !process.env.SMTP_PASS) return res.status(503).json({ error: '邮件服务尚未启用' });
+            const { Model, lead } = await deliveryLead(req.params.id);
+            const identical = await Delivery.findOne({ source: Model.modelName, leadId: String(lead._id), requestKey: req.body.requestKey || '' });
+            if (identical) return res.status(202).json({ success: true, jobId: String(identical._id), status: identical.status });
+            const previous = await historyFor(Model, lead);
+            if (!!previous.total !== isResend && lead.mail?.requestKey !== req.body.requestKey) {
+                return res.status(409).json({ error: '发送记录已变化，请重新打开确认窗口' });
+            }
+            const job = await queueManual(Model, lead, { ...req.body, origin: 'manual', batchId: undefined, requestedBy: req.user?.username || String(req.user?.id || '未知操作人'), requestedById: String(req.user?.id || '') });
+            return res.status(202).json({ success: true, jobId: String(job._id), status: job.status });
+        } catch (e) { return deliveryError(res, e); }
+    };
+    router.post('/admin/nqoc/report-leads/:id/send-email', authRequired, csrfGuard, requirePerm('nqoc-report-leads:send'), requestDelivery(false));
+    router.post('/admin/nqoc/report-leads/:id/resend-email', authRequired, csrfGuard, requirePerm('nqoc-report-leads:resend'), requestDelivery(true));
+    router.post('/admin/nqoc/report-leads/:id/cancel-email', authRequired, csrfGuard, requireAnyPerm(['nqoc-report-leads:send', 'nqoc-report-leads:resend']), async (req, res) => {
+        try {
+            const { Model, lead } = await deliveryLead(req.params.id, true);
+            await historyFor(Model, lead);
+            const cancelled = await Model.findOneAndUpdate({ _id: lead._id, 'mail.status': 'pending', 'mail.jobId': req.body.jobId }, { $set: { 'mail.status': 'cancelled', 'mail.lastError': '管理员取消待发任务' } }, { new: true });
+            if (!cancelled) return res.status(409).json({ error: '仅能取消尚未开始发送的任务' });
+            await require('../../utils/reportDelivery').ensureDelivery(Model, cancelled);
             return res.json({ success: true });
-        } catch (e) { return sendInternalError(res, 'Queue report email error:', e); }
+        } catch (e) { return deliveryError(res, e); }
+    });
+    router.get('/nqoc/report-deliveries/:id/download', rateLimit({ windowMs: 10 * 60 * 1000, max: 60, standardHeaders: true, legacyHeaders: false, handler: (req, res) => res.redirect(302, REPORT_EXPIRED_PATH) }), async (req, res) => {
+        try {
+            const id = req.params.id, exp = Number(req.query.exp), sig = String(req.query.sig || '');
+            if (!/^[a-f0-9]{24}$/i.test(id) || !Number.isFinite(exp) || exp <= Date.now()) return res.redirect(302, REPORT_EXPIRED_PATH);
+            const expected = new URL(deliveryLink(runtimeSecret(), id, exp)).searchParams.get('sig');
+            if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return res.redirect(302, REPORT_EXPIRED_PATH);
+            const job = await Delivery.findById(id);
+            if (!job || !['accepted', 'sending', 'uncertain'].includes(job.status) || new Date(job.linkExpiresAt).getTime() !== exp) return res.redirect(302, REPORT_EXPIRED_PATH);
+            const Model = job.source === 'NqocWhitepaperRequest' ? NqocWhitepaperRequest : NqocReportLead;
+            const lead = await Model.findOne({ _id: job.leadId, deletedAt: null });
+            if (!lead) return res.redirect(302, REPORT_EXPIRED_PATH);
+            if (Model === NqocReportLead) {
+                const now = new Date();
+                await Model.updateOne({ _id: lead._id, firstReportOpenAt: null }, { $set: { firstReportOpenAt: now } });
+                await Model.updateOne({ _id: lead._id }, { $inc: { reportOpenCount: 1 }, $set: { lastReportOpenAt: now } });
+            }
+            return res.redirect(302, reportLink(runtimeSecret(), Math.min(exp, Date.now() + 30 * 60 * 1000)));
+        } catch (e) { return res.redirect(302, REPORT_EXPIRED_PATH); }
     });
 
     // 删除 = 移入回收站（软删）：保留 NQOC_LEAD_TRASH_RETENTION_DAYS（默认 30）天，到期由 MongoDB TTL 物理清除
@@ -1002,6 +1082,9 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
                 if (existing && existing.deletedAt) return res.json({ success: true, alreadyInBin: true });
                 return res.status(404).json({ error: '记录不存在' });
             }
+            const cancelledMail = await Model.findOneAndUpdate({ _id: doc._id, 'mail.status': 'pending' }, { $set: { 'mail.status': 'cancelled', 'mail.lastError': '记录已移入回收站' } }, { new: true });
+            if (cancelledMail) await require('../../utils/reportDelivery').ensureDelivery(Model, cancelledMail);
+            await Delivery.updateMany({ source: Model.modelName, leadId: String(doc._id) }, { $set: { purgeAt: doc.purgeAt } });
             await logOp('delete', '新质组织-报告领取记录', `移入回收站：${doc.name || ''} ${doc.company || ''}（${doc.phone || ''}），保留 ${days} 天`, req.user && req.user.username);
             res.json({ success: true });
         } catch (e) {
@@ -1022,6 +1105,7 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             if (!doc.deletedAt) return res.json({ success: true, alreadyActive: true });
             if (doc.purgeAt && doc.purgeAt.getTime() <= Date.now()) return res.status(410).json({ error: '该记录已过保留期，无法恢复' });
             await Model.updateOne({ _id: doc._id }, { $set: { deletedAt: null, deletedBy: '', purgeAt: null } });
+            await Delivery.updateMany({ source: Model.modelName, leadId: String(doc._id) }, { $set: { purgeAt: null } });
             await logOp('restore', '新质组织-报告领取记录', `从回收站恢复：${doc.name || ''} ${doc.company || ''}（${doc.phone || ''}）`, req.user && req.user.username);
             res.json({ success: true });
         } catch (e) {
@@ -1039,6 +1123,7 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             const Model = legacy ? NqocWhitepaperRequest : NqocReportLead;
             const doc = await Model.findOneAndDelete({ _id: rawId, deletedAt: { $ne: null } }).catch(() => null);
             if (!doc) return res.status(404).json({ error: '回收站中没有该记录' });
+            await Delivery.deleteMany({ source: Model.modelName, leadId: String(doc._id) });
             await logOp('delete', '新质组织-报告领取记录', `彻底删除：${doc.name || ''} ${doc.company || ''}（${doc.phone || ''}）`, req.user && req.user.username);
             res.json({ success: true });
         } catch (e) {
@@ -1084,7 +1169,7 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             }
             const lead = await NqocReportLead.create({
                 name, phone, company, position, email,
-                mail: process.env.REPORT_MAIL_ENABLED === 'true' && report ? pendingReportMail(report.slug) : undefined,
+                mail: process.env.REPORT_MAIL_ENABLED === 'true' && report ? pendingReportMail(report.slug, { recipient: email }) : undefined,
                 reportSlug: report ? report.slug : '',
                 reportTitle: report ? report.title : '',
                 sourcePage

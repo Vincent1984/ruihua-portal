@@ -11,6 +11,7 @@ const NqocInsight = require('../models/NqocInsight');
 const NqocCase = require('../models/NqocCase');
 const NqocVideo = require('../models/NqocVideo');
 const NqocReportLead = require('../models/NqocReportLead');
+const NqocWhitepaperRequest = require('../models/NqocWhitepaperRequest');
 const { verifyOpenToken } = require('../utils/reportMail');
 
 const ROOT = path.join(__dirname, '..');
@@ -685,6 +686,12 @@ function initNqocFrontend(app, options = {}) {
             const data = verifyOpenToken(reportPdfSecret, req.query.t);
             if (!data) return expired();
             const lead = await NqocReportLead.findById(data.i).lean().catch(() => null);
+            if (!lead) {
+                const legacy = await NqocWhitepaperRequest.findById(data.i).lean().catch(() => null);
+                if (!legacy || legacy.deletedAt) return expired();
+                const exp = Date.now() + 30 * 60 * 1000;
+                return res.redirect(302, `/nqoc/report-2026.pdf?exp=${exp}&sig=${reportPdfSignature(exp)}`);
+            }
             if (!lead || lead.deletedAt) return expired();
             const now = new Date();
             await NqocReportLead.updateOne({ _id: lead._id, firstReportOpenAt: null }, { $set: { firstReportOpenAt: now } });

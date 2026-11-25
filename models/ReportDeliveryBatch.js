@@ -1,0 +1,8 @@
+const mongoose = require('mongoose');
+const schema = new mongoose.Schema({
+    _id: String, requestedBy: { type: String, required: true }, requestedById: { type: String, default: '' }, reason: String,
+    status: { type: String, enum: ['pending', 'processing', 'completed', 'interrupted'], default: 'pending' }, lockedUntil: Date,
+    items: [{ _id: false, id: String, expectedEmail: String, reportSlug: String, reportVersion: String }],
+    results: [{ _id: false, id: String, status: String, jobId: String, message: String }]
+}, { timestamps: true });
+module.exports = mongoose.model('ReportDeliveryBatch', schema);
