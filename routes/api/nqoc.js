@@ -7,12 +7,10 @@
  * 字段与规则以 handoff/docs/数据模型与接口.md 为准，服务端独立再校验一遍。
  */
 
+const { pendingReportMail, reportMailAllowed, reportLink } = require('../../utils/reportMail');
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
-const axios = require('axios');
 const xss = require('xss');
 const ExcelJS = require('exceljs');
 const rateLimit = require('express-rate-limit');
@@ -148,6 +146,7 @@ function serializeLegacyWhitepaperLead(doc) {
         company: o.company || '',
         position: o.position || '',
         email: o.email || '',
+        mail: o.mail || null,
         reportSlug: '',
         reportTitle: createdAt && createdAt.getTime() >= WHITEPAPER_DOWNLOAD_FROM ? '白皮书下载' : '白皮书预约',
         sourcePage: '/nqoc/whitepaper-apply',
@@ -475,20 +474,6 @@ function verifyReportToken(token) {
 
 function findReportConfig(slug) {
     return REPORTS.find(r => r.slug === slug) || null;
-}
-
-// fileUrl 既可能是私有对象存储地址，也可能是站内相对路径；统一读成 Buffer。
-async function readReportBuffer(fileUrl) {
-    const target = String(fileUrl || '').trim();
-    if (!target) return null;
-    if (/^https?:\/\//i.test(target)) {
-        const resp = await axios.get(target, { responseType: 'arraybuffer', timeout: 30000 });
-        return Buffer.from(resp.data);
-    }
-    const root = path.join(__dirname, '..', '..', 'public');
-    const abs = path.resolve(root, target.replace(/^\/+/, ''));
-    if (!abs.startsWith(root + path.sep)) return null;   // 防止越出 public
-    return fs.readFileSync(abs);
 }
 
 /* ------------------------------- 路由注册 ------------------------------- */
@@ -954,6 +939,25 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
         }
     });
 
+    router.post('/admin/nqoc/report-leads/:id/send-email', authRequired, csrfGuard, requirePerm('nqoc-report-leads:send'), async (req, res) => {
+        try {
+            if (process.env.REPORT_MAIL_ENABLED !== 'true' || !process.env.SMTP_PASS) return res.status(503).json({ error: '邮件服务尚未启用' });
+            const legacy = req.params.id.startsWith('whitepaper-');
+            const id = legacy ? req.params.id.slice(11) : req.params.id;
+            if (!/^[a-f0-9]{24}$/i.test(id)) return res.status(400).json({ error: '记录编号无效' });
+            const Model = legacy ? NqocWhitepaperRequest : NqocReportLead;
+            const lead = await Model.findById(id);
+            if (!lead) return res.status(404).json({ error: '记录不存在' });
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.email)) return res.status(400).json({ error: '邮箱格式不正确' });
+            const mail = pendingReportMail(legacy ? undefined : lead.reportSlug);
+            if (!mail) return res.status(400).json({ error: '该报告尚未配置邮件发送' });
+            const updated = await Model.findOneAndUpdate({ _id: id, 'mail.status': { $nin: ['pending', 'sending'] } }, { $set: { mail } }, { new: true });
+            if (!updated) return res.status(409).json({ error: '邮件已在发送队列中' });
+            await logOp('update', '报告邮件', `加入发送队列：${req.params.id}`, req.user && req.user.username);
+            return res.json({ success: true });
+        } catch (e) { return sendInternalError(res, 'Queue report email error:', e); }
+    });
+
     router.delete('/admin/nqoc/report-leads/:id', authRequired, csrfGuard, requirePerm('nqoc-report-leads:delete'), async (req, res) => {
         try {
             const id = String(req.params.id || '');
@@ -983,7 +987,7 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             const name = trimStr(body.name, 30);
             const company = trimStr(body.company, 60);
             const position = trimStr(body.position, 40);
-            const email = trimStr(body.email, 100);
+            const email = trimStr(body.email, 100).toLowerCase();
             const phone = trimStr(body.phone, 20).replace(/[\s-]/g, '');
 
             const missing = [];
@@ -1004,8 +1008,12 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             if (recent) return res.status(429).json({ success: false, error: '提交过于频繁，请稍后再试' });
 
             const report = pickReport(body.reportSlug);
+            if (process.env.REPORT_MAIL_ENABLED === 'true' && !await reportMailAllowed(email, [NqocReportLead, NqocWhitepaperRequest])) {
+                return res.status(429).json({ success: false, error: '该邮箱今日已申请多次，请查看邮箱或稍后再试' });
+            }
             const lead = await NqocReportLead.create({
                 name, phone, company, position, email,
+                mail: process.env.REPORT_MAIL_ENABLED === 'true' && report ? pendingReportMail(report.slug) : undefined,
                 reportSlug: report ? report.slug : '',
                 reportTitle: report ? report.title : '',
                 sourcePage
@@ -1035,21 +1043,13 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             const report = findReportConfig(lead.reportSlug || data.s);
             if (!report || !report.fileUrl) return res.redirect(302, REPORT_EXPIRED_PATH);
 
-            const buffer = await readReportBuffer(report.fileUrl);
-            if (!buffer || !buffer.length) return res.redirect(302, REPORT_EXPIRED_PATH);
-
-            const title = report.title || lead.reportTitle || '研究报告';
-            res.setHeader('Content-Type', 'application/pdf');
-            res.setHeader('Content-Disposition', `inline; filename="${report.slug || 'report'}.pdf"; filename*=UTF-8''${encodeURIComponent(title)}.pdf`);
-            res.setHeader('Cache-Control', 'private, no-store');
-            res.setHeader('X-Robots-Tag', 'noindex');
-            res.setHeader('Content-Length', buffer.length);
-            res.end(buffer);
-
             await NqocReportLead.updateOne(
                 { _id: lead._id },
                 { $inc: { downloadCount: 1 }, $set: { lastDownloadedAt: new Date() } }
             );
+            const secret = process.env.JWT_SECRET || process.env.SECRET_KEY || crypto.createHash('sha256')
+                .update(`ruihua-jwt-fallback-v1:${process.env.MONGODB_URL || process.env.DB_HOST || 'ruihua-local'}`).digest('hex');
+            return res.redirect(302, reportLink(secret, Date.now() + 30 * 60 * 1000));
         } catch (e) {
             console.error('Nqoc report download error:', e.message || e);
             if (!res.headersSent) return res.redirect(302, REPORT_EXPIRED_PATH);

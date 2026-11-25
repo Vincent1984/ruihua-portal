@@ -274,6 +274,11 @@
             (!q || [l.name, l.company, l.phone, l.email, l.position].map(v => String(v || '')).join(' ').toLowerCase().includes(q)))
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
+    function nqMailStatus(lead) {
+        const mail = lead.mail || {};
+        const labels = { pending: '待发送', sending: '发送中', accepted: '邮件服务已接收', failed: '发送失败', uncertain: '结果待核实' };
+        return `<div>${esc(labels[mail.status] || '未安排发送')}</div>${mail.acceptedAt ? `<div class="sub">${shortDateTime(mail.acceptedAt)}</div>` : ''}${mail.lastError ? `<div class="sub">${esc(mail.lastError)}</div>` : ''}`;
+    }
     function renderNqLeads() {
         const rows = nqLeadRows(), total = nqLeads.length, now = Date.now();
         const between = (from, to) => nqLeads.filter(l => { const t = now - new Date(l.createdAt).getTime(); return t >= from && t < to; }).length;
@@ -297,11 +302,12 @@
               <td><div>${esc(l.company)}</div><div class="sub">${esc(l.position)}</div></td>
               <td style="word-break:break-all">${esc(l.email)}</td>
               <td>${esc(l.reportTitle)}</td>
+              <td>${nqMailStatus(l)}</td>
               <td><div class="sub" style="word-break:break-all">${esc(l.sourcePage)}</div></td>
               <td><div>${ago(l.createdAt)}</div><div class="sub">${shortDateTime(l.createdAt)}</div></td>
-              <td><button type="button" data-action="delete-lead" data-id="${esc(l.id)}" data-permission="nqoc-report-leads:delete">删除</button></td>
+              <td>${!['pending', 'sending'].includes(l.mail?.status) ? `<button type="button" data-action="send-lead-email" data-id="${esc(l.id)}" data-permission="nqoc-report-leads:send">${l.mail?.status ? '重发邮件' : '发送邮件'}</button>` : ''}<button type="button" data-action="delete-lead" data-id="${esc(l.id)}" data-permission="nqoc-report-leads:delete">删除</button></td>
             </tr>`;
-        }).join('') : '<tr><td colspan="8" class="empty-cell"><b>没有符合条件的记录</b>换个筛选条件试试</td></tr>';
+        }).join('') : '<tr><td colspan="9" class="empty-cell"><b>没有符合条件的记录</b>换个筛选条件试试</td></tr>';
         $('nqLeadCount').textContent = `共 ${rows.length} 条记录${rows.length !== total ? `（总计 ${total} 条）` : ''}`;
         nqSyncFilterUi('nqoc-report-leads');
         nqApplyPerms($('nqLeadRows').closest('table'));
@@ -314,7 +320,7 @@
             nqLeadDup = (data.stats && data.stats.duplicatePhones) || {};
             renderNqLeads();
         } catch (e) {
-            $('nqLeadRows').innerHTML = `<tr><td colspan="8" class="empty-cell">${esc(e.message)}</td></tr>`;
+            $('nqLeadRows').innerHTML = `<tr><td colspan="9" class="empty-cell">${esc(e.message)}</td></tr>`;
         }
     }
     async function nqExportLeads() {
@@ -640,6 +646,15 @@
             nqSyncUrl(view);
         },
         export: () => nqExportLeads(),
+        'send-lead-email': async (t, id) => {
+            const lead = (nqLeads || []).find(l => String(l.id) === String(id));
+            if (!lead || !confirm(`确认向 ${lead.email} 发送报告邮件？如曾发送，收件人将再次收到邮件。`)) return;
+            try {
+                await json(`${API}/report-leads/${encodeURIComponent(id)}/send-email`, { method: 'POST', headers: authHeaders() });
+                await loadLeads();
+                toast('邮件已加入发送队列，请稍后刷新查看状态');
+            } catch (e) { toast(e.message); }
+        },
         'delete-lead': async (t, id) => {
             const lead = (nqLeads || []).find(l => String(l.id) === String(id));
             if (!lead) return;

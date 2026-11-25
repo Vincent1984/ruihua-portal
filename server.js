@@ -27,6 +27,7 @@ const helmet = require('helmet');
 const Appointment = require('./models/Appointment');
 const { generateDailyExternalId, saveWithUniqueExternalId } = require('./utils/dailyExternalId');
 const Article = require('./models/Article');
+const NqocReportLead = require('./models/NqocReportLead');
 const ArticleHistory = require('./models/ArticleHistory');
 const FAQ = require('./models/Faq');
 const OperationLog = require('./models/OperationLog');
@@ -55,6 +56,9 @@ const domainNormalizer = require('./middleware/domainNormalizer');
 const legacyRedirects = require('./middleware/legacyRedirects');
 const { gatherPermissions } = require('./middleware/adminPageAuth');
 const { PERMISSION_GROUPS, PERMISSION_CODES, validatePermissions, normalizePermissions } = require('./config/permissions');
+
+const { pendingReportMail, reportMailAllowed, createReportMailer } = require('./utils/reportMail');
+let reportMailer = null;
 
 const app = express();
 app.disable('x-powered-by');
@@ -1754,6 +1758,11 @@ mongoose.connect(mongoUrl)
         console.log('MongoDB Connected to:', mongoUrl);
         try { await rebuildLLMsTxt(); } catch {}
         // 数据库就绪后再监听端口，避免连接未就绪时请求堆积超时
+        if (process.env.REPORT_MAIL_ENABLED === 'true' && process.env.SMTP_USER && process.env.SMTP_PASS) {
+            reportMailer = createReportMailer({ models: [NqocReportLead, NqocWhitepaperRequest], secret: RUNTIME_SECRET_KEY });
+            reportMailer.start();
+            console.log('[ReportMail] Automatic report emails enabled');
+        }
         startServer();
     })
     .catch(err => {
@@ -2530,9 +2539,11 @@ app.get('/api/nqoc/awards/shortlisted', async (req, res) => {
 // --- NQOC Whitepaper Request API ---
 const NqocWhitepaperRequest = require('./models/NqocWhitepaperRequest');
 
-app.post('/api/nqoc/whitepaper/apply', async (req, res) => {
+const reportApplyLimiter = rateLimit({ windowMs: 10 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });
+app.post('/api/nqoc/whitepaper/apply', reportApplyLimiter, async (req, res) => {
     try {
-        const { name, phone, email, company, position } = req.body;
+        const { name, phone, company, position } = req.body;
+        const email = String(req.body.email || '').trim().toLowerCase();
         
         if (!name || !phone || !email || !company || !position) {
             return res.status(400).json({ success: false, error: '请填写所有必填项' });
@@ -2542,8 +2553,14 @@ app.post('/api/nqoc/whitepaper/apply', async (req, res) => {
             return res.status(400).json({ success: false, error: '手机号格式不正确' });
         }
 
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ success: false, error: '邮箱格式不正确' });
+
+        if (process.env.REPORT_MAIL_ENABLED === 'true' && !await reportMailAllowed(email, [NqocReportLead, NqocWhitepaperRequest])) {
+            return res.status(429).json({ success: false, error: '该邮箱今日已申请多次，请查看邮箱或稍后再试' });
+        }
         const newRequest = new NqocWhitepaperRequest({
-            name, phone, email, company, position
+            name, phone, email, company, position,
+            mail: process.env.REPORT_MAIL_ENABLED === 'true' ? pendingReportMail() : undefined
         });
 
         await newRequest.save();
@@ -5956,6 +5973,7 @@ function gracefulShutdown(signal) {
     forceExitTimer.unref();
 
     const closeDbAndExit = async () => {
+        if (reportMailer) reportMailer.stop();
         if (tosClient) tosClient.destroy();
         try {
             await mongoose.connection.close();
