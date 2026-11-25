@@ -783,13 +783,13 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             const day7 = new Date(Date.now() - 7 * 24 * 3600 * 1000);
             const day30 = new Date(Date.now() - 30 * 24 * 3600 * 1000);
 
-            // 手机号去重看板：按手机号聚合出「最后一次提交时间」，两个来源合并后在内存去重。
-            const phoneGroups = model => model.aggregate([
-                { $match: { phone: { $exists: true, $nin: [null, ''] } } },
-                { $group: { _id: '$phone', last: { $max: '$createdAt' } } }
+            // 领取人数看板：按姓名聚合出「最后一次提交时间」，两个来源合并后在内存去重。
+            const nameGroups = model => model.aggregate([
+                { $match: { name: { $exists: true, $nin: [null, ''] } } },
+                { $group: { _id: '$name', last: { $max: '$createdAt' } } }
             ]);
 
-            const [leads, legacyLeads, today, todayWp, week7, week7Wp, all, allWp, companies, wpCompanies, leadPhones, wpPhones] = await Promise.all([
+            const [leads, legacyLeads, today, todayWp, week7, week7Wp, all, allWp, companies, wpCompanies, leadNames, wpNames] = await Promise.all([
                 NqocReportLead.find(query).sort({ createdAt: -1 }).limit(5000),
                 NqocWhitepaperRequest.find(query).sort({ createdAt: -1 }).limit(5000),
                 NqocReportLead.countDocuments({ createdAt: { $gte: startOfDay } }),
@@ -800,24 +800,24 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
                 NqocWhitepaperRequest.countDocuments({}),
                 NqocReportLead.distinct('company'),
                 NqocWhitepaperRequest.distinct('company'),
-                phoneGroups(NqocReportLead),
-                phoneGroups(NqocWhitepaperRequest)
+                nameGroups(NqocReportLead),
+                nameGroups(NqocWhitepaperRequest)
             ]);
 
-            // 统一成纯数字再比，避免历史数据里的空格 / 横线造成同号不同键。
-            const phoneLast = new Map();
-            const mergePhone = row => {
-                const key = String(row._id || '').replace(/\D/g, '') || String(row._id || '').trim();
+            // 去掉空白再比，避免同一姓名带空格 / 全角空格造成重复计数。
+            const nameLast = new Map();
+            const mergeName = row => {
+                const key = String(row._id || '').replace(/\s+/g, '');
                 if (!key) return;
                 const t = row.last ? new Date(row.last).getTime() : 0;
-                if (!phoneLast.has(key) || t > phoneLast.get(key)) phoneLast.set(key, t);
+                if (!nameLast.has(key) || t > nameLast.get(key)) nameLast.set(key, t);
             };
-            leadPhones.forEach(mergePhone);
-            wpPhones.forEach(mergePhone);
-            const uniqueTotal = phoneLast.size;
+            leadNames.forEach(mergeName);
+            wpNames.forEach(mergeName);
+            const uniqueTotal = nameLast.size;
             const uniqueSince = cutoff => {
                 let n = 0;
-                phoneLast.forEach(t => { if (t >= cutoff) n += 1; });
+                nameLast.forEach(t => { if (t >= cutoff) n += 1; });
                 return n;
             };
             const recordsTotal = all + allWp;
@@ -834,12 +834,12 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
                     week7: week7 + week7Wp,
                     all: all + allWp,
                     companies: new Set(companies.concat(wpCompanies).filter(Boolean)).size,
-                    uniquePhones: {
+                    uniqueNames: {
                         all: uniqueTotal,
                         today: uniqueSince(startOfDay),
                         week7: uniqueSince(day7),
                         month30: uniqueSince(day30),
-                        // 人均领取次数：总记录数 ÷ 去重手机号数，越大说明重复提交越多
+                        // 人均领取次数：总记录数 ÷ 去重姓名数，越大说明重复提交越多
                         avg: uniqueTotal ? Number((recordsTotal / uniqueTotal).toFixed(2)) : 0
                     }
                 }
