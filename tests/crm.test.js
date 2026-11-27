@@ -8,6 +8,7 @@ const Admin = require('../models/admin');
 const Role = require('../models/Role');
 const Appointment = require('../models/Appointment');
 const Report = require('../models/NqocReportLead');
+const LegacyReport = require('../models/NqocWhitepaperRequest');
 const MailContact = require('../models/ReportMailContact');
 const { Lead, Contact, Company, Event, Opportunity, Activity } = require('../models/crm');
 const { syncOnce, phoneKey, companyKey } = require('../utils/crmIntake');
@@ -72,6 +73,18 @@ const uri = process.env.CRM_TEST_MONGO;
         assert.equal(result.body.events.length, 3);
         assert.equal(result.body.events.some(event => event.report?.opens === 1), true);
         assert.equal((await call('get', '/contacts/' + contact.id, outsider)).status, 404);
+    });
+    it('includes historical whitepaper applications in the report source filter and totals', async function () {
+        await LegacyReport.create({ ...contactData, position: 'HR' });
+        assert.equal(await syncOnce(), 1);
+        const allReports = await call('get', '/leads?source=report');
+        assert.equal(allReports.status, 200);
+        assert.equal(allReports.body.total, 2);
+        assert.deepEqual(allReports.body.rows.map(row => row.source).sort(), ['legacy-whitepaper', 'report']);
+        assert.equal((await call('get', '/leads?source=legacy-whitepaper')).body.total, 1);
+        const sourceTotals = (await call('get', '/dashboard')).body.sources;
+        assert.equal(sourceTotals.find(row => row._id === 'report').count, 2);
+        assert.equal(sourceTotals.some(row => row._id === 'legacy-whitepaper'), false);
     });
     it('routes conflicting identities to manual review without silently merging', async function () {
         await Contact.create({ name: '另一位联系人', email: 'different@example.test', emailKey: 'different@example.test' });

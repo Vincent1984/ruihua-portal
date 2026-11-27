@@ -8,7 +8,7 @@
         leads: { new: '待处理', working: '跟进中', converted: '已转商机', closed: '已关闭' },
         opportunities: { demand: '需求确认', proposal: '方案沟通', quote: '报价谈判', won: '赢单', lost: '输单' }
     };
-    const sources = { appointment: '官网预约', report: '报告领取', 'legacy-whitepaper': '新质组织白皮书', whitepaper: '官网白皮书',
+    const sources = { appointment: '官网预约', report: '报告领取', 'legacy-whitepaper': '历史白皮书领取', whitepaper: '官网白皮书',
         survey: '新质组织调研', manual: '日常录入', event: '线下活动', referral: '转介绍', inbound: '来电 / 来访' };
     const channels = { phone: '电话', wechat: '微信', email: '邮件', meeting: '会议', other: '其他',
         assign: '分配', stage: '阶段变更', convert: '线索转化', create: '创建', merge: '合并', archive: '归档' };
@@ -61,7 +61,7 @@
             ...data.opportunities.filter(row => row.nextAt && new Date(row.nextAt) < new Date(data.end)).map(row => ({ ...row, kind: 'opportunities' }))]
             .sort((a, b) => new Date(a.nextAt) - new Date(b.nextAt));
         const follow = items.map(row => [viewButton(row.kind, row), esc(labels[row.kind]), esc(row.nextStep || '—'), esc(when(row.nextAt)), esc(new Date(row.nextAt) < new Date() ? '逾期' : '今日')]);
-        const arrivals = data.sources.map(row => [esc(sources[row._id] || row._id), String(row.count), String(row.converted)]);
+        const arrivals = data.sources.map(row => [esc(row._id === 'report' ? '报告领取（含历史白皮书）' : sources[row._id] || row._id), String(row.count), String(row.converted)]);
         const pipeline = data.grouped.map(row => [esc(stageLabel('opportunities', row._id)), String(row.count),
             esc(row._id === 'won' || row._id === 'lost' ? '—' : money(row.expected)), esc(row._id === 'won' ? money(row.actual) : '—')]);
         const expected = data.expected
@@ -101,7 +101,7 @@
           <form id="crmFilters" class="crm-filters">
             <label>关键词<input name="q" type="search" maxlength="100" value="${esc(filter.q)}" placeholder="输入名称或联系方式"></label>
             ${stages[kind] ? '<label>阶段<select name="stage">' + options(stages[kind], filter.stage, '全部阶段') + '</select></label>' : ''}
-            ${kind === 'leads' ? '<label>来源<select name="source">' + options(sources, filter.source, '全部来源') + '</select></label>' : ''}
+            ${kind === 'leads' ? '<label>来源<select name="source">' + options({ ...sources, report: '报告领取（含历史白皮书）' }, filter.source, '全部来源') + '</select></label>' : ''}
             ${hasPermission('crm:all') ? '<label>负责人<select name="owner">' + options({ unassigned: '未分配', ...Object.fromEntries(state.owners.map(owner => [owner._id, owner.name])) }, filter.owner, '全部负责人') + '</select></label>' : ''}
             ${kind !== 'companies' ? '<label>标签<input name="tag" value="' + esc(filter.tag) + '" maxlength="32"></label>' : ''}
             ${stages[kind] ? '<label>跟进时间<select name="due">' + options({ overdue: '已逾期', scheduled: '已安排', none: '未安排' }, filter.due, '全部时间') + '</select></label>' : ''}

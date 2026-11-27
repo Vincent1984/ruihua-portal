@@ -70,7 +70,9 @@ function filterFor(req, kind) {
     }
     if (kind === 'leads' && LEAD_STAGES.includes(req.query.stage)) filter.stage = req.query.stage;
     if (kind === 'opportunities' && OPPORTUNITY_STAGES.includes(req.query.stage)) filter.stage = req.query.stage;
-    if (kind === 'leads' && [...SOURCES.map(source => source.key), ...MANUAL_SOURCES].includes(req.query.source)) filter.source = req.query.source;
+    if (kind === 'leads' && [...SOURCES.map(source => source.key), ...MANUAL_SOURCES].includes(req.query.source)) {
+        filter.source = req.query.source === 'report' ? { $in: ['report', 'legacy-whitepaper'] } : req.query.source;
+    }
     if (all(req) && req.query.owner === 'unassigned') filter.ownerId = null;
     if (all(req) && id(req.query.owner)) filter.ownerId = req.query.owner;
     if (kind !== 'companies' && text(req.query.tag, 32)) filter.tags = text(req.query.tag, 32);
@@ -214,7 +216,8 @@ function init(authRequired) {
             Opportunity.aggregate([{ $match: { ...base, ...(all(req) ? {} : { ownerId: new Types.ObjectId(req.user.id) }) } },
                 { $group: { _id: '$stage', count: { $sum: 1 }, expected: { $sum: '$expectedAmount' }, actual: { $sum: '$actualAmount' } } }]),
             Lead.aggregate([{ $match: { ...base, ...(all(req) ? {} : { ownerId: new Types.ObjectId(req.user.id) }) } },
-                { $group: { _id: '$source', count: { $sum: 1 }, converted: { $sum: { $cond: [{ $eq: ['$stage', 'converted'] }, 1, 0] } } } }])
+                { $group: { _id: { $cond: [{ $eq: ['$source', 'legacy-whitepaper'] }, 'report', '$source'] },
+                    count: { $sum: 1 }, converted: { $sum: { $cond: [{ $eq: ['$stage', 'converted'] }, 1, 0] } } } }])
         ]);
         res.json({ leads, opportunities, expected, received, pending, overdue: overdueLeads + overdueOpportunities, unassigned, grouped, sources, end });
     }));
