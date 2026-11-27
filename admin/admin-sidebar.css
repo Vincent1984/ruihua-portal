@@ -123,3 +123,18 @@
   .u-admin-sidebar .u-header-main { gap: 0; }
   .u-admin-sidebar .u-nav-items { display: none; }
 }
+
+/* Shared business pages fill the space beside the sidebar. */
+body .main-content,
+body .main-area {
+  flex: 1 1 0%;
+  min-width: 0;
+  max-width: none;
+}
+body .main-content > .page-content,
+body .main-area > .main-wrap {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+}
