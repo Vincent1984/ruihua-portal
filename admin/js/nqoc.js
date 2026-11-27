@@ -44,7 +44,7 @@
         'nqoc-insights': { q: '', status: '' },
         'nqoc-cases': { q: '', status: '' },
         'nqoc-videos': { q: '', status: '' },
-        'nqoc-report-leads': { q: '', range: '', dup: '', bin: '', mailStatus: '' }
+        'nqoc-report-leads': { q: '', range: '', dup: '', bin: '', mailStatus: '', source: '' }
     };
     const NQ_FILTER_OK = { status: ['', 'draft', 'published', 'archived'], range: ['', '1', '7', '30'], dup: ['', '1'], bin: ['', '1'], mailStatus: ['', 'unsent', 'queued', 'unopened', 'opened', 'failed', 'uncertain'] };
 
@@ -133,7 +133,7 @@
         new URLSearchParams(search == null ? location.search : search).forEach((v, k) => {
             if (!(k in f)) return;
             if (NQ_FILTER_OK[k] && NQ_FILTER_OK[k].indexOf(v) < 0) return;
-            f[k] = v.slice(0, view === 'nqoc-report-leads' ? 100 : 60);
+            f[k] = v.slice(0, k === 'source' ? 300 : view === 'nqoc-report-leads' ? 100 : 60);
         });
     }
 
@@ -288,12 +288,17 @@
         return 'unsent';
     }
 
+    const leadSourceKey = lead => lead.sourcePage || '~';
+    function leadSourceLabel(source) {
+        const labels = { '~': '未记录入口', '/nqoc': '新质组织首页', '/nqoc/reports': '报告中心', '/nqoc/whitepaper-apply': '白皮书领取' };
+        return Object.hasOwn(labels, source) ? labels[source] : source;
+    }
     function nqLeadRows() {
         const f = NQ_FILTERS['nqoc-report-leads'], q = f.q.trim().toLowerCase(), days = +f.range || 0, dupOnly = f.dup === '1';
         if (nqLeadLoadedView !== f.bin) return [];
         const now = Date.now(), offset = 8 * 3600000;
         const cutoff = days === 1 ? Math.floor((now + offset) / DAY) * DAY - offset : days ? now - days * DAY : 0;
-        return nqLeads.filter(l => (!f.mailStatus || nqLeadMailCategory(l) === f.mailStatus) && (!cutoff || new Date(l.createdAt).getTime() >= cutoff) &&
+        return nqLeads.filter(l => (!f.source || leadSourceKey(l) === f.source) && (!f.mailStatus || nqLeadMailCategory(l) === f.mailStatus) && (!cutoff || new Date(l.createdAt).getTime() >= cutoff) &&
             (!dupOnly || !!nqLeadDup[nqPhoneKey(l.phone)]) &&
             (!q || [l.name, l.company, l.phone, l.email, l.position].some(v => String(v || '').toLowerCase().includes(q))));
     }
@@ -389,7 +394,8 @@
         const dup = nqLeadDup[nqPhoneKey(lead.phone)];
         const summary = lead.mailSummary || {};
         const opens = Number(lead.reportOpenCount) || 0;
-        const canResend = ['accepted', 'failed'].includes(mail.status);
+        const canResend = Boolean(mail.status);
+        const isSending = ['pending', 'sending'].includes(mail.status);
         const openText = Number.isFinite(lead.reportOpenCount)
             ? (opens ? `${opens} 次${lead.firstReportOpenAt ? ` · 首次 ${mailDate(lead.firstReportOpenAt)}` : ''}${lead.lastReportOpenAt ? ` · 最近 ${mailDate(lead.lastReportOpenAt)}` : ''}` : '尚未打开')
             : '无统计数据';
@@ -400,23 +406,34 @@
                 <h2>${esc(lead.name)}${dup ? ` <span class="chip featured">重复 ${dup} 次</span>` : ''}${inBin ? ' <span class="chip err">回收站</span>' : ''}</h2>
                 <p class="sub mono">${esc(lead.email)}</p>
               </div>
-              ${inBin ? '' : `<button type="button" class="primary" data-action="send-lead-email" data-id="${esc(lead.id)}" data-permission="${canResend ? 'nqoc-report-leads:resend' : 'nqoc-report-leads:send'}">${mail.status ? '再次发送报告' : '发送报告'}</button>`}
+              <div class="lead-detail-actions">
+                ${lead.email ? '<button type="button" class="btn-sm" data-action="copy-report-email">复制邮箱</button>' : ''}
+                <button type="button" class="btn-sm" data-action="mail-history" data-id="${esc(lead.id)}">发送记录</button>
+                ${inBin || isSending ? '' : `<button type="button" class="primary" data-action="send-lead-email" data-id="${esc(lead.id)}" data-permission="${canResend ? 'nqoc-report-leads:resend' : 'nqoc-report-leads:send'}">${canResend ? '再次发送报告' : '发送报告'}</button>`}
+              </div>
             </div>
+            <div class="lead-detail-grid">
             <section class="lead-detail-card">
-              <h3>领取信息</h3>
+              <h3>申请人信息</h3>
               <dl class="lead-detail-meta">
                 <dt>姓名</dt><dd>${esc(lead.name)}</dd>
                 <dt>手机号码</dt><dd class="mono">${esc(nqPhoneDisplay(lead.phone))}</dd>
-                <dt>公司 / 职位</dt><dd>${esc(lead.company)} · ${esc(lead.position)}</dd>
-                <dt>邮箱</dt><dd>${esc(lead.email)}</dd>
+                <dt>公司</dt><dd>${esc(lead.company || '—')}</dd>
+                <dt>职位</dt><dd>${esc(lead.position || '—')}</dd>
+                <dt>邮箱</dt><dd>${esc(lead.email || '—')}</dd>
+              </dl>
+            </section>
+            <section class="lead-detail-card">
+              <h3>报告与入口</h3>
+              <dl class="lead-detail-meta">
                 <dt>领取的报告</dt><dd>${esc(lead.reportTitle || '—')}</dd>
-                <dt>提交页面</dt><dd>${esc(lead.sourcePage || '—')}</dd>
+                <dt>提交入口</dt><dd>${esc(leadSourceLabel(leadSourceKey(lead)))}${lead.sourcePage && leadSourceLabel(lead.sourcePage) !== lead.sourcePage ? `<span class="sub mono">${esc(lead.sourcePage)}</span>` : ''}</dd>
                 <dt>领取次数</dt><dd>${Number(lead.downloadCount) || 0} 次</dd>
                 <dt>最近领取</dt><dd>${lead.lastDownloadedAt ? mailDate(lead.lastDownloadedAt) : '—'}</dd>
                 <dt>提交时间</dt><dd>${mailDate(lead.createdAt)}</dd>
               </dl>
             </section>
-            <section class="lead-detail-card">
+            <section class="lead-detail-card lead-detail-delivery">
               <h3>邮件投递</h3>
               <dl class="lead-detail-meta">
                 <dt>邮件状态</dt><dd><span class="chip ${nqMailTone(mailCat)}">${esc(LEAD_MAIL_LABELS[mailCat])}</span></dd>
@@ -430,6 +447,7 @@
                 ${mail.messageId ? `<dt>邮件编号</dt><dd class="mono">${esc(mail.messageId)}</dd>` : ''}
               </dl>
             </section>
+            </div>
             <section class="lead-detail-card">
               <h3>发送记录</h3>
               <div id="leadDetailHistory" class="lead-detail-history"><p class="sub">正在加载…</p></div>
@@ -496,7 +514,7 @@
         $('nqLeadPrev').disabled = nqLeadPage <= 1;
         $('nqLeadNext').disabled = nqLeadPage >= totalPages;
         $('nqLeadPage').textContent = `第 ${nqLeadPage} / ${totalPages} 页`;
-        $('nqLeadReset').disabled = ![f.q, f.range, f.mailStatus, f.dup].some(Boolean);
+        $('nqLeadReset').disabled = ![f.q, f.range, f.mailStatus, f.dup, f.source].some(Boolean);
         if (reportMailSelected.size) {
             const matchedIds = new Set(matched.map(lead => lead.id));
             for (const id of reportMailSelected) if (!matchedIds.has(id)) reportMailSelected.delete(id);
@@ -527,23 +545,25 @@
             if (exp) exp.hidden = inBin || !hasPermission('nqoc-report-leads:export');
         }
 
-        $('nqLeadRows').innerHTML = rows.length ? rows.map(l => inBin ? `
-            <tr>
-              <td><div class="person"><a class="lead-name" href="${nqLeadDetailHref(l.id)}">${esc(l.name)}</a>${nqLeadDupChip(l)}</div></td>
-              <td class="mono">${esc(nqPhoneDisplay(l.phone))}</td>
-              <td><div>${esc(l.company)}</div><div class="sub">${esc(l.position)}</div></td>
-              <td><div class="ellip" title="${esc(l.email)}">${esc(l.email)}</div></td>
-              <td><div>${l.deletedAt ? ago(l.deletedAt) : '—'}</div><div class="sub">${l.deletedAt ? shortDateTime(l.deletedAt) : ''}</div></td>
-              <td><span class="chip ${nqLeadBinDays(l) <= 7 ? 'err' : 'idle'}">${nqLeadBinDays(l)} 天</span></td>
-            </tr>` : `
-            <tr>
-              <td><div class="person">${hasPermission('nqoc-report-leads:batch-send') ? `<input class="report-mail-selection" type="checkbox" data-mail-select="${esc(l.id)}" aria-label="选择 ${esc(l.name)} 的报告申请" ${reportMailSelected.has(l.id) ? 'checked' : ''}>` : ''}<a class="lead-name" href="${nqLeadDetailHref(l.id)}">${esc(l.name)}</a>${nqLeadDupChip(l)}</div></td>
-              <td class="mono">${esc(nqPhoneDisplay(l.phone))}</td>
-              <td><div>${esc(l.company)}</div><div class="sub">${esc(l.position)}</div></td>
-              <td><div class="ellip" title="${esc(l.email)}">${esc(l.email)}</div></td>
-              <td>${nqMailStatus(l)}</td>
-              <td><div>${ago(l.createdAt)}</div><div class="sub">${shortDateTime(l.createdAt)}</div></td>
-            </tr>`).join('') : `<tr><td colspan="6" class="empty-cell"><b>${inBin ? '回收站是空的' : '没有符合条件的记录'}</b><p>${inBin ? '删除的记录会在这里保留 30 天' : '换个筛选条件，或清空当前筛选'}</p>${inBin ? '' : '<button type="button" class="btn-sm" data-action="reset-lead-filters">清空筛选</button>'}</td></tr>`;
+        const sources = [...new Set(nqLeads.map(leadSourceKey))].sort((a, b) => leadSourceLabel(a).localeCompare(leadSourceLabel(b), 'zh-CN'));
+        if (f.source && !sources.includes(f.source)) sources.push(f.source);
+        $('nqLeadSource').innerHTML = '<option value="">全部入口</option>' + sources.map(source => `<option value="${esc(source)}">${esc(leadSourceLabel(source))}</option>`).join('');
+        $('nqLeadRows').innerHTML = rows.length ? rows.map(lead => {
+            const href = nqLeadDetailHref(lead.id);
+            const selected = reportMailSelected.has(lead.id);
+            const checkbox = !inBin && hasPermission('nqoc-report-leads:batch-send')
+                ? `<input class="report-mail-selection" type="checkbox" data-mail-select="${esc(lead.id)}" aria-label="选择 ${esc(lead.name)} 的报告申请" ${selected ? 'checked' : ''}>` : '';
+            return `<tr>
+              <td data-label="申请人"><div class="report-record-name">${checkbox}<div><a class="lead-name" href="${href}">${esc(lead.name || '未填写姓名')}</a>${nqLeadDupChip(lead)}</div></div></td>
+              <td data-label="公司 / 职位"><strong>${esc(lead.company || '—')}</strong><div class="sub">${esc(lead.position || '—')}</div></td>
+              <td data-label="联系方式"><div class="report-record-email">${esc(lead.email || '—')}</div><div class="sub mono">${esc(nqPhoneDisplay(lead.phone) || '—')}</div></td>
+              <td data-label="报告 / 入口"><strong>${esc(lead.reportTitle || '—')}</strong><div class="sub">${esc(leadSourceLabel(leadSourceKey(lead)))}</div></td>
+              ${inBin ? `<td data-label="删除时间">${lead.deletedAt ? esc(mailDate(lead.deletedAt)) : '—'}</td>
+              <td data-label="剩余天数"><span class="chip ${nqLeadBinDays(lead) <= 7 ? 'err' : 'idle'}">${nqLeadBinDays(lead)} 天</span></td>`
+                : `<td data-label="邮件状态">${nqMailStatus(lead)}</td><td data-label="提交时间"><div>${lead.createdAt ? ago(lead.createdAt) : '—'}</div><div class="sub">${lead.createdAt ? shortDateTime(lead.createdAt) : ''}</div></td>`}
+              <td class="report-record-actions"><a href="${href}" aria-label="查看 ${esc(lead.name || '申请人')} 的详情">查看详情</a></td>
+            </tr>`;
+        }).join('') : `<tr><td colspan="7" class="empty-cell"><b>${inBin && !total ? '回收站是空的' : '没有符合条件的记录'}</b><p>${inBin && !total ? '删除的记录会在这里保留 30 天' : '换个筛选条件，或清空当前筛选'}</p>${inBin && !total ? '' : '<button type="button" class="btn-sm" data-action="reset-lead-filters">清空筛选</button>'}</td></tr>`;
         $('nqLeadCount').textContent = inBin
             ? `回收站共 ${matched.length} 条记录，到期后自动彻底删除`
             : `共 ${matched.length} 条记录${matched.length !== total ? `（总计 ${total} 条）` : ''}`;
@@ -558,7 +578,7 @@
             $('reportBatchControls').hidden = true;
             $('nqLeadPager').hidden = true;
             $('nqLeadCount').textContent = '';
-            $('nqLeadRows').innerHTML = '<tr><td colspan="6" class="empty-cell">正在加载记录…</td></tr>';
+            $('nqLeadRows').innerHTML = '<tr><td colspan="7" class="empty-cell">正在加载记录…</td></tr>';
         }
         try {
             const qs = new URLSearchParams();
@@ -572,7 +592,7 @@
             renderNqLeads();
         } catch (e) {
             if (request !== nqLeadRequest || nqLeadLoadedView === bin) return;
-            $('nqLeadRows').innerHTML = `<tr><td colspan="6" class="empty-cell">${esc(e.message)}</td></tr>`;
+            $('nqLeadRows').innerHTML = `<tr><td colspan="7" class="empty-cell">${esc(e.message)}</td></tr>`;
         }
     }
     async function nqExportLeads() {
@@ -583,6 +603,7 @@
         if (f.range) qs.set('range', f.range);
         if (f.dup) qs.set('dup', f.dup);
         if (f.mailStatus) qs.set('mailStatus', f.mailStatus);
+        if (f.source) qs.set('source', f.source);
         try {
             const response = await fetch(`${API}/report-leads/export${qs.toString() ? '?' + qs : ''}`, { headers: authHeaders() });
             if (!response.ok) {
@@ -1008,6 +1029,7 @@
         $('campaignLeadSelection').hidden = !count;
         $('campaignLeadSelectionCount').textContent = `包含报告领取记录中已选的 ${count} 条`;
         if (!count) $('campaignIncludeLeads').checked = false;
+        updateCampaignSelection();
     }
     async function openReportBatch(ids, templateId = '', fromLeadList = false) {
         ids = [...new Set(ids)];
@@ -1041,7 +1063,7 @@
         $('reportMailFeedback').textContent = '正在逐条创建发送任务，请勿重复操作…';
         try {
             await json(`${API}/report-leads/email-batches`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ requestKey: state.requestKey, previewToken: state.batchPreview.previewToken, reason, acknowledged: true }) });
-            state.ids.forEach(id => reportMailSelected.delete(id));
+            state.ids.forEach(id => { reportMailSelected.delete(id); campaign.selected.delete(id); });
             if (state.fromLeadList) {
                 renderNqLeads();
                 await loadLeads();
@@ -1074,7 +1096,10 @@
         finally { state.busy = false; }
     }
 
-    const campaign = { templates: [], sourcePage: 1, contactPage: 1, sourceMore: false, contactMore: false };
+    const campaign = {
+        templates: [], selected: new Set(), tab: 'audience', sourcePage: 1, contactPage: 1, historyPage: 1,
+        sourceRequest: 0, contactRequest: 0, historyRequest: 0
+    };
     const campaignApi = `${API}/report-mail`;
     function campaignRequest(path, options = {}) {
         const headers = new Headers(authHeaders());
@@ -1087,11 +1112,36 @@
     setInterval(() => {
         if (!$('reportCampaign').closest('.view').classList.contains('active') || document.hidden) return;
         loadCampaignQuota().catch(() => {});
-        if (!selectedCampaignRows('contact').length && document.querySelector('#campaignContactsRows [data-pending]')) {
+        if (campaign.tab === 'audience' && document.querySelector('#campaignContactsRows [data-pending]')) {
             loadCampaignContacts(campaign.contactPage).catch(() => {});
         }
     }, 15000);
     function campaignNotice(message) { $('reportCampaignNotice').textContent = message; }
+    function campaignPager(prefix, page, more) {
+        const label = { source: 'campaignSourcePage', contacts: 'campaignContactsPage', batches: 'campaignHistoryPage' }[prefix];
+        $(label).textContent = `第 ${page} 页`;
+        document.querySelector(`[data-campaign="${prefix}-prev"]`).disabled = page <= 1;
+        document.querySelector(`[data-campaign="${prefix}-next"]`).disabled = !more;
+    }
+    function updateCampaignSelection() {
+        const includeLeads = $('campaignIncludeLeads').checked && reportMailSelected.size;
+        const count = campaign.selected.size + (includeLeads || 0);
+        $('campaignSelectedCount').textContent = `已选 ${count} 条${count > REPORT_BATCH_SIZE ? ` · 本批最多 ${REPORT_BATCH_SIZE} 条` : ''}`;
+        document.querySelector('[data-campaign="contacts-preview"]').disabled = !count || count > REPORT_BATCH_SIZE || campaign.mailEnabled === false;
+        document.querySelector('[data-campaign="contacts-clear"]').disabled = !count;
+    }
+    function syncCampaignTemplateActions() {
+        const doc = campaign.templates.find(template => template._id === $('campaignEditTemplate').value);
+        const form = $('campaignTemplateForm');
+        const dirty = !!campaign.savedTemplate && JSON.stringify(campaignTemplateFields()) !== campaign.savedTemplate;
+        form.querySelectorAll('[name]').forEach(field => { field.readOnly = !!doc && doc.status !== 'draft'; });
+        form.querySelectorAll('[data-campaign="insert-var"]').forEach(button => { button.disabled = !!doc && doc.status !== 'draft'; });
+        for (const [action, disabled] of Object.entries({
+            'template-save': !!doc && doc.status !== 'draft',
+            'template-publish': !doc || doc.status !== 'draft' || dirty,
+            'template-archive': !doc || doc.status === 'archived'
+        })) form.querySelector(`[data-campaign="${action}"]`).disabled = disabled;
+    }
     function campaignTemplateFields() {
         return Object.fromEntries(new FormData($('campaignTemplateForm')));
     }
@@ -1107,10 +1157,13 @@
         for (const key of ['name', 'subject', 'preheader', 'body', 'button', 'signature', 'replyTo']) {
             form.elements.namedItem(key).value = (template || defaults)[key] || '';
         }
+        campaign.savedTemplate = JSON.stringify(campaignTemplateFields());
+        syncCampaignTemplateActions();
     }
     async function loadCampaignTemplates() {
         const data = await campaignRequest('/templates');
         campaign.templates = data.templates;
+        $('campaignReport').textContent = data.reportTitle || '';
         const send = $('campaignTemplate'), edit = $('campaignEditTemplate'), source = $('campaignSource');
         const selected = send.value, editing = edit.value, sourceKey = source.value;
         const options = items => items.map(item => `<option value="${esc(item._id)}">${esc(item.name)} · ${({ draft: '草稿', published: '已发布', archived: '已停用' })[item.status]}</option>`).join('');
@@ -1120,9 +1173,12 @@
         send.value = [...send.options].some(option => option.value === selected) ? selected : '';
         edit.value = editing;
         if (sourceKey) source.value = sourceKey;
+        if (!campaign.savedTemplate) useCampaignTemplate();
     }
     async function loadCampaignQuota() {
         const q = await campaignRequest('/quota');
+        campaign.mailEnabled = q.enabled;
+        updateCampaignSelection();
         const paused = q.pausedUntil && new Date(q.pausedUntil) > new Date();
         const reserveNote = q.remainingToday <= q.autoReserve && q.resetsAt ? ` · 补发额度次日恢复（${mailDate(q.resetsAt)}）` : '';
         $('reportCampaignQuota').textContent = q.enabled
@@ -1130,18 +1186,22 @@
             : '报告邮件服务尚未启用';
     }
     function renderCampaignRows(container, rows, kind) {
-        $(container).innerHTML = rows.length ? `<table><thead><tr><th>选择</th><th>姓名 / 邮箱</th><th>来源 / 状态</th></tr></thead><tbody>${rows.map(row => `<tr>
-            <td ${kind === 'contact' && ['pending', 'sending'].includes(row.status) ? 'data-pending' : ''}><input type="checkbox" data-campaign-kind="${kind}" value="${esc(row.id)}" aria-label="选择 ${esc(row.email)}"></td>
-            <td>${esc(row.name || '—')}<div class="sub">${esc(row.email)}</div></td>
-            <td>${esc(row.source || (row.submittedAt ? mailDate(row.submittedAt) : '—'))}
-            ${kind === 'contact' ? `<div class="sub">${esc(MAIL_LABELS[row.status] || '未安排发送')}${row.status === 'pending' && row.nextAttemptAt ? ' · 最早 ' + esc(mailDate(row.nextAttemptAt)) : ''}</div><button type="button" data-campaign="contact-history" data-id="${esc(row.id)}">发送记录</button>` : ''}</td></tr>`).join('')}</tbody></table>` : '<p class="sub">暂无记录</p>';
+        const contact = kind === 'contact';
+        $(container).innerHTML = rows.length ? `<table><thead><tr><th>选择</th><th>姓名 / 邮箱</th><th>${contact ? '名单来源' : '提交时间'}</th>${contact ? '<th>发送状态</th><th>操作</th>' : ''}</tr></thead><tbody>${rows.map(row => `<tr>
+            <td ${contact && ['pending', 'sending'].includes(row.status) ? 'data-pending' : ''}><input type="checkbox" data-campaign-kind="${kind}" value="${esc(row.id)}" aria-label="选择 ${esc(row.email)}" ${contact && campaign.selected.has(row.id) ? 'checked' : ''}></td>
+            <td><strong>${esc(row.name || '—')}</strong><div class="sub">${esc(row.email)}</div></td>
+            <td>${esc(row.source || (row.submittedAt ? mailDate(row.submittedAt) : '—'))}</td>
+            ${contact ? `<td><span class="chip ${({ failed: 'err', accepted: 'ok', uncertain: 'warn', pending: 'info' })[row.status] || 'idle'}">${esc(MAIL_LABELS[row.status] || '未安排发送')}</span>${row.status === 'pending' && row.nextAttemptAt ? `<div class="sub">最早 ${esc(mailDate(row.nextAttemptAt))}</div>` : ''}</td><td><button type="button" data-campaign="contact-history" data-id="${esc(row.id)}">发送记录</button></td>` : ''}</tr>`).join('')}</tbody></table>`
+            : `<p class="campaign-empty">${contact ? '当前条件下没有收件人。可调整筛选，或添加新名单。' : '未找到匹配的表单记录。'}</p>`;
     }
     async function loadCampaignContacts(page = 1, chooseBatch) {
+        const request = ++campaign.contactRequest;
         const batch = $('campaignBatch');
         const key = chooseBatch ?? batch.value;
-        const params = new URLSearchParams({ page });
+        const params = new URLSearchParams({ page, q: $('campaignContactSearch').value, status: $('campaignContactStatus').value });
         if (key) params.set('batch', key);
         const data = await campaignRequest('/contacts?' + params);
+        if (request !== campaign.contactRequest) return;
         if (key && !data.batches.some(item => item._id === key)) return loadCampaignContacts(1, '');
         if (key) {
             const item = data.batches.find(row => row._id === key);
@@ -1151,17 +1211,30 @@
         }
         batch.value = key;
         campaign.contactPage = data.page;
-        campaign.contactMore = data.more;
+        campaignPager('contacts', data.page, data.more);
         renderCampaignRows('campaignContactsRows', data.rows, 'contact');
+        updateCampaignSelection();
     }
     async function loadCampaignSource(page = 1) {
         const key = $('campaignSource').value;
+        if (!key) throw new Error('请选择有权访问的官网表单');
+        const request = ++campaign.sourceRequest;
         const params = new URLSearchParams({ page, q: $('campaignSearch').value });
         const data = await campaignRequest('/source/' + encodeURIComponent(key) + '?' + params);
+        if (request !== campaign.sourceRequest) return;
         campaign.loadedSource = key;
         campaign.sourcePage = data.page;
-        campaign.sourceMore = data.more;
+        campaignPager('source', data.page, data.more);
         renderCampaignRows('campaignSourceRows', data.rows, 'source');
+    }
+    async function loadCampaignBatches(page = 1) {
+        const request = ++campaign.historyRequest;
+        const data = await campaignRequest('/batches?' + new URLSearchParams({ page }));
+        if (request !== campaign.historyRequest) return;
+        campaign.historyPage = data.page;
+        campaignPager('batches', data.page, data.more);
+        const labels = { completed: '已完成入队处理', processing: '处理中', interrupted: '处理曾中断', pending: '等待处理' };
+        $('campaignHistoryRows').innerHTML = data.rows.length ? `<table><thead><tr><th>创建时间</th><th>模板 / 原因</th><th>批次状态</th><th>已入队</th><th>操作</th></tr></thead><tbody>${data.rows.map(batch => `<tr><td>${esc(mailDate(batch.createdAt))}</td><td><strong>${esc(batch.templateName || '系统报告模板')}</strong><div class="sub">${esc(batch.reason || '—')}</div></td><td>${esc(labels[batch.status] || '—')}</td><td>${Number(batch.queued)} / ${Number(batch.count)}</td><td><button type="button" data-campaign="batch-detail" data-id="${esc(batch._id)}">查看结果</button></td></tr>`).join('')}</tbody></table>` : '<p class="campaign-empty">尚无发送批次。确认发送后，可在此查看处理结果。</p>';
     }
     function selectedCampaignRows(kind) {
         return [...document.querySelectorAll(`[data-campaign-kind="${kind}"]:checked`)].map(el => el.value);
@@ -1173,15 +1246,16 @@
         return { basis, confirmed };
     }
     async function previewCampaignImport() {
-        campaignBasis();
-        if (!$('campaignImportLabel').value.trim()) throw new Error('请先填写活动或批次名称');
+        const consent = campaignBasis();
+        const label = $('campaignImportLabel').value.trim();
+        if (!label) throw new Error('请先填写活动或批次名称');
         const file = $('campaignFile').files[0];
         if (!file) throw new Error('请先选择 Excel 文件');
         const form = new FormData();
         form.set('file', file);
         const data = await campaignRequest('/import-preview', { method: 'POST', body: form });
         const valid = data.rows.filter(row => !row.error).length;
-        const state = showReportMail('核对 Excel 名单', { mode: 'campaign-import', file, requestKey: crypto.randomUUID() });
+        const state = showReportMail('核对 Excel 名单', { mode: 'campaign-import', file, label, consent, requestKey: crypto.randomUUID() });
         $('reportMailBody').innerHTML = `<p>有效 ${valid} 条，排除 ${data.rows.length - valid} 条。</p>
             <table><thead><tr><th>记录</th><th>姓名</th><th>邮箱</th><th>结果</th></tr></thead><tbody>${data.rows.map(row => `<tr><td>${row.row}</td><td>${esc(row.name)}</td><td>${esc(row.email)}</td><td>${esc(row.error || '可导入')}</td></tr>`).join('')}</tbody></table>`;
         if (valid && reportMailDialog === state) {
@@ -1192,15 +1266,16 @@
     async function confirmCampaignImport(state) {
         if (state.busy) return;
         try {
-            const label = $('campaignImportLabel').value.trim();
-            if (!label) throw new Error('请先在名单区填写活动或批次名称');
-            const basis = campaignBasis();
             const form = new FormData();
-            for (const [key, value] of Object.entries({ file: state.file, label, ...basis, requestKey: state.requestKey })) form.set(key, value);
+            for (const [key, value] of Object.entries({ file: state.file, label: state.label, ...state.consent, requestKey: state.requestKey })) form.set(key, value);
             state.busy = true;
             $('reportMailConfirm').disabled = true;
             const data = await campaignRequest('/import', { method: 'POST', body: form });
             closeReportMail();
+            $('campaignFile').value = '';
+            $('campaignBasisConfirmed').checked = false;
+            $('campaignContactSearch').value = '';
+            $('campaignContactStatus').value = '';
             await loadCampaignContacts(1, data.rows[0]?.importKey);
             campaignNotice(`已导入 ${data.rows.length} 条，等待选择并确认发送。`);
         } catch (error) {
@@ -1214,8 +1289,19 @@
             showReportMail('模板预览', { mode: 'template-preview' });
             $('reportMailBody').innerHTML = `<h3>${esc(data.subject)}</h3><pre>${esc(data.text)}</pre>`;
         },
+        'insert-var': button => {
+            const body = $('campaignTemplateForm').elements.namedItem('body');
+            const token = '{{' + button.dataset.var + '}}';
+            if (button.dataset.var === '下载链接' && body.value.includes(token)) throw new Error('正文仅能包含一个下载链接变量');
+            if (body.value.length - body.selectionEnd + body.selectionStart + token.length > body.maxLength) throw new Error('正文已达字数上限');
+            body.setRangeText(token, body.selectionStart, body.selectionEnd, 'end');
+            body.focus();
+            syncCampaignTemplateActions();
+        },
         'template-copy': () => {
             $('campaignEditTemplate').value = '';
+            syncCampaignTemplateActions();
+            $('campaignTemplateForm').elements.namedItem('name').focus();
             campaignNotice('已复制内容，修改名称后保存为新草稿。');
         },
         'template-save': async () => {
@@ -1239,6 +1325,7 @@
             if (!id) throw new Error('请选择要停用的模板');
             await campaignPost('/templates/' + encodeURIComponent(id) + '/archive', {});
             await loadCampaignTemplates();
+            useCampaignTemplate(id);
             campaignNotice('模板已停用。');
         },
         'template-test': async () => {
@@ -1254,24 +1341,36 @@
         'import-preview': previewCampaignImport,
         'source-load': () => loadCampaignSource(),
         'source-prev': () => loadCampaignSource(Math.max(1, campaign.sourcePage - 1)),
-        'source-next': () => campaign.sourceMore && loadCampaignSource(campaign.sourcePage + 1),
+        'source-next': () => loadCampaignSource(campaign.sourcePage + 1),
         'source-stage': async () => {
             const ids = selectedCampaignRows('source'), source = $('campaignSource').value;
             if (!ids.length || campaign.loadedSource !== source) throw new Error('请查询当前表单并勾选记录');
             const result = await campaignPost('/stage', { ids, source, ...campaignBasis(), requestKey: crypto.randomUUID() });
+            $('campaignBasisConfirmed').checked = false;
+            $('campaignContactSearch').value = '';
+            $('campaignContactStatus').value = '';
             await loadCampaignContacts(1, result.rows[0]?.importKey);
             campaignNotice(`已加入 ${result.rows.length} 条，跳过 ${result.skipped} 条。`);
         },
         'contacts-load': () => loadCampaignContacts(),
         'contacts-prev': () => loadCampaignContacts(Math.max(1, campaign.contactPage - 1)),
-        'contacts-next': () => campaign.contactMore && loadCampaignContacts(campaign.contactPage + 1),
+        'contacts-next': () => loadCampaignContacts(campaign.contactPage + 1),
         'contacts-preview': () => {
-            const ids = selectedCampaignRows('contact');
+            const ids = [...campaign.selected];
             if ($('campaignIncludeLeads').checked) ids.push(...reportMailSelected);
             return openReportBatch(ids, $('campaignTemplate').value);
         },
         'contact-history': el => openReportHistory(el.dataset.id),
-        'last-batch': () => openBatchResult(sessionStorage.getItem('reportLastBatch') || '')
+        'contacts-clear': () => {
+            campaign.selected.clear();
+            $('campaignIncludeLeads').checked = false;
+            $('campaignContactsRows').querySelectorAll('input[type="checkbox"]').forEach(input => { input.checked = false; });
+            updateCampaignSelection();
+        },
+        'batches-load': () => loadCampaignBatches(campaign.historyPage),
+        'batches-prev': () => loadCampaignBatches(campaign.historyPage - 1),
+        'batches-next': () => loadCampaignBatches(campaign.historyPage + 1),
+        'batch-detail': button => openBatchResult(button.dataset.id)
     };
     async function confirmCampaignTest(state) {
         if (state.busy) return;
@@ -1291,23 +1390,68 @@
         window.reportCampaignLoad = async () => {
             try {
                 await Promise.all([loadCampaignTemplates(), loadCampaignQuota(), loadCampaignContacts()]);
-                if (!$('campaignTemplateForm').elements.namedItem('body').value) useCampaignTemplate();
+                if (campaign.tab === 'batches') await loadCampaignBatches(campaign.historyPage);
             } catch (error) { campaignNotice(error.message); }
         };
         campaignPanel.addEventListener('submit', event => event.preventDefault());
+        campaignPanel.addEventListener('input', event => {
+            if (event.target.closest('#campaignTemplateForm')) syncCampaignTemplateActions();
+        });
+        campaignPanel.addEventListener('keydown', event => {
+            if (event.key !== 'Enter') return;
+            const action = { campaignSearch: 'source-load', campaignContactSearch: 'contacts-load' }[event.target.id];
+            if (action) {
+                event.preventDefault();
+                campaignPanel.querySelector(`[data-campaign="${action}"]`).click();
+            }
+        });
         campaignPanel.addEventListener('change', event => {
-            if (event.target.id === 'campaignEditTemplate') useCampaignTemplate(event.target.value);
-            if (event.target.id === 'campaignSource') $('campaignSourceRows').textContent = '';
-            if (event.target.id === 'campaignBatch') loadCampaignContacts().catch(error => campaignNotice(error.message));
+            const input = event.target;
+            if (input.id === 'campaignEditTemplate') useCampaignTemplate(input.value);
+            if (input.id === 'campaignSource') {
+                campaign.sourceRequest += 1;
+                campaign.loadedSource = '';
+                campaignPager('source', 1, false);
+                $('campaignSourceRows').innerHTML = '<p class="campaign-empty">查询当前表单后，可勾选收件人。</p>';
+            }
+            if (['campaignBatch', 'campaignContactStatus'].includes(input.id)) loadCampaignContacts().catch(error => campaignNotice(error.message));
+            if (input.dataset.campaignKind === 'contact') {
+                if (input.checked) campaign.selected.add(input.value); else campaign.selected.delete(input.value);
+            }
+            updateCampaignSelection();
         });
         campaignPanel.addEventListener('click', async event => {
+            const tab = event.target.closest('[data-campaign-tab]')?.dataset.campaignTab;
+            if (tab) {
+                campaign.tab = tab;
+                campaignPanel.querySelectorAll('[data-campaign-tab]').forEach(item => item.setAttribute('aria-pressed', String(item.dataset.campaignTab === tab)));
+                campaignPanel.querySelectorAll('[data-campaign-panel]').forEach(panel => { panel.hidden = panel.dataset.campaignPanel !== tab; });
+                campaignNotice('');
+                if (tab === 'batches') loadCampaignBatches().catch(error => campaignNotice(error.message));
+                return;
+            }
+            const source = event.target.closest('[data-campaign-source]')?.dataset.campaignSource;
+            if (source) {
+                campaignPanel.querySelectorAll('[data-campaign-source]').forEach(item => item.setAttribute('aria-pressed', String(item.dataset.campaignSource === source)));
+                campaignPanel.querySelectorAll('[data-campaign-intake]').forEach(panel => { panel.hidden = panel.dataset.campaignIntake !== source; });
+                campaignPanel.querySelector('[data-campaign="import-preview"]').hidden = source !== 'excel';
+                campaignPanel.querySelector('[data-campaign="source-stage"]').hidden = source !== 'forms';
+                campaignNotice('');
+                return;
+            }
             const button = event.target.closest('[data-campaign]');
             const action = button && campaignActions[button.dataset.campaign];
             if (!action || button.disabled) return;
             button.disabled = true;
             try { await action(button); }
-            catch (error) { campaignNotice(error.message); }
-            finally { button.disabled = false; }
+            catch (error) {
+                button.disabled = false;
+                campaignNotice(error.message);
+            } finally {
+                if (!/-(prev|next)$/.test(button.dataset.campaign)) button.disabled = false;
+                syncCampaignTemplateActions();
+                updateCampaignSelection();
+            }
         });
     }
 
@@ -1369,9 +1513,10 @@
             nqSyncUrl(view);
         },
         export: () => nqExportLeads(),
+        'go-marketing': () => document.querySelector('[data-target="email-marketing"]:not([hidden])')?.click(),
         'reset-lead-filters': () => {
             const f = NQ_FILTERS['nqoc-report-leads'];
-            Object.assign(f, { q: '', range: '', dup: '', mailStatus: '' });
+            Object.assign(f, { q: '', range: '', dup: '', mailStatus: '', source: '' });
             applyLeadFilters();
         },
         'lead-prev': () => { nqLeadPage -= 1; renderNqLeads(); },
@@ -1384,6 +1529,12 @@
         'last-mail-batch': () => openBatchResult(sessionStorage.getItem('reportLastBatch') || ''),
         'send-lead-email': (t, id) => openReportMail(id),
         'mail-history': (t, id) => openReportHistory(id),
+        'copy-report-email': async () => {
+            const email = nqLeadDetailState?.lead?.email;
+            if (!email) return;
+            try { await navigator.clipboard.writeText(email); toast('已复制邮箱'); }
+            catch (_) { toast('无法自动复制，请手动选中邮箱'); }
+        },
         'lead-detail-back': () => leaveLeadDetail(),
         'delete-lead': async (t, id) => {
             const lead = nqLeadById(id);

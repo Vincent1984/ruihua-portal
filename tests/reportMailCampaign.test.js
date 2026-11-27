@@ -85,6 +85,10 @@ const uri = process.env.REPORT_MAIL_TEST_MONGO;
         const contact = await Contact.findById(first.body.rows[0].id.slice(8));
         assert.equal(contact.basis, '会后提供报告');
         assert.equal(contact.mail, undefined);
+        const matched = await authorized('get', '/report-mail/contacts?q=活动访客&status=none');
+        assert.equal(matched.body.rows.length, 1);
+        assert.equal((await authorized('get', '/report-mail/contacts?q=.%2A')).body.rows.length, 0);
+        assert.equal((await authorized('get', '/report-mail/contacts?status=accepted')).body.rows.length, 0);
     });
 
     it('locks the published template, seals the confirmation and deduplicates mixed sources', async function () {
@@ -108,6 +112,12 @@ const uri = process.env.REPORT_MAIL_TEST_MONGO;
         await authorized('post', '/report-mail/templates/' + id + '/archive').send({});
         const result = await submitBatch({ ...body, requestKey: preview.requestKey }, 'operator', 'operator');
         assert.equal(result.queuedCount, 1);
+        const Batch = require('../models/ReportDeliveryBatch');
+        await Batch.create({ _id: 'another-operators-batch', requestedBy: 'other', requestedById: 'other' });
+        const history = await authorized('get', '/report-mail/batches').set('x-scope', 'limited');
+        assert.deepEqual(history.body.rows.map(batch => batch._id), [preview.requestKey]);
+        assert.equal(history.body.rows[0].queued, 1);
+        assert.equal(history.body.rows[0].items, undefined);
         const contact = await Contact.findById(imported.id);
         assert.equal(contact.mail.template.version, id);
         assert.equal(contact.mail.template.subject, draft.subject);

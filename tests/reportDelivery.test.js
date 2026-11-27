@@ -45,6 +45,25 @@ const uri = process.env.REPORT_MAIL_TEST_MONGO;
         assert.strictEqual((await send('get', `${path}/${lead.id}/email-history`, undefined, batch)).status, 403);
         assert.strictEqual((await send('get', `${path}/${lead.id}/email-history`, undefined, 'nqoc-report-leads:list')).status, 200);
     });
+    it('exports the selected report entry point across current and historical submissions', async function () {
+        await Lead.create(input({ name: '报告中心', sourcePage: '/nqoc/reports' }));
+        await Lead.create(input({ name: '新表单', sourcePage: '/nqoc/whitepaper-apply' }));
+        await Legacy.create(input({ name: '历史表单' }));
+        const path = '/api/admin/nqoc/report-leads/export?source=%2Fnqoc%2Fwhitepaper-apply';
+        const response = await send('get', path, undefined, 'nqoc-report-leads:export')
+            .buffer(true).parse((stream, done) => {
+                const chunks = [];
+                stream.on('data', chunk => chunks.push(chunk));
+                stream.on('end', () => done(null, Buffer.concat(chunks)));
+                stream.on('error', done);
+            });
+        assert.strictEqual(response.status, 200);
+        const book = new (require('exceljs').Workbook)();
+        await book.xlsx.load(response.body);
+        const sheet = book.worksheets[0];
+        assert.deepStrictEqual([sheet.getCell('B4').text, sheet.getCell('B5').text].sort(), ['历史表单', '新表单']);
+        assert.strictEqual(sheet.rowCount, 5);
+    });
     it('persists an immutable first job and accepts duplicate request keys only once', async function () {
         const lead = await Lead.create(input());
         const [a, b] = await Promise.all([queueManual(Lead, lead, command()), queueManual(Lead, lead, command())]);

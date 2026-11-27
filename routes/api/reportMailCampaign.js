@@ -3,6 +3,7 @@ const multer = require('multer');
 const mongoose = require('mongoose');
 const Contact = require('../../models/ReportMailContact');
 const Template = require('../../models/ReportMailTemplate');
+const Batch = require('../../models/ReportDeliveryBatch');
 const { REPORT_TITLE, REPORT_SLUG, runtimeSecret } = require('../../utils/reportMail');
 const { createQuota } = require('../../utils/reportMailQuota');
 const { isEmail, templateFields, renderTemplate } = require('../../utils/reportMailTemplate');
@@ -106,6 +107,18 @@ function init(authRequired, requirePerm, requireAnyPerm, csrfGuard) {
         if (!process.env.SMTP_USER) return res.json({ enabled: false });
         res.json({ enabled: process.env.REPORT_MAIL_ENABLED === 'true', ...await createQuota(mongoose.connection, process.env.SMTP_USER).summary() });
     }));
+    router.get('/report-mail/batches', authRequired, canSend, safe(async (req, res) => {
+        const page = Math.min(1000, Math.max(1, Number.parseInt(req.query.page, 10) || 1));
+        const scope = req.user.id ? { requestedById: String(req.user.id) } : { requestedBy: who(req), requestedById: '' };
+        const rows = await Batch.aggregate([
+            { $match: scope }, { $sort: { createdAt: -1, _id: -1 } }, { $skip: (page - 1) * 20 }, { $limit: 21 },
+            { $project: { createdAt: 1, reason: 1, status: 1, templateName: '$template.name',
+                count: { $size: { $ifNull: ['$items', []] } },
+                queued: { $size: { $filter: { input: { $ifNull: ['$results', []] }, cond: { $eq: ['$$this.status', 'queued'] } } } }
+            } }
+        ]);
+        res.json({ rows: rows.slice(0, 20), page, more: rows.length > 20 });
+    }));
     router.get('/report-mail/contacts', authRequired, canSend, safe(async (req, res) => {
         const filter = { deletedAt: null, sourceId: { $ne: 'test' } };
         if (typeof req.query.batch === 'string' && req.query.batch.length <= 160) filter.importKey = req.query.batch;
@@ -113,6 +126,15 @@ function init(authRequired, requirePerm, requireAnyPerm, csrfGuard) {
             { $group: { _id: '$importKey', source: { $first: '$sourceLabel' }, count: { $sum: 1 }, last: { $first: '$_id' } } },
             { $sort: { last: -1 } }, { $limit: 100 }]);
         const page = Math.min(1000, Math.max(1, Number.parseInt(req.query.page, 10) || 1));
+        const keyword = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 100) : '';
+        if (keyword) {
+            const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const match = { $regex: escaped, $options: 'i' };
+            filter.$or = [{ name: match }, { email: match }];
+        }
+        const status = req.query.status;
+        if (status === 'none') filter['mail.status'] = null;
+        else if (['pending', 'sending', 'accepted', 'failed', 'uncertain', 'cancelled'].includes(status)) filter['mail.status'] = status;
         const rows = await Contact.find(filter).sort({ _id: -1 }).skip((page - 1) * 100).limit(101).lean();
         res.json({ rows: rows.slice(0, 100).map(view), batches: labels, page, more: rows.length > 100 });
     }));

@@ -908,9 +908,11 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             // 导出只含正常记录，不接受 bin 参数导出回收站内容
             query.deletedAt = null;
             const dupOnly = String(req.query.dup || '') === '1';
+            const source = trimStr(req.query.source, 300);
+            const leadQuery = source ? { ...query, sourcePage: source === '~' ? { $in: [null, ''] } : source } : query;
             const [leads, legacyLeads] = await Promise.all([
-                NqocReportLead.find(query).lean(),
-                NqocWhitepaperRequest.find(query).lean()
+                NqocReportLead.find(leadQuery).lean(),
+                !source || source === '/nqoc/whitepaper-apply' ? NqocWhitepaperRequest.find(query).lean() : []
             ]);
             leads.push(...legacyLeads.map(serializeLegacyWhitepaperLead));
             leads.sort(sortLeadsByCreatedAtDesc);
@@ -929,6 +931,7 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             const cond = [
                 range ? ({ 1: '今天', 7: '近 7 天', 30: '近 30 天' })[range] : '全部时间',
                 dupOnly ? '仅重复提交' : '',
+                source ? `提交入口：${source === '~' ? '未记录入口' : source}` : '',
                 mailStatus ? `邮件状态：${LEAD_MAIL_LABELS[mailStatus] || mailStatus}` : '',
                 keyword ? `关键词「${keyword}」` : ''
             ].filter(Boolean).join('，');
