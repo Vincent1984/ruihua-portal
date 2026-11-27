@@ -31,7 +31,7 @@ const Lead = entity('CrmLead', {
     stage: { type: String, default: 'new' }, nextStep: String, closeReason: String,
     qualification: { type: String, enum: QUALIFICATIONS, default: 'lead' },
     qualificationHistory: [qualificationEvent],
-    opportunityId: ref, matchIssue: String, dedupKey: { type: String, unique: true, sparse: true }
+    opportunityId: ref, lastSkillActivityId: ref, matchIssue: String, dedupKey: { type: String, unique: true, sparse: true }
 });
 const Opportunity = entity('CrmOpportunity', {
     name: { type: String, required: true }, direction: String, summary: String, tags: [String],
@@ -47,7 +47,10 @@ const Event = model('CrmEvent', new Schema({
 }, { timestamps: true }));
 const Activity = model('CrmActivity', new Schema({
     entity: String, entityId: { type: ref, index: true }, kind: String,
-    summary: String, nextStep: String, nextAt: Date, actorId: ref, actor: String
+    summary: String, nextStep: String, nextAt: Date, actorId: ref, actor: String,
+    skillWrite: {
+        type: new Schema({ digest: String, leadVersion: Number, status: String }, { _id: false }), default: undefined
+    }
 }, { timestamps: true }));
 const Sync = model('CrmSync', new Schema({
     _id: String, leaseUntil: Date, leaseToken: String, completedAt: Date, errorAt: Date

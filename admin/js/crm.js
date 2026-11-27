@@ -115,7 +115,7 @@
         body.innerHTML = `<div class="crm-dashboard">
           <header class="crm-dash-hero"><div><p>${esc(data.scope === 'team' ? '全部团队' : '我负责的记录')}</p><h2>跟进工作台</h2>
             <p>${esc(data.trend.at(-1).date)} · 北京时间${state.sync?.completedAt && data.scope === 'team' ? ' · 官网同步 ' + esc(new Date(state.sync.completedAt).toLocaleTimeString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })) : ''}</p></div>
-            <div class="crm-dash-hero-actions">${scopes}${hasPermission('crm:edit') ? action('new-lead', '录入线索', true) : ''}</div></header>
+            <div class="crm-dash-hero-actions">${scopes}${hasPermission('crm:edit') ? action('skill-connect', '连接 CRM 技能') + action('new-lead', '录入线索', true) : ''}</div></header>
           <div class="crm-dash-kpis">
             ${kpi('今日新增线索', count(data.received), '待处理 ' + count(data.pending) + ' 条', dashboardDrill('leads', '查看待处理', { stage: 'new' }, 'crm-dash-kpi-link'))}
             ${kpi('今日到期跟进', count(data.todayFollow), '逾期 ' + count(data.overdue) + ' 条', dashboardDrill('leads', '查看逾期线索', { due: 'overdue' }, 'crm-dash-kpi-link'))}
@@ -486,8 +486,52 @@
         }, '预览 Excel');
     }
 
+    function renderSkillTokens(rows) {
+        const container = $('crmActiveSkillTokens');
+        if (!container) return;
+        container.innerHTML = rows.length ? '<ul class="crm-quick-list">' + rows.map(token =>
+            `<li><div><strong>${esc(token.label)}</strong><span class="sub">到期 ${esc(when(token.expiresAt))}</span></div>
+              <button type="button" data-crm-token-revoke="${esc(token._id)}">撤销</button></li>`).join('') + '</ul>' :
+            empty('当前账号暂无有效技能令牌');
+    }
+    async function openSkillConnection() {
+        const { rows } = await api('/skill-tokens');
+        openForm('连接 CRM 技能', '<p class="crm-wide sub">令牌有效期为 30 天。可在这里撤销，技能沿用当前账号的线索访问权限。</p>' +
+            field(['label', '令牌名称'], '我的 Codex') +
+            '<section class="crm-wide crm-skill-tokens"><h3>当前有效令牌</h3><div id="crmActiveSkillTokens"></div></section>',
+        async payload => {
+            const data = await api('/skill-tokens', { label: payload.label }, 'POST');
+            $('crmFields').innerHTML = `<div class="crm-wide crm-stack">
+              <p>复制令牌后，在 Codex 中说「用 $ruihua-crm 连接 CRM 技能」。令牌仅在此处显示一次。</p>
+              <label>技能令牌<input id="crmSkillSecret" value="${esc(data.token)}" readonly autocomplete="off" spellcheck="false"></label>
+              <div class="crm-actions"><button type="button" data-crm-copy-token>复制令牌</button><span id="crmCopySkillStatus" class="sub" role="status"></span></div>
+              <p class="sub">到期 ${esc(when(data.expiresAt))}</p>
+            </div>`;
+            state.submit = async () => dialog.close();
+            $('crmSave').textContent = '完成';
+        }, '生成技能令牌');
+        renderSkillTokens(rows);
+    }
+    async function revokeSkillToken(button) {
+        if (!window.confirm('撤销后，该令牌关联的技能将无法继续访问。确认撤销？')) return;
+        button.disabled = true;
+        try {
+            await api('/skill-tokens/' + encodeURIComponent(button.dataset.crmTokenRevoke), null, 'DELETE');
+            const { rows } = await api('/skill-tokens');
+            renderSkillTokens(rows);
+            toast('技能令牌已撤销');
+        } catch (error) { toast(error.message); }
+        finally { button.disabled = false; }
+    }
+    async function copySkillToken() {
+        const input = $('crmSkillSecret'), status = $('crmCopySkillStatus');
+        if (!input || !status) return;
+        try { await navigator.clipboard.writeText(input.value); status.textContent = '已复制，请在 Codex 中连接'; }
+        catch (_) { input.select(); status.textContent = '请手动复制选中的令牌'; }
+    }
+
     const actions = {
-        back: () => navigate(state.tab), reload: load,
+        back: () => navigate(state.tab), reload: load, 'skill-connect': openSkillConnection,
         unassigned: () => { state.tab = 'leads'; state.filters = { owner: 'unassigned' }; state.page = 1; return navigate('leads'); },
         'new-lead': () => entityForm('leads'), new: () => entityForm(state.tab),
         edit: () => entityForm(state.tab, state.detail.row),
@@ -518,6 +562,9 @@
             async payload => { await api('/contacts/' + state.id + '/marketing', { ...payload, confirmed: payload.confirmed === 'on' }, 'POST'); dialog.close(); toast('已加入 CRM 联系人名单，请在邮件营销中确认发送'); }, '加入名单')
     };
     root.addEventListener('click', event => {
+        const revoke = event.target.closest('[data-crm-token-revoke]');
+        if (revoke) { if (!$('crmSave').disabled) return revokeSkillToken(revoke); return; }
+        if (event.target.closest('[data-crm-copy-token]')) return copySkillToken();
         const companySearch = event.target.closest('[data-company-search]');
         if (companySearch) return lookupCompanyField(companySearch);
         const companyChoice = event.target.closest('[data-company-choice]');
@@ -566,6 +613,7 @@
             finally { $('crmSave').disabled = false; }
         }
     });
+    dialog.addEventListener('close', () => { if ($('crmSkillSecret')) $('crmFields').replaceChildren(); });
     dialog.addEventListener('cancel', event => { if ($('crmSave').disabled) event.preventDefault(); });
     form.addEventListener('input', event => {
         const lookup = event.target.closest('[data-company-lookup]');

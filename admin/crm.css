@@ -189,3 +189,9 @@
 .crm-company-sources { display:flex; flex-wrap:wrap; gap:3px 8px; font-size:12px; }
 .crm-company-sources a { color:var(--p600); overflow-wrap:anywhere; }
 @media(max-width:480px) { .crm-company-results li { flex-wrap:wrap; } }
+
+.crm-skill-tokens h3 { margin:0; font-size:14px; }
+.crm-skill-tokens li { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+.crm-view .crm-dash-hero button[data-crm-action="skill-connect"] {
+    color:var(--pale); border-color:var(--muted); background:color-mix(in srgb,var(--dark) 82%,var(--purple));
+}

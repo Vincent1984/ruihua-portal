@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { randomUUID } = require('crypto');
+const { randomUUID, createHash } = require('crypto');
 const { Types } = require('mongoose');
 const ExcelJS = require('exceljs');
 const multer = require('multer');
@@ -8,6 +8,8 @@ const { lookupCompany } = require('../../utils/crmCompanyLookup');
 const bulkImport = require('../../utils/crmLeadImport');
 const logOp = require('../../middleware/operationLog');
 const Admin = require('../../models/admin');
+const SkillToken = require('../../models/CrmSkillToken');
+const { authWithSkillToken, issue: issueSkillToken } = require('../../utils/crmSkillAccess');
 const MailContact = require('../../models/ReportMailContact');
 const Report = require('../../models/NqocReportLead');
 const Whitepaper = require('../../models/NqocWhitepaperRequest');
@@ -182,7 +184,7 @@ function stages(row, kind, body) {
 
 async function details(req, kind, row) {
     const related = { ...active(req) };
-    const activity = Activity.find({ entity: kind, entityId: row._id }).sort({ createdAt: -1 }).limit(50).lean();
+    const activity = Activity.find({ entity: kind, entityId: row._id }).select('-skillWrite').sort({ createdAt: -1 }).limit(50).lean();
     const associations = kind === 'companies' ? { companyId: row._id } : kind === 'contacts' ? { contactId: row._id } : null;
     const eventsQuery = kind === 'contacts' ? { contactId: row._id } : kind === 'leads' ? { leadId: row._id } : null;
     const [activities, leads, contacts, opportunities, events] = await Promise.all([
@@ -211,21 +213,86 @@ async function details(req, kind, row) {
     return { row, activities, leads, contacts, opportunities, events, qualificationHistory };
 }
 
+async function recordSkillFollowUp(req, row, channel, summary) {
+    const requestKey = req.body.key;
+    if (typeof requestKey !== 'string' || !UUID.test(requestKey)) throw bad('跟进请求编号无效');
+    const nextAt = Object.hasOwn(req.body, 'nextAt') ? date(req.body.nextAt) : undefined;
+    const nextStep = Object.hasOwn(req.body, 'nextStep') ? text(req.body.nextStep, 500) : undefined;
+    const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
+    const activityId = new Types.ObjectId(hash([req.user.id, row.id, requestKey]).slice(0, 24));
+    const digest = hash({ channel, summary, nextAt, nextStep });
+    const scheduled = nextAt !== undefined || nextStep !== undefined;
+    const needsUpdate = !TERMINAL.includes(row.stage) && (scheduled || row.stage === 'new');
+    const initial = needsUpdate ? 'pending' : scheduled ? 'not_applicable' : 'unchanged';
+    const entry = await Activity.findOneAndUpdate({ _id: activityId }, { $setOnInsert: {
+        entity: 'leads', entityId: row._id, kind: channel, summary, nextAt, nextStep,
+        actorId: req.user.id, actor: req.user.username,
+        skillWrite: { digest, leadVersion: row.__v || 0, status: initial }
+    } }, { upsert: true, new: true });
+    if (entry.skillWrite?.digest !== digest) throw bad('该跟进编号已用于其他内容，请勿重复使用', 409);
+    let status = entry.skillWrite.status;
+    if (status === 'pending') {
+        const fields = { lastSkillActivityId: entry._id };
+        if (row.stage === 'new') fields.stage = 'working';
+        if (nextAt !== undefined) fields.nextAt = nextAt;
+        if (nextStep !== undefined) fields.nextStep = nextStep;
+        const version = entry.skillWrite.leadVersion;
+        const change = await Lead.updateOne({
+            _id: row._id, ...active(req), stage: { $nin: TERMINAL },
+            __v: version === 0 ? { $in: [0, null] } : version
+        }, { $set: fields, $inc: { __v: 1 } });
+        status = (change.matchedCount || await Lead.exists({ _id: row._id, ...active(req), lastSkillActivityId: entry._id }))
+            ? 'applied' : 'conflict';
+        await Activity.updateOne({ _id: entry._id, 'skillWrite.status': 'pending' }, { $set: { 'skillWrite.status': status } });
+        status = (await Activity.findById(entry._id).select('skillWrite.status').lean()).skillWrite.status;
+    }
+    const current = await Lead.findOne({ _id: row._id, ...active(req) }).select('name stage nextAt nextStep').lean();
+    return { row: current, activityId: entry.id, schedule: status };
+}
+
 function init(authRequired, jwtSecret) {
     const router = Router();
     const wrap = handler => async (req, res, next) => {
         try { await handler(req, res); } catch (error) { next(error); }
     };
-    router.use(authRequired, (req, res, next) => {
+    router.use(authWithSkillToken(authRequired), (req, res, next) => {
         void (async () => {
-        res.set('Cache-Control', 'no-store');
-        const admin = id(req.user?.id) && await Admin.findById(req.user.id).populate('roles').lean();
-        req.crm = gatherPermissions(admin);
-        if (!admin?.isActive || !can(req, 'crm:view')) throw bad('当前账号没有 CRM 查看权限', 403);
-        if (!['GET', 'HEAD'].includes(req.method) && req.get('sec-fetch-site') === 'cross-site') throw bad('请求来源校验失败', 403);
-        next();
+            res.set('Cache-Control', 'no-store');
+            const admin = id(req.user?.id) && await Admin.findById(req.user.id).populate('roles').lean();
+            req.crm = gatherPermissions(admin);
+            if (!admin?.isActive || !can(req, 'crm:view')) throw bad('当前账号没有 CRM 查看权限', 403);
+            if (req.crmSkill) {
+                req.user.username = admin.username;
+                req.user.name = admin.name;
+            }
+            if (!['GET', 'HEAD'].includes(req.method) && req.get('sec-fetch-site') === 'cross-site') throw bad('请求来源校验失败', 403);
+            next();
         })().catch(next);
     });
+    router.get('/skill-connection', wrap(async (req, res) => {
+        if (!req.crmSkill) throw bad('请使用 CRM 技能令牌连接', 400);
+        res.json({ connected: true, account: req.user.name || req.user.username, writeAllowed: can(req, 'crm:edit'),
+            expiresAt: req.crmSkill.expiresAt });
+    }));
+    router.get('/skill-tokens', wrap(async (req, res) => {
+        const rows = await SkillToken.find({ ownerId: req.user.id, expiresAt: { $gt: new Date() }, revokedAt: null })
+            .select('label createdAt expiresAt').sort({ createdAt: -1 }).lean();
+        res.json({ rows });
+    }));
+    router.post('/skill-tokens', requireCrm('crm:edit'), wrap(async (req, res) => {
+        const label = text(req.body?.label, 80) || 'Codex CRM 技能';
+        const entry = await issueSkillToken(req.user.id, label);
+        await logOp('创建技能令牌', 'CRM', label, req.user.username);
+        res.status(201).json(entry);
+    }));
+    router.delete('/skill-tokens/:id', wrap(async (req, res) => {
+        if (!id(req.params.id)) throw bad('令牌编号无效');
+        const token = await SkillToken.findOneAndUpdate({ _id: req.params.id, ownerId: req.user.id, revokedAt: null },
+            { revokedAt: new Date() }).select('label').lean();
+        if (!token) throw bad('令牌不存在或已撤销', 404);
+        await logOp('撤销技能令牌', 'CRM', token.label, req.user.username);
+        res.json({ ok: true });
+    }));
     router.get('/meta', wrap(async (req, res) => {
         const admins = can(req, 'crm:assign') || all(req) ? await Admin.find({ isActive: true }).select('name username roles').populate('roles', 'permissions').lean() : [];
         res.json({ owners: admins.filter(admin => ['all', 'crm:view'].some(perm => gatherPermissions(admin).has(perm)))
@@ -338,7 +405,7 @@ function init(authRequired, jwtSecret) {
         const page = Math.min(1000, Math.max(1, Number.parseInt(req.query.page, 10) || 1));
         const query = filterFor(req, kind);
         const [rows, total] = await Promise.all([
-            MODELS[kind].find(query).select('-qualificationHistory').sort({ updatedAt: -1, _id: -1 }).skip((page - 1) * 30).limit(30).lean(),
+            MODELS[kind].find(query).select('-qualificationHistory -lastSkillActivityId').sort({ updatedAt: -1, _id: -1 }).skip((page - 1) * 30).limit(30).lean(),
             MODELS[kind].countDocuments(query)
         ]);
         const companyIds = rows.map(row => row.companyId).filter(Boolean);
@@ -414,6 +481,7 @@ function init(authRequired, jwtSecret) {
         const { kind } = req.params, row = await record(req, kind, req.params.id);
         const channel = text(req.body.channel), summary = text(req.body.summary, 2000);
         if (!CHANNELS.includes(channel) || !summary) throw bad('请选择沟通方式并填写结果');
+        if (req.crmSkill) return res.json(await recordSkillFollowUp(req, row, channel, summary));
         const nextStep = text(req.body.nextStep, 500), nextAt = date(req.body.nextAt);
         if (['leads', 'opportunities'].includes(kind) && !TERMINAL.includes(row.stage)) {
             row.set({ nextAt, nextStep, ...(kind === 'leads' && row.stage === 'new' ? { stage: 'working' } : {}) });
