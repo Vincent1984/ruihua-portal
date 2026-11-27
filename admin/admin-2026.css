@@ -402,3 +402,20 @@ body:has([data-view="ai-forms"].active) .content { max-width:none; width:100%; }
     .ai-form-modal .kv { grid-template-columns:minmax(0,1fr); gap:4px; }
     .ai-form-modal .kv dd { margin-bottom:10px; }
 }
+
+body:has([data-view="leads"].active) .content { max-width:none; width:100%; }
+.website-lead-table button.website-lead-tags {
+    display:flex; align-items:center; gap:4px; width:100%; max-width:100%;
+    height:28px; margin-top:6px; padding:0; overflow:hidden; border:0;
+    background:transparent; text-align:left; cursor:pointer;
+}
+.website-lead-tags .intent-tag { flex:0 0 auto; white-space:nowrap; margin:0; }
+.website-lead-tag-popover {
+    position:fixed; inset:auto; width:max-content; max-width:min(420px,calc(100vw - 16px));
+    max-height:min(300px,calc(100dvh - 32px)); margin:0; padding:12px;
+    overflow:auto; border:1px solid var(--p200); border-radius:10px;
+    background:var(--card); color:var(--ink); box-shadow:0 8px 28px #211e2826;
+    font:13px/1.7 var(--sans);
+}
+.website-lead-tag-popover .intent-tag { white-space:normal; overflow-wrap:anywhere; }
+.website-lead-tag-popover::backdrop { background:transparent; pointer-events:none; }

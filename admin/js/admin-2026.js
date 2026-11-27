@@ -50,6 +50,7 @@ function renderLeadStats(counts) {
 }
 async function loadLeads({ page = leadListState.page, refreshSummary = true } = {}) {
     clearTimeout(leadListState.timer);
+    hideLeadTags();
     const request = ++leadListState.request;
     const query = leadParams(), filtered = query.size > 0;
     const table = document.querySelector('.website-lead-table');
@@ -106,7 +107,8 @@ function renderLeadRow(item, index) {
       ${cell('序号', String(serial))}
       <td role="cell"><button type="button" class="person" data-action="open-lead" data-id="${esc(item._id)}">${esc(item.name || '未留姓名')}</button>
         ${item.title ? '<span class="sub">' + esc(item.title) + '</span>' : ''}</td>
-      ${cell('公司', esc(item.company || '—') + (intents ? '<div class="website-lead-tags">' + intentTags(intents) + '</div>' : ''))}
+      ${cell('公司', esc(item.company || '—') + (intents ? '<button type="button" class="website-lead-tags" data-lead-tags="' + esc(JSON.stringify(list(intents))) +
+          '" aria-label="查看全部需求标签" aria-expanded="false" aria-controls="leadTagPopover">' + intentTags(intents) + '</button>' : ''))}
       ${cell('手机号', esc(item.phone || '—'))}
       ${cell('邮箱', esc(item.email || '—'))}
       ${cell('跟进状态', chip(item.status || 'new'))}
@@ -114,6 +116,60 @@ function renderLeadRow(item, index) {
       <td role="cell" class="website-lead-more"><button type="button" data-action="open-lead" data-id="${esc(item._id)}" aria-label="查看更多，查看${esc(item.name || '此线索')}详情">查看更多</button></td>
     </tr>`;
 }
+const leadTagPopover = document.createElement('div');
+leadTagPopover.id = 'leadTagPopover';
+leadTagPopover.className = 'website-lead-tag-popover';
+leadTagPopover.setAttribute('popover', 'auto');
+leadTagPopover.setAttribute('role', 'region');
+leadTagPopover.setAttribute('aria-label', '全部需求标签');
+document.body.appendChild(leadTagPopover);
+let leadTagTrigger = null, leadTagHideTimer;
+function showLeadTags(button) {
+    clearTimeout(leadTagHideTimer);
+    if (leadTagTrigger !== button) leadTagTrigger?.setAttribute('aria-expanded', 'false');
+    leadTagTrigger = button;
+    leadTagPopover.innerHTML = intentTags(JSON.parse(button.dataset.leadTags));
+    leadTagPopover.showPopover();
+    button.setAttribute('aria-expanded', 'true');
+    const rect = button.getBoundingClientRect();
+    const width = leadTagPopover.offsetWidth, height = leadTagPopover.offsetHeight;
+    leadTagPopover.style.left = Math.max(8, Math.min(rect.left, innerWidth - width - 8)) + 'px';
+    const below = rect.bottom + 6;
+    leadTagPopover.style.top = Math.max(8, below + height <= innerHeight - 8 ? below : rect.top - height - 6) + 'px';
+}
+function hideLeadTags() {
+    leadTagPopover.hidePopover();
+    leadTagTrigger?.setAttribute('aria-expanded', 'false');
+    leadTagTrigger = null;
+}
+function scheduleHideLeadTags() {
+    clearTimeout(leadTagHideTimer);
+    leadTagHideTimer = setTimeout(() => {
+        if (!leadTagPopover.matches(':hover') && !leadTagTrigger?.matches(':hover')) hideLeadTags();
+    }, 120);
+}
+document.getElementById('leadList').addEventListener('pointerover', event => {
+    if (event.pointerType !== 'mouse') return;
+    const trigger = event.target.closest('[data-lead-tags]');
+    if (trigger && leadTagTrigger !== trigger) showLeadTags(trigger);
+});
+document.getElementById('leadList').addEventListener('pointerout', scheduleHideLeadTags);
+document.getElementById('leadList').addEventListener('click', event => {
+    const trigger = event.target.closest('[data-lead-tags]');
+    if (trigger) showLeadTags(trigger);
+});
+leadTagPopover.addEventListener('pointerenter', () => clearTimeout(leadTagHideTimer));
+leadTagPopover.addEventListener('pointerleave', scheduleHideLeadTags);
+leadTagPopover.addEventListener('toggle', event => {
+    if (event.newState === 'closed' && !leadTagPopover.matches(':popover-open')) {
+        leadTagTrigger?.setAttribute('aria-expanded', 'false');
+        leadTagTrigger = null;
+    }
+});
+addEventListener('resize', hideLeadTags);
+document.addEventListener('scroll', event => {
+    if (event.target !== leadTagPopover) hideLeadTags();
+}, true);
 function resetLeads() {
     document.getElementById('leadFilters').reset();
     syncFiltersToUrl();
