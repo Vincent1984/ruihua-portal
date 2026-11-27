@@ -97,7 +97,7 @@
         const pages = Math.max(1, Math.ceil(data.total / 30));
         body.innerHTML = `<section class="crm-panel">
           <div class="crm-toolbar"><div><h2>${labels[kind]}</h2><span class="sub">共 ${data.total} 条记录</span></div><div class="crm-actions">
-          ${hasPermission('crm:export') ? action('export', '导出 Excel') : ''}${hasPermission('crm:edit') ? action('new', kind === 'leads' ? '录入线索' : '新建' + labels[kind], true) : ''}</div></div>
+          ${kind === 'leads' && hasPermission('crm:edit') ? action('bulk-import', '批量导入') : ''}${hasPermission('crm:export') ? action('export', '导出 Excel') : ''}${hasPermission('crm:edit') ? action('new', kind === 'leads' ? '录入线索' : '新建' + labels[kind], true) : ''}</div></div>
           <form id="crmFilters" class="crm-filters">
             <label>关键词<input name="q" type="search" maxlength="100" value="${esc(filter.q)}" placeholder="输入名称或联系方式"></label>
             ${stages[kind] ? '<label>阶段<select name="stage">' + options(stages[kind], filter.stage, '全部阶段') + '</select></label>' : ''}
@@ -214,6 +214,7 @@
         select.innerHTML = options(entries, current, '请选择');
     }
     function openForm(title, contents, submit, confirmation = '保存') {
+        dialog.classList.toggle('crm-import-dialog', confirmation === '预览 Excel');
         $('crmDialogTitle').textContent = title;
         $('crmFields').innerHTML = contents;
         $('crmFormError').textContent = '';
@@ -267,6 +268,77 @@
         link.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
+    async function importTemplate() {
+        const response = await fetch('/api/admin/crm/leads/import-template', { headers: authHeaders() });
+        if (!response.ok) throw new Error((await response.json()).error || '模板下载失败');
+        const url = URL.createObjectURL(await response.blob());
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'CRM线索导入模板.xlsx';
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    function bulkRequest(action, fields) {
+        const payload = new FormData();
+        for (const [key, value] of Object.entries(fields)) payload.append(key, value);
+        const headers = new Headers(authHeaders());
+        headers.delete('Content-Type');
+        return json('/api/admin/crm/leads/import-' + action, { method: 'POST', headers, body: payload });
+    }
+    function importRows(rows) {
+        return table(['Excel 行号', '姓名 / 公司', '联系方式', '处理结果'], rows.map(row => [
+            String(row.line),
+            esc(row.name || '—') + (row.company ? '<span class="sub">' + esc(row.company) + '</span>' : ''),
+            esc(row.phone || '—') + (row.email ? '<span class="sub">' + esc(row.email) + '</span>' : ''),
+            esc(row.message)
+        ]));
+    }
+    function bulkImportForm() {
+        let stage = 'upload', snapshot;
+        const contents = `<div id="crmImportFields" class="crm-wide crm-form-grid crm-import-fields">
+            <div class="crm-wide crm-toolbar"><p class="sub">填写「线索」工作表，姓名必填，手机号和邮箱至少填一项。支持 .xlsx，每次最多 500 行、512 KB。</p>
+              ${action('import-template', '下载 Excel 模板')}</div>
+            <label>批次名称<input name="label" required maxlength="80" placeholder="例如：11 月组织诊断沙龙"></label>
+            <label>线索来源<select name="source" required>${options({ event: sources.event, manual: sources.manual, referral: sources.referral, inbound: sources.inbound }, 'event')}</select></label>
+            <label class="crm-wide">Excel 文件<input name="file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required></label>
+          </div><div id="crmImportResult" class="crm-wide crm-import-result" hidden></div>`;
+        const setResult = html => {
+            $('crmImportFields').hidden = true;
+            const result = $('crmImportResult');
+            result.hidden = false;
+            result.innerHTML = html;
+        };
+        const reset = () => {
+            stage = 'upload';
+            $('crmImportFields').hidden = false;
+            $('crmImportResult').hidden = true;
+            $('crmSave').textContent = '预览 Excel';
+        };
+        openForm('批量导入线索', contents, async values => {
+            if (stage === 'done') { dialog.close(); return; }
+            if (stage === 'invalid') { reset(); return; }
+            if (stage === 'upload') {
+                snapshot = { file: values.file, source: values.source, label: values.label };
+                const data = await bulkRequest('preview', snapshot);
+                snapshot.previewToken = data.token;
+                const ready = Number(data.ready);
+                const tableHtml = importRows(data.rows);
+                setResult(`<p class="crm-import-count" role="status"><strong>可导入 ${ready} 条</strong> · 其他 ${data.rows.length - ready} 条</p>
+                    <p class="sub">请核对行号、联系方式和处理结果。确认后，导入的线索将分配给当前账号。</p>${ready ? '<button type="button" id="crmImportBack">返回修改</button>' : ''}${tableHtml}`);
+                $('crmImportBack')?.addEventListener('click', () => { if (!$('crmSave').disabled) reset(); });
+                stage = ready ? 'preview' : 'invalid';
+                $('crmSave').textContent = ready ? '确认导入 ' + ready + ' 条' : '返回修改';
+                return;
+            }
+            const result = await bulkRequest('confirm', snapshot);
+            setResult(`<p class="crm-import-count" role="status"><strong>本次导入 ${Number(result.imported)} 条</strong> · 已导入 ${Number(result.already)} 条 · 跳过 ${Number(result.skipped)} 条 · 失败 ${Number(result.failed)} 条</p>
+                ${result.failed ? '<p class="sub">写入失败的记录可直接重试，已成功记录会保留。</p>' : ''}${importRows(result.rows)}`);
+            stage = result.failed ? 'preview' : 'done';
+            $('crmSave').textContent = result.failed ? '重试失败记录' : '完成';
+            await load();
+        }, '预览 Excel');
+    }
+
     const actions = {
         back: () => navigate(state.tab), reload: load,
         unassigned: () => { state.tab = 'leads'; state.filters = { owner: 'unassigned' }; state.page = 1; return navigate('leads'); },
@@ -274,7 +346,7 @@
         edit: () => entityForm(state.tab, state.detail.row),
         reset: () => { state.filters = {}; state.page = 1; return load(); },
         prev: () => { state.page -= 1; return load(); }, next: () => { state.page += 1; return load(); },
-        export: exportRows, convert: () => entityForm('opportunities', state.detail.row, true),
+        export: exportRows, 'bulk-import': bulkImportForm, 'import-template': importTemplate, convert: () => entityForm('opportunities', state.detail.row, true),
         assign: () => openForm('分配负责人', '<label class="crm-wide">负责人<select name="ownerId">' +
             options(Object.fromEntries(state.owners.map(owner => [owner._id, owner.name])), state.detail.row.ownerId, '未分配') + '</select></label>',
             async payload => { await api('/' + state.tab + '/' + state.id + '/assign', payload, 'POST'); dialog.close(); await navigate(state.tab); }, '确认分配'),

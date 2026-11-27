@@ -4,6 +4,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const request = require('supertest');
+const XLSX = require('xlsx');
 const Admin = require('../models/admin');
 const Role = require('../models/Role');
 const Appointment = require('../models/Appointment');
@@ -14,12 +15,30 @@ const { Lead, Contact, Company, Event, Opportunity, Activity } = require('../mod
 const { syncOnce, phoneKey, companyKey } = require('../utils/crmIntake');
 const { createAuthMiddleware } = require('../middleware/auth');
 const crm = require('../routes/api/crm');
+const { readLeads } = require('../utils/crmLeadImport');
+
+function workbook(rows) {
+    const book = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(book, XLSX.utils.aoa_to_sheet(rows), '线索');
+    return XLSX.write(book, { type: 'buffer', bookType: 'xlsx' });
+}
 
 describe('CRM normalization', () => {
     it('normalizes country code and spacing without guessing different company names', () => {
         assert.equal(phoneKey('+86 138-0000-0000'), '13800000000');
         assert.equal(phoneKey('123'), '');
         assert.equal(companyKey(' ＡＢＣ  人力 '), 'abc人力');
+    });
+    it('bounds Excel rows, rejects formulas and retains physical row numbers', () => {
+        const parsed = readLeads(workbook([
+            ['姓名', '邮箱', '下次跟进时间'], [], ['样例', 'first@example.test', '2026-12-01 14:30'],
+            [{ f: '1+1', t: 'n', v: 2 }, 'formula@example.test'], ['无效时间', 'date@example.test', '2026-02-31 10:00']
+        ]));
+        assert.deepEqual(parsed.map(row => row.line), [3, 4, 5]);
+        assert.equal(parsed[0].data.nextAt.toISOString(), '2026-12-01T06:30:00.000Z');
+        assert.match(parsed[1].issue, /公式/);
+        assert.match(parsed[2].issue, /无效/);
+        assert.throws(() => readLeads(workbook([['姓名', '邮箱'], ...Array.from({ length: 501 }, () => ['A', 'a@example.test'])])), /500 行/);
     });
 });
 
@@ -43,7 +62,7 @@ const uri = process.env.CRM_TEST_MONGO;
         outsider = await actor('other', ['crm:view']);
         app = express();
         app.use(express.json());
-        app.use(prefix, crm(createAuthMiddleware(key).authRequired));
+        app.use(prefix, crm(createAuthMiddleware(key).authRequired, key));
     });
     after(async function () {
         if (mongoose.connection.readyState === 1) {
@@ -136,5 +155,49 @@ const uri = process.env.CRM_TEST_MONGO;
         assert.equal(exported.status, 200);
         assert.match(exported.headers['content-disposition'], /crm-leads.xlsx/);
         assert.equal((await call('get', '/leads/export', owner)).status, 403);
+    });
+    it('previews and safely replays a batch, skipping duplicate, conflicting, and invalid rows', async function () {
+        const label = 'CRM批量导入测试';
+        const headers = ['姓名', '手机号', '邮箱', '公司', '职位', '部门', '需求摘要', '标签', '下一步', '下次跟进时间'];
+        const existing = [contactData.name, contactData.phone, contactData.email, contactData.company];
+        const valid = ['新增客户', '13800000022', 'new-bulk@example.test', '测试企业', '总监', '人力', '有培训需求', '活动,培训', '发方案', '2026-12-01 14:30'];
+        const duplicate = ['重复记录', '', 'new-bulk@example.test'];
+        const invalid = ['无联系方式'];
+        const conflict = ['两人联系方式', contactData.phone, 'different@example.test'];
+        const file = workbook([headers, existing, valid, duplicate, invalid, conflict]);
+        const corrected = workbook([headers, existing, valid, ['修正联系方式', '13800000023']]);
+        const post = (action, xlsx = file, token = '', who = admin, batch = label) => {
+            const req = call('post', '/leads/import-' + action, who).field('source', 'event').field('label', batch);
+            if (token) req.field('previewToken', token);
+            return req.attach('file', xlsx, 'test.xlsx');
+        };
+        assert.equal((await call('get', '/leads/import-template')).status, 200);
+        assert.equal((await post('preview', file, '', outsider)).status, 403);
+        const before = await Lead.countDocuments();
+        const preview = await post('preview');
+        assert.equal(preview.status, 200, JSON.stringify(preview.body));
+        assert.equal(preview.body.ready, 2);
+        assert.deepEqual(preview.body.rows.map(row => row.status), ['linked', 'new', 'skipped', 'skipped', 'skipped']);
+        assert.equal(await Lead.countDocuments(), before);
+        const token = preview.body.token;
+        assert.equal((await post('confirm', corrected, token)).status, 400);
+        assert.equal((await post('confirm', file, token, admin, '另一个批次')).status, 400);
+        assert.equal((await post('confirm', file, token, owner)).status, 400);
+        const result = await post('confirm', file, token);
+        assert.equal(result.status, 200, JSON.stringify(result.body));
+        assert.equal(result.body.imported, 2);
+        assert.equal(result.body.skipped, 3);
+        const added = await Lead.findOne({ email: valid[2] });
+        assert.equal(added.ownerId.toString(), admin.id);
+        assert.equal(added.nextAt.toISOString(), '2026-12-01T06:30:00.000Z');
+        assert.deepEqual(added.tags, ['活动', '培训']);
+        assert.ok(await Event.exists({ leadId: added.id, title: 'Excel 导入 · ' + label }));
+        const replay = await post('confirm', file, token);
+        assert.equal(replay.body.imported, 0);
+        assert.equal(await Lead.countDocuments(), before + 2);
+        const correctedPreview = await post('preview', corrected);
+        assert.deepEqual(correctedPreview.body.rows.map(row => row.status), ['already', 'already', 'new']);
+        assert.equal((await post('confirm', corrected, correctedPreview.body.token)).body.imported, 1);
+        assert.equal(await Lead.countDocuments(), before + 3);
     });
 });

@@ -86,6 +86,7 @@ async function ingest(source, row, options = {}) {
     const data = source.map(row);
     if (!phoneKey(data.phone) && !emailKey(data.email) && !options.manual) return null;
     const { contact, conflict } = options.contact ? { contact: options.contact } : await getContact(data, options.ownerId, options.canLink);
+    if (options.requireContact && !contact) throw Object.assign(new Error(conflict || '无法关联联系人'), { status: 409 });
     const visibleContact = !options.canLink || !contact || options.canLink(contact) ? contact : null;
     const reportGroup = text(data.group, 160);
     const receivedAt = data.createdAt || new Date();

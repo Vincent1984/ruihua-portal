@@ -46,3 +46,12 @@
     .crm-nav button:not(.primary) { padding:6px 9px; }
     .crm-filters label { flex:1 1 128px; }
 }
+.crm-view dialog.crm-import-dialog { width:min(790px,calc(100% - 24px)); }
+.crm-import-fields { padding:0; }
+.crm-import-fields[hidden],.crm-import-result[hidden] { display:none; }
+.crm-import-fields p { margin:0; }
+.crm-import-result { min-width:0; }
+.crm-import-count { margin:0 0 6px; }
+.crm-import-result .table-wrap { max-height:360px; }
+.crm-import-result table { min-width:510px; }
+.crm-import-result th { position:sticky; top:0; }

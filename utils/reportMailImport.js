@@ -33,14 +33,18 @@ function checkWorkbook(buffer) {
     }
     if (cursor !== end) throw bad('Excel 文件目录无效');
 }
-function readContacts(buffer) {
+function readFirstSheet(buffer, { blankrows = false, raw = false, formulas = false } = {}) {
     if (!Buffer.isBuffer(buffer) || buffer.length < 22 || buffer.length > MAX_FILE) throw bad('请选择 512 KB 以内的 .xlsx 文件');
     checkWorkbook(buffer);
-    let rows;
     try {
-        const workbook = XLSX.read(buffer, { type: 'buffer', sheetRows: 502, cellFormula: false });
-        rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1, blankrows: false, raw: false });
+        const workbook = XLSX.read(buffer, { type: 'buffer', sheetRows: 502, cellFormula: formulas, sheetStubs: formulas });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, blankrows, raw, ...(blankrows ? { range: 0 } : {}) });
+        return { sheet, rows };
     } catch (_) { throw bad('无法读取 Excel 文件'); }
+}
+function readContacts(buffer) {
+    const { rows } = readFirstSheet(buffer);
     if (!rows.length || rows.length > 501) throw bad('Excel 首个工作表须包含表头及最多 500 条数据');
     const header = rows.shift().map(value => String(value || '').trim().toLowerCase());
     const emailIndex = header.findIndex(value => ['邮箱', 'email'].includes(value));
@@ -57,4 +61,4 @@ function readContacts(buffer) {
         return { row: index + 2, name, email, error };
     });
 }
-module.exports = { MAX_FILE, readContacts };
+module.exports = { MAX_FILE, readContacts, readFirstSheet };

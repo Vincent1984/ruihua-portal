@@ -2,6 +2,9 @@ const { Router } = require('express');
 const { randomUUID } = require('crypto');
 const { Types } = require('mongoose');
 const ExcelJS = require('exceljs');
+const multer = require('multer');
+const bulkImport = require('../../utils/crmLeadImport');
+const logOp = require('../../middleware/operationLog');
 const Admin = require('../../models/admin');
 const MailContact = require('../../models/ReportMailContact');
 const Report = require('../../models/NqocReportLead');
@@ -15,7 +18,7 @@ const LEAD_STAGES = ['new', 'working', 'converted', 'closed'];
 const OPPORTUNITY_STAGES = ['demand', 'proposal', 'quote', 'won', 'lost'];
 const TERMINAL = ['converted', 'closed', 'won', 'lost'];
 const CHANNELS = ['phone', 'wechat', 'email', 'meeting', 'other'];
-const MANUAL_SOURCES = ['manual', 'event', 'referral', 'inbound'];
+const MANUAL_SOURCES = Object.keys(bulkImport.SOURCES);
 const OBJECT_ID = /^[0-9a-f]{24}$/i;
 const UUID = /^[0-9a-f-]{36}$/i;
 const bad = (message, status = 400) => Object.assign(new Error(message), { status });
@@ -168,7 +171,7 @@ async function details(req, kind, row) {
     return { row, activities, leads, contacts, opportunities, events };
 }
 
-function init(authRequired) {
+function init(authRequired, jwtSecret) {
     const router = Router();
     const wrap = handler => async (req, res, next) => {
         try { await handler(req, res); } catch (error) { next(error); }
@@ -220,6 +223,22 @@ function init(authRequired) {
                     count: { $sum: 1 }, converted: { $sum: { $cond: [{ $eq: ['$stage', 'converted'] }, 1, 0] } } } }])
         ]);
         res.json({ leads, opportunities, expected, received, pending, overdue: overdueLeads + overdueOpportunities, unassigned, grouped, sources, end });
+    }));
+    const excel = multer({ storage: multer.memoryStorage(), limits: { fileSize: bulkImport.MAX_FILE, files: 1, fields: 4, fieldSize: 16384 } }).single('file');
+    const uploadExcel = (req, res, next) => excel(req, res, err => next(err ? bad('请选择 512 KB 以内的 .xlsx 文件') : undefined));
+    const importOptions = req => ({ actorId: req.user.id, canLink: row => canSee(req, row), secret: jwtSecret });
+    router.get('/leads/import-template', requireCrm('crm:edit'), wrap(async (_req, res) => {
+        res.attachment('crm-leads-template.xlsx').send(Buffer.from(await bulkImport.template()));
+    }));
+    router.post('/leads/import-preview', requireCrm('crm:edit'), uploadExcel, wrap(async (req, res) => {
+        res.json(await bulkImport.preview(req.file?.buffer, req.body, importOptions(req)));
+    }));
+    router.post('/leads/import-confirm', requireCrm('crm:edit'), uploadExcel, wrap(async (req, res) => {
+        const result = await bulkImport.confirm(req.file?.buffer, req.body, importOptions(req));
+        if (result.imported) {
+            await logOp('批量导入线索', 'CRM', `${result.label}，导入 ${result.imported} 条，跳过 ${result.skipped} 条，失败 ${result.failed} 条`, req.user.username);
+        }
+        res.json(result);
     }));
     router.get('/:kind/export', requireCrm('crm:export'), wrap(async (req, res) => {
         const { kind } = req.params;
