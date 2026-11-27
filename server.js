@@ -4595,32 +4595,68 @@ app.post('/api/appointments', async (req, res) => {
     }
 });
 
+function leadListQuery(params, now = Date.now()) {
+    const query = {};
+    if (typeof params.status === 'string' && params.status) query.status = params.status;
+    if (typeof params.channel === 'string' && params.channel) query.channel = params.channel;
+    const keyword = typeof params.q === 'string' ? params.q.trim().slice(0, 100) : '';
+    if (keyword) {
+        query.$or = ['name', 'phone', 'email', 'company', 'title', 'source', 'channel'].map(field => ({
+            [field]: { $regex: escapeRegex(keyword), $options: 'i' }
+        }));
+    }
+    const days = typeof params.time === 'string' ? Number(params.time) : 0;
+    if ([1, 7, 30].includes(days)) {
+        const day = 86400000, offset = 8 * 3600000;
+        const today = Math.floor((now + offset) / day) * day - offset;
+        query.createdAt = { $gte: new Date(today - (days - 1) * day), $lt: new Date(today + day) };
+    }
+    return query;
+}
+
+async function leadOverviewStats(now) {
+    const shift = 8 * 3600000, day = 86400000;
+    const today = Math.floor((now + shift) / day) * day - shift;
+    const date = new Date(today + shift);
+    const month = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1) - shift;
+    const todayDate = new Date(today);
+    const eq = (field, value) => ({ $eq: ['$' + field, value] });
+    const sum = condition => ({ $sum: { $cond: [condition, 1, 0] } });
+    const [stats] = await Appointment.aggregate([{ $group: {
+        _id: null, total: { $sum: 1 },
+        today: sum({ $gte: ['$createdAt', todayDate] }),
+        yesterday: sum({ $and: [{ $gte: ['$createdAt', new Date(today - day)] }, { $lt: ['$createdAt', todayDate] }] }),
+        pending: sum(eq('status', 'new')),
+        overdue: sum({ $and: [eq('status', 'new'), { $lt: ['$createdAt', new Date(now - day)] }] }),
+        agent: sum({ $or: [eq('channel', 'agent'), { $gt: [{ $size: { $cond: [{ $isArray: '$talk' }, '$talk', []] } }, 0] },
+            { $regexMatch: { input: { $concat: [{ $ifNull: ['$channel', ''] }, ' ', { $ifNull: ['$source', ''] }, ' ', { $ifNull: ['$trigger', ''] }] }, regex: /AI\s*顾问/i } }] }),
+        opp: sum(eq('status', 'opp')),
+        wonMonth: sum({ $and: [eq('status', 'won'), { $gte: ['$createdAt', new Date(month)] }] })
+    } }]);
+    if (!stats) return { today: 0, yesterday: 0, pending: 0, overdue: 0, agent: 0, agentRate: '0%', opp: 0, wonMonth: 0 };
+    const { _id, total, ...counts } = stats;
+    return { ...counts, agentRate: Math.round(counts.agent * 100 / total) + '%' };
+}
+
 // Semantic lead API. Legacy /api/appointments routes below remain supported for existing clients.
 app.get('/api/admin/leads', authRequired, requirePerm(['lead:list', 'appointment:list']), async (req, res) => {
     try {
         const page = Math.max(parseInt(req.query.page) || 1, 1);
         const limit = Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 100);
-        const query = {};
-        if (req.query.status) query.status = req.query.status;
-        if (req.query.channel) query.channel = req.query.channel;
-        if (req.query.q) {
-            const keyword = escapeRegex(req.query.q);
-            query.$or = ['name', 'phone', 'company', 'title', 'source', 'channel'].map(field => ({ [field]: { $regex: keyword, $options: 'i' } }));
-        }
-        const [total, data] = await Promise.all([
+        const now = Date.now(), query = leadListQuery(req.query, now);
+        const selection = Appointment.find(query).sort({ createdAt: -1, _id: -1 }).skip((page - 1) * limit).limit(limit);
+        if (req.query.view === 'table') selection.select('name phone email company title problem message intents intent service leadPage landing_page referrer external_source utm_source source channel status createdAt');
+        const [total, data, summary] = await Promise.all([
             Appointment.countDocuments(query),
-            Appointment.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit)
+            selection, req.query.summary === '1' ? leadOverviewStats(now) : null
         ]);
-        res.json({ success: true, data, pagination: { total, page, pages: Math.ceil(total / limit) } });
+        res.json({ success: true, data, pagination: { total, page, pages: Math.ceil(total / limit) }, ...(summary ? { summary } : {}) });
     } catch (e) { return sendInternalError(res, 'List leads error:', e); }
 });
 
 app.get('/api/admin/leads/export', authRequired, requirePerm(['lead:export', 'appointment:export']), async (req, res) => {
     try {
-        const query = {};
-        if (req.query.status) query.status = req.query.status;
-        if (req.query.channel) query.channel = req.query.channel;
-        const leads = await Appointment.find(query).sort({ createdAt: -1 });
+        const leads = await Appointment.find(leadListQuery(req.query)).sort({ createdAt: -1, _id: -1 });
         const quote = value => `"${String(value || '').replace(/"/g, '""')}"`;
         const header = ['姓名', '电话', '公司', '职位', '问题', '来源', '状态', '提交时间'];
         const csv = [header.join(','), ...leads.map(lead => [lead.name, lead.phone, lead.company, lead.title, lead.problem, lead.source, lead.status, lead.createdAt && new Date(lead.createdAt).toLocaleString()].map(quote).join(','))].join('\n');

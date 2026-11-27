@@ -1,7 +1,7 @@
 const TITLES={leads:'线索管理','ai-forms':'AI 需求表单',articles:'文章管理',cases:'案例管理',featured:'首页精选案例',faq:'FAQ 管理',experts:'讲师 / 专家团队',settings:'全局配置','nqoc-banner':'首页 Banner','nqoc-insights':'新质观点','nqoc-cases':'案例研究','nqoc-videos':'值得看见','nqoc-report-leads':'报告领取记录','email-marketing':'邮件营销',crm:'客户管理（CRM）'};
 const BUSINESS_ROUTES=new Set(['leads','articles','cases','featured','faq','experts','nqoc-banner','nqoc-insights','nqoc-cases','nqoc-videos','nqoc-report-leads','email-marketing','crm']);
 const FILTERS={leads:{'leadKeyword':'q','leadChannel':'channel','leadStatus':'status','leadTime':'time'},'ai-forms':{'aiFormKeyword':'q','aiFormDept':'dept','aiFormSynced':'synced','aiFormTime':'time'},articles:{'articleKeyword':'q','articleStatus':'status','articleZone':'zone'},cases:{'caseKeyword':'q','caseStatus':'status','caseIndustry':'industry'},featured:{'featuredKeyword':'q'}};
-const state={leads:[],aiForms:[],articles:[],cases:[],faqs:[],authors:[],articleZone:'',caseIndustry:'',activeView:'leads',activeLeadId:null,activeAiFormId:null,globalConfig:{recipients:[]}};
+const state={leads:[],aiForms:[],articles:[],cases:[],faqs:[],authors:[],articleZone:'',caseIndustry:'',activeView:'leads',activeAiFormId:null,globalConfig:{recipients:[]}};
 const currentUser=JSON.parse(sessionStorage.getItem('user')||localStorage.getItem('adminUser')||'{}');
 const permissionSet=new Set(Array.isArray(currentUser.permissions)?currentUser.permissions:[]);
 const permissionAliases={'lead:list':['appointment:list'],'lead:edit':['appointment:edit'],'lead:delete':['appointment:delete'],'lead:export':['appointment:export']};
@@ -18,7 +18,7 @@ const date=v=>v?new Date(v).toLocaleString('zh-CN',{hour12:false}):'—';
 const ago=v=>{const minutes=Math.max(0,Math.floor((Date.now()-new Date(v).getTime())/6e4));if(minutes<60)return `${Math.max(1,minutes)} 分钟前`;if(minutes<1440)return `${Math.floor(minutes/60)} 小时前`;return `${Math.floor(minutes/1440)} 天前`};
 const shortDateTime=v=>{const value=new Date(v);const pad=n=>String(n).padStart(2,'0');return `${pad(value.getMonth()+1)}-${pad(value.getDate())} ${pad(value.getHours())}:${pad(value.getMinutes())}`};
 const rows=(id,html,empty='暂无数据')=>{document.getElementById(id).innerHTML=html||`<tr><td colspan="9" class="empty-cell">${esc(empty)}</td></tr>`};
-const statusText=value=>({new:'新线索',contacted:'已联系',opp:'已确认商机',won:'已成交',closed:'已关闭',processed:'已跟进',archived:'已归档',published:'已发布',draft:'草稿',scheduled:'定时'}[value]||value||'—');
+const statusText=value=>({new:'新线索',contacted:'已联系',opp:'已确认商机',won:'已成交',closed:'已关闭',completed:'已完成',processed:'已跟进',archived:'已归档',published:'已发布',draft:'草稿',scheduled:'定时'}[value]||value||'—');
 const channelText=value=>({direct:'直接访问',agent:'AI 顾问抽屉',form:'预约诊断表单',demo:'首页演示小窗',referral:'外部引荐',organic:'自然搜索'}[value]||value||'直接访问');
 const externalSourceText=item=>{let src=item.external_source;if(!src){if(item.utm_source)src=item.utm_source;else if(item.referrer){try{src=new URL(item.referrer).hostname.replace(/^www\./,'')}catch{src='referral'}}else src='direct'}return src==='direct'?'直接访问':src==='referral'?'外部引荐':src};
 const channelChip=value=>{const channels={agent:['AI 顾问抽屉',''],form:['预约诊断表单','w'],demo:['首页演示小窗','a']};const channel=channels[value];return channel?`<span class="chip ${channel[1]}"><span class="dot"></span>${channel[0]}</span>`:`<span class="chip n"><span class="dot"></span>${esc(channelText(value))}</span>`};
@@ -28,8 +28,104 @@ const chip=value=>`<span class="chip ${esc(value)}">${esc(statusText(value))}</s
 function toast(message){const el=document.getElementById('toast');el.textContent=message;el.classList.add('on');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('on'),2200)}
 function action(id,type){const prefix=type==='author'?'expert':type;return `${hasPermission(prefix+':edit')?`<button data-action="open-editor" data-type="${esc(type)}" data-id="${esc(id)}">编辑</button>`:''}${hasPermission(prefix+':delete')?`<button class="danger" data-action="remove-item" data-type="${esc(type)}" data-id="${esc(id)}">删除</button>`:''}`}
 function pageAction(key){return `<button data-action="open-editor" data-type="page" data-id="${esc(key)}">编辑</button>`}
-async function loadLeads(){try{const q=new URLSearchParams({limit:'100'});const status=document.getElementById('leadStatus')?.value;if(status)q.set('status',status);const channel=document.getElementById('leadChannel')?.value;if(channel)q.set('channel',channel);const keyword=document.getElementById('leadKeyword')?.value.trim();if(keyword)q.set('q',keyword);const d=await json('/api/admin/leads?'+q,{headers:authHeaders()});state.leads=d.data||[];renderLeads()}catch(error){rows('leadList','',error.message)}}
-function renderLeads(){const keyword=document.getElementById('leadKeyword').value.trim().toLowerCase();const channel=document.getElementById('leadChannel').value;const status=document.getElementById('leadStatus').value;const days=Number(document.getElementById('leadTime').value);const cutoff=days?Date.now()-days*864e5:0;const list=state.leads.filter(item=>(!channel||item.channel===channel)&&(!status||item.status===status)&&(!cutoff||new Date(item.createdAt).getTime()>=cutoff)&&(!keyword||[item.name,item.phone,item.company,item.title,item.channel,item.source].some(v=>String(v||'').toLowerCase().includes(keyword))));const today=new Date().toDateString();const isAgent=x=>x.channel==='agent'||/AI\s*顾问/i.test([x.channel,x.source,x.trigger].filter(Boolean).join(' '))||Array.isArray(x.talk)&&x.talk.length>0;const yesterday=new Date(Date.now()-864e5).toDateString();const month=new Date();const counts={today:state.leads.filter(x=>new Date(x.createdAt).toDateString()===today).length,yesterday:state.leads.filter(x=>new Date(x.createdAt).toDateString()===yesterday).length,pending:state.leads.filter(x=>x.status==='new').length,overdue:state.leads.filter(x=>x.status==='new'&&Date.now()-new Date(x.createdAt).getTime()>24*3600e3).length,agent:state.leads.filter(isAgent).length,agentRate:state.leads.length?Math.round(state.leads.filter(isAgent).length/state.leads.length*100)+'%':'0%',opp:state.leads.filter(x=>x.status==='opp').length,wonMonth:state.leads.filter(x=>x.status==='won'&&new Date(x.createdAt).getMonth()===month.getMonth()&&new Date(x.createdAt).getFullYear()===month.getFullYear()).length};Object.entries(counts).forEach(([key,value])=>{const stat=document.querySelector(`[data-stat="${key}"]`);if(stat)stat.textContent=value});document.getElementById('leadBadge').textContent=counts.pending;rows('leadList',list.map(x=>{const trailCount=Array.isArray(x.trail)?x.trail.length:0;const talkCount=Array.isArray(x.talk)?x.talk.filter(message=>message?.r==='me').length:0;return `<tr data-action="open-lead" data-id="${esc(x._id)}"><td><button class="person" data-action="open-lead" data-id="${esc(x._id)}">${esc(x.name||'—')}</button><span class="sub">${esc(x.company||'—')}</span></td><td><div class="mono" style="font-size:12.5px">${esc(x.phone||'—')}</div><div class="sub">${esc(x.title||'—')}</div></td><td>${channelChip(x.channel||x.utm_source)}</td><td><div class="mono lead-page" style="font-size:11.5px;color:var(--purple)">${esc(x.leadPage||x.landing_page||'—')}</div><div class="sub">${esc(x.ref||x.referrer||x.source||'—')} · 浏览 ${trailCount} 页${talkCount?' · 问了 '+talkCount+' 个问题':''}</div></td><td>${intentTags(x.intents||x.intent||x.service)}</td><td>${chip(x.status)}</td><td><div class="lead-time">${ago(x.createdAt)}<span class="sub mono">${shortDateTime(x.createdAt)}</span></div></td></tr>`}).join(''))}
+const leadListState = { page: 1, pages: 1, request: 0, timer: null, summary: null };
+const leadNumber = number => new Intl.NumberFormat('zh-CN').format(number);
+function leadParams() {
+    const query = new URLSearchParams();
+    for (const [id, key] of Object.entries(FILTERS.leads)) {
+        const value = document.getElementById(id).value.trim();
+        if (value) query.set(key, value);
+    }
+    return query;
+}
+function leadListMessage(text, action = '') {
+    document.getElementById('leadList').innerHTML = `<tr class="website-lead-message"><td colspan="6" role="cell">${esc(text)}${action}</td></tr>`;
+}
+function renderLeadStats(counts) {
+    for (const [key, value] of Object.entries(counts)) {
+        const target = document.querySelector(`[data-stat="${key}"]`);
+        if (target) target.textContent = value;
+    }
+    document.getElementById('leadBadge').textContent = counts.pending;
+}
+async function loadLeads({ page = leadListState.page, refreshSummary = true } = {}) {
+    clearTimeout(leadListState.timer);
+    const request = ++leadListState.request;
+    const query = leadParams(), filtered = query.size > 0;
+    const table = document.querySelector('.website-lead-table');
+    const count = document.getElementById('leadListCount');
+    const pager = document.getElementById('leadPagination');
+    document.querySelector('[data-action="reset-leads"]').disabled = !filtered;
+    count.textContent = '正在加载…';
+    table.setAttribute('aria-busy', 'true');
+    const exportButton = document.querySelector('[data-action="export-leads"]');
+    exportButton.disabled = true;
+    pager.hidden = true;
+    leadListMessage('正在加载留资记录…');
+    query.set('limit', '25');
+    query.set('page', String(page));
+    query.set('view', 'table');
+    if (refreshSummary || !leadListState.summary) query.set('summary', '1');
+    try {
+        const result = await json(leadApi + '?' + query, { headers: authHeaders() });
+        if (request !== leadListState.request) return;
+        const { total, pages } = result.pagination;
+        if (page > Math.max(1, pages)) return loadLeads({ page: Math.max(1, pages), refreshSummary });
+        leadListState.page = page;
+        leadListState.pages = Math.max(1, pages);
+        state.leads = result.data;
+        if (result.summary) {
+            leadListState.summary = result.summary;
+            renderLeadStats(result.summary);
+        }
+        count.textContent = (filtered ? '匹配 ' : '共 ') + leadNumber(total) + ' 条记录';
+        if (state.leads.length) {
+            document.getElementById('leadList').innerHTML = state.leads.map(renderLeadRow).join('');
+            exportButton.disabled = false;
+        } else {
+            leadListMessage(filtered ? '没有匹配的线索，可调整或清除筛选。' : '暂未收到官网留资。');
+        }
+        pager.hidden = pages <= 1;
+        document.getElementById('leadPageCount').textContent = '第 ' + page + ' / ' + leadListState.pages + ' 页';
+        pager.querySelector('[data-action="previous-leads"]').disabled = page <= 1;
+        pager.querySelector('[data-action="next-leads"]').disabled = page >= pages;
+    } catch (error) {
+        if (request !== leadListState.request) return;
+        count.textContent = '加载失败';
+        leadListMessage(error.message, '<button type="button" data-action="load-leads">重试</button>');
+    } finally {
+        if (request === leadListState.request) table.removeAttribute('aria-busy');
+    }
+}
+function renderLeadRow(item) {
+    const cell = (label, content) => `<td role="cell"><span class="website-lead-cell-label" aria-hidden="true">${label}</span><div>${content}</div></td>`;
+    const contact = [item.phone, item.email].filter(Boolean).map(value => '<span class="website-lead-contact">' + esc(value) + '</span>').join('');
+    const intents = item.intents?.length ? item.intents : item.intent || item.service;
+    const intent = intents ? intentTags(intents) : '';
+    const demand = item.problem || item.message;
+    const entry = item.leadPage || item.landing_page;
+    return `<tr role="row" data-action="open-lead" data-id="${esc(item._id)}">
+      <td role="cell"><button type="button" class="person" data-action="open-lead" data-id="${esc(item._id)}">${esc(item.name || '未留姓名')}</button>
+        <span class="sub">${esc([item.company, item.title].filter(Boolean).join(' · ') || '未填写公司')}</span></td>
+      ${cell('电话 / 邮箱', contact || '—')}
+      ${cell('意向 / 需求', intent + (demand ? '<p class="website-lead-demand">' + esc(demand) + '</p>' : intent ? '' : '—'))}
+      ${cell('留资来源', channelChip(item.channel || item.utm_source) +
+        (entry ? '<span class="sub website-lead-entry">' + esc(entry) + '</span>' : ''))}
+      ${cell('跟进状态', chip(item.status || 'new'))}
+      ${cell('留资时间', item.createdAt ? '<time datetime="' + esc(item.createdAt) + '">' + esc(shortDateTime(item.createdAt)) +
+        '</time><span class="sub">' + esc(ago(item.createdAt)) + '</span>' : '—')}
+    </tr>`;
+}
+function resetLeads() {
+    document.getElementById('leadFilters').reset();
+    syncFiltersToUrl();
+    document.getElementById('leadKeyword').focus();
+    return loadLeads({ page: 1, refreshSummary: false });
+}
+function filterLeads() {
+    syncFiltersToUrl();
+    return loadLeads({ page: 1, refreshSummary: false });
+}
 const aiFormApi='/api/admin/ai-demand-surveys';
 const aiFormQuestions=[['q1','Q1 具体工作'],['q2','Q2 目前怎么做'],['q3','Q3 头疼问题'],['q4','Q4 发生频率'],['q5','Q5 工作量'],['q6','Q6 所需资料 / 系统'],['q7','Q7 处理方式'],['q8','Q8 出错影响'],['q9','Q9 期望效果'],['q10','Q10 真实案例']];
 async function loadAiForms(){try{const d=await json(aiFormApi+'?limit=200',{headers:authHeaders()});state.aiForms=d.data||[];renderAiForms()}catch(error){rows('aiFormList','',error.message)}}
@@ -41,11 +137,171 @@ function closeAiForm(){document.getElementById('aiFormDrawer').classList.remove(
 function closeDrawer(){closeLead();closeAiForm()}
 async function removeAiForm(id){const target=id||state.activeAiFormId;if(!target||!confirm('确定删除这条表单记录吗？此操作不可撤销。'))return;try{await json(`${aiFormApi}/${target}`,{method:'DELETE',headers:authHeaders()});closeAiForm();await loadAiForms();toast('记录已删除')}catch(error){alert(error.message)}}
 async function exportAiForms(){const response=await fetch(`${aiFormApi}/export`,{headers:authHeaders()});if(!response.ok){const data=await response.json().catch(()=>({}));return alert(data.error||'导出失败')}const blob=await response.blob();const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='ai-demand-surveys.xlsx';link.click();URL.revokeObjectURL(link.href)}
-const leadDrawerStatusMarkup='id="leadDrawerStatus" data-action="update-lead"';
-function openLead(id){const item=state.leads.find(x=>x._id===id);if(!item)return;state.activeLeadId=id;const intentList=list(item.intents||item.intent||item.service);const sources=value=>list(value).map(source=>typeof source==='string'?source:source?.t||source?.title||source?.w||source?.url||'').filter(Boolean);const trail=Array.isArray(item.trail)&&item.trail.length?item.trail.map(step=>`<div class="tr ${step.hit?'hit':''}" data-trail-item><div class="h">${esc(step.t||step.h||'页面访问')}${step.hit?' <span class="chip">在此留资</span>':''}</div><div class="m">${esc(step.h||'—')}${step.d?` · 停留 <em>${esc(step.d)}</em>`:''}</div></div>`).join(''):'<p class="empty-detail">暂无访问轨迹。</p>';const talk=Array.isArray(item.talk)&&item.talk.length?item.talk.map(message=>{const rag=[...list(message.rag),...sources(message.src)];return `<div class="msg ${message.r==='me'?'me':'ai'}"><span class="who">${message.r==='me'?'访客':'AI 顾问'}</span><span class="bub">${esc(message.t||'')}${rag.length?`<span class="msg-sources"><b>RAG 来源</b>${rag.map(source=>`<span class="src-tag">${esc(source)}</span>`).join('')}</span>`:''}</span></div>`}).join(''):'<p class="empty-detail">该线索没有 AI 顾问对话记录。</p>';const notes=Array.isArray(item.notes)&&item.notes.length?item.notes.map(note=>`<div class="note"><div class="m">${esc(date(note.ts))} · ${esc(note.by||'管理员')}</div>${esc(note.txt||'')}</div>`).join(''):'<p class="empty-detail">还没有跟进记录。</p>';document.getElementById('leadDrawerName').textContent=item.name||'线索详情';document.getElementById('leadDrawerAvatar').textContent=String(item.name||'—').slice(0,1);document.getElementById('leadDrawerStatusChip').outerHTML=chip(item.status).replace('class="chip','id="leadDrawerStatusChip" class="chip');document.getElementById('leadDrawerSub').textContent=[item.company,item.title,item.externalId?'#'+item.externalId.replace(/^L/,''):''].filter(Boolean).join(' · ')||'—';const status=document.getElementById('leadDrawerStatus');status.value=item.status||'new';status.dataset.id=item._id;status.disabled=!hasPermission('lead:edit');document.getElementById('leadDrawerBody').innerHTML=`<section class="sec"><h3>联系方式</h3><dl class="kv"><dt>手机 / 微信</dt><dd class="mono">${esc(item.phone||'—')}</dd><dt>邮箱</dt><dd>${esc(item.email||'未留')}</dd><dt>企业</dt><dd>${esc(item.company||'—')}</dd><dt>职位</dt><dd>${esc(item.title||'—')}</dd><dt>意向方向</dt><dd>${intentList.map(intent=>`<span class="tag">${esc(intent)}</span>`).join('')||'—'}</dd>${item.problem||item.message||item.remarks?`<dt>想解决的问题</dt><dd>${esc(item.problem||item.message||item.remarks)}</dd>`:''}</dl></section><section class="sec"><h3>从哪来 · 怎么走到留资的</h3><dl class="kv"><dt>留资入口</dt><dd>${channelChip(item.channel||item.utm_source)}</dd><dt>触发方式</dt><dd>${esc(item.trigger||'—')}</dd><dt>外部来源</dt><dd>${esc(externalSourceText(item))}</dd><dt>落地页</dt><dd class="mono">${esc(item.landing||item.landing_page||'—')}</dd><dt>留资页面</dt><dd class="mono">${esc(item.leadPage||'—')}</dd><dt>设备</dt><dd>${esc(item.device||'—')}</dd></dl><div class="trail">${trail}</div></section><section class="sec"><h3>AI 顾问对话</h3><div class="talk">${talk}</div></section><section class="sec"><h3>跟进记录</h3><div class="notes" id="leadNotes">${notes}</div><textarea id="leadNoteText" class="note-input" rows="3" placeholder="记录本次沟通与下一步计划"></textarea>${hasPermission('lead:edit')?'<button class="primary note-submit" data-action="add-lead-note">添加跟进</button>':''}</section>`;document.getElementById('leadDrawer').classList.add('open');document.getElementById('drawerMask').classList.add('open');document.getElementById('leadDrawer').setAttribute('aria-hidden','false')}
-function closeLead(){document.getElementById('leadDrawer').classList.remove('open');document.getElementById('drawerMask').classList.remove('open');document.getElementById('leadDrawer').setAttribute('aria-hidden','true')}
-async function addLeadNote(){const item=state.leads.find(x=>x._id===state.activeLeadId);const input=document.getElementById('leadNoteText');const txt=input?.value.trim();if(!item||!txt)return;try{const d=await json(`${leadApi}/${item._id}/follow-ups`,{method:'POST',headers:authHeaders(),body:JSON.stringify({txt})});Object.assign(item,d.data||{});openLead(item._id);toast('跟进记录已添加')}catch(error){alert(error.message)}}
-async function updateLead(id,status){try{const d=await json(`${leadApi}/${id}/status`,{method:'PATCH',headers:authHeaders(),body:JSON.stringify({status})});const item=state.leads.find(x=>x._id===id);if(item)Object.assign(item,d.data||{status});renderLeads();toast('线索状态已更新')}catch(error){alert(error.message);loadLeads()}}
+const leadDrawer = document.getElementById('leadDrawer');
+const leadDrawerBody = document.getElementById('leadDrawerBody');
+const leadStatusForm = document.getElementById('leadDrawerFooter');
+const leadStatusInput = document.getElementById('leadDrawerStatus');
+const leadStatusSave = leadStatusForm.querySelector('button');
+let activeLead = null;
+let leadOpener = null;
+let leadDetailRequest = 0;
+function leadField(label, value) {
+    return value ? `<dt>${label}</dt><dd>${esc(value)}</dd>` : '';
+}
+function renderLeadNotes(notes) {
+    return [...(notes || [])].reverse().map(note => `<div class="note"><div class="m">${esc(date(note.ts))} · ${esc(note.by || '管理员')}</div><p>${esc(note.txt)}</p></div>`).join('') ||
+        '<p class="empty-detail">暂无跟进记录。</p>';
+}
+function showLeadStatus(value) {
+    const badge = document.getElementById('leadDrawerStatusChip');
+    badge.hidden = !value;
+    badge.className = 'chip ' + (Object.hasOwn(leadStatusOptions, value) ? value : 'n');
+    badge.textContent = statusText(value);
+    leadStatusInput.value = value;
+    leadStatusSave.disabled = true;
+}
+const leadStatusOptions = Object.fromEntries([...leadStatusInput.options].map(option => [option.value, option.text]));
+function renderLeadDetail(item) {
+    const editable = hasPermission('lead:edit');
+    const intents = item.intents?.length ? item.intents : item.intent || item.service;
+    const demand = item.problem || item.message;
+    const sourceNames = value => list(value).map(source => typeof source === 'string' ? source : source?.t || source?.title || source?.w || source?.url || '').filter(Boolean);
+    const trail = list(item.trail).map(step => `<div class="tr ${step.hit ? 'hit' : ''}" data-trail-item>
+        <div class="h">${esc(step.t || step.h || '页面访问')}${step.hit ? ' <span class="chip">在此留资</span>' : ''}</div>
+        <div class="m">${esc(step.h || '—')}${step.d ? ' · 停留 <em>' + esc(step.d) + '</em>' : ''}</div></div>`).join('');
+    const talk = list(item.talk).map(message => {
+        const rag = [...new Set([...sourceNames(message.rag), ...sourceNames(message.src)])];
+        return `<div class="msg ${message.r === 'me' ? 'me' : 'ai'}"><span class="who">${message.r === 'me' ? '访客' : 'AI 顾问'}</span>
+          <div class="bub">${esc(message.t)}${rag.length ? '<span class="msg-sources"><b>RAG 来源</b>' +
+              rag.map(source => '<span class="src-tag">' + esc(source) + '</span>').join('') + '</span>' : ''}</div></div>`;
+    }).join('');
+    document.getElementById('leadDrawerName').textContent = item.name || '未留姓名';
+    document.getElementById('leadDrawerAvatar').textContent = String(item.name || '—').slice(0, 1);
+    const reference = item.externalId?'#'+item.externalId.replace(/^L/,''):'';
+    document.getElementById('leadDrawerSub').textContent = [item.company, item.title, reference].filter(Boolean).join(' · ');
+    showLeadStatus(item.status || 'new');
+    document.getElementById('leadStatusError').textContent = '';
+    leadStatusInput.disabled = false;
+    leadStatusForm.hidden = !editable;
+    leadDrawerBody.innerHTML = `<section class="sec"><h3>联系信息</h3><dl class="kv">
+        ${leadField('手机 / 微信', item.phone || '未填写')}${leadField('邮箱', item.email || '未填写')}
+        ${leadField('公司', item.company)}${leadField('职位', item.title)}${leadField('部门', item.department)}
+        ${leadField('留资时间', item.createdAt && date(item.createdAt))}
+      </dl></section>
+      ${intents || demand || item.remarks ? `<section class="sec"><h3>意向与需求</h3>
+        ${intents ? '<div>' + intentTags(intents) + '</div>' : ''}${demand ? '<p class="website-lead-description">' + esc(demand) + '</p>' : ''}
+        ${item.remarks && item.remarks !== demand ? '<dl class="kv">' + leadField('备注', item.remarks) + '</dl>' : ''}
+      </section>` : ''}
+      <section class="sec"><h3>跟进记录</h3>
+        ${editable ? `<form id="leadFollowForm" class="website-lead-note-form"><label for="leadNoteText">本次跟进</label>
+          <textarea id="leadNoteText" name="leadNoteText" class="note-input" rows="3" required placeholder="记录沟通结果和下一步"></textarea>
+          <div class="website-lead-actions"><button type="submit" class="primary">添加跟进</button><span id="leadNoteError" class="website-lead-error" role="status"></span></div>
+        </form>` : ''}
+        <div class="notes" id="leadNotes">${renderLeadNotes(item.notes)}</div>
+      </section>
+      <details class="sec website-lead-extra"><summary>留资来源与访问轨迹</summary>
+        <dl class="kv"><dt>留资入口</dt><dd>${channelChip(item.channel || item.utm_source)}</dd>
+          ${leadField('触发方式', item.trigger)}${leadField('外部来源', externalSourceText(item))}
+          ${leadField('落地页', item.landing || item.landing_page)}${leadField('留资页面', item.leadPage || item.source)}
+          ${leadField('设备', item.device)}
+        </dl>${trail ? '<div class="trail">' + trail + '</div>' : '<p class="empty-detail">暂无访问轨迹。</p>'}
+      </details>
+      ${talk ? '<details class="sec website-lead-extra"><summary>AI 顾问对话</summary><div class="talk">' + talk + '</div></details>' : ''}`;
+}
+async function openLead(id) {
+    if (!id) return;
+    const request = ++leadDetailRequest;
+    if (!leadDrawer.classList.contains('open')) {
+        leadOpener = [...document.querySelectorAll('#leadList button[data-action="open-lead"]')].find(button => button.dataset.id === id);
+    }
+    activeLead = null;
+    leadDrawer.inert = false;
+    leadDrawer.classList.add('open');
+    leadDrawer.setAttribute('aria-hidden', 'false');
+    document.getElementById('drawerMask').classList.add('open');
+    leadDrawer.querySelector('[data-action="close-lead"]').focus();
+    document.getElementById('leadDrawerName').textContent = state.leads.find(item => item._id === id)?.name || '线索详情';
+    document.getElementById('leadDrawerAvatar').textContent = '—';
+    document.getElementById('leadDrawerSub').textContent = '';
+    showLeadStatus(null);
+    leadStatusForm.hidden = true;
+    leadDrawerBody.scrollTop = 0;
+    leadDrawerBody.innerHTML = '<p class="empty-detail" role="status">正在加载线索详情…</p>';
+    try {
+        const { data } = await json(leadApi + '/' + encodeURIComponent(id), { headers: authHeaders() });
+        if (request !== leadDetailRequest) return;
+        activeLead = data;
+        renderLeadDetail(data);
+    } catch (error) {
+        if (request !== leadDetailRequest) return;
+        leadDrawerBody.innerHTML = '<p class="website-lead-error" role="alert">' + esc(error.message) + '</p>' +
+            '<button type="button" data-action="open-lead" data-id="' + esc(id) + '">重试</button>';
+    }
+}
+function closeLead() {
+    if (!leadDrawer.classList.contains('open')) return;
+    ++leadDetailRequest;
+    activeLead = null;
+    leadDrawer.classList.remove('open');
+    document.getElementById('drawerMask').classList.remove('open');
+    const replacement = leadOpener && [...document.querySelectorAll('#leadList button[data-action="open-lead"]')]
+        .find(button => button.dataset.id === leadOpener.dataset.id);
+    const nextFocus = leadOpener?.isConnected ? leadOpener : replacement || document.getElementById('leadKeyword');
+    nextFocus?.focus();
+    leadOpener = null;
+    leadDrawer.inert = true;
+    leadDrawer.setAttribute('aria-hidden', 'true');
+}
+async function addLeadNote(form) {
+    const item = activeLead;
+    const input = form.elements.namedItem('leadNoteText');
+    const txt = input.value.trim();
+    const button = form.querySelector('button'), errorMessage = document.getElementById('leadNoteError');
+    if (!item || button.disabled) return;
+    if (!txt) { errorMessage.textContent = '请填写本次跟进内容。'; input.focus(); return; }
+    input.readOnly = true;
+    button.disabled = true;
+    errorMessage.textContent = '';
+    try {
+        const { data } = await json(leadApi + '/' + encodeURIComponent(item._id) + '/follow-ups', {
+            method: 'POST', headers: authHeaders(), body: JSON.stringify({ txt })
+        });
+        if (item !== activeLead) return;
+        activeLead.notes = data.notes;
+        document.getElementById('leadNotes').innerHTML = renderLeadNotes(data.notes);
+        input.value = '';
+        input.focus();
+        toast('跟进记录已添加');
+    } catch (error) { errorMessage.textContent = error.message; }
+    finally { input.readOnly = false; button.disabled = false; }
+}
+async function updateLead() {
+    const item = activeLead, status = leadStatusInput.value;
+    if (!item || status === (item.status || 'new') || leadStatusSave.disabled) return;
+    const message = document.getElementById('leadStatusError');
+    message.textContent = '';
+    delete message.dataset.saved;
+    leadStatusInput.disabled = true;
+    leadStatusSave.disabled = true;
+    try {
+        const { data } = await json(leadApi + '/' + encodeURIComponent(item._id) + '/status', {
+            method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ status })
+        });
+        if (item === activeLead) {
+            item.status = data.status;
+            showLeadStatus(data.status);
+            message.dataset.saved = 'true';
+            message.textContent = '状态已保存';
+        }
+        if (state.activeView === 'leads') void loadLeads();
+    } catch (error) { if (item === activeLead) message.textContent = error.message; }
+    finally {
+        if (item === activeLead) {
+            leadStatusInput.disabled = false;
+            leadStatusSave.disabled = leadStatusInput.value === activeLead.status;
+        }
+    }
+}
 async function loadArticles(){try{const d=await json('/api/admin/articles?limit=100',{headers:authHeaders()});state.articles=Array.isArray(d)?d:d.data||[];renderArticles()}catch(error){rows('articleList','',error.message)}}
 const zoneText=value=>({industry:'行业洞察',thinktank:'经营智库'}[value]||value||'未分栏目');
 function renderArticles(){const keyword=document.getElementById('articleKeyword').value.trim().toLowerCase();const status=document.getElementById('articleStatus').value;const list=state.articles.filter(item=>(!state.articleZone||item.zone===state.articleZone)&&(!status||item.status===status)&&(!keyword||[item.title,item.author?.name,item.author].some(v=>String(v||'').toLowerCase().includes(keyword))));rows('articleList',list.map(x=>`<tr><td><span class="person">${esc(x.title)}</span><span class="sub">${esc(x.slug||'')}</span></td><td>${esc(zoneText(x.zone))}<span class="sub">${esc(x.category||'未分类')}</span></td><td>${esc(x.author?.name||x.author||'—')}</td><td>${chip(x.status)}${x.isRecommended?' <span class="chip featured">推荐</span>':''}${x.top?' <span class="chip top">置顶</span>':''}${x.contentStatus&&x.contentStatus!=='full'?' <span class="chip">'+esc(x.contentStatus==='toc'?'仅摘要':'即将上线')+'</span>':''}</td><td>${date(x.updatedAt)}</td><td>${action(x._id,'article')}</td></tr>`).join(''))}
@@ -92,14 +348,48 @@ async function changePassword(){const currentPassword=document.getElementById('c
 async function saveEditor(){try{const data={};if(edit.type==='author'){data.name=document.getElementById('field-name').value;data.status=document.getElementById('field-status').value;data.detail=document.getElementById('field-detail').value;data.desc=document.getElementById('field-desc').value;data.avatar=document.getElementById('field-avatar').value;}else{(fields[edit.type]||[]).forEach(([key,label,tag])=>{if(tag==='radio'){const checked=document.querySelector(`input[name="field-${key}"]:checked`);data[key]=checked?checked.value:'published';}else{let value=document.getElementById('field-'+key)?.value;if(JSON_FIELDS.has(key))value=JSON.parse(value||'[]');if(NUMBER_FIELDS.has(key))value=Number(value)||0;data[key]=value}});}const base={article:'/api/articles',case:'/api/cases',faq:'/api/faqs',author:'/api/authors',page:'/api/admin/pages'}[edit.type];const url=edit.type==='page'?`${base}/${encodeURIComponent(edit.id)}`:(edit.id?`${base}/${edit.id}`:base);await json(url,{method:edit.id?'PUT':'POST',headers:authHeaders(),body:JSON.stringify(data)});closeEditor();await ({article:loadArticles,case:loadCases,faq:loadFaq,author:loadAuthors,page:loadPages}[edit.type])();toast('保存成功')}catch(error){alert(error.message)}}
 function renderRank(id,list){document.getElementById(id).innerHTML=list.length?list.map(x=>`<div class="rank-row"><span>${esc(x._id||'未标记')}</span><b>${x.leads}</b></div>`).join(''):'<p>暂无数据</p>'}
 async function loadAttribution(){try{const q=new URLSearchParams();['startDate','endDate'].forEach(key=>{const value=document.getElementById(key).value;if(value)q.set(key,value)});const d=await json('/api/admin/appointments/attribution?'+q,{headers:authHeaders()});document.getElementById('attributionTotal').textContent=d.data.total;renderRank('channelStats',d.data.sources);renderRank('campaignStats',d.data.campaigns)}catch(error){document.getElementById('attributionTotal').textContent='—';renderRank('channelStats',[]);renderRank('campaignStats',[])}}
-function switchView(button,{historyMode='push'}={}){const target=button.dataset.target;state.activeView=target;document.querySelectorAll('[data-target],.view').forEach(el=>el.classList.remove('active'));button.classList.add('active');document.querySelector(`[data-view="${target}"]`).classList.add('active');document.getElementById('viewTitle').textContent=TITLES[target];document.getElementById('viewCrumb').textContent=target.toUpperCase();restoreFilters(target);if(historyMode!=='none'){const url=BUSINESS_ROUTES.has(target)?`/admin/${target}`:`/admin/console.html#${target}`;if(historyMode==='replace')history.replaceState(null,'',url);else history.pushState(null,'',url);if(BUSINESS_ROUTES.has(target)&&FILTERS[target])syncFiltersToUrl()}document.getElementById('sidebar').classList.remove('open');const loader={leads:loadLeads,'ai-forms':loadAiForms,articles:loadArticles,cases:loadCases,featured:loadCases,faq:loadFaq,experts:loadAuthors,settings:loadGlobalConfig,'email-marketing':window.reportCampaignLoad,crm:window.crmLoad}[target]||(target.startsWith('nqoc-')&&window.nqocLoad?()=>window.nqocLoad(target):null);if(loader)loader()}
+function switchView(button,{historyMode='push'}={}){const target=button.dataset.target;if(state.activeView==='leads'&&target!=='leads')closeLead();state.activeView=target;document.querySelectorAll('[data-target],.view').forEach(el=>el.classList.remove('active'));button.classList.add('active');document.querySelector(`[data-view="${target}"]`).classList.add('active');document.getElementById('viewTitle').textContent=TITLES[target];document.getElementById('viewCrumb').textContent=target.toUpperCase();restoreFilters(target);if(historyMode!=='none'){const url=BUSINESS_ROUTES.has(target)?`/admin/${target}`:`/admin/console.html#${target}`;if(historyMode==='replace')history.replaceState(null,'',url);else history.pushState(null,'',url);if(BUSINESS_ROUTES.has(target)&&FILTERS[target])syncFiltersToUrl()}document.getElementById('sidebar').classList.remove('open');const loader={leads:()=>loadLeads({page:1}),'ai-forms':loadAiForms,articles:loadArticles,cases:loadCases,featured:loadCases,faq:loadFaq,experts:loadAuthors,settings:loadGlobalConfig,'email-marketing':window.reportCampaignLoad,crm:window.crmLoad}[target]||(target.startsWith('nqoc-')&&window.nqocLoad?()=>window.nqocLoad(target):null);if(loader)loader()}
 function restoreRoute(){const target=routeFromLocation();const requested=document.querySelector(`[data-target="${target}"]:not([hidden])`);const button=requested||document.querySelector('[data-target]:not([hidden])');if(button)switchView(button,{historyMode:'none'})}
-async function exportLeads(){const status=document.getElementById('leadStatus')?.value||'';const channel=document.getElementById('leadChannel')?.value||'';const response=await fetch(`${leadApi}/export?status=${encodeURIComponent(status)}&channel=${encodeURIComponent(channel)}`,{headers:authHeaders()});if(!response.ok){const data=await response.json().catch(()=>({}));return alert(data.error||'导出失败')}const blob=await response.blob();const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='leads.csv';link.click();URL.revokeObjectURL(link.href)}
-const clickActions={'load-leads':loadLeads,'export-leads':exportLeads,'load-ai-forms':loadAiForms,'export-ai-forms':exportAiForms,'close-ai-form':closeAiForm,'close-drawer':closeDrawer,'close-editor':closeEditor,'save-editor':saveEditor,'close-lead':closeLead,'add-lead-note':addLeadNote,'save-global-config':()=>saveGlobalConfig(collectGlobalConfig()),'test-notification':testNotification,'add-recipient':()=>openRecipientEditor(),'close-recipient':closeRecipientEditor,'save-recipient':saveRecipient,'change-password':openPassword,'close-password':closePassword,'submit-password':changePassword,logout};
+async function exportLeads() {
+    try {
+        const response = await fetch(leadApi + '/export?' + leadParams(), { headers: authHeaders() });
+        if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error || '导出失败');
+        const url = URL.createObjectURL(await response.blob()), link = document.createElement('a');
+        link.href = url;
+        link.download = 'leads.csv';
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) { toast(error.message); }
+}
+const clickActions={'load-leads':()=>loadLeads(),'reset-leads':resetLeads,'previous-leads':()=>loadLeads({page:leadListState.page-1,refreshSummary:false}),'next-leads':()=>loadLeads({page:leadListState.page+1,refreshSummary:false}),'export-leads':exportLeads,'load-ai-forms':loadAiForms,'export-ai-forms':exportAiForms,'close-ai-form':closeAiForm,'close-drawer':closeDrawer,'close-editor':closeEditor,'save-editor':saveEditor,'close-lead':closeLead,'save-global-config':()=>saveGlobalConfig(collectGlobalConfig()),'test-notification':testNotification,'add-recipient':()=>openRecipientEditor(),'close-recipient':closeRecipientEditor,'save-recipient':saveRecipient,'change-password':openPassword,'close-password':closePassword,'submit-password':changePassword,logout};
 document.addEventListener('click',event=>{const target=event.target.closest('[data-target],[data-action]');if(!target)return;if(target.dataset.target){switchView(target);return}const actionName=target.dataset.action;if(actionName==='open-editor')openEditor(target.dataset.type,target.dataset.id||null);else if(actionName==='remove-item')removeItem(target.dataset.type,target.dataset.id);else if(actionName==='open-lead')openLead(target.dataset.id);else if(actionName==='open-ai-form')openAiForm(target.dataset.id);else if(actionName==='remove-ai-form')removeAiForm(target.dataset.id);else if(actionName==='remove-featured')toggleFeatured(target.dataset.id,false);else if(actionName==='move-featured')moveFeatured(target.dataset.id,target.dataset.step);else if(actionName==='move-faq')moveFaq(target.dataset.id,target.dataset.step);else if(actionName==='toggle-author-status')toggleAuthorStatus(target.dataset.id);else if(actionName==='remove-city')removeConfigCity(Number(target.dataset.index));else if(actionName==='edit-recipient')openRecipientEditor(target.dataset.index);else if(actionName==='toggle-recipient'){const index=Number(target.dataset.index);const recipients=[...state.globalConfig.recipients];recipients[index]={...recipients[index],enabled:recipients[index].enabled===false};saveGlobalConfig({recipients})}else if(actionName==='remove-recipient'){if(confirm('确认删除这个接收人？')){const index=Number(target.dataset.index);const recipients=state.globalConfig.recipients.filter((_,itemIndex)=>itemIndex!==index);const removed=state.globalConfig.recipients[index];const fallbackRecipient=String(state.globalConfig.fallbackRecipient||'')===String(removed?._id||index)?(recipients[0]?._id||null):state.globalConfig.fallbackRecipient;saveGlobalConfig({recipients,fallbackRecipient})}}else if(actionName==='article-zone'){state.articleZone=target.dataset.value;document.querySelectorAll('#articleZone button').forEach(x=>x.classList.toggle('on',x===target));renderArticles();syncFiltersToUrl()}else if(clickActions[actionName])clickActions[actionName]()});
-document.addEventListener('change',event=>{const target=event.target.closest('[data-action]');if(target?.dataset.action==='update-lead')updateLead(target.dataset.id,target.value);if(target?.dataset.action==='toggle-featured')toggleFeatured(target.dataset.id,target.checked);if(event.target.id==='config-qrFile')previewQrFile(event.target.files[0]);if(['leadStatus','leadChannel'].includes(event.target.id))loadLeads();else if(event.target.id==='leadTime')renderLeads();if(event.target.id==='articleStatus')renderArticles();if(['caseIndustry','caseStatus'].includes(event.target.id))renderCases();if(['aiFormDept','aiFormSynced','aiFormTime'].includes(event.target.id))renderAiForms();if(Object.keys(FILTERS[state.activeView]||{}).includes(event.target.id))syncFiltersToUrl()});
-document.addEventListener('input',event=>{if(event.target.id==='leadKeyword')renderLeads();if(event.target.id==='articleKeyword')renderArticles();if(event.target.id==='caseKeyword')renderCases();if(event.target.id==='featuredKeyword')renderFeatured();if(event.target.id==='aiFormKeyword')renderAiForms();if(Object.keys(FILTERS[state.activeView]||{}).includes(event.target.id))syncFiltersToUrl()});
+document.addEventListener('change',event=>{const target=event.target.closest('[data-action]');if(target?.dataset.action==='toggle-featured')toggleFeatured(target.dataset.id,target.checked);if(event.target.id==='config-qrFile')previewQrFile(event.target.files[0]);if(['leadStatus','leadChannel','leadTime'].includes(event.target.id))filterLeads();if(event.target.id==='articleStatus')renderArticles();if(['caseIndustry','caseStatus'].includes(event.target.id))renderCases();if(['aiFormDept','aiFormSynced','aiFormTime'].includes(event.target.id))renderAiForms();if(Object.keys(FILTERS[state.activeView]||{}).includes(event.target.id))syncFiltersToUrl()});
+document.addEventListener('input',event=>{if(event.target.id==='leadKeyword'){clearTimeout(leadListState.timer);++leadListState.request;document.querySelector('[data-action="export-leads"]').disabled=true;leadListState.timer=setTimeout(() => {if(state.activeView==='leads')filterLeads()},280)}if(event.target.id==='articleKeyword')renderArticles();if(event.target.id==='caseKeyword')renderCases();if(event.target.id==='featuredKeyword')renderFeatured();if(event.target.id==='aiFormKeyword')renderAiForms();if(Object.keys(FILTERS[state.activeView]||{}).includes(event.target.id))syncFiltersToUrl()});
 document.addEventListener('keydown',event=>{if(event.target.id==='config-cityInput'&&event.key==='Enter'){event.preventDefault();addConfigCity()}if(event.key==='Escape'){closeLead();closeAiForm();closeEditor();closeRecipientEditor()}});
+document.getElementById('leadFilters').addEventListener('submit', event => {
+    event.preventDefault();
+    void filterLeads();
+});
+leadStatusInput.addEventListener('change', () => {
+    document.getElementById('leadStatusError').textContent = '';
+    leadStatusSave.disabled = !activeLead || leadStatusInput.value === (activeLead.status || 'new');
+});
+leadStatusForm.addEventListener('submit', event => {
+    event.preventDefault();
+    void updateLead();
+});
+leadDrawerBody.addEventListener('submit', event => {
+    if (event.target.id !== 'leadFollowForm') return;
+    event.preventDefault();
+    void addLeadNote(event.target);
+});
+leadDrawer.addEventListener('keydown', event => {
+    if (event.key !== 'Tab') return;
+    const focusable = [...leadDrawer.querySelectorAll('button, textarea, select, summary, a[href]')].filter(node => !node.disabled && node.getClientRects().length);
+    const first = focusable[0], last = focusable.at(-1);
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+});
 const menuToggle=document.getElementById('menuToggle');if(menuToggle)menuToggle.addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('open'));
 const nqocToggle=document.querySelector('.nqoc-toggle');const nqocItems=document.getElementById('nqocNavItems');if(nqocToggle&&nqocItems){const sidebarGroupsKey='adminSidebarGroups';let sidebarGroups={};try{sidebarGroups=JSON.parse(localStorage.getItem(sidebarGroupsKey)||'{}')||{}}catch(error){sidebarGroups={}}const setNqocExpanded=expanded=>{nqocToggle.setAttribute('aria-expanded',String(expanded));nqocItems.hidden=!expanded};setNqocExpanded(sidebarGroups.nqoc===true||/^\/admin\/nqoc-/.test(location.pathname)||/^nqoc-/.test(location.pathname.split('/').filter(Boolean).pop()||''));nqocToggle.addEventListener('click',()=>{const expanded=nqocToggle.getAttribute('aria-expanded')!=='true';setNqocExpanded(expanded);sidebarGroups.nqoc=expanded;localStorage.setItem(sidebarGroupsKey,JSON.stringify(sidebarGroups))})}
 document.getElementById('currentUserName').textContent=currentUser.name||currentUser.username||'瑞华管理员';

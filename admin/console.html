@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>瑞华智策 · 官网管理后台</title>
-  <link rel="stylesheet" href="/admin/admin-2026.css?v=20261127workbench1">
+  <link rel="stylesheet" href="/admin/admin-2026.css?v=20261127leads1">
   <link rel="stylesheet" href="/admin/lib/wangeditor/css/style.css">
   <link rel="stylesheet" href="/admin/crm.css?v=6">
 </head>
@@ -48,10 +48,25 @@
     <header class="topbar"><button class="menu-toggle" id="menuToggle" aria-label="打开菜单"><i></i><i></i><i></i></button><div><small id="viewCrumb">LEADS</small><h1 id="viewTitle">线索管理</h1></div><span class="spacer"></span><span class="env">PRODUCTION</span><a href="/" target="_blank" rel="noopener">查看官网 ↗</a></header>
     <div class="content">
       <section class="view active" data-view="leads" data-module="leads">
-        <div class="stats" id="leadStats"><article class="accent"><small>今日新增线索</small><strong data-stat="today">—</strong><span>昨日 <em data-stat="yesterday">—</em> 条</span></article><article><small>待跟进（新线索）</small><strong data-stat="pending">—</strong><span>超 24h 未联系 <em data-stat="overdue">—</em> 条</span></article><article><small>来自 AI 顾问</small><strong data-stat="agent">—</strong><span>占总量 <em data-stat="agentRate">—</em></span></article><article><small>已确认商机</small><strong data-stat="opp">—</strong><span>本月转化 <em data-stat="wonMonth">—</em> 单</span></article></div>
-        <div class="notice"><b>线索是官网转化的落点。</b> 点击任意联系人查看完整信息，并可直接更新跟进状态。</div>
-        <div class="filters" data-lead-filters><input class="search" id="leadKeyword" placeholder="搜索姓名 / 公司 / 手机"><select id="leadChannel"><option value="">全部来源</option><option value="agent">AI 顾问抽屉</option><option value="form">预约诊断表单</option><option value="demo">首页演示小窗</option><option value="direct">直接访问</option><option value="referral">外部引荐</option><option value="organic">自然搜索</option></select><select id="leadStatus"><option value="">全部状态</option><option value="new">新线索</option><option value="contacted">已联系</option><option value="opp">商机</option><option value="won">已成交</option><option value="closed">已关闭</option></select><select id="leadTime"><option value="">全部时间</option><option value="1">今天</option><option value="7">近 7 天</option><option value="30">近 30 天</option></select><button data-action="load-leads">刷新</button><span class="spacer"></span><button data-action="export-leads" data-permission="lead:export">导出 CSV</button></div>
-        <div class="table-wrap"><table><thead><tr><th>联系人</th><th>联系方式</th><th>来源渠道</th><th>入口 / 留资页面路径</th><th>意向方向</th><th>状态</th><th>留资时间</th></tr></thead><tbody id="leadList"></tbody></table></div>
+        <div class="stats" id="leadStats"><article class="accent"><small>今日新增线索</small><strong data-stat="today">—</strong><span>昨日 <em data-stat="yesterday">—</em> 条</span></article><article><small>待跟进（新线索）</small><strong data-stat="pending">—</strong><span>超 24h 未联系 <em data-stat="overdue">—</em> 条</span></article><article><small>来自 AI 顾问</small><strong data-stat="agent">—</strong><span>占总量 <em data-stat="agentRate">—</em></span></article><article><small>已确认商机</small><strong data-stat="opp">—</strong><span>本月留资已成交 <em data-stat="wonMonth">—</em> 单</span></article></div>
+        <section class="panel website-leads">
+          <header class="website-leads-head">
+            <div><h2>官网留资记录</h2><p id="leadListCount" role="status"></p></div>
+            <div class="website-lead-actions">
+              <button type="button" data-action="load-leads">刷新</button>
+              <button type="button" data-action="export-leads" data-permission="lead:export">导出 CSV</button>
+            </div>
+          </header>
+          <form class="website-lead-filters" id="leadFilters" aria-label="筛选官网线索">
+            <label>搜索线索<input id="leadKeyword" type="search" maxlength="100" placeholder="姓名、公司、电话或邮箱"></label>
+            <label>跟进状态<select id="leadStatus"><option value="">全部状态</option><option value="new">新线索</option><option value="contacted">已联系</option><option value="processed">已跟进</option><option value="opp">已确认商机</option><option value="won">已成交</option><option value="completed">已完成</option><option value="closed">已关闭</option><option value="archived">已归档</option></select></label>
+            <label>留资来源<select id="leadChannel"><option value="">全部来源</option><option value="agent">AI 顾问抽屉</option><option value="form">预约诊断表单</option><option value="demo">首页演示小窗</option><option value="direct">直接访问</option><option value="referral">外部引荐</option><option value="organic">自然搜索</option></select></label>
+            <label>留资时间<select id="leadTime"><option value="">全部时间</option><option value="1">今天</option><option value="7">近 7 天</option><option value="30">近 30 天</option></select></label>
+            <button class="website-lead-reset" type="button" data-action="reset-leads" disabled>清除筛选</button>
+          </form>
+          <div class="table-wrap website-lead-table-wrap"><table class="website-lead-table" role="table" aria-label="官网留资记录"><thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">联系人 / 公司</th><th scope="col" role="columnheader">电话 / 邮箱</th><th scope="col" role="columnheader">意向 / 需求</th><th scope="col" role="columnheader">留资来源</th><th scope="col" role="columnheader">跟进状态</th><th scope="col" role="columnheader">留资时间</th></tr></thead><tbody id="leadList" role="rowgroup"></tbody></table></div>
+          <div id="leadPagination" class="website-lead-pager" hidden><span id="leadPageCount"></span><div class="website-lead-actions"><button type="button" data-action="previous-leads">上一页</button><button type="button" data-action="next-leads">下一页</button></div></div>
+        </section>
       </section>
       <section class="view" data-view="ai-forms" data-module="ai-forms">
         <div class="stats" id="aiFormStats"><article class="accent"><small>今日提交</small><strong data-aiform-stat="today">—</strong><span>累计 <em data-aiform-stat="total">—</em> 份</span></article><article><small>未同步钉钉</small><strong data-aiform-stat="unsynced">—</strong><span>同步失败原因见详情</span></article><article><small>本月提交</small><strong data-aiform-stat="month">—</strong><span>全部时间 <em data-aiform-stat="totalTime">—</em> 份</span></article><article><small>识别月工时</small><strong data-aiform-stat="hours">—</strong><span>来自 Q5 合计</span></article></div>
@@ -275,7 +290,20 @@
     </div>
   </main>
 </div>
-<div id="drawerMask" class="drawer-mask" data-action="close-drawer"></div><aside id="leadDrawer" class="drawer" aria-hidden="true"><div class="drawer-head"><div class="lead-drawer-identity"><div class="lead-drawer-avatar" id="leadDrawerAvatar">—</div><div><div class="lead-drawer-name-row"><h2 id="leadDrawerName">线索详情</h2><span id="leadDrawerStatusChip" class="chip new">新线索</span></div><div id="leadDrawerSub" class="drawer-sub">—</div></div></div><button data-action="close-lead" aria-label="关闭">×</button></div><div id="leadDrawerBody" class="drawer-body"></div><div id="leadDrawerFooter" class="drawer-footer"><label for="leadDrawerStatus">状态</label><select id="leadDrawerStatus" data-action="update-lead"><option value="new">新线索</option><option value="contacted">已联系</option><option value="opp">已确认商机</option><option value="won">已成交</option><option value="closed">已关闭</option></select><button data-action="close-lead">关闭</button></div></aside>
+<div id="drawerMask" class="drawer-mask" data-action="close-drawer"></div><aside id="leadDrawer" class="drawer website-lead-drawer" role="dialog" aria-modal="true" aria-labelledby="leadDrawerName" aria-hidden="true" inert>
+  <div class="drawer-head">
+    <div class="lead-drawer-identity"><div class="lead-drawer-avatar" id="leadDrawerAvatar" aria-hidden="true">—</div>
+      <div><div class="lead-drawer-name-row"><h2 id="leadDrawerName">线索详情</h2><span id="leadDrawerStatusChip" class="chip new" hidden>新线索</span></div><div id="leadDrawerSub" class="drawer-sub"></div></div>
+    </div>
+    <button type="button" data-action="close-lead" aria-label="关闭线索详情">×</button>
+  </div>
+  <div id="leadDrawerBody" class="drawer-body"></div>
+  <form id="leadDrawerFooter" class="drawer-footer" hidden>
+    <label for="leadDrawerStatus">跟进状态</label>
+    <select id="leadDrawerStatus" name="status"><option value="new">新线索</option><option value="contacted">已联系</option><option value="processed">已跟进</option><option value="opp">已确认商机</option><option value="won">已成交</option><option value="completed">已完成</option><option value="closed">已关闭</option><option value="archived">已归档</option></select>
+    <button type="submit" class="primary" disabled>保存状态</button><p id="leadStatusError" class="website-lead-error" role="status"></p>
+  </form>
+</aside>
 <aside id="aiFormDrawer" class="drawer" aria-hidden="true"><div class="drawer-head"><div><h2 id="aiFormDrawerTitle">AI 需求表单</h2><div id="aiFormDrawerSub" class="drawer-sub">—</div></div><button data-action="close-ai-form" aria-label="关闭">×</button></div><div id="aiFormDrawerBody" class="drawer-body"></div><div class="drawer-footer"><button data-action="close-ai-form">关闭</button><button class="danger" data-action="remove-ai-form" data-permission="appointment:delete">删除这条记录</button></div></aside>
 <div id="reportMailModal" class="modal" aria-hidden="true"><div class="modal-card report-mail-card" role="dialog" aria-modal="true" aria-labelledby="reportMailTitle" tabindex="-1"><div class="modal-head"><h2 id="reportMailTitle">报告邮件</h2><button type="button" data-mail-action="close" aria-label="关闭报告邮件窗口">×</button></div><div id="reportMailBody" class="report-mail-body"></div><div class="modal-actions"><span id="reportMailFeedback" role="status"></span><button type="button" data-mail-action="close">关闭</button><button type="button" id="reportMailConfirm" class="primary" data-mail-action="submit" hidden>确认发送</button></div></div></div>
 <div id="editorModal" class="modal" aria-hidden="true"><div class="modal-card"><div class="modal-head"><h2 id="editorTitle">编辑</h2><button data-action="close-editor">×</button></div><form id="editorForm"></form><div class="modal-actions"><button type="button" data-action="close-editor">取消</button><button type="button" class="primary" data-action="save-editor">保存</button></div></div></div>
@@ -285,7 +313,7 @@
 <div class="toast" id="toast" role="status"></div>
 <script src="/admin/lib/wangeditor/index.js"></script>
 <script src="/admin/js/article-management.js?v=20261111a"></script>
-<script src="/admin/js/admin-2026.js?v=20261127crm1"></script>
+<script src="/admin/js/admin-2026.js?v=20261127leads1"></script>
 <script src="/admin/js/nqoc.js?v=20261127workbench1"></script>
 <script src="/admin/js/crm.js?v=7"></script>
 </body>
