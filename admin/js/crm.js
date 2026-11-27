@@ -5,8 +5,13 @@
     const body = $('crmBody'), dialog = $('crmDialog'), form = $('crmForm');
     const labels = { dashboard: '工作台', leads: '线索', companies: '公司', contacts: '联系人', opportunities: '商机' };
     const stages = {
-        leads: { new: '待处理', working: '跟进中', converted: '已转商机', closed: '已关闭' },
+        leads: { new: '待处理', working: '跟进中', nurture: '待培育', converted: '已转商机', closed: '已关闭' },
         opportunities: { demand: '需求确认', proposal: '方案沟通', quote: '报价谈判', won: '赢单', lost: '输单' }
+    };
+    const qualifications = { lead: '普通线索', mql: '营销合格', sql: '销售合格' };
+    const gradeBadge = level => {
+        const key = Object.hasOwn(qualifications, level) ? level : 'lead';
+        return '<span class="crm-grade crm-grade-' + key + '">' + key.toUpperCase() + '</span>';
     };
     const sources = { appointment: '官网预约', report: '报告领取', 'legacy-whitepaper': '历史白皮书领取', whitepaper: '官网白皮书',
         survey: '新质组织调研', manual: '日常录入', event: '线下活动', referral: '转介绍', inbound: '来电 / 来访' };
@@ -23,7 +28,7 @@
             ['expectedAmount', '预计金额（元）', 'number'], ['expectedAt', '预计成交日期', 'date'], ['tags', '标签（逗号分隔）'],
             ['nextStep', '下一步'], ['nextAt', '下次跟进', 'datetime-local']]
     };
-    const state = { tab: 'dashboard', id: '', page: 1, filters: {}, owners: [], version: 0, detail: null };
+    const state = { tab: 'dashboard', id: '', page: 1, filters: {}, owners: [], version: 0, detail: null, days: 30, dashboardScope: 'team' };
     const api = (path, payload, method = 'GET') => json('/api/admin/crm' + path, { headers: authHeaders(), method,
         ...(payload ? { body: JSON.stringify(payload) } : {}) });
     const when = value => value ? new Date(value).toLocaleString('zh-CN', { hour12: false }) : '—';
@@ -53,35 +58,91 @@
         if (!rows.length) return empty('暂无符合条件的记录');
         return `<div class="table-wrap"><table><thead><tr>${headers.map(label => '<th>' + esc(label) + '</th>').join('')}</tr></thead><tbody>${rows.map(row => '<tr>' + row.map(cell => '<td>' + cell + '</td>').join('') + '</tr>').join('')}</tbody></table></div>`;
     }
+    const count = value => Number(value || 0).toLocaleString('zh-CN');
+    const shortDay = date => date.slice(5).replace('-', '/');
+    function dashboardDrill(kind, label, filter = {}, className = '') {
+        return `<button type="button" class="${className}" data-crm-drill="${kind}" data-filter="${esc(JSON.stringify(filter))}">${label}</button>`;
+    }
     function dashboard(data) {
-        const cards = [['今日新增线索', data.received], ['待处理线索', data.pending], ['逾期跟进', data.overdue],
-            ['累计转商机', data.sources.reduce((sum, item) => sum + item.converted, 0)]];
-        if (data.unassigned != null) cards.push(['未分配线索', data.unassigned]);
-        const items = [...data.leads.map(row => ({ ...row, kind: 'leads' })),
-            ...data.opportunities.filter(row => row.nextAt && new Date(row.nextAt) < new Date(data.end)).map(row => ({ ...row, kind: 'opportunities' }))]
-            .sort((a, b) => new Date(a.nextAt) - new Date(b.nextAt));
-        const follow = items.map(row => [viewButton(row.kind, row), esc(labels[row.kind]), esc(row.nextStep || '—'), esc(when(row.nextAt)), esc(new Date(row.nextAt) < new Date() ? '逾期' : '今日')]);
-        const arrivals = data.sources.map(row => [esc(row._id === 'report' ? '报告领取（含历史白皮书）' : sources[row._id] || row._id), String(row.count), String(row.converted)]);
-        const pipeline = data.grouped.map(row => [esc(stageLabel('opportunities', row._id)), String(row.count),
-            esc(row._id === 'won' || row._id === 'lost' ? '—' : money(row.expected)), esc(row._id === 'won' ? money(row.actual) : '—')]);
-        const expected = data.expected
-            .map(row => `<li>${viewButton('opportunities', row)} <span class="crm-time">${esc(when(row.expectedAt))}</span></li>`);
-        body.innerHTML = `<div class="crm-stack">
-          <section class="crm-panel crm-stack"><div class="crm-toolbar"><h2>跟进工作台</h2><div class="crm-actions">${hasPermission('crm:all') ? action('unassigned', '查看未分配线索') : ''}${hasPermission('crm:edit') ? action('new-lead', '录入线索', true) : ''}</div></div>
-          <dl class="crm-kpis">${cards.map(([label, value]) => '<div><dt>' + esc(label) + '</dt><dd>' + Number(value) + '</dd></div>').join('')}</dl></section>
-          <section class="crm-panel"><h3>今日与逾期跟进</h3>${table(['事项', '类型', '下一步', '跟进时间', '状态'], follow)}</section>
-          <div class="crm-cards">
-            <section class="crm-panel"><h3>未来 30 天预计成交</h3>${expected.length ? '<ul class="crm-quick-list">' + expected.join('') + '</ul>' : empty('暂无预计成交商机')}</section>
-            <section class="crm-panel"><h3>官网同步</h3><p>${esc(state.sync?.completedAt ? '最近检查：' + when(state.sync.completedAt) : '暂未记录同步检查')}</p>${state.sync?.errorAt ? '<p class="sub">最近重试记录 ' + esc(when(state.sync.errorAt)) + '</p>' : ''}</section>
+        const gradeCounts = Object.fromEntries(data.grades.map(row => [row._id, row.count]));
+        const gradeTotal = Object.values(gradeCounts).reduce((sum, value) => sum + value, 0);
+        const pipeline = Object.fromEntries(data.grouped.map(row => [row._id, row]));
+        const open = ['demand', 'proposal', 'quote'].reduce((total, key) => total + (pipeline[key]?.count || 0), 0);
+        const expectedMoney = ['demand', 'proposal', 'quote'].reduce((total, key) => total + (pipeline[key]?.expected || 0), 0);
+        const totalArrivals = data.trend.reduce((sum, row) => sum + row.count, 0);
+        const groupSize = Math.ceil(data.trend.length / 15);
+        const bars = [];
+        for (let index = 0; index < data.trend.length; index += groupSize) {
+            const period = data.trend.slice(index, index + groupSize);
+            const a = shortDay(period[0].date), b = shortDay(period.at(-1).date);
+            bars.push({ date: a === b ? a : a + '–' + b, count: period.reduce((sum, day) => sum + day.count, 0) });
+        }
+        const peak = Math.max(1, ...bars.map(bar => bar.count));
+        const follow = [...data.leads.map(row => ({ ...row, kind: 'leads' })), ...data.opportunities.map(row => ({ ...row, kind: 'opportunities' }))]
+            .sort((a, b) => new Date(a.nextAt) - new Date(b.nextAt)).slice(0, 12);
+        const dueRows = follow.map(row => `<li><div>${viewButton(row.kind, row)}<span class="crm-time">${esc(labels[row.kind])}${row.nextStep ? ' · ' + esc(row.nextStep) : ''}</span></div>
+          <div class="crm-dash-task-date"><span class="${new Date(row.nextAt) < new Date() ? 'crm-overdue' : ''}">${new Date(row.nextAt) < new Date() ? '已逾期' : '今日到期'}</span><time datetime="${esc(row.nextAt)}">${esc(when(row.nextAt))}</time></div></li>`);
+        const expected = data.expected.slice(0, 8).map(row => `<li><div>${viewButton('opportunities', row)}<span class="crm-time">${esc(when(row.expectedAt))}</span></div><strong>${esc(money(row.expectedAmount))}</strong></li>`);
+        const barsFor = (value, max) => `<span class="crm-dash-track" aria-hidden="true"><span style="width:${max ? Math.round(100 * value / max) : 0}%"></span></span>`;
+        const gradeRows = Object.entries(qualifications).map(([key, name]) => dashboardDrill('leads',
+            `<span class="crm-grade crm-grade-${key}">${key.toUpperCase()}</span><span class="crm-dash-grade-name">${esc(name)}</span><strong>${count(gradeCounts[key])}</strong>${barsFor(gradeCounts[key] || 0, gradeTotal)}`,
+            { qualification: key, pool: 'open' }, 'crm-dash-grade-row'));
+        const highestSource = Math.max(1, ...data.sources.map(row => row.count));
+        const sourceRows = data.sources.map(row => {
+            const label = row._id === 'report' ? '报告领取（含历史白皮书）' : sources[row._id] || row._id;
+            return dashboardDrill('leads',
+                `<span>${esc(label)}${barsFor(row.count, highestSource)}</span><strong>${count(row.count)}</strong><span class="crm-time">转商机 ${count(row.converted)}</span>`,
+                { source: row._id, receivedDays: data.days }, 'crm-dash-source-row');
+        });
+        const largestStage = Math.max(1, ...data.grouped.map(row => row.count));
+        const dealRows = Object.entries(stages.opportunities).map(([key, name]) => dashboardDrill('opportunities',
+            `<span>${esc(name)}${barsFor(pipeline[key]?.count || 0, largestStage)}</span><strong>${count(pipeline[key]?.count)}</strong>
+              <span class="crm-time">${key === 'lost' ? '—' : esc(money(key === 'won' ? pipeline[key]?.actual : pipeline[key]?.expected))}</span>`,
+            { stage: key }, 'crm-dash-source-row crm-pipeline-' + key));
+        const kpi = (label, value, sub, link) => `<article class="crm-dash-kpi"><h3>${label}</h3><strong>${value}</strong><div>${sub}${link || ''}</div></article>`;
+        const scopes = hasPermission('crm:all') ? `<div class="crm-dash-toggle" role="group" aria-label="数据范围">
+          <button type="button" data-crm-scope="team" aria-pressed="${data.scope === 'team'}">全部</button>
+          <button type="button" data-crm-scope="mine" aria-pressed="${data.scope === 'mine'}">我负责的</button></div>` : '';
+        body.innerHTML = `<div class="crm-dashboard">
+          <header class="crm-dash-hero"><div><p>${esc(data.scope === 'team' ? '全部团队' : '我负责的记录')}</p><h2>跟进工作台</h2>
+            <p>${esc(data.trend.at(-1).date)} · 北京时间${state.sync?.completedAt && data.scope === 'team' ? ' · 官网同步 ' + esc(new Date(state.sync.completedAt).toLocaleTimeString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })) : ''}</p></div>
+            <div class="crm-dash-hero-actions">${scopes}${hasPermission('crm:edit') ? action('new-lead', '录入线索', true) : ''}</div></header>
+          <div class="crm-dash-kpis">
+            ${kpi('今日新增线索', count(data.received), '待处理 ' + count(data.pending) + ' 条', dashboardDrill('leads', '查看待处理', { stage: 'new' }, 'crm-dash-kpi-link'))}
+            ${kpi('今日到期跟进', count(data.todayFollow), '逾期 ' + count(data.overdue) + ' 条', dashboardDrill('leads', '查看逾期线索', { due: 'overdue' }, 'crm-dash-kpi-link'))}
+            ${kpi('在跟商机', count(open), '预计 ' + esc(money(expectedMoney)), dashboardDrill('opportunities', '查看商机', { pool: 'open' }, 'crm-dash-kpi-link'))}
+            ${kpi('累计实际赢单', esc(money(pipeline.won?.actual ?? 0)), count(pipeline.won?.count) + ' 个赢单', dashboardDrill('opportunities', '查看赢单', { stage: 'won' }, 'crm-dash-kpi-link'))}
           </div>
-          <section class="crm-panel"><h3>来源与转化</h3>${table(['来源', '线索数', '转商机'], arrivals)}</section>
-          <section class="crm-panel"><h3>商机各阶段</h3>${table(['阶段', '数量', '预计金额', '实际赢单金额'], pipeline)}</section>
+          <div class="crm-dash-grid crm-dash-main">
+            <section class="crm-panel crm-dash-panel">
+              <header class="crm-dash-heading"><div><h3>线索新增趋势</h3><p>近 ${data.days} 天新增 <strong>${count(totalArrivals)}</strong> 条</p></div>
+                <div class="crm-dash-toggle" role="group" aria-label="统计周期">${[7, 30, 90].map(days => `<button type="button" data-crm-period="${days}" aria-pressed="${data.days === days}">${days} 天</button>`).join('')}</div></header>
+              <div class="crm-dash-chart" style="--columns:${bars.length}" aria-label="线索新增趋势图">${bars.map((bar, index) => `<button type="button" class="crm-dash-bar" data-crm-bar="${index}" data-date="${esc(bar.date)}" data-count="${bar.count}" style="--height:${Math.round(100 * bar.count / peak)}%" aria-label="${esc(bar.date)}，新增 ${bar.count} 条" title="${esc(bar.date)} · ${count(bar.count)} 条" aria-pressed="${index === bars.length - 1}"><span></span></button>`).join('')}</div>
+              <div class="crm-dash-axis"><span>${esc(shortDay(data.trend[0].date))}</span><output id="crmTrendSelection">${esc(bars.at(-1).date)} · ${count(bars.at(-1).count)} 条</output><span>${esc(shortDay(data.trend.at(-1).date))}</span></div>
+            </section>
+            <section class="crm-panel crm-dash-panel">
+              <header class="crm-dash-heading"><div><h3>当前线索等级</h3><p>未结束线索 ${count(gradeTotal)} 条</p></div></header>
+              <div class="crm-dash-grade-list">${gradeRows.join('')}</div>
+              ${data.unassigned != null ? dashboardDrill('leads', '未分配 ' + count(data.unassigned) + ' 条', { owner: 'unassigned', pool: 'assignedWork' }, 'crm-dash-unassigned') : ''}
+            </section>
+          </div>
+          <div class="crm-dash-grid">
+            <section class="crm-panel crm-dash-panel"><header class="crm-dash-heading"><div><h3>今日与逾期跟进</h3><p>线索和商机按下次跟进时间排列</p></div>${dashboardDrill('opportunities', '查看逾期商机', { due: 'overdue' }, 'crm-dash-kpi-link')}</header>
+              ${dueRows.length ? '<ul class="crm-dash-task">' + dueRows.join('') + '</ul>' : empty('暂无到期跟进')}</section>
+            <section class="crm-panel crm-dash-panel"><header class="crm-dash-heading"><div><h3>商机各阶段</h3><p>按项目数量展示 · 金额为预计或实际成交金额</p></div></header>
+              <div class="crm-dash-source-list">${dealRows.join('')}</div></section>
+            <section class="crm-panel crm-dash-panel"><header class="crm-dash-heading"><div><h3>线索来源与转化</h3><p>近 ${data.days} 天新增线索及其中已转商机数</p></div></header>
+              ${sourceRows.length ? '<div class="crm-dash-source-list">' + sourceRows.join('') + '</div>' : empty('该周期暂无新增线索')}</section>
+            <section class="crm-panel crm-dash-panel"><header class="crm-dash-heading"><h3>未来 30 天预计成交</h3></header>
+              ${expected.length ? '<ul class="crm-dash-task">' + expected.join('') + '</ul>' : empty('暂无预计成交的商机')}</section>
+          </div>
         </div>`;
     }
+
     function listing(data) {
         const kind = state.tab, filter = state.filters;
         const headers = {
-            leads: ['姓名 / 公司', '联系方式', '来源', '阶段', '负责人', '下次跟进'],
+            leads: ['姓名 / 公司', '联系方式', '来源', '线索等级', '跟进状态', '负责人', '下次跟进'],
             companies: ['名称 / 简称', '行业', '地区', '负责人'],
             contacts: ['姓名 / 职位', '公司', '联系方式', '负责人'],
             opportunities: ['项目 / 服务方向', '公司', '阶段', '金额', '负责人', '下次跟进']
@@ -89,7 +150,7 @@
         const stack = (first, second) => `<div>${first || '—'}</div>${second ? '<span class="sub">' + esc(second) + '</span>' : ''}`;
         const info = data.rows.map(row => {
             const stage = esc(stageLabel(kind, row.stage)), owner = esc(ownerName(row.ownerId));
-            if (kind === 'leads') return [stack(viewButton(kind, row), row.company), stack(esc(row.phone), row.email), esc(sources[row.source] || row.source), stage + (row.matchIssue ? '<span class="sub">资料待核实</span>' : ''), owner, esc(when(row.nextAt))];
+            if (kind === 'leads') return [stack(viewButton(kind, row), row.company), stack(esc(row.phone), row.email), esc(sources[row.source] || row.source), gradeBadge(row.qualification), stage + (row.matchIssue ? '<span class="sub">资料待核实</span>' : ''), owner, esc(when(row.nextAt))];
             if (kind === 'companies') return [stack(viewButton(kind, row), row.alias), esc(row.industry || '—'), esc(row.region || '—'), owner];
             if (kind === 'contacts') return [stack(viewButton(kind, row), row.position), esc(row.company || '—'), stack(esc(row.phone), row.email), owner];
             return [stack(viewButton(kind, row), row.direction), esc(row.company || '—'), stage, esc(money(row.stage === 'won' ? row.actualAmount : row.expectedAmount)), owner, esc(when(row.nextAt))];
@@ -101,12 +162,14 @@
           <form id="crmFilters" class="crm-filters">
             <label>关键词<input name="q" type="search" maxlength="100" value="${esc(filter.q)}" placeholder="输入名称或联系方式"></label>
             ${stages[kind] ? '<label>阶段<select name="stage">' + options(stages[kind], filter.stage, '全部阶段') + '</select></label>' : ''}
+            ${kind === 'leads' ? '<label>线索等级<select name="qualification">' + options({ lead: 'Lead · 普通线索', mql: 'MQL · 营销合格', sql: 'SQL · 销售合格' }, filter.qualification, '全部等级') + '</select></label>' : ''}
             ${kind === 'leads' ? '<label>来源<select name="source">' + options({ ...sources, report: '报告领取（含历史白皮书）' }, filter.source, '全部来源') + '</select></label>' : ''}
             ${hasPermission('crm:all') ? '<label>负责人<select name="owner">' + options({ unassigned: '未分配', ...Object.fromEntries(state.owners.map(owner => [owner._id, owner.name])) }, filter.owner, '全部负责人') + '</select></label>' : ''}
             ${kind !== 'companies' ? '<label>标签<input name="tag" value="' + esc(filter.tag) + '" maxlength="32"></label>' : ''}
-            ${stages[kind] ? '<label>跟进时间<select name="due">' + options({ overdue: '已逾期', scheduled: '已安排', none: '未安排' }, filter.due, '全部时间') + '</select></label>' : ''}
+            ${stages[kind] ? '<label>跟进时间<select name="due">' + options({ overdue: '已逾期', today: '今日到期', scheduled: '已安排', none: '未安排' }, filter.due, '全部时间') + '</select></label>' : ''}
             <button type="submit">筛选</button>${action('reset', '重置')}
           </form>
+          ${filter.pool || filter.receivedDays ? '<p class="sub">当前范围：' + [filter.pool ? (filter.pool === 'assignedWork' ? '待处理和跟进中' : kind === 'leads' ? '未结束线索' : '在跟商机') : '', filter.receivedDays ? '近 ' + Number(filter.receivedDays) + ' 天新增' : ''].filter(Boolean).join(' · ') + '</p>' : ''}
           ${table(headers, info)}
           <div class="crm-pagination"><span>第 ${state.page} / ${pages} 页</span><div class="crm-actions">
             <button type="button" data-crm-action="prev" ${state.page <= 1 ? 'disabled' : ''}>上一页</button>
@@ -123,7 +186,7 @@
             return [label, type === 'number' ? money(value) : ['date', 'datetime-local'].includes(type) ? when(value) : Array.isArray(value) ? value.join('、') : value];
         });
         metadata.unshift(['负责人', ownerName(row.ownerId)]);
-        if (kind === 'leads') metadata.unshift(['来源', sources[row.source]], ['匹配提示', row.matchIssue], ['关闭原因', row.closeReason]);
+        if (kind === 'leads') metadata.unshift(['来源', sources[row.source]], ['匹配提示', row.matchIssue], ['状态说明', row.closeReason]);
         if (kind === 'opportunities') metadata.push(['实际成交金额', row.actualAmount == null ? '' : money(row.actualAmount)], ['成交日期', row.wonAt && when(row.wonAt)], ['输单原因', row.lossReason]);
         const related = [['leads', data.leads], ['contacts', data.contacts], ['opportunities', data.opportunities]];
         if (row.contactId) related.push(['contacts', [{ _id: row.contactId, name: '打开关联联系人' }]]);
@@ -135,14 +198,19 @@
           <p>${esc(sources[event.source] || event.source)}${event.sourcePage ? ' · ' + esc(event.sourcePage) : ''}</p>
           ${event.report ? '<p>' + esc(mailStatus[event.report.status] || '未安排邮件') + (event.report.opens ? ' · 报告已打开 ' + Number(event.report.opens) + ' 次' : '') + '</p>' : ''}
           ${event.url ? '<a href="' + esc(event.url) + '" target="_blank" rel="noopener">查看来源</a>' : ''}</li>`);
+        const qualificationHistory = (data.qualificationHistory || []).map(change =>
+            `<li><strong>${esc(change.from.toUpperCase())} → ${esc(change.to.toUpperCase())}</strong>
+              <span class="crm-time">${esc(change.actor)} · ${esc(when(change.at))}</span><p>${esc(change.reason)}</p>
+              ${change.nextStep ? '<p>下一步：' + esc(change.nextStep) + '</p>' : ''}</li>`);
         const notes = data.activities.map(item => `<li><strong>${esc(channels[item.kind] || item.kind)}</strong> <span class="crm-time">${esc(item.actor)} · ${esc(when(item.createdAt))}</span><p>${esc(item.summary)}</p>
           ${item.nextStep ? '<p>下一步：' + esc(item.nextStep) + '</p>' : ''}${item.nextAt ? '<p>下次跟进：' + esc(when(item.nextAt)) + '</p>' : ''}</li>`);
         body.innerHTML = `<div class="crm-stack"><section class="crm-panel">
-          <div class="crm-toolbar"><div>${action('back', '返回' + labels[kind])}<h2>${esc(row.name)}</h2>${row.stage ? '<span class="chip n">' + esc(stageLabel(kind, row.stage)) + '</span>' : ''}</div>
+          <div class="crm-toolbar"><div>${action('back', '返回' + labels[kind])}<h2>${esc(row.name)}</h2>${kind === 'leads' ? gradeBadge(row.qualification) + ' ' : ''}${row.stage ? '<span class="chip n">' + esc(stageLabel(kind, row.stage)) + '</span>' : ''}</div>
           <div class="crm-actions">
             ${editable ? action('edit', '编辑') + action('follow', '记录跟进', true) : ''}
             ${hasPermission('crm:assign') ? action('assign', '分配负责人') : ''}
-            ${editable && kind === 'leads' && ['new','working'].includes(row.stage) ? action('convert', '转为商机') : ''}
+            ${editable && kind === 'leads' && ['new','working','nurture'].includes(row.stage) ? action('qualification', '调整线索等级') : ''}
+            ${editable && kind === 'leads' && row.qualification === 'sql' && ['new','working','nurture'].includes(row.stage) ? action('convert', '转为商机') : ''}
             ${editable && ['companies','contacts'].includes(kind) ? action('archive', '归档') : ''}
             ${hasPermission('crm:merge') && hasPermission('crm:all') && ['companies','contacts'].includes(kind) ? action('merge', '合并重复档案') : ''}
             ${kind === 'contacts' && row.email && hasPermission('nqoc-report-leads:batch-send') ? action('marketing', '加入报告邮件名单') : ''}
@@ -151,7 +219,9 @@
         </section><div class="crm-details">
           <section class="crm-panel"><h3>跟进记录</h3>${notes.length ? '<ol class="crm-timeline">' + notes.join('') + '</ol>' : empty('暂未记录跟进')}</section>
           <section class="crm-panel"><h3>关联档案</h3>${linked.length ? '<ul class="crm-quick-list">' + linked.join('') + '</ul>' : empty('暂无关联档案')}</section>
-        </div>${events.length || ['leads','contacts'].includes(kind) ? '<section class="crm-panel"><h3>提交与报告记录</h3>' + (events.length ? '<ol class="crm-timeline">' + events.join('') + '</ol>' : empty('暂无来源记录')) + '</section>' : ''}</div>`;
+        </div>
+        ${kind === 'leads' ? '<section class="crm-panel"><h3>线索等级记录</h3>' + (qualificationHistory.length ? '<ol class="crm-timeline">' + qualificationHistory.join('') + '</ol>' : empty('暂无线索等级调整')) + '</section>' : ''}
+        ${events.length || ['leads','contacts'].includes(kind) ? '<section class="crm-panel"><h3>提交与报告记录</h3>' + (events.length ? '<ol class="crm-timeline">' + events.join('') + '</ol>' : empty('暂无来源记录')) + '</section>' : ''}</div>`;
     }
     async function load() {
         const version = ++state.version;
@@ -160,7 +230,7 @@
         root.querySelectorAll('[data-crm-tab]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.crmTab === tab)));
         body.innerHTML = empty('正在加载…');
         try {
-            const path = tab === 'dashboard' ? '/dashboard' : id ? '/' + tab + '/' + encodeURIComponent(id) :
+            const path = tab === 'dashboard' ? '/dashboard?' + new URLSearchParams({ days: state.days, scope: state.dashboardScope }) : id ? '/' + tab + '/' + encodeURIComponent(id) :
                 '/' + tab + '?' + new URLSearchParams({ ...state.filters, page: state.page });
             const data = await api(path);
             if (version !== state.version) return;
@@ -226,7 +296,7 @@
     }
     function entityForm(kind, row = {}, convert = false) {
         const editing = !!row._id && !convert;
-        const values = convert ? { contactId: row.contactId, companyId: row.companyId, summary: row.summary } : row;
+        const values = convert ? { contactId: row.contactId, companyId: row.companyId, summary: row.summary, nextStep: row.nextStep } : row;
         const controls = fields[kind].map(config => field(config, values[config[0]])).join('');
         const manual = kind === 'leads' && !editing ? '<label>来源<select name="source" required>' +
             options({ manual: sources.manual, event: sources.event, referral: sources.referral, inbound: sources.inbound }, 'manual') + '</select></label>' : '';
@@ -235,11 +305,14 @@
         const stageControls = editing && stages[kind] ? '<label>阶段<select name="stage">' + options(
             kind === 'leads' ? Object.fromEntries(Object.entries(stages.leads).filter(([stage]) => row.stage === 'converted' ? stage === 'converted' : stage !== 'converted')) : stages[kind],
             row.stage) + '</select></label>' +
-            (kind === 'leads' ? field(['closeReason', '关闭原因'], row.closeReason) :
+            (kind === 'leads' ? field(['closeReason', '待培育或关闭原因'], row.closeReason) :
                 field(['lossReason', '输单原因'], row.lossReason) + field(['actualAmount', '实际成交金额（元）', 'number'], row.actualAmount) + field(['wonAt', '成交日期', 'date'], row.wonAt)) : '';
+        const qualificationFields = kind === 'leads' && !editing ? '<label>线索等级<select name="qualification">' +
+            options({ lead: 'Lead · 普通线索', mql: 'MQL · 营销合格', sql: 'SQL · 销售合格' }, 'lead') + '</select></label>' +
+            field(['qualificationReason', '等级判定依据（MQL / SQL 必填）', 'textarea']) : '';
         const key = crypto.randomUUID();
         let acknowledgedMatch = '';
-        openForm(convert ? '线索转为商机' : (editing ? '编辑' : '新建') + labels[kind], controls + manual + associates + stageControls, async payload => {
+        openForm(convert ? '线索转为商机' : (editing ? '编辑' : '新建') + labels[kind], controls + manual + qualificationFields + associates + stageControls, async payload => {
             if (!editing && ['leads','companies','contacts'].includes(kind) && !payload.contactId) {
                 const match = await api('/matches', { phone: payload.phone, email: payload.email, companyName: kind === 'companies' ? payload.name : payload.companyName }, 'POST');
                 if (kind === 'leads' && match.contacts.length) {
@@ -346,6 +419,14 @@
         edit: () => entityForm(state.tab, state.detail.row),
         reset: () => { state.filters = {}; state.page = 1; return load(); },
         prev: () => { state.page -= 1; return load(); }, next: () => { state.page += 1; return load(); },
+        qualification: () => {
+            const row = state.detail.row;
+            const current = row.qualification || 'lead';
+            const choices = Object.fromEntries(Object.entries({ lead: 'Lead · 普通线索', mql: 'MQL · 营销合格', sql: 'SQL · 销售合格' }).filter(([level]) => level !== current));
+            openForm('调整线索等级', '<label>调整为<select name="qualification" required>' + options(choices, '', '请选择等级') + '</select></label>' +
+                field(['nextStep', '双方约定的下一步（SQL 必填）'], row.nextStep) + field(['reason', '调整依据', 'textarea', true]),
+                async payload => { await api('/leads/' + row._id + '/qualification', payload, 'POST'); dialog.close(); await load(); });
+        },
         export: exportRows, 'bulk-import': bulkImportForm, 'import-template': importTemplate, convert: () => entityForm('opportunities', state.detail.row, true),
         assign: () => openForm('分配负责人', '<label class="crm-wide">负责人<select name="ownerId">' +
             options(Object.fromEntries(state.owners.map(owner => [owner._id, owner.name])), state.detail.row.ownerId, '未分配') + '</select></label>',
@@ -363,6 +444,24 @@
             async payload => { await api('/contacts/' + state.id + '/marketing', { ...payload, confirmed: payload.confirmed === 'on' }, 'POST'); dialog.close(); toast('已加入 CRM 联系人名单，请在邮件营销中确认发送'); }, '加入名单')
     };
     root.addEventListener('click', event => {
+        const period = event.target.closest('[data-crm-period]');
+        if (period) { state.days = Number(period.dataset.crmPeriod); return load(); }
+        const scope = event.target.closest('[data-crm-scope]');
+        if (scope) { state.dashboardScope = scope.dataset.crmScope; return load(); }
+        const bar = event.target.closest('[data-crm-bar]');
+        if (bar) {
+            root.querySelectorAll('[data-crm-bar]').forEach(button => button.setAttribute('aria-pressed', String(button === bar)));
+            $('crmTrendSelection').textContent = bar.dataset.date + ' · ' + count(bar.dataset.count) + ' 条';
+            return;
+        }
+        const drill = event.target.closest('[data-crm-drill]');
+        if (drill) {
+            state.tab = drill.dataset.crmDrill;
+            state.filters = JSON.parse(drill.dataset.filter);
+            if (hasPermission('crm:all') && state.dashboardScope === 'mine') state.filters.owner = String(currentUser.id || currentUser._id || '');
+            state.page = 1;
+            return navigate(state.tab);
+        }
         const tab = event.target.closest('[data-crm-tab]');
         if (tab) return navigate(tab.dataset.crmTab);
         const open = event.target.closest('[data-crm-open]');
@@ -374,7 +473,9 @@
     root.addEventListener('submit', async event => {
         event.preventDefault();
         if (event.target.id === 'crmFilters') {
-            state.filters = Object.fromEntries(new FormData(event.target));
+            const filters = Object.fromEntries(new FormData(event.target));
+            for (const key of ['receivedDays', 'pool']) if (state.filters[key]) filters[key] = state.filters[key];
+            state.filters = filters;
             state.page = 1;
             await load();
         } else if (event.target === form && !$('crmSave').disabled) {

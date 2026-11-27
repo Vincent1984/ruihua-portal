@@ -2,6 +2,11 @@ const { Schema, model } = require('mongoose');
 const ref = Schema.Types.ObjectId;
 const ownerId = { type: ref, default: null };
 const archive = { type: Date, default: null };
+const QUALIFICATIONS = ['lead', 'mql', 'sql'];
+const qualificationEvent = new Schema({
+    from: String, to: { type: String, enum: QUALIFICATIONS }, reason: String,
+    nextStep: String, at: Date, actorId: ref, actor: String
+}, { _id: false });
 
 function entity(name, fields) {
     const schema = new Schema(fields, { timestamps: true, optimisticConcurrency: true });
@@ -24,6 +29,8 @@ const Lead = entity('CrmLead', {
     source: { type: String, required: true }, receivedAt: Date, reportGroup: String, summary: String, tags: [String], contactId: { type: ref, index: true },
     companyId: { type: ref, index: true }, ownerId, archivedAt: archive, nextAt: Date,
     stage: { type: String, default: 'new' }, nextStep: String, closeReason: String,
+    qualification: { type: String, enum: QUALIFICATIONS, default: 'lead' },
+    qualificationHistory: [qualificationEvent],
     opportunityId: ref, matchIssue: String, dedupKey: { type: String, unique: true, sparse: true }
 });
 const Opportunity = entity('CrmOpportunity', {
@@ -45,4 +52,4 @@ const Activity = model('CrmActivity', new Schema({
 const Sync = model('CrmSync', new Schema({
     _id: String, leaseUntil: Date, leaseToken: String, completedAt: Date, errorAt: Date
 }));
-module.exports = { Company, Contact, Lead, Opportunity, Event, Activity, Sync };
+module.exports = { QUALIFICATIONS, Company, Contact, Lead, Opportunity, Event, Activity, Sync };

@@ -13,7 +13,7 @@ const emailKey = value => {
 };
 const companyKey = value => text(value, 160).normalize('NFKC').replace(/\s+/g, '').toLowerCase();
 const SOURCES = [
-    { model: require('../models/Appointment'), key: 'appointment', title: '官网预约', fields: 'name phone email company title department problem source leadPage createdAt',
+    { model: require('../models/Appointment'), key: 'appointment', title: '官网预约', fields: 'name phone email company title department problem intents source leadPage createdAt',
         map: row => ({ ...row, position: row.title, summary: row.problem, sourcePage: row.leadPage || row.source }) },
     { model: require('../models/NqocReportLead'), key: 'report', title: '报告领取', fields: 'name phone email company position reportSlug reportTitle sourcePage createdAt',
         filter: { deletedAt: null }, map: row => ({ ...row, title: row.reportTitle, group: row.reportSlug || row.reportTitle }) },
@@ -90,12 +90,19 @@ async function ingest(source, row, options = {}) {
     const visibleContact = !options.canLink || !contact || options.canLink(contact) ? contact : null;
     const reportGroup = text(data.group, 160);
     const receivedAt = data.createdAt || new Date();
+    const appointmentQualified = !options.manual && source.key === 'appointment' && Boolean(text(data.company))
+        && Boolean(text(data.summary) || data.intents?.some(value => text(value)));
+    const qualification = data.qualification || (appointmentQualified ? 'mql' : 'lead');
+    const qualificationHistory = data.qualificationHistory || (appointmentQualified ? [{
+        from: 'lead', to: 'mql', at: receivedAt, actor: '系统',
+        reason: '官网预约提供了公司和咨询需求，待负责人核实'
+    }] : []);
     const previous = reportGroup && visibleContact && await Lead.findOne({
         source: source.key, contactId: visibleContact._id, reportGroup, archivedAt: null
     }).sort({ receivedAt: 1, _id: 1 });
     const dedupKey = reportGroup && contact ? `${source.key}:${contact.id}:${reportGroup}` : key;
     const leadFields = {
-        name: text(data.name, 100) || '未留姓名', source: source.key, receivedAt, reportGroup, phone: phoneKey(data.phone), email: emailKey(data.email),
+        name: text(data.name, 100) || '未留姓名', source: source.key, receivedAt, reportGroup, qualification, qualificationHistory, phone: phoneKey(data.phone), email: emailKey(data.email),
         companyName: text(data.company, 160), summary: text(data.summary || data.title, 2000), contactId: visibleContact?._id,
         companyId: visibleContact?.companyId, ownerId: options.manual ? options.ownerId : (contact?.ownerId || null),
         matchIssue: conflict || (contact && !visibleContact ? '已匹配已有档案，请管理员确认归属' : ''), dedupKey,

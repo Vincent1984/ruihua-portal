@@ -10,11 +10,16 @@ const MailContact = require('../../models/ReportMailContact');
 const Report = require('../../models/NqocReportLead');
 const Whitepaper = require('../../models/NqocWhitepaperRequest');
 const { gatherPermissions } = require('../../middleware/adminPageAuth');
-const { Company, Contact, Lead, Opportunity, Event, Activity, Sync } = require('../../models/crm');
+const { QUALIFICATIONS, Company, Contact, Lead, Opportunity, Event, Activity, Sync } = require('../../models/crm');
 const { text, phoneKey, emailKey, companyKey, SOURCES, ingest } = require('../../utils/crmIntake');
 
 const MODELS = { companies: Company, contacts: Contact, leads: Lead, opportunities: Opportunity };
-const LEAD_STAGES = ['new', 'working', 'converted', 'closed'];
+const LEAD_STAGES = ['new', 'working', 'nurture', 'converted', 'closed'];
+const OPEN_LEAD_STAGES = ['new', 'working', 'nurture'];
+const DAY = 86400000;
+const SHANGHAI = 8 * 3600000;
+const shanghaiStart = now => Math.floor((now + SHANGHAI) / DAY) * DAY - SHANGHAI;
+const dateKey = now => new Date(now + SHANGHAI).toISOString().slice(0, 10);
 const OPPORTUNITY_STAGES = ['demand', 'proposal', 'quote', 'won', 'lost'];
 const TERMINAL = ['converted', 'closed', 'won', 'lost'];
 const CHANNELS = ['phone', 'wechat', 'email', 'meeting', 'other'];
@@ -71,8 +76,23 @@ function filterFor(req, kind) {
             leads: ['name', 'phone', 'email', 'companyName', 'summary'], opportunities: ['name', 'direction', 'summary'] }[kind];
         filter.$or = fields.map(field => ({ [field]: regex }));
     }
-    if (kind === 'leads' && LEAD_STAGES.includes(req.query.stage)) filter.stage = req.query.stage;
-    if (kind === 'opportunities' && OPPORTUNITY_STAGES.includes(req.query.stage)) filter.stage = req.query.stage;
+    if (kind === 'leads') {
+        if (LEAD_STAGES.includes(req.query.stage)) filter.stage = req.query.stage;
+        else if (req.query.pool === 'open') filter.stage = { $in: OPEN_LEAD_STAGES };
+        else if (req.query.pool === 'assignedWork') filter.stage = { $in: ['new', 'working'] };
+        if (QUALIFICATIONS.includes(req.query.qualification)) {
+            filter.qualification = req.query.qualification === 'lead' ? { $in: ['lead', null] } : req.query.qualification;
+        }
+        const days = Number(req.query.receivedDays);
+        if ([7, 30, 90].includes(days)) {
+            const today = shanghaiStart(Date.now());
+            filter.receivedAt = { $gte: new Date(today - (days - 1) * DAY), $lt: new Date(today + DAY) };
+        }
+    }
+    if (kind === 'opportunities') {
+        if (OPPORTUNITY_STAGES.includes(req.query.stage)) filter.stage = req.query.stage;
+        else if (req.query.pool === 'open') filter.stage = { $in: ['demand', 'proposal', 'quote'] };
+    }
     if (kind === 'leads' && [...SOURCES.map(source => source.key), ...MANUAL_SOURCES].includes(req.query.source)) {
         filter.source = req.query.source === 'report' ? { $in: ['report', 'legacy-whitepaper'] } : req.query.source;
     }
@@ -83,6 +103,10 @@ function filterFor(req, kind) {
         if (id(req.query.company)) filter.companyId = req.query.company;
         if (id(req.query.contact)) filter.contactId = req.query.contact;
         if (req.query.due === 'overdue') { filter.nextAt = { $ne: null, $lt: new Date() }; filter.stage ||= { $nin: TERMINAL }; }
+        if (req.query.due === 'today') {
+            filter.nextAt = { $gte: new Date(shanghaiStart(Date.now())), $lt: new Date(shanghaiStart(Date.now()) + DAY) };
+            filter.stage ||= { $nin: TERMINAL };
+        }
         if (req.query.due === 'scheduled') filter.nextAt = { $ne: null };
         if (req.query.due === 'none') filter.nextAt = null;
     }
@@ -118,15 +142,28 @@ async function entityValues(req, kind, body, previous) {
         expectedAmount: amount(body.expectedAmount), expectedAt: date(body.expectedAt),
         nextStep: text(body.nextStep, 500), nextAt: date(body.nextAt) };
 }
+function qualificationChange(req, row, body) {
+    const from = row?.qualification || 'lead';
+    const to = body.qualification === undefined ? from : body.qualification;
+    if (!QUALIFICATIONS.includes(to)) throw bad('线索等级无效');
+    if (to === from) return null;
+    const reason = text(body.reason || body.qualificationReason, 1000);
+    const nextStep = text(body.nextStep, 500);
+    if (!reason) throw bad('请填写等级调整依据');
+    if (to === 'sql' && !nextStep) throw bad('设为 SQL 时请填写双方约定的下一步');
+    return { from, to, reason, nextStep, at: new Date(), actorId: req.user.id, actor: req.user.username || '管理员' };
+}
 function stages(row, kind, body) {
     const options = kind === 'leads' ? LEAD_STAGES : OPPORTUNITY_STAGES;
     const stage = text(body.stage) || row.stage;
     if (!options.includes(stage) || (kind === 'leads' && stage === 'converted' && row.stage !== 'converted')) throw bad('请使用线索转化操作');
     if (row.stage === 'converted' && stage !== 'converted') throw bad('已转化的线索不能退回阶段');
     const updates = { stage };
-    if (stage === 'closed') {
+    if (stage === 'closed' || stage === 'nurture') {
         updates.closeReason = text(body.closeReason, 500);
-        if (!updates.closeReason) throw bad('请填写关闭原因');
+        if (!updates.closeReason) throw bad(stage === 'closed' ? '请填写关闭原因' : '请填写待培育原因');
+    } else if (kind === 'leads' && ['new', 'working'].includes(stage)) {
+        updates.closeReason = '';
     }
     if (stage === 'lost') {
         updates.lossReason = text(body.lossReason, 500);
@@ -168,7 +205,8 @@ async function details(req, kind, row) {
         if (event.source === 'appointment' && (can(req, 'lead:list') || can(req, 'appointment:list'))) event.url = '/admin/leads?q=' + encodeURIComponent(row.phone || row.email || row.name);
         if (event.source === 'survey' && can(req, 'nqoc:list')) event.url = '/admin/nqoc-survey.html';
     }
-    return { row, activities, leads, contacts, opportunities, events };
+    const qualificationHistory = kind === 'leads' ? [...row.qualificationHistory].reverse() : [];
+    return { row, activities, leads, contacts, opportunities, events, qualificationHistory };
 }
 
 function init(authRequired, jwtSecret) {
@@ -201,28 +239,44 @@ function init(authRequired, jwtSecret) {
         res.json({ contacts, company });
     }));
     router.get('/dashboard', wrap(async (req, res) => {
-        const base = active(req), now = new Date(), day = 86400000, offset = 8 * 3600000;
-        const start = new Date(Math.floor((Date.now() + offset) / day) * day - offset);
-        const end = new Date(start.getTime() + day);
+        const now = new Date(), today = shanghaiStart(now.getTime());
+        const days = [7, 30, 90].includes(Number(req.query.days)) ? Number(req.query.days) : 30;
+        const start = new Date(today - (days - 1) * DAY), end = new Date(today + DAY);
+        const team = all(req) && req.query.scope !== 'mine';
+        const base = { archivedAt: null, ...(team ? {} : { ownerId: new Types.ObjectId(req.user.id) }) };
         const follow = { ...base, stage: { $nin: TERMINAL }, nextAt: { $ne: null, $lt: end } };
-        const leadBase = { ...base, stage: { $in: ['new', 'working'] } };
-        const [leads, opportunities, expected, received, pending, overdueLeads, overdueOpportunities, unassigned, grouped, sources] = await Promise.all([
-            Lead.find(follow).select('name stage nextAt ownerId nextStep').sort('nextAt').limit(30).lean(),
-            Opportunity.find(follow).select('name stage nextAt ownerId nextStep').sort('nextAt').limit(30).lean(),
-            Opportunity.find({ ...base, stage: follow.stage, expectedAt: { $gte: now, $lte: new Date(Date.now() + 30 * day) } })
-                .select('name expectedAt').sort('expectedAt').limit(30).lean(),
-            Lead.countDocuments({ ...base, receivedAt: { $gte: start, $lt: end } }),
-            Lead.countDocuments({ ...leadBase, stage: 'new' }),
+        const openLeads = { ...base, stage: { $in: ['new', 'working'] } };
+        const period = { receivedAt: { $gte: start, $lt: end } };
+        const [leads, opportunities, expected, pending, overdueLeads, overdueOpportunities, todayLeads, todayOpportunities, unassigned, grouped, metrics] = await Promise.all([
+            Lead.find(follow).select('name stage qualification nextAt nextStep').sort('nextAt').limit(30).lean(),
+            Opportunity.find(follow).select('name stage nextAt nextStep').sort('nextAt').limit(30).lean(),
+            Opportunity.find({ ...base, stage: follow.stage, expectedAt: { $gte: now, $lte: new Date(now.getTime() + 30 * DAY) } })
+                .select('name expectedAt expectedAmount').sort('expectedAt').limit(30).lean(),
+            Lead.countDocuments({ ...openLeads, stage: 'new' }),
             Lead.countDocuments({ ...follow, nextAt: { $ne: null, $lt: now } }),
             Opportunity.countDocuments({ ...follow, nextAt: { $ne: null, $lt: now } }),
-            all(req) ? Lead.countDocuments({ ...leadBase, ownerId: null }) : null,
-            Opportunity.aggregate([{ $match: { ...base, ...(all(req) ? {} : { ownerId: new Types.ObjectId(req.user.id) }) } },
+            Lead.countDocuments({ ...follow, nextAt: { $gte: new Date(today), $lt: end } }),
+            Opportunity.countDocuments({ ...follow, nextAt: { $gte: new Date(today), $lt: end } }),
+            team ? Lead.countDocuments({ ...openLeads, ownerId: null }) : null,
+            Opportunity.aggregate([{ $match: base },
                 { $group: { _id: '$stage', count: { $sum: 1 }, expected: { $sum: '$expectedAmount' }, actual: { $sum: '$actualAmount' } } }]),
-            Lead.aggregate([{ $match: { ...base, ...(all(req) ? {} : { ownerId: new Types.ObjectId(req.user.id) }) } },
-                { $group: { _id: { $cond: [{ $eq: ['$source', 'legacy-whitepaper'] }, 'report', '$source'] },
-                    count: { $sum: 1 }, converted: { $sum: { $cond: [{ $eq: ['$stage', 'converted'] }, 1, 0] } } } }])
+            Lead.aggregate([{ $match: base }, { $facet: {
+                grades: [{ $match: { stage: { $in: OPEN_LEAD_STAGES } } },
+                    { $group: { _id: { $ifNull: ['$qualification', 'lead'] }, count: { $sum: 1 } } }],
+                sources: [{ $match: period }, { $group: { _id: { $cond: [{ $eq: ['$source', 'legacy-whitepaper'] }, 'report', '$source'] },
+                    count: { $sum: 1 }, converted: { $sum: { $cond: [{ $eq: ['$stage', 'converted'] }, 1, 0] } } } }, { $sort: { count: -1, _id: 1 } }],
+                trend: [{ $match: period }, { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$receivedAt', timezone: 'Asia/Shanghai' } }, count: { $sum: 1 } } }]
+            } }])
         ]);
-        res.json({ leads, opportunities, expected, received, pending, overdue: overdueLeads + overdueOpportunities, unassigned, grouped, sources, end });
+        const { grades = [], sources = [], trend: daily = [] } = metrics[0] || {};
+        const dates = new Map(daily.map(row => [row._id, row.count]));
+        const trend = Array.from({ length: days }, (_, index) => {
+            const date = dateKey(start.getTime() + index * DAY);
+            return { date, count: dates.get(date) || 0 };
+        });
+        res.json({ leads, opportunities, expected, received: trend.at(-1).count, pending,
+            overdue: overdueLeads + overdueOpportunities, todayFollow: todayLeads + todayOpportunities,
+            unassigned, grouped, grades, sources, trend, days, scope: team ? 'team' : 'mine', end });
     }));
     const excel = multer({ storage: multer.memoryStorage(), limits: { fileSize: bulkImport.MAX_FILE, files: 1, fields: 4, fieldSize: 16384 } }).single('file');
     const uploadExcel = (req, res, next) => excel(req, res, err => next(err ? bad('请选择 512 KB 以内的 .xlsx 文件') : undefined));
@@ -248,13 +302,13 @@ function init(authRequired, jwtSecret) {
         if (rows.length > 10000) throw bad('请缩小筛选范围后导出，单次最多 10000 条');
         const book = new ExcelJS.Workbook(), sheet = book.addWorksheet('CRM');
         const columns = {
-            leads: { name: '姓名', companyName: '公司', phone: '电话', email: '邮箱', source: '来源', stage: '阶段', nextAt: '下次跟进' },
+            leads: { name: '姓名', companyName: '公司', phone: '电话', email: '邮箱', source: '来源', qualification: '线索等级', stage: '跟进状态', nextAt: '下次跟进' },
             contacts: { name: '姓名', phone: '电话', email: '邮箱', position: '职位', department: '部门' },
             companies: { name: '公司', alias: '简称', industry: '行业', region: '地区', website: '网站' },
             opportunities: { name: '商机', direction: '服务方向', stage: '阶段', expectedAmount: '预计金额', expectedAt: '预计成交', actualAmount: '实际金额' }
         }[kind];
         sheet.columns = Object.entries(columns).map(([key, header]) => ({ key, header, width: 24 }));
-        rows.forEach(row => sheet.addRow(Object.fromEntries(Object.keys(columns).map(key => [key, row[key] ?? '']))));
+        rows.forEach(row => sheet.addRow(Object.fromEntries(Object.keys(columns).map(key => [key, key === 'qualification' ? (row[key] || 'lead').toUpperCase() : row[key] ?? '']))));
         await Activity.create({ entity: kind, kind: 'export', summary: '导出 ' + rows.length + ' 条', actorId: req.user.id, actor: req.user.username });
         res.attachment('crm-' + kind + '.xlsx').send(Buffer.from(await book.xlsx.writeBuffer()));
     }));
@@ -264,7 +318,7 @@ function init(authRequired, jwtSecret) {
         const page = Math.min(1000, Math.max(1, Number.parseInt(req.query.page, 10) || 1));
         const query = filterFor(req, kind);
         const [rows, total] = await Promise.all([
-            MODELS[kind].find(query).sort({ updatedAt: -1, _id: -1 }).skip((page - 1) * 30).limit(30).lean(),
+            MODELS[kind].find(query).select('-qualificationHistory').sort({ updatedAt: -1, _id: -1 }).skip((page - 1) * 30).limit(30).lean(),
             MODELS[kind].countDocuments(query)
         ]);
         const companyIds = rows.map(row => row.companyId).filter(Boolean);
@@ -282,6 +336,8 @@ function init(authRequired, jwtSecret) {
             throw bad('请填写姓名、来源和有效手机号或邮箱');
         }
         if (typeof body.key !== 'string' || !UUID.test(body.key)) throw bad('录入编号无效');
+        const change = qualificationChange(req, null, body);
+        if (change) Object.assign(data, { qualification: change.to, qualificationHistory: [change] });
         const { companyId, contactId } = await links(req, body);
         const contact = contactId ? await record(req, 'contacts', contactId) : null;
         if (contact && !((data.phone && data.phone === contact.phoneKey) || (data.email && data.email === contact.emailKey))) throw bad('请核对所选联系人与联系方式');
@@ -346,16 +402,30 @@ function init(authRequired, jwtSecret) {
         await Activity.create({ entity: kind, entityId: row._id, kind: channel, summary, nextAt, nextStep, actorId: req.user.id, actor: req.user.username });
         res.json({ row });
     }));
+    router.post('/leads/:id/qualification', requireCrm('crm:edit'), wrap(async (req, res) => {
+        const row = await record(req, 'leads', req.params.id);
+        if (!OPEN_LEAD_STAGES.includes(row.stage)) throw bad('请先恢复线索跟进，已转商机的线索保留原等级');
+        const change = qualificationChange(req, row, req.body);
+        if (change) {
+            row.qualification = change.to;
+            if (change.nextStep) row.nextStep = change.nextStep;
+            row.qualificationHistory.push(change);
+            await row.save();
+        }
+        res.json({ row });
+    }));
     router.post('/leads/:id/convert', requireCrm('crm:edit'), wrap(async (req, res) => {
         const lead = await record(req, 'leads', req.params.id);
         const existing = await Opportunity.findOne({ leadId: lead._id });
         if (existing && !canSee(req, existing)) throw bad('商机已由其他负责人管理', 409);
-        if (lead.stage === 'closed') throw bad('请先恢复线索跟进');
+        if (!lead.opportunityId && !OPEN_LEAD_STAGES.includes(lead.stage)) throw bad('请先恢复线索跟进');
+        if (!lead.opportunityId && lead.qualification !== 'sql') throw bad('请确认具体需求和下一步，将线索设为 SQL 后再转商机');
         const values = existing ? null : await entityValues(req, 'opportunities', req.body, lead);
+        if (values && (!values.contactId || !values.nextStep)) throw bad('转为商机需关联关键联系人并填写下一步');
         const row = existing || await Opportunity.findOneAndUpdate({ leadId: lead._id }, {
             $setOnInsert: { ...values, leadId: lead._id, ownerId: lead.ownerId || req.user.id, stage: 'demand' }
         }, { upsert: true, new: true });
-        const result = await Lead.updateOne({ _id: lead._id, ...active(req), opportunityId: null }, { stage: 'converted', opportunityId: row._id, nextAt: null });
+        const result = await Lead.updateOne({ _id: lead._id, ...active(req), opportunityId: null, qualification: 'sql', stage: { $in: OPEN_LEAD_STAGES } }, { stage: 'converted', opportunityId: row._id, nextAt: null });
         if (result.modifiedCount) await note(req, 'leads', lead, 'convert', '转为商机：' + row.name);
         if (!result.matchedCount && !await Lead.exists({ _id: lead._id, ...active(req), opportunityId: row._id })) {
             throw bad('线索归属或状态有变化，请刷新后核对', 409);
