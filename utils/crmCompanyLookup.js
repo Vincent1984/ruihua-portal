@@ -29,6 +29,9 @@ function candidateName(raw) {
 
 function extractCandidates(query, records) {
     const keyword = normal(query);
+    const terms = query.split(/\s+/).map(normal).filter(Boolean);
+    const matchesTerms = value => terms.every(term => value.includes(term));
+    const branchRequested = keyword.includes('分公司');
     const candidates = new Map(), references = [];
     for (const record of records.slice(0, 10)) {
         const title = plain(record?.name, 240);
@@ -46,10 +49,11 @@ function extractCandidates(query, records) {
             for (const part of parts) {
                 const fullName = candidateName(part.replace(/^(?:企业名称|公司名称|公司全称)[:：]\s*/, ''));
                 if (!fullName) continue;
-                const key = normal(fullName), contains = key.includes(keyword);
-                if (!contains && !(weight === 2 && normal(title + ' ' + snippet + ' ' + summary).includes(keyword))) continue;
+                const key = normal(fullName), contains = matchesTerms(key);
+                if (!contains && !(weight === 2 && matchesTerms(normal(title + ' ' + snippet + ' ' + summary)))) continue;
                 const previous = candidates.get(key);
-                const score = (key === keyword ? 8 : contains ? 4 : 0) + weight;
+                const score = (key === keyword ? 8 : contains ? 4 : 0) + weight -
+                    (!branchRequested && /分公司$/.test(fullName) ? 2 : 0);
                 if (previous) {
                     previous.score = Math.max(previous.score, score);
                     if (!previous.sources.some(item => item.url === url) && previous.sources.length < 2) previous.sources.push(source);

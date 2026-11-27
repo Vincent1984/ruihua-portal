@@ -52,6 +52,12 @@ describe('CRM normalization', () => {
         assert.deepEqual(result.candidates.map(item => item.name), ['上海示例人力资源有限公司', '上海新品牌咨询有限公司']);
         assert.equal(result.candidates[0].sources.length, 2);
         assert.ok(result.references.every(item => item.url.startsWith('https://')));
+        const regional = extractCandidates('示例人力 上海', [
+            { name: '上海示例人力资源有限公司浦东分公司', url: 'https://example.test/branch' },
+            { name: '上海示例人力资源有限公司', url: 'https://example.test/headquarters' }
+        ]);
+        assert.equal(regional.candidates[0].name, '上海示例人力资源有限公司');
+        assert.equal(regional.candidates.length, 2);
     });
 });
 
