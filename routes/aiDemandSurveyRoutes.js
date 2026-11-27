@@ -18,8 +18,14 @@ function buildFilter(query) {
 
     const synced = String(query.dingtalk_synced || '').trim();
     if (synced === 'true') filter.dingtalk_synced = true;
-    if (synced === 'false') filter.dingtalk_synced = false;
+    if (synced === 'false') filter.dingtalk_synced = { $ne: true };
 
+    const days = Number(query.time);
+    if ([1, 7, 30].includes(days)) {
+        const offset = 8 * 3600000, day = 86400000;
+        const today = Math.floor((Date.now() + offset) / day) * day - offset;
+        filter.createdAt = { $gte: new Date(today - (days - 1) * day), $lt: new Date(today + day) };
+    }
     const { startDate, endDate } = query;
     if (startDate || endDate) {
         filter.createdAt = {};
@@ -84,8 +90,28 @@ module.exports = function(app, authRequired, requirePerm, logOp) {
             const filter = buildFilter(req.query);
 
             const total = await AiDemandSurvey.countDocuments(filter);
+            let overview;
+            if (req.query.summary === '1') {
+                const offset = 8 * 3600000, day = 86400000;
+                const today = Math.floor((Date.now() + offset) / day) * day - offset;
+                const now = new Date(today + offset);
+                const month = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1) - offset;
+                const [counts, departments] = await Promise.all([
+                    AiDemandSurvey.aggregate([{ $group: {
+                        _id: null, total: { $sum: 1 },
+                        today: { $sum: { $cond: [{ $gte: ['$createdAt', new Date(today)] }, 1, 0] } },
+                        month: { $sum: { $cond: [{ $gte: ['$createdAt', new Date(month)] }, 1, 0] } },
+                        unsynced: { $sum: { $cond: [{ $eq: ['$dingtalk_synced', true] }, 0, 1] } },
+                        hours: { $sum: { $convert: { input: '$q5_hours', to: 'double', onError: 0, onNull: 0 } } }
+                    } }]),
+                    AiDemandSurvey.distinct('dept')
+                ]);
+                const stats = counts[0] || { total: 0, today: 0, month: 0, unsynced: 0, hours: 0 };
+                overview = { stats: { today: stats.today, month: stats.month, total: stats.total, totalTime: stats.total,
+                    unsynced: stats.unsynced, hours: Math.round(stats.hours) }, departments: departments.filter(Boolean).sort() };
+            }
             const list = await AiDemandSurvey.find(filter)
-                .sort({ createdAt: -1 })
+                .sort({ createdAt: -1, _id: -1 })
                 .skip((page - 1) * limit)
                 .limit(limit)
                 .lean();
@@ -93,6 +119,7 @@ module.exports = function(app, authRequired, requirePerm, logOp) {
             res.json({
                 success: true,
                 data: list,
+                ...(overview ? { overview } : {}),
                 pagination: {
                     page,
                     limit,
@@ -110,7 +137,7 @@ module.exports = function(app, authRequired, requirePerm, logOp) {
     app.get('/api/admin/ai-demand-surveys/export', authRequired, requirePerm('appointment:export'), async (req, res) => {
         try {
             const filter = buildFilter(req.query);
-            const docs = await AiDemandSurvey.find(filter).sort({ createdAt: -1 }).lean();
+            const docs = await AiDemandSurvey.find(filter).sort({ createdAt: -1, _id: -1 }).lean();
             const data = docs.map(toExportRow);
 
             if (data.length === 0) data.push({ '提示': '没有符合条件的数据' });
@@ -125,7 +152,7 @@ module.exports = function(app, authRequired, requirePerm, logOp) {
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             res.send(buffer);
 
-            if (logOp) logOp(req.user._id, '导出 AI 需求问卷', `导出了 ${docs.length} 条记录`);
+            if (logOp) logOp('导出', 'AI 需求问卷', `导出了 ${docs.length} 条记录`, req.user.username);
         } catch (error) {
             console.error('AiDemandSurvey Export Error:', error);
             res.status(500).json({ success: false, error: '导出失败' });
@@ -145,7 +172,7 @@ module.exports = function(app, authRequired, requirePerm, logOp) {
                 return res.status(404).json({ success: false, error: '记录不存在或已删除' });
             }
 
-            if (logOp) logOp(req.user._id, '删除 AI 需求问卷', `删除记录 ID: ${id}`);
+            if (logOp) logOp('删除', 'AI 需求问卷', `删除记录 ID: ${id}`, req.user.username);
             res.json({ success: true, message: '删除成功' });
         } catch (error) {
             console.error('AiDemandSurvey Delete Error:', error);
@@ -163,7 +190,7 @@ module.exports = function(app, authRequired, requirePerm, logOp) {
             }
 
             const result = await AiDemandSurvey.deleteMany({ _id: { $in: validIds } });
-            if (logOp) logOp(req.user._id, '批量删除 AI 需求问卷', `批量删除 ${result.deletedCount || 0} 条记录`);
+            if (logOp) logOp('批量删除', 'AI 需求问卷', `批量删除 ${result.deletedCount || 0} 条记录`, req.user.username);
 
             res.json({
                 success: true,

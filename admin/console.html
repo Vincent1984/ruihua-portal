@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>瑞华智策 · 官网管理后台</title>
-  <link rel="stylesheet" href="/admin/admin-2026.css?v=20261127leads3">
+  <link rel="stylesheet" href="/admin/admin-2026.css?v=20261127aiform1">
   <link rel="stylesheet" href="/admin/lib/wangeditor/css/style.css">
   <link rel="stylesheet" href="/admin/crm.css?v=6">
 </head>
@@ -70,9 +70,20 @@
       </section>
       <section class="view" data-view="ai-forms" data-module="ai-forms">
         <div class="stats" id="aiFormStats"><article class="accent"><small>今日提交</small><strong data-aiform-stat="today">—</strong><span>累计 <em data-aiform-stat="total">—</em> 份</span></article><article><small>未同步钉钉</small><strong data-aiform-stat="unsynced">—</strong><span>同步失败原因见详情</span></article><article><small>本月提交</small><strong data-aiform-stat="month">—</strong><span>全部时间 <em data-aiform-stat="totalTime">—</em> 份</span></article><article><small>识别月工时</small><strong data-aiform-stat="hours">—</strong><span>来自 Q5 合计</span></article></div>
-        <div class="notice"><b>AI 需求表单来自官网 /rh-ai-demand-survey。</b> 点击任意行查看完整答题；钉钉 AI 表格同步失败不影响这里的存档。</div>
-        <div class="filters"><input class="search" id="aiFormKeyword" placeholder="搜索需求名称 / 部门 / 联系人 / 描述"><select id="aiFormDept"><option value="">全部部门</option></select><select id="aiFormSynced"><option value="">全部同步状态</option><option value="true">已同步钉钉</option><option value="false">未同步钉钉</option></select><select id="aiFormTime"><option value="">全部时间</option><option value="1">今天</option><option value="7">近 7 天</option><option value="30">近 30 天</option></select><button data-action="load-ai-forms">刷新</button><span class="spacer"></span><button data-action="export-ai-forms" data-permission="appointment:export">导出 Excel</button></div>
-        <div class="table-wrap"><table><thead><tr><th>提交时间</th><th>所属部门</th><th>需求名称</th><th>联系人</th><th>需求描述</th><th>月工时</th><th>钉钉同步</th><th>操作</th></tr></thead><tbody id="aiFormList"></tbody></table></div>
+        <section class="panel ai-form-panel">
+          <header class="website-leads-head"><div><h2>AI 需求记录</h2><p id="aiFormCount" role="status"></p></div>
+            <div class="website-lead-actions"><button type="button" data-action="load-ai-forms">刷新</button><button type="button" data-action="export-ai-forms" data-permission="appointment:export">导出 Excel</button></div>
+          </header>
+          <form id="aiFormFilters" class="website-lead-filters ai-form-filters">
+            <label>搜索需求<input type="search" maxlength="100" id="aiFormKeyword" placeholder="需求名称、部门、联系人或描述"></label>
+            <label>所属部门<select id="aiFormDept"><option value="">全部部门</option></select></label>
+            <label>同步状态<select id="aiFormSynced"><option value="">全部状态</option><option value="true">已同步钉钉</option><option value="false">未同步钉钉</option></select></label>
+            <label>提交时间<select id="aiFormTime"><option value="">全部时间</option><option value="1">今天</option><option value="7">近 7 天</option><option value="30">近 30 天</option></select></label>
+            <button type="button" class="website-lead-reset" data-action="reset-ai-forms" disabled>清除筛选</button>
+          </form>
+          <div class="table-wrap"><table class="ai-form-table" aria-label="AI 需求记录"><thead><tr><th scope="col">序号</th><th scope="col">需求名称 / 部门</th><th scope="col">联系人</th><th scope="col">需求描述</th><th scope="col">月工时</th><th scope="col">钉钉同步</th><th scope="col">提交时间</th><th scope="col">操作</th></tr></thead><tbody id="aiFormList"></tbody></table></div>
+          <div class="website-lead-pager" id="aiFormPagination" hidden><span id="aiFormPageCount"></span><div class="website-lead-actions"><button type="button" data-action="previous-ai-forms">上一页</button><button type="button" data-action="next-ai-forms">下一页</button></div></div>
+        </section>
       </section>
       <section class="view" data-view="articles" data-module="articles">
         <div class="notice"><b>行业洞察与经营智库共用内容库。</b> 栏目、发布状态与上架内容均来自真实文章 API。</div>
@@ -304,7 +315,7 @@
     <button type="submit" class="primary" disabled>保存状态</button><p id="leadStatusError" class="website-lead-error" role="status"></p>
   </form>
 </aside>
-<aside id="aiFormDrawer" class="drawer" aria-hidden="true"><div class="drawer-head"><div><h2 id="aiFormDrawerTitle">AI 需求表单</h2><div id="aiFormDrawerSub" class="drawer-sub">—</div></div><button data-action="close-ai-form" aria-label="关闭">×</button></div><div id="aiFormDrawerBody" class="drawer-body"></div><div class="drawer-footer"><button data-action="close-ai-form">关闭</button><button class="danger" data-action="remove-ai-form" data-permission="appointment:delete">删除这条记录</button></div></aside>
+<aside id="aiFormDrawer" class="drawer ai-form-modal" role="dialog" aria-modal="true" aria-labelledby="aiFormDrawerTitle" aria-hidden="true" inert><div class="drawer-head"><div><h2 id="aiFormDrawerTitle">AI 需求表单</h2><div id="aiFormDrawerSub" class="drawer-sub">—</div></div><button type="button" data-action="close-ai-form" aria-label="关闭需求详情">×</button></div><div id="aiFormDrawerBody" class="drawer-body"></div><div class="drawer-footer"><button data-action="close-ai-form">关闭</button><button class="danger" data-action="remove-ai-form" data-permission="appointment:delete">删除这条记录</button></div></aside>
 <div id="reportMailModal" class="modal" aria-hidden="true"><div class="modal-card report-mail-card" role="dialog" aria-modal="true" aria-labelledby="reportMailTitle" tabindex="-1"><div class="modal-head"><h2 id="reportMailTitle">报告邮件</h2><button type="button" data-mail-action="close" aria-label="关闭报告邮件窗口">×</button></div><div id="reportMailBody" class="report-mail-body"></div><div class="modal-actions"><span id="reportMailFeedback" role="status"></span><button type="button" data-mail-action="close">关闭</button><button type="button" id="reportMailConfirm" class="primary" data-mail-action="submit" hidden>确认发送</button></div></div></div>
 <div id="editorModal" class="modal" aria-hidden="true"><div class="modal-card"><div class="modal-head"><h2 id="editorTitle">编辑</h2><button data-action="close-editor">×</button></div><form id="editorForm"></form><div class="modal-actions"><button type="button" data-action="close-editor">取消</button><button type="button" class="primary" data-action="save-editor">保存</button></div></div></div>
 <div id="studioModal" class="studio" aria-hidden="true"><div class="studio-card"><div class="studio-head"><div class="studio-head-title"><h2 id="studioTitle">文章创作工作台</h2><small id="studioSub">瑞华智策内容营销中心</small></div><div class="studio-head-actions"><span class="studio-stat" id="studioWordCount">0 字</span><button type="button" data-action="close-studio">关闭</button><button type="button" class="primary" data-action="save-studio">保存</button></div></div><div class="studio-body"><aside class="studio-side studio-geo" id="studioGeo"></aside><section class="studio-main"><input id="studioTitleInput" class="studio-title-input" placeholder="请输入标题..."><label class="case-overview-editor" for="caseOverviewInput"><span>项目概览</span><small>简要说明客户背景、业务规模和项目启动原因</small><textarea id="caseOverviewInput" rows="12" placeholder="例如：一家覆盖多个品牌、在全球运营的大型制造集团，希望将 AI 能力从少数部门试点推广到一线业务场景。"></textarea></label><div class="studio-toolbar" id="studioToolbar"></div><div class="studio-container" id="studioContainer"></div></section><aside class="studio-side studio-config" id="studioConfig"></aside></div></div></div>
@@ -313,8 +324,8 @@
 <div class="toast" id="toast" role="status"></div>
 <script src="/admin/lib/wangeditor/index.js"></script>
 <script src="/admin/js/article-management.js?v=20261111a"></script>
-<script src="/js/lead-source.js?v=20261127leads3"></script>
-<script src="/admin/js/admin-2026.js?v=20261127leads3"></script>
+<script src="/js/lead-source.js?v=20261127aiform1"></script>
+<script src="/admin/js/admin-2026.js?v=20261127aiform1"></script>
 <script src="/admin/js/nqoc.js?v=20261127workbench1"></script>
 <script src="/admin/js/crm.js?v=7"></script>
 </body>

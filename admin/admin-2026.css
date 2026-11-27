@@ -357,3 +357,48 @@ td button.btn-sm+button.btn-sm{margin-left:6px}
     .website-lead-table .website-lead-more { grid-column:1/-1; }
     .website-lead-modal-open .website-lead-drawer { width:calc(100vw - 16px); max-height:calc(100dvh - 24px); }
 }
+
+body:has([data-view="ai-forms"].active) .content { max-width:none; width:100%; }
+.ai-form-panel { padding:20px; width:100%; min-width:0; }
+.ai-form-panel .table-wrap { width:100%; }
+.ai-form-table { width:100%; min-width:1120px; table-layout:fixed; }
+.ai-form-table th:nth-child(1) { width:5%; }
+.ai-form-table th:nth-child(2) { width:21%; }
+.ai-form-table th:nth-child(3) { width:9%; }
+.ai-form-table th:nth-child(4) { width:24%; }
+.ai-form-table th:nth-child(5) { width:7%; }
+.ai-form-table th:nth-child(6) { width:9%; }
+.ai-form-table th:nth-child(7) { width:13%; }
+.ai-form-table th:nth-child(8) { width:12%; }
+.ai-form-table :is(td,th) { padding:16px 12px; white-space:normal; vertical-align:top; overflow-wrap:anywhere; }
+.ai-form-description { margin:0; white-space:pre-wrap; }
+.ai-form-cell-label { display:none; }
+.ai-form-row-actions button,.ai-form-modal .drawer-footer button { padding:6px 12px; min-height:34px; border:1px solid var(--p200); border-radius:8px; background:var(--pale); color:var(--p600); white-space:nowrap; margin:0 4px 4px 0; }
+.ai-form-row-actions .danger,.ai-form-modal .drawer-footer .danger { border-color:#ebccc6; color:#a72020; background:#fff5f2; }
+.ai-form-row-actions button:hover { border-color:var(--purple); }
+.ai-form-row-actions .danger:hover { border-color:#a72020; }
+.ai-form-row-actions button:disabled { opacity:.5; cursor:default; }
+.ai-form-modal-open { overflow:hidden; }
+.ai-form-modal { inset:50% auto auto 50%; width:min(960px,calc(100vw - 32px)); max-height:calc(100dvh - 48px); border:1px solid var(--line); border-radius:16px; transform:translate(-50%,-48%); opacity:0; }
+.ai-form-modal.open { transform:translate(-50%,-50%); opacity:1; }
+.ai-form-modal .drawer-head { border-radius:16px 16px 0 0; }
+.ai-form-modal .drawer-footer { border-radius:0 0 16px 16px; }
+.ai-form-modal .drawer-body { min-height:0; overscroll-behavior:contain; }
+.ai-form-modal :is(dd,h2,.drawer-sub) { overflow-wrap:anywhere; white-space:pre-wrap; }
+.ai-form-modal .kv { grid-template-columns:140px minmax(0,1fr); }
+.ai-form-modal .kv dd { line-height:1.8; }
+.ai-form-panel :focus-visible,.ai-form-modal :focus-visible { outline:2px solid var(--purple); outline-offset:2px; }
+@media(max-width:740px) {
+    .ai-form-panel { padding:12px; }
+    .ai-form-panel .table-wrap { overflow:visible; border:0; }
+    .ai-form-table,.ai-form-table tbody { display:block; min-width:0; }
+    .ai-form-table thead { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+    .ai-form-table tbody tr { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; padding:14px; border:1px solid var(--line); border-radius:10px; margin:0 0 8px; }
+    .ai-form-table td { display:block; min-width:0; padding:0; border:0; }
+    .ai-form-table td:nth-child(2),.ai-form-table td:nth-child(4),.ai-form-table td:last-child { grid-column:1/-1; }
+    .ai-form-cell-label { display:block; color:var(--muted); font-size:11px; margin-bottom:3px; }
+    .ai-form-modal { width:calc(100vw - 16px); max-height:calc(100dvh - 24px); }
+    .ai-form-modal :is(.drawer-head,.drawer-body,.drawer-footer) { padding:12px; }
+    .ai-form-modal .kv { grid-template-columns:minmax(0,1fr); gap:4px; }
+    .ai-form-modal .kv dd { margin-bottom:10px; }
+}

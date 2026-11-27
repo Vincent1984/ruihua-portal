@@ -126,15 +126,104 @@ function filterLeads() {
 }
 const aiFormApi='/api/admin/ai-demand-surveys';
 const aiFormQuestions=[['q1','Q1 具体工作'],['q2','Q2 目前怎么做'],['q3','Q3 头疼问题'],['q4','Q4 发生频率'],['q5','Q5 工作量'],['q6','Q6 所需资料 / 系统'],['q7','Q7 处理方式'],['q8','Q8 出错影响'],['q9','Q9 期望效果'],['q10','Q10 真实案例']];
-async function loadAiForms(){try{const d=await json(aiFormApi+'?limit=200',{headers:authHeaders()});state.aiForms=d.data||[];renderAiForms()}catch(error){rows('aiFormList','',error.message)}}
-function renderAiForms(){const keyword=document.getElementById('aiFormKeyword').value.trim().toLowerCase();const synced=document.getElementById('aiFormSynced').value;const days=Number(document.getElementById('aiFormTime').value);const cutoff=days?Date.now()-days*864e5:0;const deptSelect=document.getElementById('aiFormDept');const currentDept=deptSelect.value;const depts=[...new Set(state.aiForms.map(x=>x.dept).filter(Boolean))].sort();deptSelect.innerHTML='<option value="">全部部门</option>'+depts.map(value=>`<option value="${esc(value)}">${esc(value)}</option>`).join('');deptSelect.value=depts.includes(currentDept)?currentDept:'';const dept=deptSelect.value;const list=state.aiForms.filter(item=>(!dept||item.dept===dept)&&(!synced||String(item.dingtalk_synced===true)===synced)&&(!cutoff||new Date(item.createdAt).getTime()>=cutoff)&&(!keyword||[item.dept,item.title,item.contact,item.q1].some(v=>String(v||'').toLowerCase().includes(keyword))));const now=new Date();const today=now.toDateString();const counts={today:state.aiForms.filter(x=>new Date(x.createdAt).toDateString()===today).length,total:state.aiForms.length,totalTime:state.aiForms.length,unsynced:state.aiForms.filter(x=>!x.dingtalk_synced).length,month:state.aiForms.filter(x=>{const d=new Date(x.createdAt);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()}).length,hours:Math.round(state.aiForms.reduce((sum,x)=>sum+(parseFloat(x.q5_hours)||0),0))};Object.entries(counts).forEach(([key,value])=>{const stat=document.querySelector(`[data-aiform-stat="${key}"]`);if(stat)stat.textContent=value});document.getElementById('aiFormBadge').textContent=counts.total;const canDelete=hasPermission('appointment:delete');rows('aiFormList',list.map(x=>`<tr data-action="open-ai-form" data-id="${esc(x._id)}"><td><div class="lead-time">${ago(x.createdAt)}<span class="sub mono">${shortDateTime(x.createdAt)}</span></div></td><td>${esc(x.dept||'—')}</td><td><button class="person" data-action="open-ai-form" data-id="${esc(x._id)}">${esc(x.title||'—')}</button></td><td>${esc(x.contact||'—')}</td><td><span class="sub">${esc(String(x.q1||'—').slice(0,60))}</span></td><td class="mono">${esc(x.q5_hours||'—')}</td><td>${x.dingtalk_synced?'<span class="chip published">已同步</span>':`<span class="chip new">未同步</span>`}</td><td><button data-action="open-ai-form" data-id="${esc(x._id)}">查看</button>${canDelete?`<button class="danger" data-action="remove-ai-form" data-id="${esc(x._id)}">删除</button>`:''}</td></tr>`).join(''),'还没有表单提交')}
+const aiFormListState = { page: 1, pages: 1, version: 0, timer: null, deleting: new Set() };
+function aiFormParams() {
+    const query = new URLSearchParams();
+    const fields = { aiFormKeyword: 'keyword', aiFormDept: 'dept', aiFormSynced: 'dingtalk_synced', aiFormTime: 'time' };
+    for (const [id, key] of Object.entries(fields)) {
+        const value = document.getElementById(id).value.trim();
+        if (value) query.set(key, value);
+    }
+    return query;
+}
+async function loadAiForms({ page = aiFormListState.page } = {}) {
+    clearTimeout(aiFormListState.timer);
+    const version = ++aiFormListState.version, query = aiFormParams();
+    const filtered = query.size > 0;
+    document.querySelector('[data-action="reset-ai-forms"]').disabled = !filtered;
+    document.getElementById('aiFormCount').textContent = '正在加载…';
+    document.getElementById('aiFormList').innerHTML = '<tr><td colspan="8" class="empty-cell">正在加载…</td></tr>';
+    document.getElementById('aiFormPagination').hidden = true;
+    query.set('page', page); query.set('limit', '25'); query.set('summary', '1');
+    try {
+        const result = await json(aiFormApi + '?' + query, { headers: authHeaders() });
+        if (version !== aiFormListState.version) return;
+        const { total, totalPages } = result.pagination;
+        if (page > Math.max(1, totalPages)) return loadAiForms({ page: Math.max(1, totalPages) });
+        aiFormListState.page = page;
+        aiFormListState.pages = Math.max(1, totalPages);
+        state.aiForms = result.data || [];
+        document.getElementById('aiFormCount').textContent = (filtered ? '匹配 ' : '共 ') + total.toLocaleString('zh-CN') + ' 条记录';
+        if (result.overview) {
+            for (const [key, value] of Object.entries(result.overview.stats)) {
+                const stat = document.querySelector(`[data-aiform-stat="${key}"]`);
+                if (stat) stat.textContent = value;
+            }
+            document.getElementById('aiFormBadge').textContent = result.overview.stats.total;
+            const dept = document.getElementById('aiFormDept'), selected = dept.value;
+            const departments = [...new Set([...result.overview.departments, selected].filter(Boolean))];
+            dept.innerHTML = '<option value="">全部部门</option>' + departments.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('');
+            dept.value = selected;
+        }
+        renderAiForms();
+        const pager = document.getElementById('aiFormPagination');
+        pager.hidden = totalPages <= 1;
+        document.getElementById('aiFormPageCount').textContent = '第 ' + page + ' / ' + aiFormListState.pages + ' 页 · 每页 25 条';
+        pager.querySelector('[data-action="previous-ai-forms"]').disabled = page <= 1;
+        pager.querySelector('[data-action="next-ai-forms"]').disabled = page >= totalPages;
+    } catch (error) {
+        if (version !== aiFormListState.version) return;
+        document.getElementById('aiFormCount').textContent = '加载失败';
+        document.getElementById('aiFormList').innerHTML = '<tr><td colspan="8" class="empty-cell">' + esc(error.message) + ' <button type="button" data-action="load-ai-forms">重试</button></td></tr>';
+    }
+}
+function renderAiForms() {
+    const cell = (label, value) => '<td><span class="ai-form-cell-label" aria-hidden="true">' + label + '</span>' + value + '</td>';
+    document.getElementById('aiFormList').innerHTML = state.aiForms.map((item, index) => `<tr>
+        ${cell('序号', String((aiFormListState.page - 1) * 25 + index + 1))}
+        ${cell('需求名称 / 部门', '<strong>' + esc(item.title || '未填写名称') + '</strong><span class="sub">' + esc(item.dept || '未填写部门') + '</span>')}
+        ${cell('联系人', esc(item.contact || '—'))}
+        ${cell('需求描述', '<p class="ai-form-description">' + esc(item.q1 || '—') + '</p>')}
+        ${cell('月工时', esc(item.q5_hours ?? '—'))}
+        ${cell('钉钉同步', item.dingtalk_synced ? '<span class="chip published">已同步</span>' : '<span class="chip new">未同步</span>')}
+        ${cell('提交时间', '<time>' + esc(date(item.createdAt)) + '</time>')}
+        <td class="ai-form-row-actions"><button type="button" data-action="open-ai-form" data-id="${esc(item._id)}">查看</button>
+          ${hasPermission('appointment:delete') ? '<button type="button" class="danger" data-action="remove-ai-form" data-id="' + esc(item._id) + '">删除</button>' : ''}</td>
+    </tr>`).join('') || '<tr><td colspan="8" class="empty-cell">' + (aiFormParams().size ? '没有匹配的需求，可调整或清除筛选。' : '暂未收到需求表单。') + '</td></tr>';
+}
+function filterAiForms() { syncFiltersToUrl(); return loadAiForms({ page: 1 }); }
+function resetAiForms() { document.getElementById('aiFormFilters').reset(); return filterAiForms(); }
 function aiFormWorkload(item){const parts=[];if(item.q5_count)parts.push(`每月 ${item.q5_count} 件`);if(item.q5_minutes)parts.push(`每件 ${item.q5_minutes} 分钟`);if(item.q5_people)parts.push(`${item.q5_people} 人参与`);if(item.q5_hours!==undefined&&item.q5_hours!==null&&item.q5_hours!=='')parts.push(`约 ${item.q5_hours} 小时/月`);return parts.length?esc(parts.join(' · ')):'—'}
 function aiFormFileSize(value){const bytes=Number(value);if(!bytes||Number.isNaN(bytes))return '';if(bytes<1024)return `${bytes} B`;if(bytes<1048576)return `${(bytes/1024).toFixed(0)} KB`;return `${(bytes/1048576).toFixed(1)} MB`}
-function openAiForm(id){const item=state.aiForms.find(x=>x._id===id);if(!item)return;state.activeAiFormId=id;document.getElementById('aiFormDrawerTitle').textContent=item.title||'AI 需求表单';document.getElementById('aiFormDrawerSub').textContent=[item.dept,item.contact].filter(Boolean).join(' · ')||'—';const answers=aiFormQuestions.map(([key,label])=>{const extra=key==='q3'&&item.q3_other?`（其他：${esc(item.q3_other)}）`:key==='q6'&&item.q6_other?`（其他：${esc(item.q6_other)}）`:key==='q9'&&item.q9_other?`（其他：${esc(item.q9_other)}）`:'';const value=key==='q5'?aiFormWorkload(item):esc(item[key]||'—');return `<dt>${label}</dt><dd>${value}${extra}</dd>`}).join('');const workload=[item.q5_count?`每月 ${item.q5_count} 件`:'',item.q5_minutes?`每件 ${item.q5_minutes} 分钟`:'',item.q5_people?`${item.q5_people} 人参与`:''].filter(Boolean).join(' · ')||'—';document.getElementById('aiFormDrawerBody').innerHTML=`<section class="sec"><h3>提交信息</h3><dl class="kv"><dt>提交时间</dt><dd>${date(item.createdAt)}</dd><dt>所属部门</dt><dd>${esc(item.dept||'—')}</dd><dt>需求名称</dt><dd>${esc(item.title||'—')}</dd><dt>需求联系人</dt><dd>${esc(item.contact||'—')}</dd><dt>月工时</dt><dd><span class="tag">${esc(item.q5_hours||'—')} 小时</span><span class="sub">${esc(workload)}</span></dd><dt>钉钉表格同步</dt><dd>${item.dingtalk_synced?'<span class="chip published">已同步</span>':`<span class="chip new">未同步</span>${item.dingtalk_error?`<span class="sub">${esc(item.dingtalk_error)}</span>`:''}`}</dd>${item.attachment_name?`<dt>附件</dt><dd>${item.attachment_url?`<a href="${esc(item.attachment_url)}" target="_blank" rel="noopener noreferrer">${esc(item.attachment_name)}</a>`:esc(item.attachment_name)}${aiFormFileSize(item.attachment_size)?`<span class="sub">${aiFormFileSize(item.attachment_size)}</span>`:''}</dd>`:''}<dt>来源页面</dt><dd class="mono">${esc(item.page||'—')}</dd></dl></section><section class="sec"><h3>问卷内容</h3><dl class="kv">${answers}</dl></section>`;document.getElementById('aiFormDrawer').classList.add('open');document.getElementById('drawerMask').classList.add('open');document.getElementById('aiFormDrawer').setAttribute('aria-hidden','false')}
-function closeAiForm(){document.getElementById('aiFormDrawer').classList.remove('open');document.getElementById('drawerMask').classList.remove('open');document.getElementById('aiFormDrawer').setAttribute('aria-hidden','true')}
+let aiFormOpener = null;
+function openAiForm(id){aiFormOpener = document.activeElement;const item=state.aiForms.find(x=>x._id===id);if(!item)return;state.activeAiFormId=id;document.getElementById('aiFormDrawer').inert=false;document.body.classList.add('ai-form-modal-open');document.getElementById('aiFormDrawerTitle').textContent=item.title||'AI 需求表单';document.getElementById('aiFormDrawerSub').textContent=[item.dept,item.contact].filter(Boolean).join(' · ')||'—';const answers=aiFormQuestions.map(([key,label])=>{const extra=key==='q3'&&item.q3_other?`（其他：${esc(item.q3_other)}）`:key==='q6'&&item.q6_other?`（其他：${esc(item.q6_other)}）`:key==='q9'&&item.q9_other?`（其他：${esc(item.q9_other)}）`:'';const value=key==='q5'?aiFormWorkload(item):esc(item[key]||'—');return `<dt>${label}</dt><dd>${value}${extra}</dd>`}).join('');const workload=[item.q5_count?`每月 ${item.q5_count} 件`:'',item.q5_minutes?`每件 ${item.q5_minutes} 分钟`:'',item.q5_people?`${item.q5_people} 人参与`:''].filter(Boolean).join(' · ')||'—';document.getElementById('aiFormDrawerBody').innerHTML=`<section class="sec"><h3>提交信息</h3><dl class="kv"><dt>提交时间</dt><dd>${date(item.createdAt)}</dd><dt>所属部门</dt><dd>${esc(item.dept||'—')}</dd><dt>需求名称</dt><dd>${esc(item.title||'—')}</dd><dt>需求联系人</dt><dd>${esc(item.contact||'—')}</dd><dt>月工时</dt><dd><span class="tag">${esc(item.q5_hours||'—')} 小时</span><span class="sub">${esc(workload)}</span></dd><dt>钉钉表格同步</dt><dd>${item.dingtalk_synced?'<span class="chip published">已同步</span>':`<span class="chip new">未同步</span>${item.dingtalk_error?`<span class="sub">${esc(item.dingtalk_error)}</span>`:''}`}</dd>${item.attachment_name?`<dt>附件</dt><dd>${item.attachment_url?`<a href="${esc(item.attachment_url)}" target="_blank" rel="noopener noreferrer">${esc(item.attachment_name)}</a>`:esc(item.attachment_name)}${aiFormFileSize(item.attachment_size)?`<span class="sub">${aiFormFileSize(item.attachment_size)}</span>`:''}</dd>`:''}<dt>来源页面</dt><dd class="mono">${esc(item.page||'—')}</dd></dl></section><section class="sec"><h3>问卷内容</h3><dl class="kv">${answers}</dl></section>`;document.getElementById('aiFormDrawer').classList.add('open');document.getElementById('drawerMask').classList.add('open');document.getElementById('aiFormDrawer').setAttribute('aria-hidden','false');document.getElementById('aiFormDrawerBody').scrollTop=0;document.querySelector('#aiFormDrawer [data-action="close-ai-form"]').focus()}
+function closeAiForm() {
+    const modal = document.getElementById('aiFormDrawer');
+    if (!modal.classList.contains('open')) return;
+    modal.classList.remove('open');
+    document.body.classList.remove('ai-form-modal-open');
+    document.getElementById('drawerMask').classList.remove('open');
+    (aiFormOpener?.isConnected ? aiFormOpener : document.getElementById('aiFormKeyword')).focus();
+    modal.setAttribute('aria-hidden', 'true');
+    modal.inert = true;
+    state.activeAiFormId = null;
+}
 function closeDrawer(){closeLead();closeAiForm()}
-async function removeAiForm(id){const target=id||state.activeAiFormId;if(!target||!confirm('确定删除这条表单记录吗？此操作不可撤销。'))return;try{await json(`${aiFormApi}/${target}`,{method:'DELETE',headers:authHeaders()});closeAiForm();await loadAiForms();toast('记录已删除')}catch(error){alert(error.message)}}
-async function exportAiForms(){const response=await fetch(`${aiFormApi}/export`,{headers:authHeaders()});if(!response.ok){const data=await response.json().catch(()=>({}));return alert(data.error||'导出失败')}const blob=await response.blob();const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='ai-demand-surveys.xlsx';link.click();URL.revokeObjectURL(link.href)}
+async function removeAiForm(id) {
+    const target = id || state.activeAiFormId;
+    if (!target || aiFormListState.deleting.has(target) || !confirm('确定删除这条表单记录吗？此操作不可撤销。')) return;
+    aiFormListState.deleting.add(target);
+    const buttons = [...document.querySelectorAll('[data-action="remove-ai-form"]')].filter(button => button.dataset.id === target || (!button.dataset.id && state.activeAiFormId === target));
+    buttons.forEach(button => { button.disabled = true; });
+    try {
+        await json(aiFormApi + '/' + encodeURIComponent(target), { method: 'DELETE', headers: authHeaders() });
+        if (state.activeAiFormId === target) closeAiForm();
+        await loadAiForms();
+        toast('记录已删除');
+    } catch (error) { toast(error.message); }
+    finally { aiFormListState.deleting.delete(target); buttons.forEach(button => { button.disabled = false; }); }
+}
+async function exportAiForms(){const response=await fetch(aiFormApi+'/export?'+aiFormParams(),{headers:authHeaders()});if(!response.ok){const data=await response.json().catch(()=>({}));return alert(data.error||'导出失败')}const blob=await response.blob();const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='ai-demand-surveys.xlsx';link.click();URL.revokeObjectURL(link.href)}
 const leadDrawer = document.getElementById('leadDrawer');
 const leadDrawerBody = document.getElementById('leadDrawerBody');
 const leadStatusForm = document.getElementById('leadDrawerFooter');
@@ -355,7 +444,7 @@ async function changePassword(){const currentPassword=document.getElementById('c
 async function saveEditor(){try{const data={};if(edit.type==='author'){data.name=document.getElementById('field-name').value;data.status=document.getElementById('field-status').value;data.detail=document.getElementById('field-detail').value;data.desc=document.getElementById('field-desc').value;data.avatar=document.getElementById('field-avatar').value;}else{(fields[edit.type]||[]).forEach(([key,label,tag])=>{if(tag==='radio'){const checked=document.querySelector(`input[name="field-${key}"]:checked`);data[key]=checked?checked.value:'published';}else{let value=document.getElementById('field-'+key)?.value;if(JSON_FIELDS.has(key))value=JSON.parse(value||'[]');if(NUMBER_FIELDS.has(key))value=Number(value)||0;data[key]=value}});}const base={article:'/api/articles',case:'/api/cases',faq:'/api/faqs',author:'/api/authors',page:'/api/admin/pages'}[edit.type];const url=edit.type==='page'?`${base}/${encodeURIComponent(edit.id)}`:(edit.id?`${base}/${edit.id}`:base);await json(url,{method:edit.id?'PUT':'POST',headers:authHeaders(),body:JSON.stringify(data)});closeEditor();await ({article:loadArticles,case:loadCases,faq:loadFaq,author:loadAuthors,page:loadPages}[edit.type])();toast('保存成功')}catch(error){alert(error.message)}}
 function renderRank(id,list){document.getElementById(id).innerHTML=list.length?list.map(x=>`<div class="rank-row"><span>${esc(x._id||'未标记')}</span><b>${x.leads}</b></div>`).join(''):'<p>暂无数据</p>'}
 async function loadAttribution(){try{const q=new URLSearchParams();['startDate','endDate'].forEach(key=>{const value=document.getElementById(key).value;if(value)q.set(key,value)});const d=await json('/api/admin/appointments/attribution?'+q,{headers:authHeaders()});document.getElementById('attributionTotal').textContent=d.data.total;renderRank('channelStats',d.data.sources);renderRank('campaignStats',d.data.campaigns)}catch(error){document.getElementById('attributionTotal').textContent='—';renderRank('channelStats',[]);renderRank('campaignStats',[])}}
-function switchView(button,{historyMode='push'}={}){const target=button.dataset.target;if(state.activeView==='leads'&&target!=='leads')closeLead();state.activeView=target;document.querySelectorAll('[data-target],.view').forEach(el=>el.classList.remove('active'));button.classList.add('active');document.querySelector(`[data-view="${target}"]`).classList.add('active');document.getElementById('viewTitle').textContent=TITLES[target];document.getElementById('viewCrumb').textContent=target.toUpperCase();restoreFilters(target);if(historyMode!=='none'){const url=BUSINESS_ROUTES.has(target)?`/admin/${target}`:`/admin/console.html#${target}`;if(historyMode==='replace')history.replaceState(null,'',url);else history.pushState(null,'',url);if(BUSINESS_ROUTES.has(target)&&FILTERS[target])syncFiltersToUrl()}document.getElementById('sidebar').classList.remove('open');const loader={leads:()=>loadLeads({page:1}),'ai-forms':loadAiForms,articles:loadArticles,cases:loadCases,featured:loadCases,faq:loadFaq,experts:loadAuthors,settings:loadGlobalConfig,'email-marketing':window.reportCampaignLoad,crm:window.crmLoad}[target]||(target.startsWith('nqoc-')&&window.nqocLoad?()=>window.nqocLoad(target):null);if(loader)loader()}
+function switchView(button,{historyMode='push'}={}){const target=button.dataset.target;if(state.activeView==='leads'&&target!=='leads')closeLead();if(state.activeView==='ai-forms'&&target!=='ai-forms')closeAiForm();state.activeView=target;document.querySelectorAll('[data-target],.view').forEach(el=>el.classList.remove('active'));button.classList.add('active');document.querySelector(`[data-view="${target}"]`).classList.add('active');document.getElementById('viewTitle').textContent=TITLES[target];document.getElementById('viewCrumb').textContent=target.toUpperCase();restoreFilters(target);if(historyMode!=='none'){const url=BUSINESS_ROUTES.has(target)?`/admin/${target}`:`/admin/console.html#${target}`;if(historyMode==='replace')history.replaceState(null,'',url);else history.pushState(null,'',url);if(BUSINESS_ROUTES.has(target)&&FILTERS[target])syncFiltersToUrl()}document.getElementById('sidebar').classList.remove('open');const loader={leads:()=>loadLeads({page:1}),'ai-forms':()=>loadAiForms({page:1}),articles:loadArticles,cases:loadCases,featured:loadCases,faq:loadFaq,experts:loadAuthors,settings:loadGlobalConfig,'email-marketing':window.reportCampaignLoad,crm:window.crmLoad}[target]||(target.startsWith('nqoc-')&&window.nqocLoad?()=>window.nqocLoad(target):null);if(loader)loader()}
 function restoreRoute(){const target=routeFromLocation();const requested=document.querySelector(`[data-target="${target}"]:not([hidden])`);const button=requested||document.querySelector('[data-target]:not([hidden])');if(button)switchView(button,{historyMode:'none'})}
 async function exportLeads() {
     try {
@@ -368,10 +457,10 @@ async function exportLeads() {
         setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (error) { toast(error.message); }
 }
-const clickActions={'load-leads':()=>loadLeads(),'reset-leads':resetLeads,'previous-leads':()=>loadLeads({page:leadListState.page-1,refreshSummary:false}),'next-leads':()=>loadLeads({page:leadListState.page+1,refreshSummary:false}),'export-leads':exportLeads,'load-ai-forms':loadAiForms,'export-ai-forms':exportAiForms,'close-ai-form':closeAiForm,'close-drawer':closeDrawer,'close-editor':closeEditor,'save-editor':saveEditor,'close-lead':closeLead,'save-global-config':()=>saveGlobalConfig(collectGlobalConfig()),'test-notification':testNotification,'add-recipient':()=>openRecipientEditor(),'close-recipient':closeRecipientEditor,'save-recipient':saveRecipient,'change-password':openPassword,'close-password':closePassword,'submit-password':changePassword,logout};
+const clickActions={'load-leads':()=>loadLeads(),'reset-leads':resetLeads,'previous-leads':()=>loadLeads({page:leadListState.page-1,refreshSummary:false}),'next-leads':()=>loadLeads({page:leadListState.page+1,refreshSummary:false}),'export-leads':exportLeads,'load-ai-forms':()=>loadAiForms(),'reset-ai-forms':resetAiForms,'previous-ai-forms':()=>loadAiForms({page:aiFormListState.page-1}),'next-ai-forms':()=>loadAiForms({page:aiFormListState.page+1}),'export-ai-forms':exportAiForms,'close-ai-form':closeAiForm,'close-drawer':closeDrawer,'close-editor':closeEditor,'save-editor':saveEditor,'close-lead':closeLead,'save-global-config':()=>saveGlobalConfig(collectGlobalConfig()),'test-notification':testNotification,'add-recipient':()=>openRecipientEditor(),'close-recipient':closeRecipientEditor,'save-recipient':saveRecipient,'change-password':openPassword,'close-password':closePassword,'submit-password':changePassword,logout};
 document.addEventListener('click',event=>{const target=event.target.closest('[data-target],[data-action]');if(!target)return;if(target.dataset.target){switchView(target);return}const actionName=target.dataset.action;if(actionName==='open-editor')openEditor(target.dataset.type,target.dataset.id||null);else if(actionName==='remove-item')removeItem(target.dataset.type,target.dataset.id);else if(actionName==='open-lead')openLead(target.dataset.id);else if(actionName==='open-ai-form')openAiForm(target.dataset.id);else if(actionName==='remove-ai-form')removeAiForm(target.dataset.id);else if(actionName==='remove-featured')toggleFeatured(target.dataset.id,false);else if(actionName==='move-featured')moveFeatured(target.dataset.id,target.dataset.step);else if(actionName==='move-faq')moveFaq(target.dataset.id,target.dataset.step);else if(actionName==='toggle-author-status')toggleAuthorStatus(target.dataset.id);else if(actionName==='remove-city')removeConfigCity(Number(target.dataset.index));else if(actionName==='edit-recipient')openRecipientEditor(target.dataset.index);else if(actionName==='toggle-recipient'){const index=Number(target.dataset.index);const recipients=[...state.globalConfig.recipients];recipients[index]={...recipients[index],enabled:recipients[index].enabled===false};saveGlobalConfig({recipients})}else if(actionName==='remove-recipient'){if(confirm('确认删除这个接收人？')){const index=Number(target.dataset.index);const recipients=state.globalConfig.recipients.filter((_,itemIndex)=>itemIndex!==index);const removed=state.globalConfig.recipients[index];const fallbackRecipient=String(state.globalConfig.fallbackRecipient||'')===String(removed?._id||index)?(recipients[0]?._id||null):state.globalConfig.fallbackRecipient;saveGlobalConfig({recipients,fallbackRecipient})}}else if(actionName==='article-zone'){state.articleZone=target.dataset.value;document.querySelectorAll('#articleZone button').forEach(x=>x.classList.toggle('on',x===target));renderArticles();syncFiltersToUrl()}else if(clickActions[actionName])clickActions[actionName]()});
-document.addEventListener('change',event=>{const target=event.target.closest('[data-action]');if(target?.dataset.action==='toggle-featured')toggleFeatured(target.dataset.id,target.checked);if(event.target.id==='config-qrFile')previewQrFile(event.target.files[0]);if(['leadStatus','leadChannel','leadTime'].includes(event.target.id))filterLeads();if(event.target.id==='articleStatus')renderArticles();if(['caseIndustry','caseStatus'].includes(event.target.id))renderCases();if(['aiFormDept','aiFormSynced','aiFormTime'].includes(event.target.id))renderAiForms();if(Object.keys(FILTERS[state.activeView]||{}).includes(event.target.id))syncFiltersToUrl()});
-document.addEventListener('input',event=>{if(event.target.id==='leadKeyword'){clearTimeout(leadListState.timer);++leadListState.request;document.querySelector('[data-action="export-leads"]').disabled=true;leadListState.timer=setTimeout(() => {if(state.activeView==='leads')filterLeads()},280)}if(event.target.id==='articleKeyword')renderArticles();if(event.target.id==='caseKeyword')renderCases();if(event.target.id==='featuredKeyword')renderFeatured();if(event.target.id==='aiFormKeyword')renderAiForms();if(Object.keys(FILTERS[state.activeView]||{}).includes(event.target.id))syncFiltersToUrl()});
+document.addEventListener('change',event=>{const target=event.target.closest('[data-action]');if(target?.dataset.action==='toggle-featured')toggleFeatured(target.dataset.id,target.checked);if(event.target.id==='config-qrFile')previewQrFile(event.target.files[0]);if(['leadStatus','leadChannel','leadTime'].includes(event.target.id))filterLeads();if(event.target.id==='articleStatus')renderArticles();if(['caseIndustry','caseStatus'].includes(event.target.id))renderCases();if(['aiFormDept','aiFormSynced','aiFormTime'].includes(event.target.id))filterAiForms();if(Object.keys(FILTERS[state.activeView]||{}).includes(event.target.id))syncFiltersToUrl()});
+document.addEventListener('input',event=>{if(event.target.id==='leadKeyword'){clearTimeout(leadListState.timer);++leadListState.request;document.querySelector('[data-action="export-leads"]').disabled=true;leadListState.timer=setTimeout(() => {if(state.activeView==='leads')filterLeads()},280)}if(event.target.id==='articleKeyword')renderArticles();if(event.target.id==='caseKeyword')renderCases();if(event.target.id==='featuredKeyword')renderFeatured();if(event.target.id==='aiFormKeyword'){clearTimeout(aiFormListState.timer);++aiFormListState.version;aiFormListState.timer=setTimeout(()=>{if(state.activeView==='ai-forms')filterAiForms()},280)}if(Object.keys(FILTERS[state.activeView]||{}).includes(event.target.id))syncFiltersToUrl()});
 document.addEventListener('keydown',event=>{if(event.target.id==='config-cityInput'&&event.key==='Enter'){event.preventDefault();addConfigCity()}if(event.key==='Escape'){closeLead();closeAiForm();closeEditor();closeRecipientEditor()}});
 document.getElementById('leadFilters').addEventListener('submit', event => {
     event.preventDefault();
@@ -394,6 +483,14 @@ leadDrawer.addEventListener('keydown', event => {
     if (event.key !== 'Tab') return;
     const focusable = [...leadDrawer.querySelectorAll('button, textarea, select, summary, a[href]')].filter(node => !node.disabled && node.getClientRects().length);
     const first = focusable[0], last = focusable.at(-1);
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+});
+document.getElementById('aiFormFilters').addEventListener('submit', event => { event.preventDefault(); void filterAiForms(); });
+document.getElementById('aiFormDrawer').addEventListener('keydown', event => {
+    if (event.key !== 'Tab') return;
+    const nodes = [...event.currentTarget.querySelectorAll('button,a[href]')].filter(node => !node.disabled && node.getClientRects().length);
+    const first = nodes[0], last = nodes.at(-1);
     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
     if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
 });
