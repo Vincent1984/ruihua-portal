@@ -4,6 +4,8 @@ const appointmentSchema = new mongoose.Schema({
   behaviors: { type: [new mongoose.Schema({ id: String, at: Date, type: String, path: String, title: String, label: String, duration: Number }, { _id: false })], select: false },
   trackingId: { type: String, select: false, index: true },
   sourceCategory: String,
+  acquisitionChannel: { type:String, index:true },
+  touchpoint: { type:String, index:true },
   sourcePlatform: String,
   externalId: { type: String, unique: true, sparse: true, index: true },
   name: String,

@@ -363,6 +363,7 @@ if (allowedOrigins.length > 0) {
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
+app.use(require('./middleware/leadEntry'));
 
 function guardPagination(req, res, next) {
     try {
@@ -4614,6 +4615,17 @@ function leadListQuery(params, now = Date.now()) {
     return query;
 }
 
+async function filterLeadChannels(params, query) {
+    const source = require('./public/js/lead-source');
+    if (!Object.hasOwn(source.categories, params.acquisition || '') && !Object.hasOwn(source.touches, params.touchpoint || '')) return query;
+    const rows = await Appointment.find(query).select('utm_source utm_medium external_source referrer channel trigger touchpoint leadPage source').lean();
+    query._id = { $in: rows.filter(row =>
+        (!Object.hasOwn(source.categories, params.acquisition || '') || source.classify(row).key === params.acquisition) &&
+        (!Object.hasOwn(source.touches, params.touchpoint || '') || source.touchpoint(row).key === params.touchpoint)
+    ).map(row => row._id) };
+    return query;
+}
+
 async function leadOverviewStats(now) {
     const shift = 8 * 3600000, day = 86400000;
     const today = Math.floor((now + shift) / day) * day - shift;
@@ -4643,23 +4655,28 @@ app.get('/api/admin/leads', authRequired, requirePerm(['lead:list', 'appointment
     try {
         const page = Math.max(parseInt(req.query.page) || 1, 1);
         const limit = Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 100);
-        const now = Date.now(), query = leadListQuery(req.query, now);
+        const now = Date.now(), query = await filterLeadChannels(req.query, leadListQuery(req.query, now));
         const selection = Appointment.find(query).sort({ createdAt: -1, _id: -1 }).skip((page - 1) * limit).limit(limit);
-        if (req.query.view === 'table') selection.select('name phone email company title problem message intents intent service leadPage landing_page referrer external_source utm_source source channel status createdAt');
+        if (req.query.view === 'table') selection.select('name phone email company title problem message intents intent service leadPage landing_page referrer external_source utm_source utm_medium source channel trigger touchpoint status createdAt');
         const [total, data, summary] = await Promise.all([
             Appointment.countDocuments(query),
             selection, req.query.summary === '1' ? leadOverviewStats(now) : null
         ]);
+        const classifier = require('./public/js/lead-source');
+        data.forEach(row => {
+            row.set('sourceClassification', classifier.classify(row), { strict: false });
+            row.set('touchpointClassification', classifier.touchpoint(row), { strict: false });
+        });
         res.json({ success: true, data, pagination: { total, page, pages: Math.ceil(total / limit) }, ...(summary ? { summary } : {}) });
     } catch (e) { return sendInternalError(res, 'List leads error:', e); }
 });
 
 app.get('/api/admin/leads/export', authRequired, requirePerm(['lead:export', 'appointment:export']), async (req, res) => {
     try {
-        const leads = await Appointment.find(leadListQuery(req.query)).sort({ createdAt: -1, _id: -1 });
+        const leads = await Appointment.find(await filterLeadChannels(req.query, leadListQuery(req.query))).sort({ createdAt: -1, _id: -1 });
         const quote = value => `"${String(value || '').replace(/"/g, '""')}"`;
-        const header = ['姓名', '电话', '公司', '职位', '问题', '来源', '状态', '提交时间'];
-        const csv = [header.join(','), ...leads.map(lead => [lead.name, lead.phone, lead.company, lead.title, lead.problem, lead.source, lead.status, lead.createdAt && new Date(lead.createdAt).toLocaleString()].map(quote).join(','))].join('\n');
+        const header = ['姓名', '电话', '公司', '职位', '问题', '来源页面', '渠道来源', '来源平台', '留资触点', '状态', '提交时间'];
+        const csv = [header.join(','), ...leads.map(lead => [lead.name, lead.phone, lead.company, lead.title, lead.problem, lead.source, require('./public/js/lead-source').classify(lead).category, require('./public/js/lead-source').classify(lead).platform, require('./public/js/lead-source').touchpoint(lead).label, lead.status, lead.createdAt && new Date(lead.createdAt).toLocaleString()].map(quote).join(','))].join('\n');
         res.type('text/csv; charset=utf-8').attachment('leads.csv').send(Buffer.from('\uFEFF' + csv, 'utf8'));
     } catch (e) { return res.status(500).json({ error: e.message, stack: e.stack }); }
 });
@@ -4673,6 +4690,7 @@ app.get('/api/admin/leads/:id', authRequired, requirePerm(['lead:list', 'appoint
         if (visit) data.behaviors = visit.events;
         const classifier = require('./public/js/lead-source');
         data.sourceClassification = classifier.classify(data);
+        data.touchpointClassification = classifier.touchpoint(data);
         data.device = classifier.device(data.device || '');
         res.json({ success: true, data });
     } catch (e) { return sendInternalError(res, 'Get lead error:', e); }

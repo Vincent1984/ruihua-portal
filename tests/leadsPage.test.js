@@ -20,7 +20,7 @@ describe('线索页原型实现', function () {
     const leadHead = html.match(/<table class="website-lead-table"[\s\S]*?<thead[^>]*>([\s\S]*?)<\/thead>/)[1];
     assert.deepStrictEqual(
       [...leadHead.matchAll(/<th[^>]+scope="col"[^>]*>(.*?)<\/th>/g)].map(match => match[1]),
-      ['序号', '姓名', '公司', '手机号', '邮箱', '跟进状态', '渠道来源', '查看更多']
+      ['序号', '姓名', '公司', '手机号', '邮箱', '跟进状态', '渠道来源', '留资触点', '查看更多']
     );
     assert.match(script, /leadListState\.page - 1/);
     assert.match(script, /查看更多，查看/);
@@ -87,7 +87,7 @@ describe('线索页原型实现', function () {
     assert.match(script, /leadApi \+ '\/export\?' \+ leadParams\(\)/);
     assert.match(script, /query\.set\('page'/);
     assert.match(server, /leadListQuery\(req\.query, now\)/);
-    assert.match(server, /Appointment\.find\(leadListQuery\(req\.query\)\)/);
+    assert.match(server, /Appointment\.find\(await filterLeadChannels\(req\.query, leadListQuery\(req\.query\)\)\)/);
   });
 
   it('来源单元格使用带 dot 的 chip，并按 DEMO 使用紫、暖黄、杏色', function () {

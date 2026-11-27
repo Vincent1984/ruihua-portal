@@ -1,6 +1,6 @@
 const TITLES={leads:'线索管理','ai-forms':'AI 需求表单',articles:'文章管理',cases:'案例管理',featured:'首页精选案例',faq:'FAQ 管理',experts:'讲师 / 专家团队',settings:'全局配置','nqoc-banner':'首页 Banner','nqoc-insights':'新质观点','nqoc-cases':'案例研究','nqoc-videos':'值得看见','nqoc-report-leads':'报告领取记录','email-marketing':'邮件营销',crm:'客户管理（CRM）'};
 const BUSINESS_ROUTES=new Set(['leads','articles','cases','featured','faq','experts','nqoc-banner','nqoc-insights','nqoc-cases','nqoc-videos','nqoc-report-leads','email-marketing','crm']);
-const FILTERS={leads:{'leadKeyword':'q','leadChannel':'channel','leadStatus':'status','leadTime':'time'},'ai-forms':{'aiFormKeyword':'q','aiFormDept':'dept','aiFormSynced':'synced','aiFormTime':'time'},articles:{'articleKeyword':'q','articleStatus':'status','articleZone':'zone'},cases:{'caseKeyword':'q','caseStatus':'status','caseIndustry':'industry'},featured:{'featuredKeyword':'q'}};
+const FILTERS={leads:{'leadKeyword':'q','leadChannel':'touchpoint','leadAcquisition':'acquisition','leadStatus':'status','leadTime':'time'},'ai-forms':{'aiFormKeyword':'q','aiFormDept':'dept','aiFormSynced':'synced','aiFormTime':'time'},articles:{'articleKeyword':'q','articleStatus':'status','articleZone':'zone'},cases:{'caseKeyword':'q','caseStatus':'status','caseIndustry':'industry'},featured:{'featuredKeyword':'q'}};
 const state={leads:[],aiForms:[],articles:[],cases:[],faqs:[],authors:[],articleZone:'',caseIndustry:'',activeView:'leads',activeAiFormId:null,globalConfig:{recipients:[]}};
 const currentUser=JSON.parse(sessionStorage.getItem('user')||localStorage.getItem('adminUser')||'{}');
 const permissionSet=new Set(Array.isArray(currentUser.permissions)?currentUser.permissions:[]);
@@ -39,7 +39,7 @@ function leadParams() {
     return query;
 }
 function leadListMessage(text, action = '') {
-    document.getElementById('leadList').innerHTML = `<tr class="website-lead-message"><td colspan="8" role="cell">${esc(text)}${action}</td></tr>`;
+    document.getElementById('leadList').innerHTML = `<tr class="website-lead-message"><td colspan="9" role="cell">${esc(text)}${action}</td></tr>`;
 }
 function renderLeadStats(counts) {
     for (const [key, value] of Object.entries(counts)) {
@@ -98,11 +98,15 @@ async function loadLeads({ page = leadListState.page, refreshSummary = true } = 
         if (request === leadListState.request) table.removeAttribute('aria-busy');
     }
 }
+function touchpointBadge(item) {
+    const touch = item.touchpointClassification || window.RuihuaLeadSource.touchpoint(item);
+    return Object.hasOwn(window.RuihuaLeadSource.touches, touch.key) ? channelChip(touch.key) : esc(touch.label);
+}
 function renderLeadRow(item, index) {
     const cell = (label, content) => `<td role="cell"><span class="website-lead-cell-label" aria-hidden="true">${label}</span><div>${content}</div></td>`;
     const intents = item.intents?.length ? item.intents : item.intent || item.service;
     const serial = (leadListState.page - 1) * 25 + index + 1;
-    const source = window.RuihuaLeadSource.classify(item);
+    const source = item.sourceClassification || window.RuihuaLeadSource.classify(item);
     return `<tr role="row">
       ${cell('序号', String(serial))}
       <td role="cell"><button type="button" class="person" data-action="open-lead" data-id="${esc(item._id)}">${esc(item.name || '未留姓名')}</button>
@@ -113,6 +117,7 @@ function renderLeadRow(item, index) {
       ${cell('邮箱', esc(item.email || '—'))}
       ${cell('跟进状态', chip(item.status || 'new'))}
       ${cell('渠道来源', '<span>' + esc(source.category) + '</span><span class="sub">' + esc(source.platform) + '</span>')}
+      ${cell('留资触点', touchpointBadge(item))}
       <td role="cell" class="website-lead-more"><button type="button" data-action="open-lead" data-id="${esc(item._id)}" aria-label="查看更多，查看${esc(item.name || '此线索')}详情">查看更多</button></td>
     </tr>`;
 }
@@ -343,8 +348,8 @@ function renderLeadDetail(item) {
         ${item.remarks && item.remarks !== demand ? '<dl class="kv">' + leadField('备注', item.remarks) + '</dl>' : ''}
       </section>` : ''}
       <details class="sec website-lead-extra" open><summary>留资来源与访问轨迹</summary>
-        <dl class="kv"><dt>留资入口</dt><dd>${channelChip(item.channel || item.utm_source)}</dd>
-          ${leadField('触发方式', item.trigger)}${leadField('外部来源', source.category + ' · ' + source.platform)}
+        <dl class="kv"><dt>留资触点</dt><dd>${esc((item.touchpointClassification || window.RuihuaLeadSource.touchpoint(item)).label)}</dd>
+          ${leadField('触发方式', item.trigger)}${leadField('渠道来源', source.category) + leadField('来源平台', source.platform)}
           ${leadField('落地页', item.landing || item.landing_page)}${leadField('留资页面', item.leadPage || item.source)}
           ${leadField('设备', window.RuihuaLeadSource.device(item.device || ''))}
         </dl>${trail ? '<div class="trail">' + trail + '</div>' : '<p class="empty-detail">暂无访问轨迹。</p>'}
@@ -515,7 +520,7 @@ async function exportLeads() {
 }
 const clickActions={'load-leads':()=>loadLeads(),'reset-leads':resetLeads,'previous-leads':()=>loadLeads({page:leadListState.page-1,refreshSummary:false}),'next-leads':()=>loadLeads({page:leadListState.page+1,refreshSummary:false}),'export-leads':exportLeads,'load-ai-forms':()=>loadAiForms(),'reset-ai-forms':resetAiForms,'previous-ai-forms':()=>loadAiForms({page:aiFormListState.page-1}),'next-ai-forms':()=>loadAiForms({page:aiFormListState.page+1}),'export-ai-forms':exportAiForms,'close-ai-form':closeAiForm,'close-drawer':closeDrawer,'close-editor':closeEditor,'save-editor':saveEditor,'close-lead':closeLead,'save-global-config':()=>saveGlobalConfig(collectGlobalConfig()),'test-notification':testNotification,'add-recipient':()=>openRecipientEditor(),'close-recipient':closeRecipientEditor,'save-recipient':saveRecipient,'change-password':openPassword,'close-password':closePassword,'submit-password':changePassword,logout};
 document.addEventListener('click',event=>{const target=event.target.closest('[data-target],[data-action]');if(!target)return;if(target.dataset.target){switchView(target);return}const actionName=target.dataset.action;if(actionName==='open-editor')openEditor(target.dataset.type,target.dataset.id||null);else if(actionName==='remove-item')removeItem(target.dataset.type,target.dataset.id);else if(actionName==='open-lead')openLead(target.dataset.id);else if(actionName==='open-ai-form')openAiForm(target.dataset.id);else if(actionName==='remove-ai-form')removeAiForm(target.dataset.id);else if(actionName==='remove-featured')toggleFeatured(target.dataset.id,false);else if(actionName==='move-featured')moveFeatured(target.dataset.id,target.dataset.step);else if(actionName==='move-faq')moveFaq(target.dataset.id,target.dataset.step);else if(actionName==='toggle-author-status')toggleAuthorStatus(target.dataset.id);else if(actionName==='remove-city')removeConfigCity(Number(target.dataset.index));else if(actionName==='edit-recipient')openRecipientEditor(target.dataset.index);else if(actionName==='toggle-recipient'){const index=Number(target.dataset.index);const recipients=[...state.globalConfig.recipients];recipients[index]={...recipients[index],enabled:recipients[index].enabled===false};saveGlobalConfig({recipients})}else if(actionName==='remove-recipient'){if(confirm('确认删除这个接收人？')){const index=Number(target.dataset.index);const recipients=state.globalConfig.recipients.filter((_,itemIndex)=>itemIndex!==index);const removed=state.globalConfig.recipients[index];const fallbackRecipient=String(state.globalConfig.fallbackRecipient||'')===String(removed?._id||index)?(recipients[0]?._id||null):state.globalConfig.fallbackRecipient;saveGlobalConfig({recipients,fallbackRecipient})}}else if(actionName==='article-zone'){state.articleZone=target.dataset.value;document.querySelectorAll('#articleZone button').forEach(x=>x.classList.toggle('on',x===target));renderArticles();syncFiltersToUrl()}else if(clickActions[actionName])clickActions[actionName]()});
-document.addEventListener('change',event=>{const target=event.target.closest('[data-action]');if(target?.dataset.action==='toggle-featured')toggleFeatured(target.dataset.id,target.checked);if(event.target.id==='config-qrFile')previewQrFile(event.target.files[0]);if(['leadStatus','leadChannel','leadTime'].includes(event.target.id))filterLeads();if(event.target.id==='articleStatus')renderArticles();if(['caseIndustry','caseStatus'].includes(event.target.id))renderCases();if(['aiFormDept','aiFormSynced','aiFormTime'].includes(event.target.id))filterAiForms();if(Object.keys(FILTERS[state.activeView]||{}).includes(event.target.id))syncFiltersToUrl()});
+document.addEventListener('change',event=>{const target=event.target.closest('[data-action]');if(target?.dataset.action==='toggle-featured')toggleFeatured(target.dataset.id,target.checked);if(event.target.id==='config-qrFile')previewQrFile(event.target.files[0]);if(['leadStatus','leadChannel','leadAcquisition','leadTime'].includes(event.target.id))filterLeads();if(event.target.id==='articleStatus')renderArticles();if(['caseIndustry','caseStatus'].includes(event.target.id))renderCases();if(['aiFormDept','aiFormSynced','aiFormTime'].includes(event.target.id))filterAiForms();if(Object.keys(FILTERS[state.activeView]||{}).includes(event.target.id))syncFiltersToUrl()});
 document.addEventListener('input',event=>{if(event.target.id==='leadKeyword'){clearTimeout(leadListState.timer);++leadListState.request;document.querySelector('[data-action="export-leads"]').disabled=true;leadListState.timer=setTimeout(() => {if(state.activeView==='leads')filterLeads()},280)}if(event.target.id==='articleKeyword')renderArticles();if(event.target.id==='caseKeyword')renderCases();if(event.target.id==='featuredKeyword')renderFeatured();if(event.target.id==='aiFormKeyword'){clearTimeout(aiFormListState.timer);++aiFormListState.version;aiFormListState.timer=setTimeout(()=>{if(state.activeView==='ai-forms')filterAiForms()},280)}if(Object.keys(FILTERS[state.activeView]||{}).includes(event.target.id))syncFiltersToUrl()});
 document.addEventListener('keydown',event=>{if(event.target.id==='config-cityInput'&&event.key==='Enter'){event.preventDefault();addConfigCity()}if(event.key==='Escape'){closeLead();closeAiForm();closeEditor();closeRecipientEditor()}});
 document.getElementById('leadFilters').addEventListener('submit', event => {

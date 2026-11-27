@@ -22,32 +22,23 @@ function channelOf(data) {
   }
 }
 
-// 外部来源溯源：优先落地页 UTM 参数，其次前向 URL（referrer）域名，最后直接访问
-function resolveExternalSource(data) {
-  // 方式1：落地页参数（utm_source）
-  if (data.utm_source && !leadSource.internal(data.utm_source)) return data.utm_source.toLowerCase();
-  // 方式2：前向 URL（referrer）域名
-  if (data.referrer && !leadSource.internal(data.referrer)) {
-    try {
-      return new URL(data.referrer).hostname.replace(/^www\./, '') || 'referral';
-    } catch {
-      return 'referral';
-    }
-  }
-  // 都无：直接访问
-  return 'direct';
-}
-
 function buildAttribution(body = {}, cookies = {}) {
+  let stored = {};
+  try { stored = JSON.parse(cookies.rh_entry || '{}'); } catch (_) {}
+  const bodyEntry = leadSource.entry(new URLSearchParams(Object.entries(body).filter(([, value]) => typeof value === 'string')), body.referrer || '', body.landing_page || '');
+  const candidate = leadSource.classify(bodyEntry).key !== 'direct' ? bodyEntry :
+    leadSource.classify(stored).key !== 'direct' ? stored : cookies;
   const attribution = {};
   TRACKING_FIELDS.forEach(field => {
-    attribution[field] = clean(body[field]) || clean(cookies[field]);
+    attribution[field] = field === 'utm_source' && candidate !== cookies ? clean(candidate[field]) :
+      clean(candidate[field]) || clean(body[field]) || clean(cookies[field]);
   });
   attribution.channel = channelOf(attribution);
-  attribution.external_source = resolveExternalSource(attribution);
   const source = leadSource.classify(attribution);
+  attribution.external_source = source.raw || 'direct';
   attribution.sourceCategory = source.category;
   attribution.sourcePlatform = source.platform;
+  attribution.acquisitionChannel = source.key;
   return attribution;
 }
 
@@ -99,7 +90,8 @@ function registerAppointmentAttributionRoutes(app, authRequired, requirePerm, no
         kb: Array.isArray(req.body.kb) ? req.body.kb.map(item => clean(item, 200)).filter(Boolean) : [],
         talk: Array.isArray(req.body.talk) ? req.body.talk.slice(0, 100) : [],
         ...attribution,
-        channel: /AI.*顾问/.test(clean(req.body.trigger, 200)) ? 'agent' : 'form'
+        channel: leadSource.touchpoint({ ...req.body, touchpoint: req.body.touchpoint || (/AI.*顾问/.test(req.body.trigger || '') ? 'agent' : 'form') }).key,
+        touchpoint: leadSource.touchpoint({ ...req.body, touchpoint: req.body.touchpoint || (/AI.*顾问/.test(req.body.trigger || '') ? 'agent' : 'form') }).key
       });
       const visit = appointment.trackingId && await LeadVisit.findById(appointment.trackingId).lean();
       if (visit) { appointment.behaviors = visit.events; appointment.behaviorVersion = visit.version; }

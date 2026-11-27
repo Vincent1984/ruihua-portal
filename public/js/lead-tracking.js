@@ -12,6 +12,13 @@
             if (/^utm_(source|medium|campaign|term|content)$/.test(key)) saved.tags[key] = value.slice(0, 500);
         });
     }
+    const currentEntry = window.RuihuaLeadSource.entry(new URLSearchParams(location.search), document.referrer, location.pathname);
+    const currentSource = window.RuihuaLeadSource.classify(currentEntry);
+    if (currentSource.key !== 'direct') {
+        saved.landing_page = currentEntry.landing_page;
+        saved.referrer = currentEntry.referrer;
+        saved.tags = Object.fromEntries(Object.entries(currentEntry).filter(([key]) => key.startsWith('utm_')));
+    }
     function store() {
         saved.touched = Date.now();
         try { sessionStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) {}
