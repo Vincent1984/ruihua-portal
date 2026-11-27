@@ -84,9 +84,18 @@
           <div class="crm-dash-task-date"><span class="${new Date(row.nextAt) < new Date() ? 'crm-overdue' : ''}">${new Date(row.nextAt) < new Date() ? '已逾期' : '今日到期'}</span><time datetime="${esc(row.nextAt)}">${esc(when(row.nextAt))}</time></div></li>`);
         const expected = data.expected.slice(0, 8).map(row => `<li><div>${viewButton('opportunities', row)}<span class="crm-time">${esc(when(row.expectedAt))}</span></div><strong>${esc(money(row.expectedAmount))}</strong></li>`);
         const barsFor = (value, max) => `<span class="crm-dash-track" aria-hidden="true"><span style="width:${max ? Math.round(100 * value / max) : 0}%"></span></span>`;
-        const gradeRows = Object.entries(qualifications).map(([key, name]) => dashboardDrill('leads',
-            `<span class="crm-grade crm-grade-${key}">${key.toUpperCase()}</span><span class="crm-dash-grade-name">${esc(name)}</span><strong>${count(gradeCounts[key])}</strong>${barsFor(gradeCounts[key] || 0, gradeTotal)}`,
-            { qualification: key, pool: 'open' }, 'crm-dash-grade-row'));
+        const lifeStages = [
+            ...Object.entries(qualifications).map(([key, name]) => ({
+                key, label: key === 'lead' ? 'Lead' : key.toUpperCase(), name, value: gradeCounts[key],
+                kind: 'leads', filter: { qualification: key, pool: 'open' }
+            })),
+            { key: 'opp', label: 'OPP', name: '在跟商机', value: open, kind: 'opportunities', filter: { pool: 'open' } },
+            { key: 'won', label: 'Closed Won', name: '赢单', value: pipeline.won?.count, kind: 'opportunities', filter: { stage: 'won' } },
+            { key: 'lost', label: 'Closed Lost', name: '输单', value: pipeline.lost?.count, kind: 'opportunities', filter: { stage: 'lost' } }
+        ];
+        const lifecycle = lifeStages.map(item => dashboardDrill(item.kind,
+            `<span class="crm-life-stage">${esc(item.label)}</span><strong>${count(item.value)}</strong><span class="crm-life-caption">${esc(item.name)}</span>`,
+            item.filter, 'crm-life-step crm-life-' + item.key));
         const highestSource = Math.max(1, ...data.sources.map(row => row.count));
         const sourceRows = data.sources.map(row => {
             const label = row._id === 'report' ? '报告领取（含历史白皮书）' : sources[row._id] || row._id;
@@ -110,9 +119,16 @@
           <div class="crm-dash-kpis">
             ${kpi('今日新增线索', count(data.received), '待处理 ' + count(data.pending) + ' 条', dashboardDrill('leads', '查看待处理', { stage: 'new' }, 'crm-dash-kpi-link'))}
             ${kpi('今日到期跟进', count(data.todayFollow), '逾期 ' + count(data.overdue) + ' 条', dashboardDrill('leads', '查看逾期线索', { due: 'overdue' }, 'crm-dash-kpi-link'))}
-            ${kpi('在跟商机', count(open), '预计 ' + esc(money(expectedMoney)), dashboardDrill('opportunities', '查看商机', { pool: 'open' }, 'crm-dash-kpi-link'))}
+            ${kpi('在跟商机（OPP）', count(open), '预计 ' + esc(money(expectedMoney)), dashboardDrill('opportunities', '查看商机', { pool: 'open' }, 'crm-dash-kpi-link'))}
             ${kpi('累计实际赢单', esc(money(pipeline.won?.actual ?? 0)), count(pipeline.won?.count) + ' 个赢单', dashboardDrill('opportunities', '查看赢单', { stage: 'won' }, 'crm-dash-kpi-link'))}
           </div>
+          <section class="crm-panel crm-dash-panel crm-life-panel">
+            <header class="crm-dash-heading">
+              <div><h3>销售生命周期</h3><p>未结束线索 ${count(gradeTotal)} 条 · 商机按项目计数</p></div>
+              ${data.unassigned != null ? dashboardDrill('leads', '未分配 ' + count(data.unassigned) + ' 条', { owner: 'unassigned', pool: 'assignedWork' }, 'crm-dash-unassigned') : ''}
+            </header>
+            <div class="crm-life-grid">${lifecycle.join('')}</div>
+          </section>
           <div class="crm-dash-grid crm-dash-main">
             <section class="crm-panel crm-dash-panel">
               <header class="crm-dash-heading"><div><h3>线索新增趋势</h3><p>近 ${data.days} 天新增 <strong>${count(totalArrivals)}</strong> 条</p></div>
@@ -120,20 +136,15 @@
               <div class="crm-dash-chart" style="--columns:${bars.length}" aria-label="线索新增趋势图">${bars.map((bar, index) => `<button type="button" class="crm-dash-bar" data-crm-bar="${index}" data-date="${esc(bar.date)}" data-count="${bar.count}" style="--height:${Math.round(100 * bar.count / peak)}%" aria-label="${esc(bar.date)}，新增 ${bar.count} 条" title="${esc(bar.date)} · ${count(bar.count)} 条" aria-pressed="${index === bars.length - 1}"><span></span></button>`).join('')}</div>
               <div class="crm-dash-axis"><span>${esc(shortDay(data.trend[0].date))}</span><output id="crmTrendSelection">${esc(bars.at(-1).date)} · ${count(bars.at(-1).count)} 条</output><span>${esc(shortDay(data.trend.at(-1).date))}</span></div>
             </section>
-            <section class="crm-panel crm-dash-panel">
-              <header class="crm-dash-heading"><div><h3>当前线索等级</h3><p>未结束线索 ${count(gradeTotal)} 条</p></div></header>
-              <div class="crm-dash-grade-list">${gradeRows.join('')}</div>
-              ${data.unassigned != null ? dashboardDrill('leads', '未分配 ' + count(data.unassigned) + ' 条', { owner: 'unassigned', pool: 'assignedWork' }, 'crm-dash-unassigned') : ''}
-            </section>
+            <section class="crm-panel crm-dash-panel"><header class="crm-dash-heading"><div><h3>商机各阶段</h3><p>按项目数量展示 · 金额为预计或实际成交金额</p></div></header>
+              <div class="crm-dash-source-list">${dealRows.join('')}</div></section>
           </div>
           <div class="crm-dash-grid">
             <section class="crm-panel crm-dash-panel"><header class="crm-dash-heading"><div><h3>今日与逾期跟进</h3><p>线索和商机按下次跟进时间排列</p></div>${dashboardDrill('opportunities', '查看逾期商机', { due: 'overdue' }, 'crm-dash-kpi-link')}</header>
               ${dueRows.length ? '<ul class="crm-dash-task">' + dueRows.join('') + '</ul>' : empty('暂无到期跟进')}</section>
-            <section class="crm-panel crm-dash-panel"><header class="crm-dash-heading"><div><h3>商机各阶段</h3><p>按项目数量展示 · 金额为预计或实际成交金额</p></div></header>
-              <div class="crm-dash-source-list">${dealRows.join('')}</div></section>
             <section class="crm-panel crm-dash-panel"><header class="crm-dash-heading"><div><h3>线索来源与转化</h3><p>近 ${data.days} 天新增线索及其中已转商机数</p></div></header>
               ${sourceRows.length ? '<div class="crm-dash-source-list">' + sourceRows.join('') + '</div>' : empty('该周期暂无新增线索')}</section>
-            <section class="crm-panel crm-dash-panel"><header class="crm-dash-heading"><h3>未来 30 天预计成交</h3></header>
+            <section class="crm-panel crm-dash-panel crm-dash-expected"><header class="crm-dash-heading"><h3>未来 30 天预计成交</h3></header>
               ${expected.length ? '<ul class="crm-dash-task">' + expected.join('') + '</ul>' : empty('暂无预计成交的商机')}</section>
           </div>
         </div>`;
