@@ -39,7 +39,7 @@ function leadParams() {
     return query;
 }
 function leadListMessage(text, action = '') {
-    document.getElementById('leadList').innerHTML = `<tr class="website-lead-message"><td colspan="5" role="cell">${esc(text)}${action}</td></tr>`;
+    document.getElementById('leadList').innerHTML = `<tr class="website-lead-message"><td colspan="8" role="cell">${esc(text)}${action}</td></tr>`;
 }
 function renderLeadStats(counts) {
     for (const [key, value] of Object.entries(counts)) {
@@ -97,20 +97,21 @@ async function loadLeads({ page = leadListState.page, refreshSummary = true } = 
         if (request === leadListState.request) table.removeAttribute('aria-busy');
     }
 }
-function renderLeadRow(item) {
+function renderLeadRow(item, index) {
     const cell = (label, content) => `<td role="cell"><span class="website-lead-cell-label" aria-hidden="true">${label}</span><div>${content}</div></td>`;
-    const contact = [item.phone, item.email].filter(Boolean).map(value => '<span class="website-lead-contact">' + esc(value) + '</span>').join('');
     const intents = item.intents?.length ? item.intents : item.intent || item.service;
-    const intent = intents ? intentTags(intents) : '';
-    const demand = item.problem || item.message;
+    const serial = (leadListState.page - 1) * 25 + index + 1;
+    const source = window.RuihuaLeadSource.classify(item);
     return `<tr role="row">
+      ${cell('序号', String(serial))}
       <td role="cell"><button type="button" class="person" data-action="open-lead" data-id="${esc(item._id)}">${esc(item.name || '未留姓名')}</button>
-        <span class="sub website-lead-company">${esc(item.company || '未填写公司')}</span>
         ${item.title ? '<span class="sub">' + esc(item.title) + '</span>' : ''}</td>
-      ${cell('电话 / 邮箱', contact || '—')}
-      ${cell('意向 / 需求', intent + (demand ? '<p class="website-lead-demand">' + esc(demand) + '</p>' : intent ? '' : '—'))}
+      ${cell('公司', esc(item.company || '—') + (intents ? '<div class="website-lead-tags">' + intentTags(intents) + '</div>' : ''))}
+      ${cell('手机号', esc(item.phone || '—'))}
+      ${cell('邮箱', esc(item.email || '—'))}
       ${cell('跟进状态', chip(item.status || 'new'))}
-      <td role="cell" class="website-lead-more"><button type="button" data-action="open-lead" data-id="${esc(item._id)}" aria-label="更多，查看${esc(item.name || '此线索')}详情">更多 <span aria-hidden="true">→</span></button></td>
+      ${cell('渠道来源', '<span>' + esc(source.category) + '</span><span class="sub">' + esc(source.platform) + '</span>')}
+      <td role="cell" class="website-lead-more"><button type="button" data-action="open-lead" data-id="${esc(item._id)}" aria-label="查看更多，查看${esc(item.name || '此线索')}详情">查看更多</button></td>
     </tr>`;
 }
 function resetLeads() {
@@ -159,11 +160,18 @@ function showLeadStatus(value) {
 }
 const leadStatusOptions = Object.fromEntries([...leadStatusInput.options].map(option => [option.value, option.text]));
 function renderLeadDetail(item) {
+    const source = item.sourceClassification || window.RuihuaLeadSource.classify(item);
     const editable = hasPermission('lead:edit');
     const intents = item.intents?.length ? item.intents : item.intent || item.service;
     const demand = item.problem || item.message;
     const sourceNames = value => list(value).map(source => typeof source === 'string' ? source : source?.t || source?.title || source?.w || source?.url || '').filter(Boolean);
-    const trail = list(item.trail).map(step => `<div class="tr ${step.hit ? 'hit' : ''}" data-trail-item>
+    const behaviorLabels = { scroll:'阅读深度', page:'进入页面', leave:'页面停留', click:'点击', form_open:'打开表单', form_submit:'提交表单',
+        form_success:'提交成功', form_error:'提交失败', report_open:'打开报告', report_download:'下载报告', ai:'AI 对话' };
+    const behaviors = item.behaviors?.length ? item.behaviors.map(step => `<div class="tr" data-trail-item>
+      <div class="h">${esc(behaviorLabels[step.type] || step.type)}${step.label ? ' · ' + esc(step.label) : ''}</div>
+      <div class="m">${esc(date(step.at))} · ${esc(step.title || step.path)}${step.duration ? ' · 有效停留 ' + Number(step.duration) + ' 秒' : ''}</div>
+      <span class="sub">${esc(step.path)}</span></div>`).join('') : '';
+    const trail = behaviors || list(item.trail).map(step => `<div class="tr ${step.hit ? 'hit' : ''}" data-trail-item>
         <div class="h">${esc(step.t || step.h || '页面访问')}${step.hit ? ' <span class="chip">在此留资</span>' : ''}</div>
         <div class="m">${esc(step.h || '—')}${step.d ? ' · 停留 <em>' + esc(step.d) + '</em>' : ''}</div></div>`).join('');
     const talk = list(item.talk).map(message => {
@@ -189,6 +197,13 @@ function renderLeadDetail(item) {
         ${intents ? '<div>' + intentTags(intents) + '</div>' : ''}${demand ? '<p class="website-lead-description">' + esc(demand) + '</p>' : ''}
         ${item.remarks && item.remarks !== demand ? '<dl class="kv">' + leadField('备注', item.remarks) + '</dl>' : ''}
       </section>` : ''}
+      <details class="sec website-lead-extra" open><summary>留资来源与访问轨迹</summary>
+        <dl class="kv"><dt>留资入口</dt><dd>${channelChip(item.channel || item.utm_source)}</dd>
+          ${leadField('触发方式', item.trigger)}${leadField('外部来源', source.category + ' · ' + source.platform)}
+          ${leadField('落地页', item.landing || item.landing_page)}${leadField('留资页面', item.leadPage || item.source)}
+          ${leadField('设备', window.RuihuaLeadSource.device(item.device || ''))}
+        </dl>${trail ? '<div class="trail">' + trail + '</div>' : '<p class="empty-detail">暂无访问轨迹。</p>'}
+      </details>
       <section class="sec"><h3>跟进记录</h3>
         ${editable ? `<form id="leadFollowForm" class="website-lead-note-form"><label for="leadNoteText">本次跟进</label>
           <textarea id="leadNoteText" name="leadNoteText" class="note-input" rows="3" required placeholder="记录沟通结果和下一步"></textarea>
@@ -196,13 +211,6 @@ function renderLeadDetail(item) {
         </form>` : ''}
         <div class="notes" id="leadNotes">${renderLeadNotes(item.notes)}</div>
       </section>
-      <details class="sec website-lead-extra"><summary>留资来源与访问轨迹</summary>
-        <dl class="kv"><dt>留资入口</dt><dd>${channelChip(item.channel || item.utm_source)}</dd>
-          ${leadField('触发方式', item.trigger)}${leadField('外部来源', externalSourceText(item))}
-          ${leadField('落地页', item.landing || item.landing_page)}${leadField('留资页面', item.leadPage || item.source)}
-          ${leadField('设备', item.device)}
-        </dl>${trail ? '<div class="trail">' + trail + '</div>' : '<p class="empty-detail">暂无访问轨迹。</p>'}
-      </details>
       ${talk ? '<details class="sec website-lead-extra"><summary>AI 顾问对话</summary><div class="talk">' + talk + '</div></details>' : ''}`;
 }
 async function openLead(id) {
@@ -213,6 +221,7 @@ async function openLead(id) {
     }
     activeLead = null;
     leadDrawer.inert = false;
+    document.body.classList.add('website-lead-modal-open');
     leadDrawer.classList.add('open');
     leadDrawer.setAttribute('aria-hidden', 'false');
     document.getElementById('drawerMask').classList.add('open');
@@ -240,6 +249,7 @@ function closeLead() {
     ++leadDetailRequest;
     activeLead = null;
     leadDrawer.classList.remove('open');
+    document.body.classList.remove('website-lead-modal-open');
     document.getElementById('drawerMask').classList.remove('open');
     const replacement = leadOpener && [...document.querySelectorAll('#leadList button[data-action="open-lead"]')]
         .find(button => button.dataset.id === leadOpener.dataset.id);

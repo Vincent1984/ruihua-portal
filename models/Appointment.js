@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
 const appointmentSchema = new mongoose.Schema({
+  behaviorVersion: { type: Number, default: 0, select: false },
+  behaviors: { type: [new mongoose.Schema({ id: String, at: Date, type: String, path: String, title: String, label: String, duration: Number }, { _id: false })], select: false },
+  trackingId: { type: String, select: false, index: true },
+  sourceCategory: String,
+  sourcePlatform: String,
   externalId: { type: String, unique: true, sparse: true, index: true },
   name: String,
   phone: String,

@@ -20,11 +20,11 @@ describe('线索页原型实现', function () {
     const leadHead = html.match(/<table class="website-lead-table"[\s\S]*?<thead[^>]*>([\s\S]*?)<\/thead>/)[1];
     assert.deepStrictEqual(
       [...leadHead.matchAll(/<th[^>]+scope="col"[^>]*>(.*?)<\/th>/g)].map(match => match[1]),
-      ['联系人 / 公司', '电话 / 邮箱', '意向 / 需求', '跟进状态', '操作']
+      ['序号', '姓名', '公司', '手机号', '邮箱', '跟进状态', '渠道来源', '查看更多']
     );
-    assert.match(script, /\[item\.phone, item\.email\]/);
-    assert.match(script, /更多，查看/);
-    assert.match(script, /website-lead-demand/);
+    assert.match(script, /leadListState\.page - 1/);
+    assert.match(script, /查看更多，查看/);
+    assert.doesNotMatch(script.match(/function renderLeadRow[\s\S]*?function resetLeads/)[0], /item\.problem/);
   });
 
   it('来源渠道显示中文枚举', function () {
@@ -118,7 +118,7 @@ describe('线索页原型实现', function () {
     const html = read('admin/console.html');
     const script = read('admin/js/admin-2026.js');
     assert.match(html, /id="leadDrawer"[^>]*role="dialog"[^>]*aria-labelledby="leadDrawerName"/);
-    assert.match(script, /联系信息[\s\S]*意向与需求[\s\S]*跟进记录[\s\S]*<details[^>]*><summary>留资来源与访问轨迹/);
+    assert.match(script, /联系信息[\s\S]*意向与需求[\s\S]*<details[^>]*><summary>留资来源与访问轨迹[\s\S]*跟进记录/);
     assert.match(script, /<details[^>]*><summary>AI 顾问对话/);
     assert.match(script, /<form id="leadFollowForm"[\s\S]*class="notes" id="leadNotes"/);
   });

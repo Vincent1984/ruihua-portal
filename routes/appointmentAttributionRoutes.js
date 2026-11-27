@@ -1,3 +1,8 @@
+const { createHash } = require('node:crypto');
+const { rateLimit } = require('express-rate-limit');
+const LeadVisit = require('../models/LeadVisit');
+const leadSource = require('../public/js/lead-source');
+const visitKey = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value) ? createHash('sha256').update(value).digest('hex') : '';
 const Appointment = require('../models/Appointment');
 const { saveWithUniqueExternalId } = require('../utils/dailyExternalId');
 
@@ -8,8 +13,8 @@ function clean(value, maxLength = 500) {
 }
 
 function channelOf(data) {
-  if (data.utm_source) return data.utm_source.toLowerCase();
-  if (!data.referrer) return 'direct';
+  if (data.utm_source && !leadSource.internal(data.utm_source)) return data.utm_source.toLowerCase();
+  if (!data.referrer || leadSource.internal(data.referrer)) return 'direct';
   try {
     return new URL(data.referrer).hostname.replace(/^www\./, '') || 'referral';
   } catch {
@@ -20,9 +25,9 @@ function channelOf(data) {
 // 外部来源溯源：优先落地页 UTM 参数，其次前向 URL（referrer）域名，最后直接访问
 function resolveExternalSource(data) {
   // 方式1：落地页参数（utm_source）
-  if (data.utm_source) return data.utm_source.toLowerCase();
+  if (data.utm_source && !leadSource.internal(data.utm_source)) return data.utm_source.toLowerCase();
   // 方式2：前向 URL（referrer）域名
-  if (data.referrer) {
+  if (data.referrer && !leadSource.internal(data.referrer)) {
     try {
       return new URL(data.referrer).hostname.replace(/^www\./, '') || 'referral';
     } catch {
@@ -40,10 +45,33 @@ function buildAttribution(body = {}, cookies = {}) {
   });
   attribution.channel = channelOf(attribution);
   attribution.external_source = resolveExternalSource(attribution);
+  const source = leadSource.classify(attribution);
+  attribution.sourceCategory = source.category;
+  attribution.sourcePlatform = source.platform;
   return attribution;
 }
 
 function registerAppointmentAttributionRoutes(app, authRequired, requirePerm, notifyAppointment) {
+  app.post('/api/lead-visits', rateLimit({ windowMs: 60000, limit: 120, standardHeaders: true, legacyHeaders: false }), async (req, res) => {
+    const key = visitKey(req.body.trackingId);
+    const version = req.body.version;
+    if (!key || !Number.isSafeInteger(version) || version < 1 || version > 1000000 || !Array.isArray(req.body.events)) return res.status(400).json({ error: '访问记录无效' });
+    const allowed = ['scroll', 'page', 'leave', 'click', 'form_open', 'form_submit', 'form_success', 'form_error', 'report_open', 'report_download', 'ai'];
+    const events = req.body.events.slice(-200).filter(event => event && allowed.includes(event.type) && typeof event.path === 'string' && event.path.startsWith('/') && Number.isFinite(Date.parse(event.at)))
+      .map(event => ({ id: clean(event.id, 80), at: new Date(event.at), type: event.type, path: clean(event.path.split('?')[0], 300),
+        title: clean(event.title, 120), label: clean(event.label, 120), duration: Math.max(0, Math.min(86400, Number(event.duration) || 0)) }));
+    try {
+      // A newer snapshot always wins, including concurrent tab-close flushes.
+      await LeadVisit.updateOne({ _id: key, version: { $lt: version } }, { $set: { version, events, expiresAt: new Date(Date.now() + 30 * 86400000) } }, { upsert: true });
+      await Appointment.updateMany({ trackingId: key, $or: [{ behaviorVersion: { $lt: version } }, { behaviorVersion: { $exists: false } }] },
+        { $set: { behaviorVersion: version, behaviors: events } });
+      return res.status(204).end();
+    } catch (error) {
+      if (error.code === 11000) return res.status(204).end();
+      console.error('Lead visit save failed:', error.message);
+      return res.status(500).json({ error: '访问记录保存失败' });
+    }
+  });
   app.post('/api/appointments/website', async (req, res) => {
     try {
       const name = clean(req.body.name, 100);
@@ -65,12 +93,16 @@ function registerAppointmentAttributionRoutes(app, authRequired, requirePerm, no
         intents: Array.isArray(req.body.intents) ? req.body.intents.map(item => clean(item, 100)).filter(Boolean) : [],
         leadPage: clean(req.body.leadPage, 500),
         trigger: clean(req.body.trigger, 200),
-        device: clean(req.body.device, 200),
+        device: req.body.device === 'mobile' && /Macintosh/i.test(req.get('user-agent') || '') ? 'mobile' : leadSource.device(req.get('user-agent') || req.body.device || ''),
+        trackingId: visitKey(req.body.trackingId),
         trail: Array.isArray(req.body.trail) ? req.body.trail.slice(0, 100) : [],
         kb: Array.isArray(req.body.kb) ? req.body.kb.map(item => clean(item, 200)).filter(Boolean) : [],
         talk: Array.isArray(req.body.talk) ? req.body.talk.slice(0, 100) : [],
-        ...attribution
+        ...attribution,
+        channel: /AI.*顾问/.test(clean(req.body.trigger, 200)) ? 'agent' : 'form'
       });
+      const visit = appointment.trackingId && await LeadVisit.findById(appointment.trackingId).lean();
+      if (visit) { appointment.behaviors = visit.events; appointment.behaviorVersion = visit.version; }
       await saveWithUniqueExternalId(appointment);
 
       // 钉钉通知（独立异常处理，失败不影响提交结果）
@@ -128,3 +160,5 @@ function registerAppointmentAttributionRoutes(app, authRequired, requirePerm, no
 module.exports = registerAppointmentAttributionRoutes;
 module.exports.buildAttribution = buildAttribution;
 module.exports.channelOf = channelOf;
+
+module.exports.visitKey = visitKey;

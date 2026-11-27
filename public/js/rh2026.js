@@ -1312,7 +1312,7 @@ function pageTitleOf(path){
 }
 function isHit(path){ return /^\/article(\/|\.|$)/.test(path); }
 function fmtDuration(ms){if(ms<1000)return'0秒';const s=Math.round(ms/1000);return s<60?s+'秒':Math.floor(s/60)+'分'+(s%60)+'秒';}
-function detectDevice(){const ua=navigator.userAgent;if(/iPad|Tablet|Android(?!.*Mobile)/i.test(ua))return'平板';if(/Mobile|iPhone|Android/i.test(ua))return'手机';return'桌面';}
+function detectDevice(){const ua=navigator.userAgent;if(/Mobile|iPhone|iPad|Android/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1))return'mobile';if(/Windows/i.test(ua))return'Windows';if(/Mac/i.test(ua))return'MAC';return'未知';}
 function loadTrail(){
   const path=location.pathname,key='rh_trail',tsKey='rh_trail_ts';
   let trail=[];try{trail=JSON.parse(sessionStorage.getItem(key))||[]}catch(e){}

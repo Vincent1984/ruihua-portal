@@ -110,7 +110,8 @@ describe('官网预约路由运行时回归', function () {
             assert.ok(res.body.externalId);
             assert.strictEqual(notified.length, 1);
             assert.strictEqual(notified[0].phone, '13800138000');
-            assert.strictEqual(notified[0].channel, 'baidu');
+            assert.strictEqual(notified[0].channel, 'form');
+            assert.strictEqual(notified[0].sourcePlatform, '百度');
         } finally {
             Appointment.prototype.save = originalSave;
             DailyCounter.findOneAndUpdate = originalCounter;

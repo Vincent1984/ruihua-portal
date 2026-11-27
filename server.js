@@ -4666,8 +4666,14 @@ app.get('/api/admin/leads/export', authRequired, requirePerm(['lead:export', 'ap
 
 app.get('/api/admin/leads/:id', authRequired, requirePerm(['lead:list', 'appointment:list']), async (req, res) => {
     try {
-        const data = await Appointment.findById(req.params.id);
+        const data = await Appointment.findById(req.params.id).select('+trackingId +behaviors').lean();
         if (!data) return res.status(404).json({ success: false, error: '线索不存在' });
+        const visit = data.trackingId && await require('./models/LeadVisit').findById(data.trackingId).lean();
+        delete data.trackingId;
+        if (visit) data.behaviors = visit.events;
+        const classifier = require('./public/js/lead-source');
+        data.sourceClassification = classifier.classify(data);
+        data.device = classifier.device(data.device || '');
         res.json({ success: true, data });
     } catch (e) { return sendInternalError(res, 'Get lead error:', e); }
 });
