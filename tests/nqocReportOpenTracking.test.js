@@ -117,8 +117,9 @@ describe('报告页面打开追踪（邮件追踪链接 + 后台展示）', func
     it('后台邮件状态列展示打开次数与最近打开时间', function () {
         const fn = adminJs.match(/function nqMailStatus\(lead\)[\s\S]*?\n    \}/)[0];
         assert.match(fn, /Number\.isFinite\(lead\.reportOpenCount\)/);
-        assert.match(fn, /报告已打开 \$\{opens\} 次/);
-        assert.match(fn, /报告未打开/);
+        assert.match(fn, /已打开 \$\{opens\} 次/);
+        assert.match(fn, /lastReportOpenAt.*shortDateTime\(lead\.lastReportOpenAt\)/);
+        assert.match(fn, /LEAD_MAIL_LABELS\[cat\]/);
     });
 
     it('数据库文档记录打开追踪字段', function () {

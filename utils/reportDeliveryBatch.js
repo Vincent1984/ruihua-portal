@@ -5,7 +5,7 @@ const Contact = require('../models/ReportMailContact');
 const Template = require('../models/ReportMailTemplate');
 const Legacy = require('../models/NqocWhitepaperRequest');
 const { Delivery, reportFor, queueManual } = require('./reportDelivery');
-const { runtimeSecret } = require('./reportMail');
+const { messageFor, runtimeSecret } = require('./reportMail');
 const error = (message, status = 400) => Object.assign(new Error(message), { status });
 async function resolve(id) {
     if (typeof id !== 'string' || !/^(whitepaper-|contact-)?[a-f0-9]{24}$/i.test(id)) throw error('记录编号无效');
@@ -56,6 +56,7 @@ async function previewBatch(ids, actor, actorId = '', templateId = '') {
         template = { ...require('./reportMailTemplate').templateFields(selected), version: String(selected._id) };
     }
     const rows = [], items = [], emails = new Set();
+    let sample;
     for (const id of [...new Set(ids)]) {
         let row = { id, eligible: false };
         try {
@@ -65,13 +66,17 @@ async function previewBatch(ids, actor, actorId = '', templateId = '') {
             if (emails.has(key)) throw error('与本批其他记录的邮箱和报告重复');
             emails.add(key);
             const item = { id, expectedEmail: lead.email, reportSlug: report.slug, reportVersion: report.updatedAt || report.publishDate };
+            if (!sample) {
+                const { subject, text } = messageFor({ name: lead.name, sourceLabel: lead.sourceLabel, mail: { template } }, null, true);
+                sample = { subject, text, button: template?.button || '查看 / 下载报告' };
+            }
             items.push(item); Object.assign(row, { eligible: true, reportTitle: report.title, reportVersion: item.reportVersion });
         } catch (e) { if (!e.status) throw e; row.message = e.message; }
         rows.push(row);
     }
     const nonce = template || ids.some(id => typeof id === 'string' && id.startsWith('contact-')) ? crypto.randomUUID() : undefined;
     return { requestKey: nonce, rows, eligibleCount: items.length, excludedCount: rows.length - items.length,
-        template, previewToken: sign({ actor, actorId, template, nonce, expires: Date.now() + 10 * 60 * 1000, items }) };
+        template, sample, previewToken: sign({ actor, actorId, template, nonce, expires: Date.now() + 10 * 60 * 1000, items }) };
 }
 async function batchResult(id) {
     const batch = await Batch.findById(id).lean();
