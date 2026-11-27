@@ -529,7 +529,8 @@ const ADMIN_CONSOLE_ROUTES = [
     '/admin/nqoc-insights',
     '/admin/nqoc-cases',
     '/admin/nqoc-videos',
-    '/admin/nqoc-report-leads'
+    '/admin/nqoc-report-leads',
+    '/admin/email-marketing'
 ];
 const ADMIN_CONSOLE_PERMS = [
     'dashboard:view',
@@ -544,7 +545,8 @@ const ADMIN_CONSOLE_PERMS = [
     'nqoc-insights:list',
     'nqoc-cases:list',
     'nqoc-videos:list',
-    'nqoc-report-leads:list'
+    'nqoc-report-leads:list',
+    'nqoc-report-leads:batch-send'
 ];
 const ADMIN_CONSOLE_ROUTE_PERMS = {
     '/admin/leads': ['lead:list', 'appointment:list'],
@@ -557,7 +559,8 @@ const ADMIN_CONSOLE_ROUTE_PERMS = {
     '/admin/nqoc-insights': 'nqoc-insights:list',
     '/admin/nqoc-cases': 'nqoc-cases:list',
     '/admin/nqoc-videos': 'nqoc-videos:list',
-    '/admin/nqoc-report-leads': 'nqoc-report-leads:list'
+    '/admin/nqoc-report-leads': 'nqoc-report-leads:list',
+    '/admin/email-marketing': 'nqoc-report-leads:batch-send'
 };
 const ADMIN_STATIC_PAGE_PERMS = {
     '/admin/console.html': ADMIN_CONSOLE_PERMS,
@@ -626,12 +629,12 @@ async function requireAdminStaticHtmlPage(req, res, next) {
         if (req.method !== 'GET' && req.method !== 'HEAD') return next();
         if (req.path === '/' || req.path === '/index.html') return next();
 
-        const fullPath = `/admin${req.path}`;
+        const fullPath = `/admin${req.path}`.replace(/\/+$/, '').toLowerCase();
         // 报告领取记录的独立详情页 /admin/nqoc-report-leads/<id>，权限与列表页一致
         const consolePath = fullPath.startsWith('/admin/nqoc-report-leads/')
             ? '/admin/nqoc-report-leads'
             : fullPath;
-        if (!req.path.endsWith('.html') && !ADMIN_CONSOLE_ROUTES.includes(consolePath)) return next();
+        if (!consolePath.endsWith('.html') && !ADMIN_CONSOLE_ROUTES.includes(consolePath)) return next();
         if (!Object.prototype.hasOwnProperty.call(ADMIN_STATIC_PAGE_PERMS, consolePath)) {
             return res.status(404).sendFile(path.join(__dirname, '404.html'));
         }

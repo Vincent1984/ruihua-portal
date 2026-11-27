@@ -406,13 +406,18 @@ function leadMailCategory(lead) {
 // 旧筛选值兼容：none/cancelled→unsent，pending/sending→queued，accepted→sent（已发送合集）
 const LEAD_MAIL_ALIAS = { none: 'unsent', cancelled: 'unsent', pending: 'queued', sending: 'queued', accepted: 'sent' };
 
+function reportLeadDayStart(now = Date.now()) {
+    const day = 86400000, offset = 8 * 3600000;
+    return new Date(Math.floor((now + offset) / day) * day - offset);
+}
+
 function buildLeadQuery(req) {
     const query = {};
     // 默认只看正常记录；bin=1 时只看回收站（deletedAt 为 null 或字段缺失都算正常）
     const inBin = String(req.query.bin || '') === '1';
     query.deletedAt = inBin ? { $ne: null } : null;
     const range = ['1', '7', '30'].includes(String(req.query.range)) ? Number(req.query.range) : 0;
-    if (range) query.createdAt = { $gte: new Date(Date.now() - range * 24 * 3600 * 1000) };
+    if (range) query.createdAt = { $gte: range === 1 ? reportLeadDayStart() : new Date(Date.now() - range * 86400000) };
     const q = trimStr(req.query.q, 100);
     if (q) {
         const rx = { $regex: escapeRegex(q), $options: 'i' };
@@ -842,14 +847,13 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
     router.get('/admin/nqoc/report-leads', authRequired, requirePerm('nqoc-report-leads:list'), async (req, res) => {
         try {
             const { query, inBin } = buildLeadQuery(req);
-            const startOfDay = new Date();
-            startOfDay.setHours(0, 0, 0, 0);
+            const startOfDay = reportLeadDayStart();
 
             // 领取人次看板：按手机号聚合出提交次数，两个来源合并后在内存去重。
             // 看板始终只统计正常记录（deletedAt: null），回收站记录不计入。
             const [leads, legacyLeads, today, todayWp, week7, week7Wp, all, allWp, companies, wpCompanies, phoneStats, delivered, deliveredWp, openedCount, openedWp] = await Promise.all([
-                NqocReportLead.find(query).sort({ createdAt: -1 }).limit(5000),
-                NqocWhitepaperRequest.find(query).sort({ createdAt: -1 }).limit(5000),
+                NqocReportLead.find(query).lean(),
+                NqocWhitepaperRequest.find(query).lean(),
                 NqocReportLead.countDocuments({ deletedAt: null, createdAt: { $gte: startOfDay } }),
                 NqocWhitepaperRequest.countDocuments({ deletedAt: null, createdAt: { $gte: startOfDay } }),
                 NqocReportLead.countDocuments({ deletedAt: null, createdAt: { $gte: new Date(Date.now() - 7 * 24 * 3600 * 1000) } }),
@@ -905,8 +909,8 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
             query.deletedAt = null;
             const dupOnly = String(req.query.dup || '') === '1';
             const [leads, legacyLeads] = await Promise.all([
-                NqocReportLead.find(query).sort({ createdAt: -1 }).limit(5000),
-                NqocWhitepaperRequest.find(query).sort({ createdAt: -1 }).limit(5000)
+                NqocReportLead.find(query).lean(),
+                NqocWhitepaperRequest.find(query).lean()
             ]);
             leads.push(...legacyLeads.map(serializeLegacyWhitepaperLead));
             leads.sort(sortLeadsByCreatedAtDesc);
@@ -1084,7 +1088,12 @@ function initNqocRoutes(authRequired, requirePerm, requireAnyPerm) {
                 enabled: process.env.REPORT_MAIL_ENABLED === 'true' && !!process.env.SMTP_PASS });
         } catch (e) { return deliveryError(res, e); }
     });
-    router.get('/admin/nqoc/report-leads/:id/email-history', authRequired, requirePerm('nqoc-report-leads:list'), async (req, res) => {
+    router.get('/admin/nqoc/report-leads/:id/email-history', authRequired, (req, res, next) => {
+        if (req.params.id.startsWith('contact-')) {
+            return requireAnyPerm(['nqoc-report-leads:batch-send', 'nqoc-report-leads:list'])(req, res, next);
+        }
+        return requirePerm('nqoc-report-leads:list')(req, res, next);
+    }, async (req, res) => {
         try {
             const { Model, lead } = await deliveryLead(req.params.id, true);
             const page = Math.min(10000, Math.max(1, parseInt(req.query.page, 10) || 1));

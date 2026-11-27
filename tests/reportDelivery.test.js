@@ -34,6 +34,17 @@ const uri = process.env.REPORT_MAIL_TEST_MONGO;
     const perms = 'nqoc-report-leads:send,nqoc-report-leads:resend,nqoc-report-leads:list,nqoc-report-leads:delete,nqoc-report-leads:restore,nqoc-report-leads:batch-send';
     const send = (method, url, body, allowed = perms) => request(app)[method](url).set('x-test-user', 'operator').set('x-test-permissions', allowed).send(body);
     const transport = { async sendMail(message) { return { accepted: [message.to], messageId: 'message-history-test' }; }, close() {} };
+    it('allows the marketing permission to read imported contact history only', async function () {
+        const Contact = require('../models/ReportMailContact');
+        const contact = await Contact.create({ name: 'Imported', email: 'imported@example.test', sourceLabel: 'Test',
+            basis: 'Test report delivery', importKey: 'test', sourceId: 'row-1' });
+        const lead = await Lead.create(input());
+        const path = '/api/admin/nqoc/report-leads';
+        const batch = 'nqoc-report-leads:batch-send';
+        assert.strictEqual((await send('get', `${path}/contact-${contact.id}/email-history`, undefined, batch)).status, 200);
+        assert.strictEqual((await send('get', `${path}/${lead.id}/email-history`, undefined, batch)).status, 403);
+        assert.strictEqual((await send('get', `${path}/${lead.id}/email-history`, undefined, 'nqoc-report-leads:list')).status, 200);
+    });
     it('persists an immutable first job and accepts duplicate request keys only once', async function () {
         const lead = await Lead.create(input());
         const [a, b] = await Promise.all([queueManual(Lead, lead, command()), queueManual(Lead, lead, command())]);

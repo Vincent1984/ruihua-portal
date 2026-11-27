@@ -53,6 +53,11 @@
     let nqVideos = [];
     let nqLeads = [];
     const reportMailSelected = new Set();
+    const REPORT_BATCH_SIZE = 50;
+    const REPORT_PAGE_SIZE = 50;
+    let nqLeadPage = 1;
+    let nqLeadRequest = 0;
+    let nqLeadLoadedView = null;
     let nqLeadDup = {};   // 归一化手机号 -> 提交次数（仅 ≥2 次的手机号）
     let nqLeadStats = { today: 0, week7: 0, all: 0, companies: 0, delivered: 0, opened: 0 };
     let nqLeadDetailState = null;   // 报告领取记录详情：{ id, from, lead }
@@ -104,10 +109,14 @@
         const box = document.querySelector(`[data-view="${view}"]`);
         if (!f || !box) return;
         const q = box.querySelector('input[data-filter="q"]');
-        if (q && document.activeElement !== q) q.value = f.q;
+        if (q && q.value !== f.q) q.value = f.q;
         box.querySelectorAll('.segments[data-filter]').forEach(seg => {
             const key = seg.dataset.filter;
-            seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', (b.dataset.value || '') === (f[key] || '')));
+            seg.querySelectorAll('button').forEach(b => {
+                const active = (b.dataset.value || '') === (f[key] || '');
+                b.classList.toggle('on', active);
+                if (b.hasAttribute('aria-pressed')) b.setAttribute('aria-pressed', String(active));
+            });
         });
         box.querySelectorAll('select[data-filter]').forEach(s => { s.value = f[s.dataset.filter] || ''; });
     }
@@ -124,7 +133,7 @@
         new URLSearchParams(search == null ? location.search : search).forEach((v, k) => {
             if (!(k in f)) return;
             if (NQ_FILTER_OK[k] && NQ_FILTER_OK[k].indexOf(v) < 0) return;
-            f[k] = v.slice(0, 60);
+            f[k] = v.slice(0, view === 'nqoc-report-leads' ? 100 : 60);
         });
     }
 
@@ -281,11 +290,17 @@
 
     function nqLeadRows() {
         const f = NQ_FILTERS['nqoc-report-leads'], q = f.q.trim().toLowerCase(), days = +f.range || 0, dupOnly = f.dup === '1';
-        const cutoff = days ? Date.now() - days * DAY : 0;
-        return (nqLeads || []).filter(l => (!f.mailStatus || nqLeadMailCategory(l) === f.mailStatus) && (!cutoff || new Date(l.createdAt).getTime() >= cutoff) &&
+        if (nqLeadLoadedView !== f.bin) return [];
+        const now = Date.now(), offset = 8 * 3600000;
+        const cutoff = days === 1 ? Math.floor((now + offset) / DAY) * DAY - offset : days ? now - days * DAY : 0;
+        return nqLeads.filter(l => (!f.mailStatus || nqLeadMailCategory(l) === f.mailStatus) && (!cutoff || new Date(l.createdAt).getTime() >= cutoff) &&
             (!dupOnly || !!nqLeadDup[nqPhoneKey(l.phone)]) &&
-            (!q || [l.name, l.company, l.phone, l.email, l.position].map(v => String(v || '')).join(' ').toLowerCase().includes(q)))
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            (!q || [l.name, l.company, l.phone, l.email, l.position].some(v => String(v || '').toLowerCase().includes(q))));
+    }
+    function applyLeadFilters() {
+        nqLeadPage = 1;
+        renderNqLeads();
+        nqSyncUrl('nqoc-report-leads');
     }
     function mailFailure(value) {
         const labels = { EAUTH: '发件邮箱认证失败，请联系管理员', EDNS: '邮件服务器地址解析失败', ECONNREFUSED: '无法连接邮件服务器', ETIMEDOUT: '邮件连接超时，请核实发送结果', ECONNECTION: '邮件连接中断，请核实发送结果', ESOCKET: '邮件连接异常，请核实发送结果', EENVELOPE: '邮件服务拒绝收件地址', REPORT_CHANGED: '报告版本已更新，请重新确认后发送' };
@@ -473,10 +488,21 @@
     }
     function renderNqLeads() {
         const f = NQ_FILTERS['nqoc-report-leads'], inBin = f.bin === '1';
-        const rows = nqLeadRows(), total = nqLeads.length, now = Date.now();
-        if (inBin) reportMailSelected.clear();
+        const matched = nqLeadRows(), total = nqLeads.length, now = Date.now();
+        const totalPages = Math.max(1, Math.ceil(matched.length / REPORT_PAGE_SIZE));
+        nqLeadPage = Math.min(nqLeadPage, totalPages);
+        const rows = matched.slice((nqLeadPage - 1) * REPORT_PAGE_SIZE, nqLeadPage * REPORT_PAGE_SIZE);
+        $('nqLeadPager').hidden = totalPages <= 1;
+        $('nqLeadPrev').disabled = nqLeadPage <= 1;
+        $('nqLeadNext').disabled = nqLeadPage >= totalPages;
+        $('nqLeadPage').textContent = `第 ${nqLeadPage} / ${totalPages} 页`;
+        $('nqLeadReset').disabled = ![f.q, f.range, f.mailStatus, f.dup].some(Boolean);
+        if (reportMailSelected.size) {
+            const matchedIds = new Set(matched.map(lead => lead.id));
+            for (const id of reportMailSelected) if (!matchedIds.has(id)) reportMailSelected.delete(id);
+        }
         if ($('reportBatchControls')) $('reportBatchControls').hidden = inBin || !hasPermission('nqoc-report-leads:batch-send');
-        updateBatchSelection();
+        updateBatchSelection(matched);
         const between = (from, to) => nqLeads.filter(l => { const t = now - new Date(l.createdAt).getTime(); return t >= from && t < to; }).length;
         $('nqLTd').textContent = nqLeadStats.today;
         $('nqLYd').textContent = between(DAY, 2 * DAY);
@@ -519,21 +545,33 @@
               <td><div>${ago(l.createdAt)}</div><div class="sub">${shortDateTime(l.createdAt)}</div></td>
             </tr>`).join('') : `<tr><td colspan="6" class="empty-cell"><b>${inBin ? '回收站是空的' : '没有符合条件的记录'}</b><p>${inBin ? '删除的记录会在这里保留 30 天' : '换个筛选条件，或清空当前筛选'}</p>${inBin ? '' : '<button type="button" class="btn-sm" data-action="reset-lead-filters">清空筛选</button>'}</td></tr>`;
         $('nqLeadCount').textContent = inBin
-            ? `回收站共 ${rows.length} 条记录，到期后自动彻底删除`
-            : `共 ${rows.length} 条记录${rows.length !== total ? `（总计 ${total} 条）` : ''}`;
+            ? `回收站共 ${matched.length} 条记录，到期后自动彻底删除`
+            : `共 ${matched.length} 条记录${matched.length !== total ? `（总计 ${total} 条）` : ''}`;
         nqSyncFilterUi('nqoc-report-leads');
         nqApplyPerms($('nqLeadRows').closest('table'));
     }
     async function loadLeads() {
+        const request = ++nqLeadRequest;
+        const bin = NQ_FILTERS['nqoc-report-leads'].bin;
+        if (nqLeadLoadedView !== bin) {
+            nqSyncFilterUi('nqoc-report-leads');
+            $('reportBatchControls').hidden = true;
+            $('nqLeadPager').hidden = true;
+            $('nqLeadCount').textContent = '';
+            $('nqLeadRows').innerHTML = '<tr><td colspan="6" class="empty-cell">正在加载记录…</td></tr>';
+        }
         try {
             const qs = new URLSearchParams();
-            if (NQ_FILTERS['nqoc-report-leads'].bin) qs.set('bin', NQ_FILTERS['nqoc-report-leads'].bin);
+            if (bin) qs.set('bin', bin);
             const data = await json(`${API}/report-leads${qs.toString() ? '?' + qs : ''}`, { headers: authHeaders() });
+            if (request !== nqLeadRequest) return;
+            nqLeadLoadedView = bin;
             nqLeads = Array.isArray(data.leads) ? data.leads : [];
             nqLeadStats = Object.assign({ today: 0, week7: 0, all: 0, companies: 0, uniquePhones: {}, delivered: 0, opened: 0 }, data.stats || {});
             nqLeadDup = (data.stats && data.stats.duplicatePhones) || {};
             renderNqLeads();
         } catch (e) {
+            if (request !== nqLeadRequest || nqLeadLoadedView === bin) return;
             $('nqLeadRows').innerHTML = `<tr><td colspan="6" class="empty-cell">${esc(e.message)}</td></tr>`;
         }
     }
@@ -799,7 +837,7 @@
         if (view === 'nqoc-insights') return loadPosts('insight');
         if (view === 'nqoc-cases') return loadPosts('case');
         if (view === 'nqoc-videos') return loadVideos();
-        if (view === 'nqoc-report-leads') return loadLeads();
+        if (view === 'nqoc-report-leads') { nqLeadPage = 1; return loadLeads(); }
     };
     // 创作工作台保存后回调（article-management.js 扩展 nqoc-insight / nqoc-case 时调用）
     window.nqocRefresh = function (kind) {
@@ -893,6 +931,15 @@
         if (action === 'close') return closeReportMail();
         if (action === 'submit') return submitReportMail();
         if (action === 'resume') return resumeReportBatch();
+        if (action === 'skip-empty-batch') {
+            const batch = reportMailDialog;
+            if (batch?.fromLeadList && batch.batchPreview?.eligibleCount === 0) {
+                batch.ids.forEach(id => reportMailSelected.delete(id));
+                renderNqLeads();
+                closeReportMail();
+            }
+            return;
+        }
         if (action === 'record') return openReportHistory(el.dataset.leadId);
         if (action === 'batch') return openBatchResult(el.dataset.batchId);
         const state = reportMailDialog;
@@ -908,9 +955,13 @@
         } catch (e) { if (reportMailDialog === state) $('reportMailFeedback').textContent = e.message; }
     }, true);
     document.addEventListener('change', event => {
+        if (event.target.id === 'reportSelectAll') {
+            reportMailSelected.clear();
+            if (event.target.checked) nqLeadRows().forEach(lead => reportMailSelected.add(lead.id));
+            renderNqLeads();
+        }
         const selectedId = event.target.dataset.mailSelect;
         if (selectedId) {
-            if (event.target.checked && reportMailSelected.size >= 50) { event.target.checked = false; toast('每批最多选择 50 条'); return; }
             if (event.target.checked) reportMailSelected.add(selectedId); else reportMailSelected.delete(selectedId);
             updateBatchSelection();
         }
@@ -935,7 +986,7 @@
         if (!pending && !reportMailDialog?.hasActive) return;
         reportMailPolling = true;
         try {
-            await loadLeads();
+            if (visible || nqLeadDetailState) await loadLeads();
             if (nqLeadDetailState) await loadLeadDetail();
             if (reportMailDialog?.mode === 'history') await renderReportHistory(reportMailDialog);
             else if (reportMailDialog?.mode === 'batch-result') await renderBatchResult(reportMailDialog);
@@ -943,15 +994,26 @@
         finally { reportMailPolling = false; }
     }, 5000);
 
-    function updateBatchSelection() {
-        if ($('reportBatchCount')) $('reportBatchCount').textContent = `已选 ${reportMailSelected.size} 条`;
-        if ($('reportLastBatch')) $('reportLastBatch').hidden = !sessionStorage.getItem('reportLastBatch');
+    function updateBatchSelection(matched = nqLeadRows()) {
+        const count = reportMailSelected.size;
+        const visibleCount = matched.reduce((sum, lead) => sum + Number(reportMailSelected.has(lead.id)), 0);
+        const all = $('reportSelectAll');
+        all.disabled = !matched.length;
+        all.checked = matched.length > 0 && visibleCount === matched.length;
+        all.indeterminate = visibleCount > 0 && !all.checked;
+        $('reportBatchCount').textContent = `已选 ${count} 条${count > REPORT_BATCH_SIZE ? ` · 本批预览 ${REPORT_BATCH_SIZE} 条，余下 ${count - REPORT_BATCH_SIZE} 条保留` : ''}`;
+        $('reportClearSelection').disabled = !count;
+        $('reportPreviewSelection').disabled = !count;
+        $('reportLastBatch').hidden = !sessionStorage.getItem('reportLastBatch');
+        $('campaignLeadSelection').hidden = !count;
+        $('campaignLeadSelectionCount').textContent = `包含报告领取记录中已选的 ${count} 条`;
+        if (!count) $('campaignIncludeLeads').checked = false;
     }
-    async function openReportBatch(ids = [...reportMailSelected], templateId = '') {
+    async function openReportBatch(ids, templateId = '', fromLeadList = false) {
         ids = [...new Set(ids)];
-        if (ids.length > 50) return toast('每批最多选择 50 条记录');
+        if (ids.length > REPORT_BATCH_SIZE) return toast(`每批最多选择 ${REPORT_BATCH_SIZE} 条记录`);
         if (!ids.length) return toast('请先勾选需要补发的申请记录');
-        const state = showReportMail('确认批量补发报告', { mode: 'batch-preview', requestKey: crypto.randomUUID(), busy: false });
+        const state = showReportMail('确认批量补发报告', { mode: 'batch-preview', requestKey: crypto.randomUUID(), busy: false, ids, fromLeadList });
         try {
             const preview = await json(`${API}/report-leads/email-batch-preview`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ ids, templateId }) });
             if (reportMailDialog !== state) return;
@@ -963,6 +1025,9 @@
             $('reportMailBody').innerHTML = `<p><b>模板 ${esc(preview.template?.name || '系统报告模板')}</b></p>${sample}<p><b>本次将向 ${preview.eligibleCount} 个邮箱补发报告，排除 ${preview.excludedCount} 条。</b></p><p class="report-mail-note">同一邮箱和报告在本批只发送一次；已接收、待发、发送中、待核实及回收站记录默认排除。链接有效期为 7 天。</p><table><thead><tr><th>申请人</th><th>收件邮箱</th><th>确认结果</th></tr></thead><tbody>${preview.rows.map(r => `<tr><td>${esc(r.name || '—')}</td><td>${esc(r.email || '—')}</td><td>${r.eligible ? `将发送 · ${esc(r.reportTitle)} · ${esc(r.reportVersion)}` : `已排除：${esc(r.message)}`}</td></tr>`).join('')}</tbody></table><label>批量补发原因（必填）<textarea id="reportMailReason" maxlength="300" placeholder="例如：向历史申请但尚未发送的用户补发正式报告"></textarea></label><label class="report-mail-check"><input type="checkbox" id="reportMailAcknowledged">我已核对上述名单，同意向标记“将发送”的 ${preview.eligibleCount} 个邮箱发送报告</label>`;
             $('reportMailConfirm').hidden = false; $('reportMailConfirm').disabled = preview.eligibleCount === 0;
             $('reportMailConfirm').textContent = `确认补发 ${preview.eligibleCount} 封`;
+            if (fromLeadList && !preview.eligibleCount) {
+                $('reportMailBody').insertAdjacentHTML('beforeend', '<button type="button" data-mail-action="skip-empty-batch">从已选名单移除本批</button>');
+            }
         } catch (e) { if (reportMailDialog === state) $('reportMailBody').textContent = e.message; }
     }
     async function submitReportBatch() {
@@ -976,7 +1041,14 @@
         $('reportMailFeedback').textContent = '正在逐条创建发送任务，请勿重复操作…';
         try {
             await json(`${API}/report-leads/email-batches`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ requestKey: state.requestKey, previewToken: state.batchPreview.previewToken, reason, acknowledged: true }) });
-            reportMailSelected.clear(); await loadLeads();
+            state.ids.forEach(id => reportMailSelected.delete(id));
+            if (state.fromLeadList) {
+                renderNqLeads();
+                await loadLeads();
+            } else if ($('reportCampaign').closest('.view').classList.contains('active')) {
+                updateBatchSelection();
+                await loadCampaignContacts().catch(error => campaignNotice(error.message));
+            }
             if (reportMailDialog === state) await openBatchResult(state.requestKey);
         } catch (e) { if (reportMailDialog === state) { $('reportMailFeedback').textContent = `${e.message}。如网络中断，请查看最近批次，避免重复创建。`; $('reportMailConfirm').disabled = false; } }
         finally { state.busy = false; }
@@ -1013,7 +1085,7 @@
         return campaignRequest(path, { method, body: JSON.stringify(body) });
     }
     setInterval(() => {
-        if (!$('reportCampaign')?.open || document.hidden) return;
+        if (!$('reportCampaign').closest('.view').classList.contains('active') || document.hidden) return;
         loadCampaignQuota().catch(() => {});
         if (!selectedCampaignRows('contact').length && document.querySelector('#campaignContactsRows [data-pending]')) {
             loadCampaignContacts(campaign.contactPage).catch(() => {});
@@ -1193,7 +1265,11 @@
         'contacts-load': () => loadCampaignContacts(),
         'contacts-prev': () => loadCampaignContacts(Math.max(1, campaign.contactPage - 1)),
         'contacts-next': () => campaign.contactMore && loadCampaignContacts(campaign.contactPage + 1),
-        'contacts-preview': () => openReportBatch([...selectedCampaignRows('contact'), ...reportMailSelected], $('campaignTemplate').value),
+        'contacts-preview': () => {
+            const ids = selectedCampaignRows('contact');
+            if ($('campaignIncludeLeads').checked) ids.push(...reportMailSelected);
+            return openReportBatch(ids, $('campaignTemplate').value);
+        },
         'contact-history': el => openReportHistory(el.dataset.id),
         'last-batch': () => openBatchResult(sessionStorage.getItem('reportLastBatch') || '')
     };
@@ -1212,13 +1288,12 @@
     }
     const campaignPanel = $('reportCampaign');
     if (campaignPanel) {
-        campaignPanel.addEventListener('toggle', async () => {
-            if (!campaignPanel.open) return;
+        window.reportCampaignLoad = async () => {
             try {
                 await Promise.all([loadCampaignTemplates(), loadCampaignQuota(), loadCampaignContacts()]);
                 if (!$('campaignTemplateForm').elements.namedItem('body').value) useCampaignTemplate();
             } catch (error) { campaignNotice(error.message); }
-        });
+        };
         campaignPanel.addEventListener('submit', event => event.preventDefault());
         campaignPanel.addEventListener('change', event => {
             if (event.target.id === 'campaignEditTemplate') useCampaignTemplate(event.target.value);
@@ -1285,6 +1360,8 @@
             }
             // 正常记录 / 回收站属于服务端数据源切换，需要重新拉取
             if (view === 'nqoc-report-leads' && box && box.dataset.filter === 'bin') {
+                nqLeadPage = 1;
+                reportMailSelected.clear();
                 nqSyncUrl(view);
                 return loadLeads();
             }
@@ -1293,15 +1370,17 @@
         },
         export: () => nqExportLeads(),
         'reset-lead-filters': () => {
-            const view = 'nqoc-report-leads';
-            Object.keys(NQ_FILTERS[view]).forEach(k => { NQ_FILTERS[view][k] = ''; });
-            nqSyncFilterUi(view);
-            nqSyncUrl(view);
-            loadLeads();
+            const f = NQ_FILTERS['nqoc-report-leads'];
+            Object.assign(f, { q: '', range: '', dup: '', mailStatus: '' });
+            applyLeadFilters();
         },
-        'select-mail-rows': () => { for (const lead of nqLeadRows().slice(0, 50)) { if (reportMailSelected.size >= 50) break; reportMailSelected.add(lead.id); } renderNqLeads(); },
+        'lead-prev': () => { nqLeadPage -= 1; renderNqLeads(); },
+        'lead-next': () => { nqLeadPage += 1; renderNqLeads(); },
         'clear-mail-rows': () => { reportMailSelected.clear(); renderNqLeads(); },
-        'batch-mail': () => openReportBatch(),
+        'batch-mail': () => {
+            const ids = nqLeadRows().filter(lead => reportMailSelected.has(lead.id)).slice(0, REPORT_BATCH_SIZE).map(lead => lead.id);
+            return openReportBatch(ids, '', true);
+        },
         'last-mail-batch': () => openBatchResult(sessionStorage.getItem('reportLastBatch') || ''),
         'send-lead-email': (t, id) => openReportMail(id),
         'mail-history': (t, id) => openReportHistory(id),
@@ -1369,6 +1448,7 @@
         if (input) {
             const view = input.closest('[data-view]').dataset.view;
             NQ_FILTERS[view][input.dataset.filter] = input.value;
+            if (view === 'nqoc-report-leads') return applyLeadFilters();
             nqRenderView(view);
             nqSyncUrl(view);
             return;
@@ -1382,6 +1462,7 @@
         if (select) {
             const view = select.closest('[data-view]').dataset.view;
             NQ_FILTERS[view][select.dataset.filter] = select.value;
+            if (view === 'nqoc-report-leads') return applyLeadFilters();
             nqRenderView(view);
             nqSyncUrl(view);
             return;
@@ -1482,7 +1563,8 @@
         openLeadDetail(decodeURIComponent(nqDetailPath[1]), { from: leadDetailFromParam(), push: false });
     } else {
         const activeView = document.querySelector('.view.active');
-        if (activeView && /^nqoc-/.test(activeView.dataset.view || '')) window.nqocLoad(activeView.dataset.view);
+        if (activeView?.dataset.view === 'email-marketing') window.reportCampaignLoad();
+        else if (activeView && /^nqoc-/.test(activeView.dataset.view || '')) window.nqocLoad(activeView.dataset.view);
     }
     // 浏览器前进 / 后退：详情页与列表页互相切换
     window.addEventListener('popstate', () => {

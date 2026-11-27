@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>瑞华智策 · 官网管理后台</title>
-  <link rel="stylesheet" href="/admin/admin-2026.css?v=20261125reportmail1">
+  <link rel="stylesheet" href="/admin/admin-2026.css?v=20261127marketing1">
   <link rel="stylesheet" href="/admin/lib/wangeditor/css/style.css">
 </head>
 <body>
@@ -19,6 +19,9 @@
       <div class="nav-group"><div class="nav-title">内容配置</div>
         <button data-target="articles" data-permission="article:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3h7l3.5 3.5V17H5z"/><path d="M11.5 3v4H16M7.5 11h5M7.5 13.8h3"/></svg><span>文章管理</span></button><button data-target="cases" data-permission="case:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.8" y="6" width="14.4" height="10.5" rx="2"/><path d="M7.2 6V4.6A1.6 1.6 0 0 1 8.8 3h2.4a1.6 1.6 0 0 1 1.6 1.6V6M2.8 10.5h14.4"/></svg><span>案例管理</span></button>
         <button data-target="featured" data-permission="featured-case:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="m10 2.8 2.2 4.5 5 .7-3.6 3.5.85 4.95L10 14.1l-4.45 2.35.85-4.95L2.8 8l5-.7z"/></svg><span>首页精选案例</span></button><button data-target="faq" data-permission="faq:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.2"/><path d="M8.1 8a2 2 0 1 1 2.6 1.9c-.5.2-.7.6-.7 1.1v.4M10 14.2v.05"/></svg><span>FAQ 管理</span></button><button data-target="experts" data-permission="expert:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3.2"/><path d="M4 16.6a6 6 0 0 1 12 0"/></svg><span>讲师 / 专家团队</span></button>
+      </div>
+      <div class="nav-group" data-permission="nqoc-report-leads:batch-send"><div class="nav-title">营销功能</div>
+        <button type="button" data-target="email-marketing" data-permission="nqoc-report-leads:batch-send"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="4.5" width="15" height="11" rx="2"/><path d="m3 6 7 5 7-5"/></svg><span>邮件营销</span></button>
       </div>
       <div class="nav-group nqoc-group"><button type="button" class="nav-title nqoc-toggle" aria-expanded="false" aria-controls="nqocNavItems"><span>新质组织</span><svg class="nav-arrow" viewBox="0 0 12 12" aria-hidden="true"><path d="m4 2 4 4-4 4"/></svg></button><div class="nqoc-items" id="nqocNavItems" hidden>
         <div class="nav-sub-title">栏目管理</div>
@@ -107,9 +110,9 @@
         <div class="filters"><input class="search" type="search" data-filter="q" placeholder="搜索期数 / 标题 / 嘉宾"><div class="segments" data-filter="status"><button type="button" class="on" data-action="filter" data-value="">全部</button><button type="button" data-action="filter" data-value="published">已发布</button><button type="button" data-action="filter" data-value="draft">草稿</button><button type="button" data-action="filter" data-value="archived">已下架</button></div><span class="spacer"></span><button type="button" class="primary" data-action="new" data-type="video" data-permission="nqoc-videos:create">＋ 新建一期</button></div>
         <div class="table-wrap"><table><thead><tr><th style="width:104px">封面</th><th style="width:76px">期数</th><th>标题</th><th style="width:210px">对谈嘉宾</th><th style="width:116px">视频</th><th style="width:104px">发布日期</th><th style="width:88px">状态</th><th style="width:66px">发布</th><th style="width:176px">操作</th></tr></thead><tbody id="nqVidRows"></tbody></table></div>
       </section>
-      <section class="view" data-view="nqoc-report-leads" data-module="nqoc-report-leads">
-        <details id="reportCampaign" class="report-campaign" data-permission="nqoc-report-leads:batch-send">
-          <summary>邮件营销 · 报告下载</summary>
+      <section class="view" data-view="email-marketing" data-module="email-marketing">
+        <div id="reportCampaign" class="report-campaign">
+          <h2>报告下载邮件</h2>
           <p id="reportCampaignQuota" class="sub" role="status"></p>
           <p id="reportCampaignNotice" class="sub" role="status"></p>
           <div class="report-campaign-grid">
@@ -173,15 +176,41 @@
             <button type="button" data-campaign="contacts-preview">预览所选报告邮件</button>
             <button type="button" data-campaign="last-batch">查看最近发送批次</button>
           </div>
+          <label id="campaignLeadSelection" class="report-campaign-check" hidden><input type="checkbox" id="campaignIncludeLeads"><span id="campaignLeadSelectionCount"></span></label>
           <div id="campaignContactsRows" class="report-campaign-scroll"></div>
-        </details>
-
+        </div>
+      </section>
+      <section class="view" data-view="nqoc-report-leads" data-module="nqoc-report-leads">
         <div class="stats stats-5"><article class="accent"><small>今日领取</small><strong id="nqLTd">0</strong><span>昨日 <em id="nqLYd">0</em> 条</span></article><article><small>近 7 天</small><strong id="nqL7">0</strong><span>近 30 天 <em id="nqL30">0</em> 条</span></article><article><small>累计领取</small><strong id="nqLAll">0</strong><span>自栏目上线起</span></article><article><small>累计领取企业数</small><strong id="nqLCo">0</strong><span>按公司名去重</span></article><article><small>累计领取人次</small><strong id="nqLUniq">0</strong><span>按手机号去重</span></article><article><small>报告打开率</small><strong id="nqLOpen">—</strong><span id="nqLOpenSub">暂无已发送记录</span></article></div>
-        <div class="leads-toolbar"><div class="leads-views"><div class="segments" data-filter="bin" aria-label="记录视图"><button type="button" class="on" data-action="filter" data-value="">正常记录</button><button type="button" data-action="filter" data-value="1">回收站</button></div></div><span class="spacer"></span><button type="button" class="tool-btn" data-action="export" data-permission="nqoc-report-leads:export">导出 Excel</button></div>
-        <div class="filters"><input class="search" type="search" data-filter="q" placeholder="搜索姓名 / 公司 / 手机号 / 邮箱"><select data-filter="range" aria-label="时间筛选"><option value="">全部时间</option><option value="1">今天</option><option value="7">近 7 天</option><option value="30">近 30 天</option></select><select data-filter="mailStatus" aria-label="邮件状态筛选"><option value="">全部邮件状态</option><option value="unsent">未发送</option><option value="queued">待发送</option><option value="unopened">已发送·未打开</option><option value="opened">已发送·已打开</option><option value="failed">发送失败</option><option value="uncertain">结果待核实</option></select><div class="segments" data-filter="dup" aria-label="重复提交筛选"><button type="button" class="on" data-action="filter" data-value="">全部</button><button type="button" data-action="filter" data-value="1">重复提交</button></div></div>
-        <div id="reportBatchControls" class="report-batch-controls" data-permission="nqoc-report-leads:batch-send"><span id="reportBatchCount">已选 0 条</span><button type="button" data-action="select-mail-rows">选择当前结果（最多50条）</button><button type="button" data-action="clear-mail-rows">清空选择</button><button type="button" data-action="batch-mail" class="primary">预览批量补发</button><button type="button" id="reportLastBatch" data-action="last-mail-batch" hidden>查看最近批次</button></div>
+        <div class="report-lead-tools">
+          <div class="leads-toolbar">
+            <div class="segments" data-filter="bin" role="group" aria-label="记录视图"><button type="button" class="on" aria-pressed="true" data-action="filter" data-value="">正常记录</button><button type="button" aria-pressed="false" data-action="filter" data-value="1">回收站</button></div>
+            <button type="button" class="tool-btn" data-action="export" data-permission="nqoc-report-leads:export">导出 Excel</button>
+          </div>
+          <div class="filters report-lead-filters">
+            <label>搜索记录<input class="search" type="search" data-filter="q" maxlength="100" placeholder="姓名、公司、手机号、邮箱或职位"></label>
+            <label>提交时间<select data-filter="range"><option value="">全部时间</option><option value="1">今天</option><option value="7">近 7 天</option><option value="30">近 30 天</option></select></label>
+            <label>邮件状态<select data-filter="mailStatus"><option value="">全部状态</option><option value="unsent">未发送</option><option value="queued">待发送</option><option value="unopened">已发送 · 未打开</option><option value="opened">已发送 · 已打开</option><option value="failed">发送失败</option><option value="uncertain">结果待核实</option></select></label>
+            <label>提交情况<select data-filter="dup"><option value="">全部记录</option><option value="1">仅重复提交</option></select></label>
+            <button type="button" data-action="reset-lead-filters" id="nqLeadReset">重置筛选</button>
+          </div>
+        </div>
+        <div id="reportBatchControls" class="report-batch-controls" data-permission="nqoc-report-leads:batch-send">
+          <label class="report-select-all"><input type="checkbox" id="reportSelectAll" class="report-mail-selection">选择全部筛选结果</label>
+          <span id="reportBatchCount" role="status">已选 0 条</span>
+          <button type="button" id="reportClearSelection" data-action="clear-mail-rows" disabled>清空选择</button>
+          <button type="button" id="reportPreviewSelection" data-action="batch-mail" class="primary" disabled>预览批量补发</button>
+          <button type="button" id="reportLastBatch" data-action="last-mail-batch" hidden>查看最近批次</button>
+        </div>
         <div class="table-wrap leads-table"><table><thead><tr data-bin-head="0"><th style="width:148px">姓名</th><th style="width:126px">手机号码</th><th>公司 / 职位</th><th style="width:200px">邮箱</th><th style="width:208px">邮件状态</th><th style="width:104px">提交时间</th></tr><tr data-bin-head="1" hidden><th style="width:148px">姓名</th><th style="width:126px">手机号码</th><th>公司 / 职位</th><th style="width:200px">邮箱</th><th style="width:118px">删除时间</th><th style="width:100px">剩余天数</th></tr></thead><tbody id="nqLeadRows"></tbody></table></div>
-        <p class="sub" style="margin-top:10px" id="nqLeadCount"></p>
+        <div class="report-lead-pagination">
+          <p class="sub" id="nqLeadCount" role="status"></p>
+          <div id="nqLeadPager" class="report-lead-page-buttons" hidden>
+            <button type="button" id="nqLeadPrev" data-action="lead-prev">上一页</button>
+            <span id="nqLeadPage"></span>
+            <button type="button" id="nqLeadNext" data-action="lead-next">下一页</button>
+          </div>
+        </div>
         <div id="nqLeadDetail" class="lead-detail" data-view="nqoc-report-lead-detail" hidden></div>
       </section>
     </div>
@@ -197,7 +226,7 @@
 <div class="toast" id="toast" role="status"></div>
 <script src="/admin/lib/wangeditor/index.js"></script>
 <script src="/admin/js/article-management.js?v=20261111a"></script>
-<script src="/admin/js/admin-2026.js?v=20261125reportleads3"></script>
-<script src="/admin/js/nqoc.js?v=20261125leadmailopen1"></script>
+<script src="/admin/js/admin-2026.js?v=20261127marketing1"></script>
+<script src="/admin/js/nqoc.js?v=20261127marketing1"></script>
 </body>
 </html>

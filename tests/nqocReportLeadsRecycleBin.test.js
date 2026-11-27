@@ -75,7 +75,8 @@ describe('报告领取记录回收站（软删 / 恢复 / 彻底删除 / TTL）'
         assert.doesNotMatch(consoleHtml, /data-bin-head="1"[\s\S]{0,400}删除人/);
         assert.match(adminJs, /'nqoc-report-leads':\s*\{[^}]*\bbin:\s*''/);
         assert.match(adminJs, /bin:\s*\['',\s*'1'\]/);
-        assert.match(adminJs, /if \(NQ_FILTERS\['nqoc-report-leads'\]\.bin\) qs\.set\('bin'/);
+        assert.match(adminJs, /const bin = NQ_FILTERS\['nqoc-report-leads'\]\.bin;/);
+        assert.match(adminJs, /if \(bin\) qs\.set\('bin', bin\)/);
         assert.match(adminJs, /'restore-lead':/);
         assert.match(adminJs, /'purge-lead':/);
         assert.match(adminJs, /移入回收站？30 天内可在回收站恢复/);
@@ -108,8 +109,8 @@ describe('报告领取记录回收站（软删 / 恢复 / 彻底删除 / TTL）'
         assert.ok(adminJs.includes('nqLeadMailCategory(l) === f.mailStatus'));
         assert.ok(adminJs.includes("$('nqLOpen')"), '看板缺少打开率渲染');
         assert.ok(consoleHtml.includes('id="nqLOpen"'), '看板缺少打开率卡片');
-        assert.ok(consoleHtml.includes('<option value="opened">已发送·已打开</option>'));
-        assert.ok(consoleHtml.includes('<option value="unopened">已发送·未打开</option>'));
+        assert.match(consoleHtml, /<option value="opened">已发送\s*·\s*已打开<\/option>/);
+        assert.match(consoleHtml, /<option value="unopened">已发送\s*·\s*未打开<\/option>/);
     });
 
     it('规格文档已记录结论、测试用例与运维规则', function () {

@@ -146,11 +146,29 @@ td button.btn-sm+button.btn-sm{margin-left:6px}
 .lead-detail-danger-actions{display:flex;gap:10px;flex-wrap:wrap}
 /* 详情打开时隐藏列表区，只留详情（原生 hidden 只作用于详情容器自身） */
 .lead-detail-open .stats.stats-5,
-.lead-detail-open .leads-toolbar,
-.lead-detail-open .filters,
+.lead-detail-open .report-lead-tools,
 .lead-detail-open #reportBatchControls,
 .lead-detail-open .table-wrap.leads-table,
-.lead-detail-open #nqLeadCount,
-.lead-detail-open #reportCampaign{display:none}
+.lead-detail-open .report-lead-pagination{display:none}
 @media(max-width:1200px){.lead-detail-meta{grid-template-columns:96px minmax(0,1fr);gap:7px 12px}}
 @media(max-width:760px){.lead-detail-head{flex-direction:column;align-items:stretch}.lead-detail-head>button.primary{align-self:flex-start}.lead-detail-card,.lead-detail-head,.lead-detail-danger{padding:14px}}
+
+/* 报告领取记录筛选与分页 */
+.report-lead-tools{padding:14px 16px;margin-bottom:12px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.report-lead-tools .leads-toolbar{justify-content:space-between;flex-wrap:wrap}
+.report-lead-filters{display:grid;grid-template-columns:minmax(210px,2fr) repeat(3,minmax(112px,1fr)) auto;align-items:end;gap:12px;margin:0}
+.report-lead-filters label{display:grid;gap:5px;color:var(--ink2);font-weight:700;min-width:0}
+.report-lead-filters label input,.report-lead-filters select{width:100%;min-width:0;font-weight:400}
+.report-lead-filters>button{min-height:38px}
+.report-lead-pagination,.report-lead-page-buttons{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.report-lead-pagination{padding:10px 0}
+.report-lead-pagination p{margin:0}
+.report-lead-page-buttons{font-size:12px}
+.report-lead-page-buttons button{padding:5px 10px;border:1px solid var(--hair);border-radius:8px;background:var(--card);color:var(--ink);cursor:pointer}
+.report-lead-page-buttons[hidden],#campaignLeadSelection[hidden]{display:none}
+.report-lead-filters button:disabled,.report-lead-page-buttons button:disabled,.report-batch-controls button:disabled{opacity:.55;cursor:default}
+.report-select-all{display:inline-flex;align-items:center;gap:7px;font-weight:700;cursor:pointer}
+.report-select-all input{margin:0}
+.report-campaign>h2{margin:0;font-size:17px}
+@media(max-width:1150px){.report-lead-filters{grid-template-columns:repeat(3,minmax(0,1fr))}.report-lead-filters>label:first-child{grid-column:1/-1}.report-lead-filters>button{justify-self:start}}
+@media(max-width:580px){.report-lead-filters{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.report-lead-tools{padding:12px}}
