@@ -26,12 +26,12 @@ const SOURCES = [
             company: row.orgName, position: row.respondentTitle_other || row.respondentTitle, createdAt: row.createdAt }) }
 ];
 
-async function getCompany(name) {
+async function getCompany(name, alias) {
     const nameKey = companyKey(name);
     if (!nameKey) return null;
     let row;
     try {
-        row = await Company.findOneAndUpdate({ nameKey }, { $setOnInsert: { name, nameKey } }, { upsert: true, new: true });
+        row = await Company.findOneAndUpdate({ nameKey }, { $setOnInsert: { name, nameKey, ...(alias ? { alias } : {}) } }, { upsert: true, new: true });
     } catch (error) {
         if (error.code !== 11000) throw error;
         row = await Company.findOne({ nameKey });
@@ -51,7 +51,7 @@ async function getContact(data, ownerId = null, canLink) {
         const record = matches[0];
         if (record && canLink && !canLink(record)) return { conflict: '已匹配已有档案，请管理员确认归属' };
         if (record?.archivedAt) return { conflict: '联系方式对应已归档联系人' };
-        const company = data.companyId ? { _id: data.companyId } : record?.companyId ? null : await getCompany(text(data.company, 160));
+        const company = data.companyId ? { _id: data.companyId } : record?.companyId ? null : await getCompany(text(data.company, 160), text(data.companyAlias, 160));
         const values = {
             name: text(data.name, 100) || '未留姓名', phone, email, phoneKey: phone, emailKey: email,
             position: text(data.position, 100), department: text(data.department, 100), companyId: company?._id
@@ -103,7 +103,7 @@ async function ingest(source, row, options = {}) {
     const dedupKey = reportGroup && contact ? `${source.key}:${contact.id}:${reportGroup}` : key;
     const leadFields = {
         name: text(data.name, 100) || '未留姓名', source: source.key, receivedAt, reportGroup, qualification, qualificationHistory, phone: phoneKey(data.phone), email: emailKey(data.email),
-        companyName: text(data.company, 160), summary: text(data.summary || data.title, 2000), contactId: visibleContact?._id,
+        companyName: text(data.company, 160), companyAlias: text(data.companyAlias, 160), summary: text(data.summary || data.title, 2000), contactId: visibleContact?._id,
         companyId: visibleContact?.companyId, ownerId: options.manual ? options.ownerId : (contact?.ownerId || null),
         matchIssue: conflict || (contact && !visibleContact ? '已匹配已有档案，请管理员确认归属' : ''), dedupKey,
         ...(options.manual ? { tags: data.tags, nextAt: data.nextAt, nextStep: data.nextStep } : {})

@@ -16,6 +16,7 @@ const { syncOnce, phoneKey, companyKey } = require('../utils/crmIntake');
 const { createAuthMiddleware } = require('../middleware/auth');
 const crm = require('../routes/api/crm');
 const { readLeads } = require('../utils/crmLeadImport');
+const { extractCandidates } = require('../utils/crmCompanyLookup');
 
 function workbook(rows) {
     const book = XLSX.utils.book_new();
@@ -39,6 +40,18 @@ describe('CRM normalization', () => {
         assert.match(parsed[1].issue, /公式/);
         assert.match(parsed[2].issue, /无效/);
         assert.throws(() => readLeads(workbook([['姓名', '邮箱'], ...Array.from({ length: 501 }, () => ['A', 'a@example.test'])])), /500 行/);
+    });
+    it('extracts cited company names from public titles and explicit full-name fields', () => {
+        const result = extractCandidates('示例人力', [
+            { name: '上海示例人力资源有限公司 - 企业信息', url: 'https://example.test/a' },
+            { name: '示例人力官方介绍', summary: '工商登记名称为上海示例人力资源有限公司。', url: 'https://example.test/b' },
+            { name: '示例人力：工商登记', snippet: '公司全称：上海新品牌咨询有限公司。', url: 'https://example.test/c' },
+            { name: '示例人力假冒有限公司', url: 'javascript:alert(1)' },
+            { name: '另一家有限公司 - 企业信息', url: 'https://example.test/d' }
+        ]);
+        assert.deepEqual(result.candidates.map(item => item.name), ['上海示例人力资源有限公司', '上海新品牌咨询有限公司']);
+        assert.equal(result.candidates[0].sources.length, 2);
+        assert.ok(result.references.every(item => item.url.startsWith('https://')));
     });
 });
 
@@ -231,5 +244,39 @@ const uri = process.env.CRM_TEST_MONGO;
         assert.deepEqual(correctedPreview.body.rows.map(row => row.status), ['already', 'already', 'new']);
         assert.equal((await post('confirm', corrected, correctedPreview.body.token)).body.imported, 1);
         assert.equal(await Lead.countDocuments(), before + 3);
+    });
+    it('limits company lookup to CRM editors and links visible matches by exact name', async function () {
+        const name = '上海示例人力有限公司';
+        const company = await Company.create({ name, nameKey: companyKey(name), ownerId: admin.id });
+        const savedFetch = global.fetch, savedKey = process.env.BOCHA_API_KEY;
+        process.env.BOCHA_API_KEY = 'server-only-mock-token';
+        let calls = 0;
+        global.fetch = async (url, options) => {
+            calls += 1;
+            assert.equal(url, 'https://api.bocha.cn/v1/web-search');
+            assert.equal(options.headers.Authorization, 'Bearer server-only-mock-token');
+            assert.match(JSON.parse(options.body).query, /示例人力/);
+            return new Response(JSON.stringify({ code: 200, data: { webPages: { value: [{ name, url: 'https://example.test/company' }] } } }));
+        };
+        try {
+            assert.equal((await call('post', '/companies/lookup-name', outsider).send({ name: '示例人力' })).status, 403);
+            const result = await call('post', '/companies/lookup-name').send({ name: '示例人力' });
+            assert.equal(result.status, 200, JSON.stringify(result.body));
+            assert.equal(result.body.candidates[0].companyId, company.id);
+            assert.ok(!JSON.stringify(result.body).includes(process.env.BOCHA_API_KEY));
+            const scoped = await call('post', '/companies/lookup-name', owner).send({ name: '示例人力' });
+            assert.equal(scoped.body.candidates[0].companyId, null);
+            assert.equal(calls, 1);
+            const created = await call('post', '/leads').send({
+                name: '名称查询测试', phone: '13800000048', companyName: '上海示例组织咨询有限公司',
+                companyAlias: '示例组织', source: 'manual', key: randomUUID()
+            });
+            assert.equal(created.status, 201);
+            assert.equal(created.body.row.companyAlias, '示例组织');
+            assert.equal((await Company.findById(created.body.row.companyId)).alias, '示例组织');
+        } finally {
+            global.fetch = savedFetch;
+            if (savedKey === undefined) delete process.env.BOCHA_API_KEY; else process.env.BOCHA_API_KEY = savedKey;
+        }
     });
 });

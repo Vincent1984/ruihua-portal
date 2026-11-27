@@ -175,3 +175,17 @@
 .crm-dash-expected .crm-dash-task { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 18px; }
 .crm-dash-expected .crm-dash-task li { border-bottom:1px solid var(--dash-line); }
 @media(max-width:600px) { .crm-dash-expected .crm-dash-task { grid-template-columns:minmax(0,1fr); } }
+
+.crm-company-query { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:end; }
+.crm-company-query button { min-height:38px; white-space:nowrap; }
+[data-company-results] { color:var(--ink2); font-size:13px; }
+[data-company-results]:not(:empty) { margin-top:6px; }
+.crm-company-results { border:1px solid var(--line); border-radius:10px; padding:8px 10px; }
+.crm-company-results ul { list-style:none; margin:4px 0 0; padding:0; max-height:270px; overflow:auto; }
+.crm-company-results p { margin:3px 0 0; }
+.crm-company-results li { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; border-top:1px solid var(--line); padding:8px 0; }
+.crm-company-results li button { white-space:nowrap; }
+.crm-company-results strong { overflow-wrap:anywhere; }
+.crm-company-sources { display:flex; flex-wrap:wrap; gap:3px 8px; font-size:12px; }
+.crm-company-sources a { color:var(--p600); overflow-wrap:anywhere; }
+@media(max-width:480px) { .crm-company-results li { flex-wrap:wrap; } }

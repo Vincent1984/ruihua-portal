@@ -25,7 +25,7 @@ const Contact = entity('CrmContact', {
     ownerId, archivedAt: archive, mergedInto: ref
 });
 const Lead = entity('CrmLead', {
-    name: { type: String, required: true }, phone: String, email: String, companyName: String,
+    name: { type: String, required: true }, phone: String, email: String, companyName: String, companyAlias: String,
     source: { type: String, required: true }, receivedAt: Date, reportGroup: String, summary: String, tags: [String], contactId: { type: ref, index: true },
     companyId: { type: ref, index: true }, ownerId, archivedAt: archive, nextAt: Date,
     stage: { type: String, default: 'new' }, nextStep: String, closeReason: String,

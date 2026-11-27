@@ -3,6 +3,8 @@ const { randomUUID } = require('crypto');
 const { Types } = require('mongoose');
 const ExcelJS = require('exceljs');
 const multer = require('multer');
+const { rateLimit } = require('express-rate-limit');
+const { lookupCompany } = require('../../utils/crmCompanyLookup');
 const bulkImport = require('../../utils/crmLeadImport');
 const logOp = require('../../middleware/operationLog');
 const Admin = require('../../models/admin');
@@ -73,7 +75,7 @@ function filterFor(req, kind) {
     if (keyword) {
         const regex = { $regex: escapeRegex(keyword), $options: 'i' };
         const fields = { contacts: ['name', 'phone', 'email', 'position', 'department'], companies: ['name', 'alias', 'industry', 'region'],
-            leads: ['name', 'phone', 'email', 'companyName', 'summary'], opportunities: ['name', 'direction', 'summary'] }[kind];
+            leads: ['name', 'phone', 'email', 'companyName', 'companyAlias', 'summary'], opportunities: ['name', 'direction', 'summary'] }[kind];
         filter.$or = fields.map(field => ({ [field]: regex }));
     }
     if (kind === 'leads') {
@@ -118,7 +120,7 @@ function tags(value) {
 }
 function leadValues(body) {
     return { name: text(body.name, 100), phone: phoneKey(body.phone), email: emailKey(body.email),
-        companyName: text(body.companyName, 160), summary: text(body.summary, 2000), tags: tags(body.tags),
+        companyName: text(body.companyName, 160), companyAlias: text(body.companyAlias, 160), summary: text(body.summary, 2000), tags: tags(body.tags),
         nextStep: text(body.nextStep, 500), nextAt: date(body.nextAt) };
 }
 async function entityValues(req, kind, body, previous) {
@@ -228,7 +230,25 @@ function init(authRequired, jwtSecret) {
         const admins = can(req, 'crm:assign') || all(req) ? await Admin.find({ isActive: true }).select('name username roles').populate('roles', 'permissions').lean() : [];
         res.json({ owners: admins.filter(admin => ['all', 'crm:view'].some(perm => gatherPermissions(admin).has(perm)))
             .map(({ _id, name, username }) => ({ _id, name: name || username })),
+            companyLookup: can(req, 'crm:edit') && !!process.env.BOCHA_API_KEY,
             sync: all(req) ? await Sync.findById('website').select('completedAt errorAt').lean() : null });
+    }));
+    const companyLookupLimit = rateLimit({
+        windowMs: 60000, limit: 12, keyGenerator: req => req.user.id,
+        standardHeaders: 'draft-8', legacyHeaders: false,
+        message: { error: '查询过于频繁，请稍候再试' }
+    });
+    router.post('/companies/lookup-name', requireCrm('crm:edit'), companyLookupLimit, wrap(async (req, res) => {
+        const result = await lookupCompany(req.body.name);
+        const names = result.candidates.map(candidate => companyKey(candidate.name));
+        const existing = names.length ? await Company.find({ ...active(req), nameKey: { $in: names } }).select('name nameKey').lean() : [];
+        const byName = new Map(existing.map(company => [company.nameKey, company]));
+        res.json({
+            candidates: result.candidates.map(candidate => ({
+                ...candidate, companyId: byName.get(companyKey(candidate.name))?._id || null
+            })),
+            references: result.references
+        });
     }));
     router.post('/matches', requireCrm('crm:edit'), wrap(async (req, res) => {
         const phone = phoneKey(req.body.phone), email = emailKey(req.body.email), exclude = id(req.body.id);
@@ -302,7 +322,7 @@ function init(authRequired, jwtSecret) {
         if (rows.length > 10000) throw bad('请缩小筛选范围后导出，单次最多 10000 条');
         const book = new ExcelJS.Workbook(), sheet = book.addWorksheet('CRM');
         const columns = {
-            leads: { name: '姓名', companyName: '公司', phone: '电话', email: '邮箱', source: '来源', qualification: '线索等级', stage: '跟进状态', nextAt: '下次跟进' },
+            leads: { name: '姓名', companyName: '公司', companyAlias: '公司简称', phone: '电话', email: '邮箱', source: '来源', qualification: '线索等级', stage: '跟进状态', nextAt: '下次跟进' },
             contacts: { name: '姓名', phone: '电话', email: '邮箱', position: '职位', department: '部门' },
             companies: { name: '公司', alias: '简称', industry: '行业', region: '地区', website: '网站' },
             opportunities: { name: '商机', direction: '服务方向', stage: '阶段', expectedAmount: '预计金额', expectedAt: '预计成交', actualAmount: '实际金额' }

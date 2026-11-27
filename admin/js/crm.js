@@ -19,7 +19,7 @@
         assign: '分配', stage: '阶段变更', convert: '线索转化', create: '创建', merge: '合并', archive: '归档' };
     const mailStatus = { pending: '待发送', sending: '发送中', accepted: '邮件服务已接收', failed: '发送失败', uncertain: '结果待核实', cancelled: '已取消' };
     const fields = {
-        leads: [['name', '姓名或称呼', 'text', true], ['companyName', '公司或机构'], ['phone', '电话', 'tel'], ['email', '邮箱', 'email'],
+        leads: [['name', '姓名或称呼', 'text', true], ['companyName', '公司或机构'], ['companyAlias', '公司简称'], ['phone', '电话', 'tel'], ['email', '邮箱', 'email'],
             ['summary', '需求摘要', 'textarea'], ['tags', '标签（逗号分隔）'], ['nextStep', '下一步'], ['nextAt', '下次跟进', 'datetime-local']],
         companies: [['name', '公司名称', 'text', true], ['alias', '简称'], ['industry', '行业'], ['region', '地区'], ['website', '官网', 'url'], ['notes', '备注', 'textarea']],
         contacts: [['name', '姓名或称呼', 'text', true], ['phone', '电话', 'tel'], ['email', '邮箱', 'email'], ['position', '职位'],
@@ -262,6 +262,7 @@
             const data = await api('/meta');
             state.owners = data.owners;
             state.sync = data.sync;
+            state.companyLookup = data.companyLookup === true;
         } catch (error) { body.innerHTML = empty(error.message); }
         return load();
     };
@@ -305,10 +306,72 @@
         dialog.showModal();
         $('crmFields').querySelectorAll('[data-picker]').forEach(node => fillPicker(node).catch(error => { $('crmFormError').textContent = error.message; }));
     }
+    function companyLookupField(config, value, kind) {
+        return `<div class="crm-company-lookup crm-wide" data-company-lookup="${kind}">
+          <div class="crm-company-query">${field(config, value)}
+            <button type="button" data-company-search>查询全称</button></div>
+          <div data-company-results aria-live="polite"></div>
+        </div>`;
+    }
+    function companySourceLinks(sources) {
+        return sources.map(item => `<a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">${esc(item.title)}</a>`).join('');
+    }
+    async function lookupCompanyField(button) {
+        const box = button.closest('[data-company-lookup]');
+        const input = box.querySelector('input');
+        const results = box.querySelector('[data-company-results]');
+        const query = input.value.trim();
+        if (!query) { results.textContent = '请先填写公司简称或名称。'; input.focus(); return; }
+        button.disabled = true;
+        results.textContent = '正在查询公开网页…';
+        try {
+            const data = await api('/companies/lookup-name', { name: query }, 'POST');
+            if (!box.isConnected || !dialog.open || input.value.trim() !== query) return;
+            box.lookup = { query, candidates: data.candidates };
+            results.innerHTML = data.candidates.length ? `<div class="crm-company-results">
+                <p class="sub">以下为公开网页候选，请核对来源后选择企业主体。</p>
+                <ul>${data.candidates.map((item, index) => `<li><div><strong>${esc(item.name)}</strong>
+                  ${item.companyId ? '<span class="sub">CRM 已有公司</span>' : ''}
+                  <div class="crm-company-sources">${companySourceLinks(item.sources)}</div>
+                  ${item.sources[0]?.snippet ? '<p class="sub">' + esc(item.sources[0].snippet) + '</p>' : ''}
+                </div><button type="button" data-company-choice="${index}">使用此名称</button></li>`).join('')}</ul>
+              </div>` : `<div class="crm-company-results"><p class="sub">未提取到明确的全称候选。可加上地区后再查，或核对网页并手动填写。</p>
+                <div class="crm-company-sources">${companySourceLinks(data.references)}</div></div>`;
+        } catch (err) {
+            if (box.isConnected && dialog.open && input.value.trim() === query) results.textContent = err.message;
+        } finally {
+            button.disabled = false;
+        }
+    }
+    function applyCompanyCandidate(button) {
+        if ($('crmSave').disabled) return;
+        const box = button.closest('[data-company-lookup]');
+        const input = box.querySelector('input');
+        const picked = box.lookup?.candidates[Number(button.dataset.companyChoice)];
+        if (!picked || input.value.trim() !== box.lookup.query) return;
+        const lead = box.dataset.companyLookup === 'leads';
+        const alias = form.elements.namedItem(lead ? 'companyAlias' : 'alias');
+        if (alias && !alias.value && picked.name !== box.lookup.query) alias.value = box.lookup.query;
+        input.value = picked.name;
+        const company = lead && form.elements.namedItem('companyId');
+        if (company && picked.companyId) {
+            if (![...company.options].some(option => option.value === picked.companyId)) company.add(new Option(picked.name, picked.companyId));
+            company.value = picked.companyId;
+        }
+        const results = box.querySelector('[data-company-results]');
+        results.innerHTML = `<div class="crm-company-results"><p>已选全称：${esc(picked.name)}${company && picked.companyId ? '（已选中 CRM 公司）' : ''}</p>
+          <div class="crm-company-sources">${companySourceLinks(picked.sources)}${!lead && picked.companyId ?
+            '<a target="_blank" rel="noopener" href="/admin/crm?tab=companies&record=' + encodeURIComponent(picked.companyId) + '">查看已有公司档案</a>' : ''}</div></div>`;
+        box.lookup = null;
+        input.focus();
+    }
+
     function entityForm(kind, row = {}, convert = false) {
         const editing = !!row._id && !convert;
         const values = convert ? { contactId: row.contactId, companyId: row.companyId, summary: row.summary, nextStep: row.nextStep } : row;
-        const controls = fields[kind].map(config => field(config, values[config[0]])).join('');
+        const companyField = { companies: 'name', leads: 'companyName' }[kind];
+        const controls = fields[kind].map(config => state.companyLookup && config[0] === companyField
+            ? companyLookupField(config, values[config[0]], kind) : field(config, values[config[0]])).join('');
         const manual = kind === 'leads' && !editing ? '<label>来源<select name="source" required>' +
             options({ manual: sources.manual, event: sources.event, referral: sources.referral, inbound: sources.inbound }, 'manual') + '</select></label>' : '';
         const associates = kind === 'companies' ? '' : picker('companies', 'companyId', values.companyId) +
@@ -455,6 +518,10 @@
             async payload => { await api('/contacts/' + state.id + '/marketing', { ...payload, confirmed: payload.confirmed === 'on' }, 'POST'); dialog.close(); toast('已加入 CRM 联系人名单，请在邮件营销中确认发送'); }, '加入名单')
     };
     root.addEventListener('click', event => {
+        const companySearch = event.target.closest('[data-company-search]');
+        if (companySearch) return lookupCompanyField(companySearch);
+        const companyChoice = event.target.closest('[data-company-choice]');
+        if (companyChoice) return applyCompanyCandidate(companyChoice);
         const period = event.target.closest('[data-crm-period]');
         if (period) { state.days = Number(period.dataset.crmPeriod); return load(); }
         const scope = event.target.closest('[data-crm-scope]');
@@ -501,6 +568,11 @@
     });
     dialog.addEventListener('cancel', event => { if ($('crmSave').disabled) event.preventDefault(); });
     form.addEventListener('input', event => {
+        const lookup = event.target.closest('[data-company-lookup]');
+        if (lookup && event.target.matches('input')) {
+            lookup.lookup = null;
+            lookup.querySelector('[data-company-results]').textContent = '';
+        }
         if (!event.target.matches('[data-crm-picker-search]')) return;
         const picker = event.target.closest('[data-picker]');
         clearTimeout(picker.searchTimer);
