@@ -530,7 +530,8 @@ const ADMIN_CONSOLE_ROUTES = [
     '/admin/nqoc-cases',
     '/admin/nqoc-videos',
     '/admin/nqoc-report-leads',
-    '/admin/email-marketing'
+    '/admin/email-marketing',
+    '/admin/crm'
 ];
 const ADMIN_CONSOLE_PERMS = [
     'dashboard:view',
@@ -546,7 +547,8 @@ const ADMIN_CONSOLE_PERMS = [
     'nqoc-cases:list',
     'nqoc-videos:list',
     'nqoc-report-leads:list',
-    'nqoc-report-leads:batch-send'
+    'nqoc-report-leads:batch-send',
+    'crm:view'
 ];
 const ADMIN_CONSOLE_ROUTE_PERMS = {
     '/admin/leads': ['lead:list', 'appointment:list'],
@@ -560,7 +562,8 @@ const ADMIN_CONSOLE_ROUTE_PERMS = {
     '/admin/nqoc-cases': 'nqoc-cases:list',
     '/admin/nqoc-videos': 'nqoc-videos:list',
     '/admin/nqoc-report-leads': 'nqoc-report-leads:list',
-    '/admin/email-marketing': 'nqoc-report-leads:batch-send'
+    '/admin/email-marketing': 'nqoc-report-leads:batch-send',
+    '/admin/crm': 'crm:view'
 };
 const ADMIN_STATIC_PAGE_PERMS = {
     '/admin/console.html': ADMIN_CONSOLE_PERMS,
@@ -1778,6 +1781,7 @@ mongoose.connect(mongoUrl)
             console.log('[ReportMail] Automatic report emails enabled');
         }
         startServer();
+        if (process.env.CRM_SYNC_ENABLED !== 'false') require('./utils/crmIntake').startCrmSync();
     })
     .catch(err => {
         console.error('MongoDB connection error:', err.message);

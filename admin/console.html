@@ -6,6 +6,7 @@
   <title>瑞华智策 · 官网管理后台</title>
   <link rel="stylesheet" href="/admin/admin-2026.css?v=20261127workbench1">
   <link rel="stylesheet" href="/admin/lib/wangeditor/css/style.css">
+  <link rel="stylesheet" href="/admin/crm.css?v=1">
 </head>
 <body>
 <div class="app-shell">
@@ -20,8 +21,9 @@
         <button data-target="articles" data-permission="article:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3h7l3.5 3.5V17H5z"/><path d="M11.5 3v4H16M7.5 11h5M7.5 13.8h3"/></svg><span>文章管理</span></button><button data-target="cases" data-permission="case:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.8" y="6" width="14.4" height="10.5" rx="2"/><path d="M7.2 6V4.6A1.6 1.6 0 0 1 8.8 3h2.4a1.6 1.6 0 0 1 1.6 1.6V6M2.8 10.5h14.4"/></svg><span>案例管理</span></button>
         <button data-target="featured" data-permission="featured-case:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="m10 2.8 2.2 4.5 5 .7-3.6 3.5.85 4.95L10 14.1l-4.45 2.35.85-4.95L2.8 8l5-.7z"/></svg><span>首页精选案例</span></button><button data-target="faq" data-permission="faq:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.2"/><path d="M8.1 8a2 2 0 1 1 2.6 1.9c-.5.2-.7.6-.7 1.1v.4M10 14.2v.05"/></svg><span>FAQ 管理</span></button><button data-target="experts" data-permission="expert:list"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3.2"/><path d="M4 16.6a6 6 0 0 1 12 0"/></svg><span>讲师 / 专家团队</span></button>
       </div>
-      <div class="nav-group" data-permission="nqoc-report-leads:batch-send"><div class="nav-title">营销功能</div>
+      <div class="nav-group" id="marketingNav"><div class="nav-title">营销功能</div>
         <button type="button" data-target="email-marketing" data-permission="nqoc-report-leads:batch-send"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="4.5" width="15" height="11" rx="2"/><path d="m3 6 7 5 7-5"/></svg><span>邮件营销</span></button>
+        <button type="button" data-target="crm" data-permission="crm:view"><svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2"/><circle cx="7.5" cy="9" r="1.6"/><path d="M5.2 13c.6-1.6 3.9-1.6 4.6 0M12 8h2.6M12 11h2.6"/></svg><span>客户管理（CRM）</span></button>
       </div>
       <div class="nav-group nqoc-group"><button type="button" class="nav-title nqoc-toggle" aria-expanded="false" aria-controls="nqocNavItems"><span>新质组织</span><svg class="nav-arrow" viewBox="0 0 12 12" aria-hidden="true"><path d="m4 2 4 4-4 4"/></svg></button><div class="nqoc-items" id="nqocNavItems" hidden>
         <div class="nav-sub-title">栏目管理</div>
@@ -109,6 +111,22 @@
         <div class="notice"><b>视频文件与封面图上传到自有对象存储</b>；最新一期自动成为列表页头条大图。发布前必须有标题、封面图、视频文件和至少 1 位对谈嘉宾。</div>
         <div class="filters"><input class="search" type="search" data-filter="q" placeholder="搜索期数 / 标题 / 嘉宾"><div class="segments" data-filter="status"><button type="button" class="on" data-action="filter" data-value="">全部</button><button type="button" data-action="filter" data-value="published">已发布</button><button type="button" data-action="filter" data-value="draft">草稿</button><button type="button" data-action="filter" data-value="archived">已下架</button></div><span class="spacer"></span><button type="button" class="primary" data-action="new" data-type="video" data-permission="nqoc-videos:create">＋ 新建一期</button></div>
         <div class="table-wrap"><table><thead><tr><th style="width:104px">封面</th><th style="width:76px">期数</th><th>标题</th><th style="width:210px">对谈嘉宾</th><th style="width:116px">视频</th><th style="width:104px">发布日期</th><th style="width:88px">状态</th><th style="width:66px">发布</th><th style="width:176px">操作</th></tr></thead><tbody id="nqVidRows"></tbody></table></div>
+      </section>
+      <section class="view crm-view" data-view="crm" data-module="crm">
+        <nav class="crm-nav" aria-label="CRM 页面">
+          <button type="button" data-crm-tab="dashboard" aria-pressed="true">工作台</button>
+          <button type="button" data-crm-tab="leads" aria-pressed="false">线索</button>
+          <button type="button" data-crm-tab="companies" aria-pressed="false">公司</button>
+          <button type="button" data-crm-tab="contacts" aria-pressed="false">联系人</button>
+          <button type="button" data-crm-tab="opportunities" aria-pressed="false">商机</button>
+        </nav>
+        <div id="crmBody" aria-live="polite"></div>
+        <dialog id="crmDialog" aria-labelledby="crmDialogTitle">
+          <header><h2 id="crmDialogTitle"></h2><button type="button" data-crm-close aria-label="关闭">×</button></header>
+          <form id="crmForm"><div id="crmFields" class="crm-form-grid"></div><p id="crmFormError" class="crm-error" role="alert"></p>
+            <footer><button type="button" data-crm-close>取消</button><button type="submit" class="primary" id="crmSave">保存</button></footer>
+          </form>
+        </dialog>
       </section>
       <section class="view" data-view="email-marketing" data-module="email-marketing">
         <div id="reportCampaign" class="report-campaign">
@@ -267,7 +285,8 @@
 <div class="toast" id="toast" role="status"></div>
 <script src="/admin/lib/wangeditor/index.js"></script>
 <script src="/admin/js/article-management.js?v=20261111a"></script>
-<script src="/admin/js/admin-2026.js?v=20261127workbench1"></script>
+<script src="/admin/js/admin-2026.js?v=20261127crm1"></script>
 <script src="/admin/js/nqoc.js?v=20261127workbench1"></script>
+<script src="/admin/js/crm.js?v=1"></script>
 </body>
 </html>

@@ -87,6 +87,17 @@ const PERMISSION_GROUPS = [
         ]
     },
     {
+        group: '客户管理（CRM）',
+        permissions: [
+            { code: 'crm:view', name: '查看本人负责的 CRM 记录' },
+            { code: 'crm:all', name: '查看全部 CRM 记录' },
+            { code: 'crm:edit', name: '录入及编辑 CRM 记录' },
+            { code: 'crm:assign', name: '分配 CRM 负责人' },
+            { code: 'crm:merge', name: '合并公司及联系人', dangerous: true },
+            { code: 'crm:export', name: '导出 CRM 记录', dangerous: true }
+        ]
+    },
+    {
         group: '视频管理',
         permissions: [
             { code: 'video:list', name: '查看视频' },

@@ -63,6 +63,8 @@ function initApiRoutes(dependencies) {
   const nqocRoutes = require('./nqoc')(authRequired, requirePerm, requireAnyPerm);
   router.use('/', nqocRoutes);  // 挂载到根路径，内部已有 /admin/nqoc/... 与 /nqoc/reports/apply
 
+  router.use('/admin/crm', require('./crm')(authRequired));
+
   return router;
 }
 

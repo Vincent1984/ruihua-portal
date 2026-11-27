@@ -1,0 +1,399 @@
+const { Router } = require('express');
+const { randomUUID } = require('crypto');
+const { Types } = require('mongoose');
+const ExcelJS = require('exceljs');
+const Admin = require('../../models/admin');
+const MailContact = require('../../models/ReportMailContact');
+const Report = require('../../models/NqocReportLead');
+const Whitepaper = require('../../models/NqocWhitepaperRequest');
+const { gatherPermissions } = require('../../middleware/adminPageAuth');
+const { Company, Contact, Lead, Opportunity, Event, Activity, Sync } = require('../../models/crm');
+const { text, phoneKey, emailKey, companyKey, SOURCES, ingest } = require('../../utils/crmIntake');
+
+const MODELS = { companies: Company, contacts: Contact, leads: Lead, opportunities: Opportunity };
+const LEAD_STAGES = ['new', 'working', 'converted', 'closed'];
+const OPPORTUNITY_STAGES = ['demand', 'proposal', 'quote', 'won', 'lost'];
+const TERMINAL = ['converted', 'closed', 'won', 'lost'];
+const CHANNELS = ['phone', 'wechat', 'email', 'meeting', 'other'];
+const MANUAL_SOURCES = ['manual', 'event', 'referral', 'inbound'];
+const OBJECT_ID = /^[0-9a-f]{24}$/i;
+const UUID = /^[0-9a-f-]{36}$/i;
+const bad = (message, status = 400) => Object.assign(new Error(message), { status });
+const escapeRegex = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const id = value => typeof value === 'string' && OBJECT_ID.test(value) ? value : null;
+const same = (a, b) => String(a || '') === String(b || '');
+const can = (req, perm) => req.crm.has('all') || req.crm.has(perm);
+const all = req => can(req, 'crm:all');
+const scope = req => all(req) ? {} : { ownerId: req.user.id };
+const active = req => ({ archivedAt: null, ...scope(req) });
+const canSee = (req, row) => row && (all(req) || same(row.ownerId, req.user.id));
+
+function date(value) {
+    if (!value) return null;
+    const parsed = new Date(value);
+    if (typeof value !== 'string' || !Number.isFinite(parsed.getTime())) throw bad('日期格式不正确');
+    return parsed;
+}
+function amount(value) {
+    if (value === '' || value == null) return null;
+    if (!['number', 'string'].includes(typeof value) || !Number.isFinite(Number(value)) || Number(value) < 0 || Number(value) > 1e12) throw bad('金额无效');
+    return Number(value);
+}
+function requireCrm(perm) {
+    return (req, _res, next) => next(can(req, perm) ? undefined : bad('当前账号没有该操作权限', 403));
+}
+async function record(req, kind, recordId) {
+    const model = Object.hasOwn(MODELS, kind) && MODELS[kind];
+    const row = model && id(recordId) && await model.findOne({ _id: recordId, ...active(req) });
+    if (!row) throw bad('记录不存在或无权访问', 404);
+    return row;
+}
+async function links(req, body, previous = {}) {
+    const contact = body.contactId ? (same(body.contactId, previous.contactId)
+        ? await Contact.findById(body.contactId) : await record(req, 'contacts', body.contactId)) : null;
+    const company = body.companyId ? (same(body.companyId, previous.companyId)
+        ? { _id: previous.companyId } : await record(req, 'companies', body.companyId)) : null;
+    if (company && contact?.companyId && !same(company._id, contact.companyId)) throw bad('联系人与所选公司不一致');
+    return { contactId: contact?._id || null, companyId: company?._id || contact?.companyId || null };
+}
+function note(req, kind, row, action, summary) {
+    return Activity.create({ entity: kind, entityId: row._id, kind: action, summary, actorId: req.user.id, actor: req.user.username });
+}
+function filterFor(req, kind) {
+    const filter = active(req);
+    const keyword = text(req.query.q, 100);
+    if (keyword) {
+        const regex = { $regex: escapeRegex(keyword), $options: 'i' };
+        const fields = { contacts: ['name', 'phone', 'email', 'position', 'department'], companies: ['name', 'alias', 'industry', 'region'],
+            leads: ['name', 'phone', 'email', 'companyName', 'summary'], opportunities: ['name', 'direction', 'summary'] }[kind];
+        filter.$or = fields.map(field => ({ [field]: regex }));
+    }
+    if (kind === 'leads' && LEAD_STAGES.includes(req.query.stage)) filter.stage = req.query.stage;
+    if (kind === 'opportunities' && OPPORTUNITY_STAGES.includes(req.query.stage)) filter.stage = req.query.stage;
+    if (kind === 'leads' && [...SOURCES.map(source => source.key), ...MANUAL_SOURCES].includes(req.query.source)) filter.source = req.query.source;
+    if (all(req) && req.query.owner === 'unassigned') filter.ownerId = null;
+    if (all(req) && id(req.query.owner)) filter.ownerId = req.query.owner;
+    if (kind !== 'companies' && text(req.query.tag, 32)) filter.tags = text(req.query.tag, 32);
+    if (['leads', 'opportunities'].includes(kind)) {
+        if (id(req.query.company)) filter.companyId = req.query.company;
+        if (id(req.query.contact)) filter.contactId = req.query.contact;
+        if (req.query.due === 'overdue') { filter.nextAt = { $ne: null, $lt: new Date() }; filter.stage ||= { $nin: TERMINAL }; }
+        if (req.query.due === 'scheduled') filter.nextAt = { $ne: null };
+        if (req.query.due === 'none') filter.nextAt = null;
+    }
+    return filter;
+}
+function tags(value) {
+    const list = typeof value === 'string' ? value.split(/[,，]/) : Array.isArray(value) ? value : [];
+    return [...new Set(list.map(item => text(item, 32)).filter(Boolean))].slice(0, 15);
+}
+function leadValues(body) {
+    return { name: text(body.name, 100), phone: phoneKey(body.phone), email: emailKey(body.email),
+        companyName: text(body.companyName, 160), summary: text(body.summary, 2000), tags: tags(body.tags),
+        nextStep: text(body.nextStep, 500), nextAt: date(body.nextAt) };
+}
+async function entityValues(req, kind, body, previous) {
+    const name = text(body.name, 160);
+    if (!name) throw bad('请填写名称或姓名');
+    if (kind === 'companies') {
+        const website = text(body.website, 300);
+        if (website && !/^https?:\/\/[^\s]+$/i.test(website)) throw bad('网站请使用 http:// 或 https:// 地址');
+        return { name, nameKey: companyKey(name), alias: text(body.alias), industry: text(body.industry),
+            region: text(body.region), website, notes: text(body.notes, 2000) };
+    }
+    const relations = await links(req, body, previous);
+    if (kind === 'contacts') {
+        const phone = phoneKey(body.phone), email = emailKey(body.email);
+        if ((!phone && !email) || (body.phone && !phone) || (body.email && !email)) throw bad('请填写有效手机号或邮箱，至少一项');
+        return { name, phone, email, phoneKey: phone || undefined, emailKey: email || undefined, companyId: relations.companyId,
+            position: text(body.position), department: text(body.department), notes: text(body.notes, 2000), tags: tags(body.tags) };
+    }
+    if (!relations.companyId && !relations.contactId) throw bad('请关联一个已有公司或联系人');
+    return { name, ...relations, direction: text(body.direction), summary: text(body.summary, 2000), tags: tags(body.tags),
+        expectedAmount: amount(body.expectedAmount), expectedAt: date(body.expectedAt),
+        nextStep: text(body.nextStep, 500), nextAt: date(body.nextAt) };
+}
+function stages(row, kind, body) {
+    const options = kind === 'leads' ? LEAD_STAGES : OPPORTUNITY_STAGES;
+    const stage = text(body.stage) || row.stage;
+    if (!options.includes(stage) || (kind === 'leads' && stage === 'converted' && row.stage !== 'converted')) throw bad('请使用线索转化操作');
+    if (row.stage === 'converted' && stage !== 'converted') throw bad('已转化的线索不能退回阶段');
+    const updates = { stage };
+    if (stage === 'closed') {
+        updates.closeReason = text(body.closeReason, 500);
+        if (!updates.closeReason) throw bad('请填写关闭原因');
+    }
+    if (stage === 'lost') {
+        updates.lossReason = text(body.lossReason, 500);
+        if (!updates.lossReason) throw bad('请填写输单原因');
+    }
+    if (stage === 'won') {
+        updates.actualAmount = amount(body.actualAmount);
+        updates.wonAt = date(body.wonAt);
+        if (updates.actualAmount == null || !updates.wonAt) throw bad('请填写实际成交金额和日期');
+    }
+    if (TERMINAL.includes(stage)) updates.nextAt = null;
+    return updates;
+}
+
+async function details(req, kind, row) {
+    const related = { ...active(req) };
+    const activity = Activity.find({ entity: kind, entityId: row._id }).sort({ createdAt: -1 }).limit(50).lean();
+    const associations = kind === 'companies' ? { companyId: row._id } : kind === 'contacts' ? { contactId: row._id } : null;
+    const eventsQuery = kind === 'contacts' ? { contactId: row._id } : kind === 'leads' ? { leadId: row._id } : null;
+    const [activities, leads, contacts, opportunities, events] = await Promise.all([
+        activity, associations ? Lead.find({ ...related, ...associations }).select('name source stage').limit(30).lean() : [],
+        kind === 'companies' ? Contact.find({ ...related, companyId: row._id }).select('name position').limit(30).lean() : [],
+        associations ? Opportunity.find({ ...related, ...associations }).select('name stage').limit(30).lean() : [],
+        eventsQuery ? Event.find(eventsQuery).sort({ at: -1 }).limit(50).lean() : []
+    ]);
+    const reportEvents = events.filter(event => ['report', 'legacy-whitepaper'].includes(event.source) && id(event.sourceId));
+    const reportState = await Promise.all([['report', Report], ['legacy-whitepaper', Whitepaper]].map(async ([source, Model]) => ({
+        source, rows: await Model.find({ _id: { $in: reportEvents.filter(event => event.source === source).map(event => event.sourceId) }, deletedAt: null })
+            .select('mail.status mail.acceptedAt reportOpenCount lastReportOpenAt').lean()
+    })));
+    const map = new Map(reportState.flatMap(({ source, rows }) => rows.map(item => [source + ':' + item._id, item])));
+    for (const event of events) {
+        const report = map.get(event.source + ':' + event.sourceId);
+        if (report) {
+            event.report = { status: report.mail?.status, acceptedAt: report.mail?.acceptedAt,
+                opens: report.reportOpenCount || 0, lastOpenedAt: report.lastReportOpenAt };
+            if (can(req, 'nqoc-report-leads:list')) event.url = '/admin/nqoc-report-leads/' + (event.source === 'legacy-whitepaper' ? 'whitepaper-' : '') + event.sourceId;
+        }
+        if (event.source === 'appointment' && (can(req, 'lead:list') || can(req, 'appointment:list'))) event.url = '/admin/leads?q=' + encodeURIComponent(row.phone || row.email || row.name);
+        if (event.source === 'survey' && can(req, 'nqoc:list')) event.url = '/admin/nqoc-survey.html';
+    }
+    return { row, activities, leads, contacts, opportunities, events };
+}
+
+function init(authRequired) {
+    const router = Router();
+    const wrap = handler => async (req, res, next) => {
+        try { await handler(req, res); } catch (error) { next(error); }
+    };
+    router.use(authRequired, (req, res, next) => {
+        void (async () => {
+        res.set('Cache-Control', 'no-store');
+        const admin = id(req.user?.id) && await Admin.findById(req.user.id).populate('roles').lean();
+        req.crm = gatherPermissions(admin);
+        if (!admin?.isActive || !can(req, 'crm:view')) throw bad('当前账号没有 CRM 查看权限', 403);
+        if (!['GET', 'HEAD'].includes(req.method) && req.get('sec-fetch-site') === 'cross-site') throw bad('请求来源校验失败', 403);
+        next();
+        })().catch(next);
+    });
+    router.get('/meta', wrap(async (req, res) => {
+        const admins = can(req, 'crm:assign') || all(req) ? await Admin.find({ isActive: true }).select('name username roles').populate('roles', 'permissions').lean() : [];
+        res.json({ owners: admins.filter(admin => ['all', 'crm:view'].some(perm => gatherPermissions(admin).has(perm)))
+            .map(({ _id, name, username }) => ({ _id, name: name || username })),
+            sync: all(req) ? await Sync.findById('website').select('completedAt errorAt').lean() : null });
+    }));
+    router.post('/matches', requireCrm('crm:edit'), wrap(async (req, res) => {
+        const phone = phoneKey(req.body.phone), email = emailKey(req.body.email), exclude = id(req.body.id);
+        const selectors = [...(phone ? [{ phoneKey: phone }] : []), ...(email ? [{ emailKey: email }] : [])];
+        const contacts = selectors.length ? await Contact.find({ ...active(req), _id: { $ne: exclude }, $or: selectors }).select('name').limit(2).lean() : [];
+        const name = companyKey(req.body.companyName);
+        const company = name ? await Company.findOne({ ...active(req), _id: { $ne: exclude }, nameKey: name }).select('name').lean() : null;
+        res.json({ contacts, company });
+    }));
+    router.get('/dashboard', wrap(async (req, res) => {
+        const base = active(req), now = new Date(), day = 86400000, offset = 8 * 3600000;
+        const start = new Date(Math.floor((Date.now() + offset) / day) * day - offset);
+        const end = new Date(start.getTime() + day);
+        const follow = { ...base, stage: { $nin: TERMINAL }, nextAt: { $ne: null, $lt: end } };
+        const leadBase = { ...base, stage: { $in: ['new', 'working'] } };
+        const [leads, opportunities, expected, received, pending, overdueLeads, overdueOpportunities, unassigned, grouped, sources] = await Promise.all([
+            Lead.find(follow).select('name stage nextAt ownerId nextStep').sort('nextAt').limit(30).lean(),
+            Opportunity.find(follow).select('name stage nextAt ownerId nextStep').sort('nextAt').limit(30).lean(),
+            Opportunity.find({ ...base, stage: follow.stage, expectedAt: { $gte: now, $lte: new Date(Date.now() + 30 * day) } })
+                .select('name expectedAt').sort('expectedAt').limit(30).lean(),
+            Lead.countDocuments({ ...base, receivedAt: { $gte: start, $lt: end } }),
+            Lead.countDocuments({ ...leadBase, stage: 'new' }),
+            Lead.countDocuments({ ...follow, nextAt: { $ne: null, $lt: now } }),
+            Opportunity.countDocuments({ ...follow, nextAt: { $ne: null, $lt: now } }),
+            all(req) ? Lead.countDocuments({ ...leadBase, ownerId: null }) : null,
+            Opportunity.aggregate([{ $match: { ...base, ...(all(req) ? {} : { ownerId: new Types.ObjectId(req.user.id) }) } },
+                { $group: { _id: '$stage', count: { $sum: 1 }, expected: { $sum: '$expectedAmount' }, actual: { $sum: '$actualAmount' } } }]),
+            Lead.aggregate([{ $match: { ...base, ...(all(req) ? {} : { ownerId: new Types.ObjectId(req.user.id) }) } },
+                { $group: { _id: '$source', count: { $sum: 1 }, converted: { $sum: { $cond: [{ $eq: ['$stage', 'converted'] }, 1, 0] } } } }])
+        ]);
+        res.json({ leads, opportunities, expected, received, pending, overdue: overdueLeads + overdueOpportunities, unassigned, grouped, sources, end });
+    }));
+    router.get('/:kind/export', requireCrm('crm:export'), wrap(async (req, res) => {
+        const { kind } = req.params;
+        if (!Object.hasOwn(MODELS, kind)) throw bad('类型不支持', 404);
+        const filter = filterFor(req, kind);
+        const rows = await MODELS[kind].find(filter).sort({ updatedAt: -1 }).limit(10001).lean();
+        if (rows.length > 10000) throw bad('请缩小筛选范围后导出，单次最多 10000 条');
+        const book = new ExcelJS.Workbook(), sheet = book.addWorksheet('CRM');
+        const columns = {
+            leads: { name: '姓名', companyName: '公司', phone: '电话', email: '邮箱', source: '来源', stage: '阶段', nextAt: '下次跟进' },
+            contacts: { name: '姓名', phone: '电话', email: '邮箱', position: '职位', department: '部门' },
+            companies: { name: '公司', alias: '简称', industry: '行业', region: '地区', website: '网站' },
+            opportunities: { name: '商机', direction: '服务方向', stage: '阶段', expectedAmount: '预计金额', expectedAt: '预计成交', actualAmount: '实际金额' }
+        }[kind];
+        sheet.columns = Object.entries(columns).map(([key, header]) => ({ key, header, width: 24 }));
+        rows.forEach(row => sheet.addRow(Object.fromEntries(Object.keys(columns).map(key => [key, row[key] ?? '']))));
+        await Activity.create({ entity: kind, kind: 'export', summary: '导出 ' + rows.length + ' 条', actorId: req.user.id, actor: req.user.username });
+        res.attachment('crm-' + kind + '.xlsx').send(Buffer.from(await book.xlsx.writeBuffer()));
+    }));
+    router.get('/:kind', wrap(async (req, res) => {
+        const { kind } = req.params;
+        if (!Object.hasOwn(MODELS, kind)) throw bad('类型不支持', 404);
+        const page = Math.min(1000, Math.max(1, Number.parseInt(req.query.page, 10) || 1));
+        const query = filterFor(req, kind);
+        const [rows, total] = await Promise.all([
+            MODELS[kind].find(query).sort({ updatedAt: -1, _id: -1 }).skip((page - 1) * 30).limit(30).lean(),
+            MODELS[kind].countDocuments(query)
+        ]);
+        const companyIds = rows.map(row => row.companyId).filter(Boolean);
+        const companies = await Company.find({ ...active(req), _id: { $in: companyIds } }).select('name').lean();
+        const names = new Map(companies.map(company => [String(company._id), company.name]));
+        rows.forEach(row => { row.company = names.get(String(row.companyId)) || row.companyName; });
+        res.json({ rows, total, page });
+    }));
+    router.get('/:kind/:id', wrap(async (req, res) => {
+        res.json(await details(req, req.params.kind, await record(req, req.params.kind, req.params.id)));
+    }));
+    router.post('/leads', requireCrm('crm:edit'), wrap(async (req, res) => {
+        const body = req.body, data = leadValues(body);
+        if (!data.name || (!data.phone && !data.email) || (body.phone && !data.phone) || (body.email && !data.email) || !MANUAL_SOURCES.includes(body.source)) {
+            throw bad('请填写姓名、来源和有效手机号或邮箱');
+        }
+        if (typeof body.key !== 'string' || !UUID.test(body.key)) throw bad('录入编号无效');
+        const { companyId, contactId } = await links(req, body);
+        const contact = contactId ? await record(req, 'contacts', contactId) : null;
+        if (contact && !((data.phone && data.phone === contact.phoneKey) || (data.email && data.email === contact.emailKey))) throw bad('请核对所选联系人与联系方式');
+        const lead = await ingest({ key: body.source, title: '人工录入', map: value => value },
+            { ...data, _id: req.user.id + ':' + body.key, company: data.companyName, companyId },
+            { manual: true, ownerId: req.user.id, contact, canLink: selected => canSee(req, selected) });
+        if (!canSee(req, lead)) throw bad('该线索已转交其他负责人', 409);
+        res.status(201).json({ row: lead });
+    }));
+    router.post('/:kind', requireCrm('crm:edit'), wrap(async (req, res) => {
+        const { kind } = req.params;
+        if (!Object.hasOwn(MODELS, kind) || kind === 'leads') throw bad('类型不支持', 404);
+        const row = await MODELS[kind].create({ ...await entityValues(req, kind, req.body), ownerId: req.user.id });
+        await note(req, kind, row, 'create', '新建记录');
+        res.status(201).json({ row });
+    }));
+    router.put('/:kind/:id', requireCrm('crm:edit'), wrap(async (req, res) => {
+        const { kind } = req.params, row = await record(req, kind, req.params.id);
+        const data = kind === 'leads' ? leadValues(req.body) : await entityValues(req, kind, req.body, row);
+        if (kind === 'leads') {
+            if (!data.name || (req.body.phone && !data.phone) || (req.body.email && !data.email)) throw bad('请核对姓名和联系方式');
+            if (req.body.contactId || req.body.companyId) {
+                Object.assign(data, await links(req, req.body, row));
+                if (data.contactId) data.matchIssue = '';
+            }
+        }
+        if (['leads', 'opportunities'].includes(kind)) Object.assign(data, stages(row, kind, req.body));
+        const previous = row.stage;
+        const previousContact = row.contactId;
+        row.set(data);
+        await row.save();
+        if (kind === 'leads' && row.contactId && !same(previousContact, row.contactId)) {
+            await Event.updateMany({ leadId: row._id }, { contactId: row.contactId });
+        }
+        if (previous && previous !== row.stage) await note(req, kind, row, 'stage', previous + ' → ' + row.stage);
+        res.json({ row });
+    }));
+    router.post('/:kind/:id/assign', requireCrm('crm:assign'), wrap(async (req, res) => {
+        const { kind } = req.params, row = await record(req, kind, req.params.id);
+        const ownerId = req.body.ownerId || null;
+        const admin = id(ownerId) && await Admin.findById(ownerId).populate('roles').lean();
+        const permissions = gatherPermissions(admin);
+        if (ownerId && (!admin?.isActive || !['all', 'crm:view'].some(perm => permissions.has(perm)))) throw bad('请选择可访问 CRM 的负责人');
+        row.ownerId = ownerId;
+        await row.save();
+        if (kind === 'leads' && ownerId) {
+            if (row.contactId) await Contact.updateOne({ _id: row.contactId, ownerId: null, archivedAt: null }, { ownerId });
+            if (row.companyId) await Company.updateOne({ _id: row.companyId, ownerId: null, archivedAt: null }, { ownerId });
+        }
+        await note(req, kind, row, 'assign', ownerId ? '分配给 ' + (admin.name || admin.username) : '取消分配');
+        res.json({ row });
+    }));
+    router.post('/:kind/:id/follow-up', requireCrm('crm:edit'), wrap(async (req, res) => {
+        const { kind } = req.params, row = await record(req, kind, req.params.id);
+        const channel = text(req.body.channel), summary = text(req.body.summary, 2000);
+        if (!CHANNELS.includes(channel) || !summary) throw bad('请选择沟通方式并填写结果');
+        const nextStep = text(req.body.nextStep, 500), nextAt = date(req.body.nextAt);
+        if (['leads', 'opportunities'].includes(kind) && !TERMINAL.includes(row.stage)) {
+            row.set({ nextAt, nextStep, ...(kind === 'leads' && row.stage === 'new' ? { stage: 'working' } : {}) });
+            await row.save();
+        }
+        await Activity.create({ entity: kind, entityId: row._id, kind: channel, summary, nextAt, nextStep, actorId: req.user.id, actor: req.user.username });
+        res.json({ row });
+    }));
+    router.post('/leads/:id/convert', requireCrm('crm:edit'), wrap(async (req, res) => {
+        const lead = await record(req, 'leads', req.params.id);
+        const existing = await Opportunity.findOne({ leadId: lead._id });
+        if (existing && !canSee(req, existing)) throw bad('商机已由其他负责人管理', 409);
+        if (lead.stage === 'closed') throw bad('请先恢复线索跟进');
+        const values = existing ? null : await entityValues(req, 'opportunities', req.body, lead);
+        const row = existing || await Opportunity.findOneAndUpdate({ leadId: lead._id }, {
+            $setOnInsert: { ...values, leadId: lead._id, ownerId: lead.ownerId || req.user.id, stage: 'demand' }
+        }, { upsert: true, new: true });
+        const result = await Lead.updateOne({ _id: lead._id, ...active(req), opportunityId: null }, { stage: 'converted', opportunityId: row._id, nextAt: null });
+        if (result.modifiedCount) await note(req, 'leads', lead, 'convert', '转为商机：' + row.name);
+        if (!result.matchedCount && !await Lead.exists({ _id: lead._id, ...active(req), opportunityId: row._id })) {
+            throw bad('线索归属或状态有变化，请刷新后核对', 409);
+        }
+        res.status(201).json({ row });
+    }));
+    router.post('/:kind/:id/archive', requireCrm('crm:edit'), wrap(async (req, res) => {
+        const { kind } = req.params;
+        if (!['companies', 'contacts'].includes(kind)) throw bad('该类型请使用阶段管理');
+        const row = await record(req, kind, req.params.id);
+        row.archivedAt = new Date();
+        await row.save();
+        await note(req, kind, row, 'archive', '归档');
+        res.json({ ok: true });
+    }));
+    router.post('/:kind/:id/merge', requireCrm('crm:merge'), wrap(async (req, res) => {
+        const { kind } = req.params;
+        if (!all(req) || !['companies', 'contacts'].includes(kind)) throw bad('合并需要跨负责人管理权限', 403);
+        if (same(req.params.id, req.body.targetId) || !id(req.body.targetId)) throw bad('请选择另一条保留记录');
+        const token = randomUUID();
+        const lockId = 'merge';
+        await Sync.updateOne({ _id: lockId }, { $setOnInsert: { leaseUntil: new Date(0) } }, { upsert: true });
+        if (!await Sync.findOneAndUpdate({ _id: lockId, leaseUntil: { $lte: new Date() } },
+            { leaseUntil: new Date(Date.now() + 120000), leaseToken: token })) throw bad('当前有其他档案正在合并，请稍后重试', 409);
+        try {
+            const Model = MODELS[kind];
+            const source = id(req.params.id) && await Model.findById(req.params.id);
+            const target = await record(req, kind, req.body.targetId);
+            if (!source || (source.archivedAt && !same(source.mergedInto, target._id))) throw bad('原记录无法合并');
+            const field = kind === 'contacts' ? 'contactId' : 'companyId';
+            const result = await Model.updateOne({ _id: source._id, $or: [{ archivedAt: null }, { mergedInto: target._id }] },
+                { archivedAt: source.archivedAt || new Date(), mergedInto: target._id });
+            if (!result.matchedCount) throw bad('原记录已被合并，请刷新', 409);
+            await Promise.all([Model.updateMany({ mergedInto: source._id }, { mergedInto: target._id }), Lead.updateMany({ [field]: source._id }, { [field]: target._id }), Opportunity.updateMany({ [field]: source._id }, { [field]: target._id }),
+                kind === 'contacts' ? Event.updateMany({ contactId: source._id }, { contactId: target._id }) : Contact.updateMany({ companyId: source._id }, { companyId: target._id }),
+                Activity.updateMany({ entity: kind, entityId: source._id }, { entityId: target._id })]);
+            await note(req, kind, target, 'merge', '合并 ' + source.name + ' 到当前档案');
+            res.json({ row: target });
+        } finally {
+            await Sync.updateOne({ _id: lockId, leaseToken: token }, { leaseUntil: new Date(0) });
+        }
+    }));
+    router.post('/contacts/:id/marketing', requireCrm('nqoc-report-leads:batch-send'), wrap(async (req, res) => {
+        const contact = await record(req, 'contacts', req.params.id);
+        const basis = text(req.body.basis, 300);
+        if (!contact.email || !basis || req.body.confirmed !== true) throw bad('请填写报告发放依据并确认，联系人需有邮箱');
+        const importKey = 'crm:' + req.user.id;
+        const row = await MailContact.findOneAndUpdate({ importKey, sourceId: String(contact._id) }, { $setOnInsert: {
+            importKey, sourceId: String(contact._id), email: contact.email, name: contact.name, sourceLabel: 'CRM 联系人',
+            basis, createdBy: req.user.username || req.user.id
+        } }, { new: true, upsert: true });
+        if (row.email !== contact.email) throw bad('该联系人已加入旧邮箱名单，请在邮件营销中核对');
+        res.status(201).json({ ok: true });
+    }));
+    router.use((error, _req, res, _next) => {
+        if (error.name === 'VersionError') return res.status(409).json({ error: '记录已被更新，请刷新再试' });
+        if (error.code === 11000) return res.status(409).json({ error: '已有相同公司或联系方式，请先查找并关联已有档案' });
+        if (!error.status) console.error('[CRM API]', error.code || error.name);
+        return res.status(error.status || 500).json({ error: error.status ? error.message : 'CRM 请求失败，请稍后重试' });
+    });
+    return router;
+}
+module.exports = init;
