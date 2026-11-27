@@ -299,3 +299,31 @@ td button.btn-sm+button.btn-sm{margin-left:6px}
     .website-lead-drawer :is(.drawer-head,.drawer-body,.drawer-footer) { padding:12px 14px; }
     .website-lead-drawer textarea,.website-lead-drawer select { font-size:16px; }
 }
+
+/* 线索列表优先展示联系与需求，更多入口查看完整资料。 */
+.website-lead-table { min-width:960px; table-layout:fixed; }
+.website-lead-table th:nth-child(1) { width:23%; }
+.website-lead-table th:nth-child(2) { width:24%; }
+.website-lead-table th:nth-child(3) { width:33%; }
+.website-lead-table th:nth-child(4) { width:11%; }
+.website-lead-table th:nth-child(5) { width:9%; }
+.website-lead-table :is(th,td) { padding:18px 20px; }
+.website-lead-table td { vertical-align:top; line-height:1.7; }
+.website-lead-table .person { font-size:15px; }
+.website-lead-table .website-lead-company { margin-top:5px; font-size:13px; color:var(--ink2); }
+.website-lead-contact { font-size:14px; line-height:1.8; }
+.website-lead-demand { display:block; overflow:visible; -webkit-line-clamp:unset; margin-top:6px; color:var(--ink); font-size:14px; white-space:pre-wrap; }
+.website-lead-more button { padding:5px 10px; border:1px solid var(--p200); border-radius:8px; white-space:nowrap; color:var(--p600); background:var(--pale); }
+.website-lead-more button:hover { border-color:var(--purple); }
+@media(max-width:740px) {
+    .website-lead-table { min-width:0; table-layout:auto; }
+    .website-lead-table tbody tr { gap:14px; padding:16px; }
+    .website-lead-table td { padding:0; }
+    .website-lead-table td:nth-child(2),.website-lead-table td:nth-child(3) { grid-column:1/-1; }
+    .website-lead-table td:first-child { padding-bottom:12px; }
+    .website-lead-table td:nth-child(4) { align-self:center; }
+    .website-lead-table td:nth-child(4)>.website-lead-cell-label { display:none; }
+    .website-lead-table .website-lead-more { text-align:right; }
+    .website-lead-more button { min-height:40px; }
+    .website-lead-cell-label { margin-bottom:4px; }
+}

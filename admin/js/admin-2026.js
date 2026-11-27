@@ -39,7 +39,7 @@ function leadParams() {
     return query;
 }
 function leadListMessage(text, action = '') {
-    document.getElementById('leadList').innerHTML = `<tr class="website-lead-message"><td colspan="6" role="cell">${esc(text)}${action}</td></tr>`;
+    document.getElementById('leadList').innerHTML = `<tr class="website-lead-message"><td colspan="5" role="cell">${esc(text)}${action}</td></tr>`;
 }
 function renderLeadStats(counts) {
     for (const [key, value] of Object.entries(counts)) {
@@ -103,17 +103,14 @@ function renderLeadRow(item) {
     const intents = item.intents?.length ? item.intents : item.intent || item.service;
     const intent = intents ? intentTags(intents) : '';
     const demand = item.problem || item.message;
-    const entry = item.leadPage || item.landing_page;
-    return `<tr role="row" data-action="open-lead" data-id="${esc(item._id)}">
+    return `<tr role="row">
       <td role="cell"><button type="button" class="person" data-action="open-lead" data-id="${esc(item._id)}">${esc(item.name || '未留姓名')}</button>
-        <span class="sub">${esc([item.company, item.title].filter(Boolean).join(' · ') || '未填写公司')}</span></td>
+        <span class="sub website-lead-company">${esc(item.company || '未填写公司')}</span>
+        ${item.title ? '<span class="sub">' + esc(item.title) + '</span>' : ''}</td>
       ${cell('电话 / 邮箱', contact || '—')}
       ${cell('意向 / 需求', intent + (demand ? '<p class="website-lead-demand">' + esc(demand) + '</p>' : intent ? '' : '—'))}
-      ${cell('留资来源', channelChip(item.channel || item.utm_source) +
-        (entry ? '<span class="sub website-lead-entry">' + esc(entry) + '</span>' : ''))}
       ${cell('跟进状态', chip(item.status || 'new'))}
-      ${cell('留资时间', item.createdAt ? '<time datetime="' + esc(item.createdAt) + '">' + esc(shortDateTime(item.createdAt)) +
-        '</time><span class="sub">' + esc(ago(item.createdAt)) + '</span>' : '—')}
+      <td role="cell" class="website-lead-more"><button type="button" data-action="open-lead" data-id="${esc(item._id)}" aria-label="更多，查看${esc(item.name || '此线索')}详情">更多 <span aria-hidden="true">→</span></button></td>
     </tr>`;
 }
 function resetLeads() {

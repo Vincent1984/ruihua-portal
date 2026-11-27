@@ -20,10 +20,10 @@ describe('线索页原型实现', function () {
     const leadHead = html.match(/<table class="website-lead-table"[\s\S]*?<thead[^>]*>([\s\S]*?)<\/thead>/)[1];
     assert.deepStrictEqual(
       [...leadHead.matchAll(/<th[^>]+scope="col"[^>]*>(.*?)<\/th>/g)].map(match => match[1]),
-      ['联系人 / 公司', '电话 / 邮箱', '意向 / 需求', '留资来源', '跟进状态', '留资时间']
+      ['联系人 / 公司', '电话 / 邮箱', '意向 / 需求', '跟进状态', '操作']
     );
     assert.match(script, /\[item\.phone, item\.email\]/);
-    assert.match(script, /item\.leadPage \|\| item\.landing_page/);
+    assert.match(script, /更多，查看/);
     assert.match(script, /website-lead-demand/);
   });
 
@@ -121,7 +121,6 @@ describe('线索页原型实现', function () {
     assert.match(script, /联系信息[\s\S]*意向与需求[\s\S]*跟进记录[\s\S]*<details[^>]*><summary>留资来源与访问轨迹/);
     assert.match(script, /<details[^>]*><summary>AI 顾问对话/);
     assert.match(script, /<form id="leadFollowForm"[\s\S]*class="notes" id="leadNotes"/);
-    assert.match(script, /datetime="[\s\S]*shortDateTime\(item\.createdAt\)[\s\S]*ago\(item\.createdAt\)/);
   });
 
   it('补齐线索行、抽屉原型 DOM 与状态样式的 CSS', function () {
